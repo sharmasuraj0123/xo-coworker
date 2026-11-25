@@ -1040,7 +1040,7 @@ const CREATE = initCreate({
   },
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.
   onPhoneClose: () => { if (PHONE.matches) appScope.timeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170); },
-});
+}, appScope);
 appScope.listen($("#side-add"), "click", CREATE.open);
 
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────

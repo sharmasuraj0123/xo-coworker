@@ -173,9 +173,9 @@ export interface ProjectApi {
   undoProjectEdit(project: string, editId: string): Promise<SavedProjectFile>;
   projectChanges(project: string, options?: { worktree?: string | null; path?: string | null }): Promise<ProjectChanges>;
   projectTree(project: string, path?: string | null, signal?: AbortSignal): Promise<ProjectTree>;
-  workspaceConfig(): Promise<WorkspaceRootConfig>;
+  workspaceConfig(options?: { signal?: AbortSignal }): Promise<WorkspaceRootConfig>;
   createProject(project: { path: string; displayName?: string; description?: string }): Promise<CreatedProject>;
   cloneProject(clone: { id: string; url: string; displayName?: string; description?: string }): Promise<ProjectClone>;
-  cloneStatus(cloneId: string): Promise<ProjectClone>;
+  cloneStatus(cloneId: string, options?: { signal?: AbortSignal }): Promise<ProjectClone>;
   cancelClone(cloneId: string): Promise<ProjectClone>;
 }

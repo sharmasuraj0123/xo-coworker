@@ -32,7 +32,7 @@ const routes = [
   ["POST", "/files/mkdir", () => api.createProject({ path: "/home/example/fixture" }), fixture.created, (v) => { v.copied = null; }],
   ["POST", "/xo-projects", () => api.cloneProject({ id: project, url: "https://example.test/sample.git" }), fixture.clone,
     (v) => { v.state = "unknown"; }],
-  ["GET", clone, () => api.cloneStatus("cl_fixture"), fixture.clone, (v) => { v.error = {}; }],
+  ["GET", clone, () => api.cloneStatus("cl_fixture"), fixture.activeClone, (v) => { v.error = {}; }],
   ["DELETE", clone, () => api.cancelClone("cl_fixture"), fixture.cancelledClone, (v) => { v.finished_at = 0; }],
   ["GET", "/schedules", () => api.schedules(), { jobs: [fixture.job, fixture.agentJob] }, (v) => { v.jobs = [{}]; }],
   ["GET", schedule, () => api.schedule(job), fixture.job, (v) => { v.last_result = { status: "ok" }; }],
@@ -47,7 +47,11 @@ for (const [method, path, call, sample, alter] of routes) {
     const fetches = mock.method(globalThis, "fetch", async (url, options) => {
       assert.equal(url.split("?")[0], "api" + path);
       assert.equal(options.method, method);
-      return Response.json(value);
+      if (path === "/xo-projects") {
+        assert.deepEqual(JSON.parse(options.body), { project_id: project, repository_url: "https://example.test/sample.git", wait: false });
+      }
+      if (path === clone) assert.equal(options.body, undefined);
+      return Response.json(value, { status: path === "/xo-projects" ? 202 : 200 });
     });
     assert.deepEqual(await call(), sample);
     value = invalid;

@@ -8,7 +8,6 @@ import { fmtSize } from "../../core/services/media/attachment-rules.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { ApiError } from "../../core/platform/http.js";
-import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { parseRepo, projectFailure, slugify } from "./project-input.js";
 import { cloneError } from "./clone-notice.js";
@@ -19,8 +18,16 @@ const PHASE = /** @type {Record<string, string>} */ ({ counting: "Counting files
 
 const GH = ICON.github;
 
-/** @param {import("./types").CreateCtx} ctx */
-export function initCreate(ctx, scope = createScope()) {
+/** @param {unknown} failure */
+function canRetryClone(failure) {
+  return failure instanceof ApiError && (
+    failure.code === "network" || failure.code === "timeout" || [429, 502, 503, 504].includes(failure.status)
+  );
+}
+
+/** @param {import("./types").CreateCtx} ctx @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+export function initCreate(ctx, scope) {
+  const { signal } = scope;
   const dlg = $("#create-dlg"), form = $("#create-form");
   const name = $("#cp-name"), desc = $("#cp-desc"), repo = $("#cp-repo"), submit = $("#cp-submit"), cancel = $("#cp-cancel");
   let root = /** @type {string | null} */ (null), mode = "empty", nameTouched = false;
@@ -65,8 +72,11 @@ export function initCreate(ctx, scope = createScope()) {
   }
 
   async function readGh() {
-    try { gh = await api.githubStatus(); } catch { gh = { status: "needs_auth" }; }
-    if (gh.status !== "connected") gh = { status: "needs_auth" };
+    /** @type {GitHubState} */
+    let next;
+    try { next = await api.githubStatus({ signal }); } catch { next = { status: "needs_auth" }; }
+    if (signal.aborted) return;
+    gh = next.status === "connected" ? next : { status: "needs_auth" };
     renderGh();
   }
   /** GitHub's device flow, in place; a code keeps being polled with the dialog closed, since Space allows one login at a time. */
@@ -77,6 +87,7 @@ export function initCreate(ctx, scope = createScope()) {
     // Connect lives in GitHub's line (#cp-gh) and in a failed clone's message (#cp-err): focus on either is focus on Connect
     const onConnect = () => { const a = document.activeElement; return !!a && ($("#cp-gh").contains(a) || $("#cp-err").contains(a)); };
     const settle = (/** @type {GitHubState} */ next) => {
+      if (signal.aborted) return;
       const was = onConnect();
       gh = next;
       renderGh();
@@ -91,6 +102,7 @@ export function initCreate(ctx, scope = createScope()) {
     let s;
     try { s = await api.githubConnect(); }
     catch (failure) { settle({ status: "failed", error: projectFailure(failure).message }); return; }
+    if (signal.aborted) return;
     if (s.status === "connected") { settle(s); return; }
     const was = onConnect();
     gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
@@ -99,9 +111,9 @@ export function initCreate(ctx, scope = createScope()) {
     const poll = async () => {
       let r = /** @type {GitHubState} */ ({ status: "failed" });
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
-      try { r = await api.githubConnectPoll(s.session_id); }
+      try { r = await api.githubConnectPoll(s.session_id, { signal }); }
       catch (failure) { r.error = failure instanceof ApiError && failure.status === 404 ? "That code expired." : ""; }
-      if (scope.signal.aborted || gh.session !== s.session_id) return;
+      if (signal.aborted || gh.session !== s.session_id) return;
       if (r.status === "pending") { stopLogin = scope.timeout(poll, 5000); return; }
       settle(r.status === "connected" ? r : { status: "failed", error: r.error });
     };
@@ -168,16 +180,20 @@ export function initCreate(ctx, scope = createScope()) {
     if (!job) throw new Error("No clone is being followed.");
     job.cloneId = cloneId;
     for (;;) {
+      signal.throwIfAborted();
       await new Promise((resolve) => {
         const finish = scope.effect(() => () => resolve(undefined));
         scope.timeout(finish, 1000);
       });
-      scope.signal.throwIfAborted();
+      signal.throwIfAborted();
       /** @type {CloneStatus} */
       let st;
-      try { st = await api.cloneStatus(cloneId); }
-      catch (failure) { if (failure instanceof ApiError && failure.status === 404) throw failure; continue; }
-      scope.signal.throwIfAborted();
+      try { st = await api.cloneStatus(cloneId, { signal }); }
+      catch (failure) {
+        if (signal.aborted || !canRetryClone(failure)) throw failure;
+        continue;
+      }
+      signal.throwIfAborted();
       job.st = st;
       if (st.state === "done") return st;
       if (st.state === "failed") {
@@ -195,7 +211,7 @@ export function initCreate(ctx, scope = createScope()) {
     // following the clone shows how it ended: stopped, or done or failed when Stop came too late
     try { await api.cancelClone(id); } catch (failure) {
       // the answer is this clone's: a refusal for an ended clone says nothing to a newer one's Stop
-      if (busy?.cloneId !== id) return;
+      if (signal.aborted || busy?.cloneId !== id) return;
       const err = projectFailure(failure);
       if (err.code === "clone_finished" || err.status === 404) return;
       st.removeAttribute("aria-disabled"); st.removeAttribute("aria-busy");
@@ -206,6 +222,7 @@ export function initCreate(ctx, scope = createScope()) {
 
   let opener = /** @type {HTMLElement | null} */ (null);
   async function open() {
+    if (signal.aborted) return;
     const a = document.activeElement;
     if (a instanceof HTMLElement && a !== document.body && !dlg.contains(a)) opener = a;
     ctx.setDrawer(false);
@@ -224,11 +241,13 @@ export function initCreate(ctx, scope = createScope()) {
   let rootP = null;
   function loadRoot() {
     if (root) return Promise.resolve(root);
-    return (rootP ||= api.workspaceConfig().then((/** @type {WorkspaceConfig} */ cfg) => {
+    return (rootP ||= api.workspaceConfig({ signal }).then((/** @type {WorkspaceConfig} */ cfg) => {
+      if (signal.aborted) return null;
       root = cfg.roots?.[cfg.default] || null;
       renderWhere();
       return root;
     }, (failure) => {
+      if (signal.aborted) return null;
       rootP = null;
       error(`Can't read where projects live: ${projectFailure(failure).message}`);
       return null;
@@ -250,7 +269,9 @@ export function initCreate(ctx, scope = createScope()) {
 
   /** @param {string} id @param {string} title @param {string} description @param {string} line @param {string | null} [warning] */
   async function done(id, title, description, line, warning) {
-    await ctx.world.act.refresh().catch(reportFailure);
+    if (signal.aborted) return;
+    await ctx.world.act.refresh().catch((failure) => { if (!signal.aborted) reportFailure(failure); });
+    if (signal.aborted) return;
     ctx.welcome(id, description, `${title} ${line}${description ? ` · ${description.replace(/[.\s]+$/, "")}` : ""}`);
     const shown = dlg.open;
     setBusy(false);
@@ -273,20 +294,24 @@ export function initCreate(ctx, scope = createScope()) {
     if (!title) { error("Give the project a name."); name.focus(); return; }
     if (!/^[a-z0-9][a-z0-9-]{0,47}$/.test(id)) { error("Use at least one letter or number in the name."); name.focus(); return; }
     if (ctx.world.state.projects.some((p) => p.id === id)) { error(`There's already a project called “${id}”. Pick another name.`); name.focus(); return; }
-    if (!(await loadRoot())) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
+    const projectRoot = await loadRoot();
+    if (signal.aborted) return;
+    if (!projectRoot) { error("Can't create yet: the projects folder is unknown. Is the XO API running?"); return; }
     error("");
     setBusy(true, r);
     try {
       if (r) {
         const { clone_id } = await api.cloneProject({ id, url: r.url, displayName: title, description });
+        if (signal.aborted) return;
         const end = await follow(clone_id);
         await done(id, title, description, `cloned from ${r.label} · plan and memory added`, end.warning);
       } else {
-        await api.createProject({ path: `${root}/${id}`, displayName: title, description });
+        await api.createProject({ path: `${projectRoot}/${id}`, displayName: title, description });
         await done(id, title, description, "created · folder, plan and memory scaffolded");
       }
     } catch (failure) {
-      if (scope.signal.aborted) return;
+      if (signal.aborted) return;
+      if (failure instanceof ApiError && failure.code === "bad_answer") reportFailure(failure);
       setBusy(false);
       const err = projectFailure(failure);
       // Stop is gone: land on what starts it again
@@ -315,7 +340,9 @@ export function initCreate(ctx, scope = createScope()) {
     const action = e.target instanceof Element ? e.target.closest("[data-cp]")?.getAttribute("data-cp") : null;
     if (action === "connect") { e.preventDefault(); connect(); }
     // the device code: said copied only once it is; refused, said so (the code stays on screen to type)
-    if (action === "copy" && gh.code) copyText(gh.code).then((ok) => ctx.announce(ok ? "Copied the code." : COPY_REFUSED));
+    if (action === "copy" && gh.code) copyText(gh.code).then((ok) => {
+      if (!signal.aborted) ctx.announce(ok ? "Copied the code." : COPY_REFUSED);
+    });
   });
   scope.listen(repo, "input", () => {
     error("");

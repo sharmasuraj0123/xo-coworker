@@ -25,6 +25,12 @@ let chatTitleSignal;
 /** @type {Map<Element, (entries: { target: Element; isIntersecting: boolean }[]) => void>} */
 const visibleChatTitles = new Map();
 const githubRead = deferred();
+const createGithubRead = deferred();
+const createCloneWrite = deferred();
+let createGithubSignal;
+let createCloneSignal;
+let createClonePolls = 0;
+
 /** @type {AbortSignal | undefined} */
 let githubSignal;
 const artifactsRead = deferred();
@@ -183,6 +189,17 @@ Object.assign(globalThis, {
     }
     if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "ready" });
     if (path === "/api/deploy/demo/preflight") return Response.json({});
+    if (path === "/api/config/workspace") return Response.json({ default: "home", roots: { home: "/home/test" } });
+    if (path === "/api/connectors/github/status") { createGithubSignal = init?.signal; return createGithubRead.promise; }
+    if (path === "/api/xo-projects" && init?.method === "POST") {
+      assert.equal(JSON.parse(init.body).wait, false);
+      createCloneSignal = init.signal;
+      return createCloneWrite.promise;
+    }
+    if (path.startsWith("/api/xo-projects/clones/")) {
+      createClonePolls++;
+      return Response.json({});
+    }
     if (path === "/api/terminal/status") {
       shellSignal = init?.signal;
       return shellStatus.promise;
@@ -1080,9 +1097,32 @@ const shapeEvent = { data: { key: "ui.shape", value: { doc: { shape: 1, preset: 
 stream.enqueue(encoder.encode(`event: settings\ndata: ${JSON.stringify(shapeEvent)}\n\n`));
 await new Promise(setImmediate);
 const storedShape = storage.get("cv-shape-mine");
+const createForm = document.querySelector("#create-form");
+assert.ok(createForm);
+Object.assign(createForm, { reset() {} });
+press("#side-add");
+press('#cp-mode [data-mode="clone"]');
+const cloneRepo = document.querySelector("#cp-repo");
+assert.ok(cloneRepo instanceof window.HTMLInputElement);
+cloneRepo.value = "example/fixture";
+cloneRepo.dispatchEvent(new window.Event("input", { bubbles: true }));
+createForm.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+await new Promise(setImmediate);
+assert.equal(createGithubSignal?.aborted, false, "Create is reading GitHub before unload");
+assert.equal(createCloneSignal?.aborted, false, "Create has sent the async clone write before unload");
+const createProgress = document.querySelector("#cp-prog").innerHTML;
+const createGithub = document.querySelector("#cp-gh").innerHTML;
 pagehide(false);
+assert.equal(createGithubSignal?.aborted, true, "real unload aborts Create's outstanding read");
+assert.equal(createCloneSignal?.aborted, false, "real unload leaves the already issued clone write alone");
+const cloneFixture = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/project-schedule-responses.json", import.meta.url)));
+createCloneWrite.resolve(Response.json(cloneFixture.clone, { status: 202 }));
+createGithubRead.resolve(Response.json({ status: "connected", username: "late-login" }));
 initialShape.resolve(Response.json({ shape: null, version: "new" }));
 await new Promise(setImmediate);
+assert.equal(document.querySelector("#cp-prog").innerHTML, createProgress, "an accepted clone cannot publish progress after unload");
+assert.equal(document.querySelector("#cp-gh").innerHTML, createGithub, "the retired GitHub read cannot redraw Create");
+assert.equal(createClonePolls, 0, "an accepted clone cannot start polling after unload");
 assert.equal(storage.get("cv-shape-mine"), storedShape, "a queued Shape event cannot write after permanent pagehide");
 assert.deepEqual([shapeReads, shapeWrites], [1, 0], "the retired Shape event cannot start another request");
 assert.equal(stormSignal.aborted && heldStatusSignal.aborted, true, "real unload retires the world and aborts its stream and held GET");

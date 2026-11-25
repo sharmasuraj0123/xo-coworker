@@ -48,7 +48,7 @@ export const projectApi = {
     requestChecked(`/xo-projects/${enc(project)}/tree`, shapes.isProjectTree, {
       query: { relative_path: relativePath, hidden: "true" }, signal,
     }),
-  workspaceConfig: () => requestChecked("/config/workspace", shapes.isWorkspaceRootConfig),
+  workspaceConfig: ({ signal } = {}) => requestChecked("/config/workspace", shapes.isWorkspaceRootConfig, { signal }),
   createProject: ({ path, displayName, description }) => requestChecked("/files/mkdir", shapes.isCreatedProject, {
     method: "POST", body: { path, scaffold: true, display_name: displayName, ...(description ? { description } : {}) },
   }),
@@ -56,6 +56,6 @@ export const projectApi = {
     method: "POST",
     body: { project_id: id, repository_url: url, display_name: displayName, ...(description ? { description } : {}), wait: false },
   }),
-  cloneStatus: (cloneId) => requestChecked(`/xo-projects/clones/${enc(cloneId)}`, shapes.isProjectClone),
+  cloneStatus: (cloneId, { signal } = {}) => requestChecked(`/xo-projects/clones/${enc(cloneId)}`, shapes.isProjectClone, { signal }),
   cancelClone: (cloneId) => requestChecked(`/xo-projects/clones/${enc(cloneId)}`, shapes.isProjectClone, { method: "DELETE" }),
 };

@@ -201,6 +201,20 @@
     "started_at": "2026-01-02T03:04:05Z",
     "finished_at": "2026-01-02T03:04:05Z"
   },
+  "activeClone": {
+    "clone_id": "cl_fixture",
+    "project_id": "fixture",
+    "state": "cloning",
+    "phase": "receiving",
+    "phase_percent": 42,
+    "percent": 25,
+    "received_bytes": 524288,
+    "idle_seconds": 1,
+    "error": null,
+    "warning": null,
+    "started_at": "2026-01-02T03:04:05Z",
+    "finished_at": null
+  },
   "job": {
     "id": "sample check",
     "name": "Sample check",
