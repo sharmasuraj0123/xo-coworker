@@ -2563,10 +2563,35 @@
     "modules/settings/surface.js",
     "modules/map/module.js",
     "modules/changes/module.js",
-    "modules/files/module.js"
+    "modules/files/module.js",
+    "modules/decisions/feedback.js",
+    "modules/home/controller.js",
+    "modules/home/decision-controls.js",
+    "modules/threads/menu-actions.js",
+    "modules/threads/menu-navigation.js"
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/decisions/feedback.js": {
+     "anchor": "export function createDecisionFeedback",
+     "reason": "Decisions owns its All Clear, break and failed-decision notices."
+    },
+    "modules/home/controller.js": {
+     "anchor": "export function createHomeController",
+     "reason": "Home owns section composition, recall and selection focus."
+    },
+    "modules/home/decision-controls.js": {
+     "anchor": "export function bindHomeDecisionControls",
+     "reason": "Home owns its inline decision controls and their scoped listeners."
+    },
+    "modules/threads/menu-actions.js": {
+     "anchor": "export function createThreadMenuActions",
+     "reason": "Threads owns the actions shared by the main and Stage thread menus."
+    },
+    "modules/threads/menu-navigation.js": {
+     "anchor": "export function createThreadMenuNavigation",
+     "reason": "Threads carries menu input modality into main and Stage navigation."
+    },
     "modules/settings/surface.js": {
      "anchor": "export function mountSettingsSurface",
      "reason": "Settings owns the frame, Accounts, keyboard editor and contributed sections with one activation lifetime."

@@ -22,7 +22,7 @@
  "e2e/specs/harness.spec.mjs::eslint(no-shadow)": 1,
  "e2e/specs/harness.spec.mjs::eslint(no-underscore-dangle)": 22,
  "e2e/worlds/lp-shell.cjs::eslint(no-underscore-dangle)": 7,
- "js/app.js::eslint(no-shadow)": 9,
+ "js/app.js::eslint(no-shadow)": 8,
  "js/app.js::eslint(no-unused-expressions)": 1,
  "js/app.js::import(no-unassigned-import)": 1,
  "modules/changes/frame.js::eslint(no-unused-expressions)": 4,

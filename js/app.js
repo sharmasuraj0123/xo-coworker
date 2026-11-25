@@ -2,7 +2,6 @@
 import { createWorld } from "../core/services/world/store.js";
 import { esc } from "../core/platform/util.js";
 import { PHONE as viewportPhone } from "../core/platform/viewport.js";
-import { plural } from "../core/platform/words.js";
 import { createCodeCopy } from "../core/ui/markdown/copy.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import "../core/ui/components/xo-select.js";
@@ -10,12 +9,13 @@ import { renderInline, setThreadInfo, setWebImages } from "../core/ui/markdown/m
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
 import { createDecisions } from "../modules/decisions/controller.js";
+import { createDecisionFeedback } from "../modules/decisions/feedback.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { $ } from "../core/platform/dom.js";
-import { RM, morph } from "../core/ui/motion.js";
+import { RM } from "../core/ui/motion.js";
 import { sound } from "../core/services/sound.js";
 import { plainText, heldWords, heldShort, cliName, chatOrder, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
 import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
@@ -109,6 +109,7 @@ import { createThreadResolve } from "../modules/threads/resolve.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
+import { createThreadMenuActions } from "../modules/threads/menu-actions.js";
 import { createThreadDelete } from "../modules/threads/delete.js";
 import { createThreadEditing, threadTitleInput, threadLabelInput } from "../modules/threads/editing.js";
 import { createThreadControls } from "../modules/threads/controls.js";
@@ -128,13 +129,8 @@ import { createShellPanel } from "../modules/shells/panel.js";
 import { createArtifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
 import { createRecordLines } from "../modules/chats/record-lines.js";
-import { createHomeParts } from "../modules/home/parts.js";
-import { createHomeSelection } from "../modules/home/selection.js";
-import { createOpenNext } from "../modules/home/open-next.js";
-import { createNextCard } from "../modules/home/next-card.js";
-import { createHandled } from "../modules/home/handled.js";
-import { createHomeView } from "../modules/home/view.js";
-import { greeting, today, skTile, bar as skBar, rememberedMade } from "../modules/home/skeleton.js";
+import { createHomeController } from "../modules/home/controller.js";
+import { skTile, bar as skBar, rememberedMade } from "../modules/home/skeleton.js";
 import { wireGestures, dockGestures } from "../shell/gestures.js";
 import { wordsOf } from "../modules/conversation/words.js";
 import { rtName } from "../core/services/runtimes.js";
@@ -142,7 +138,7 @@ import { createThreadRuntime } from "../modules/runtimes/thread.js";
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
-import { menuKeys, focusOpened } from "../core/ui/a11y/keynav.js";
+import { menuKeys } from "../core/ui/a11y/keynav.js";
 import { bindChatControls } from "../modules/chats/controls.js";
 import { createConversationNotices } from "../core/services/notices/line.js";
 import { createLaunchpadHerald } from "../modules/launchpad/herald.js";
@@ -154,7 +150,7 @@ import { wireSound } from "../modules/settings/sound.js";
 import { createShapeApply } from "../modules/settings/apply-shape.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 import { regionRings } from "../core/ui/a11y/ring.js";
-import { entryInput, keepFocusInView, usable } from "../core/ui/a11y/focus.js";
+import { keepFocusInView, usable } from "../core/ui/a11y/focus.js";
 import { createScope } from "../core/kernel/scope.js";
 /** @import { DecisionNeed } from "../modules/decisions/controller-types.d.ts" */
 /** @import { WorldThread } from "../core/services/world/state-types.d.ts" */
@@ -198,8 +194,6 @@ function PROJ(id) {
   return world.project(id)?.name || id;
 }
 const { convHost, openAsk, fwdSource, reactionsHtml } = createMessageContext({ world, PROJ });
-const NUM = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
-const num = (/** @type {number} */ n) => NUM[n] || String(n);
 const STOP_ICON = ICON.stop;
 
 const { THEME, applyTheme } = createTheme(setDiffTheme);
@@ -212,7 +206,6 @@ const projectDescriptions = new Map();
 const notices = createConversationNotices(schedule);
 const localMessages = createLocalMessages();
 const transcriptFolds = createTranscriptFolds();
-const homeSelection = createHomeSelection();
 const { show: heraldShow, forMsg: heraldFor, drop: heraldDrop } = notices;
 const waitSince = new Map();
 const announce = createAnnouncer($("#live"), appScope);
@@ -231,6 +224,7 @@ const edgeBack = (/** @type {EdgeCard} */ card) => {
 };
 const decisionsCard = { get isOpen() { return D.isOpen(); }, park: () => D.park(), unpark: () => D.unpark() };
 const D = createDecisions({
+  ...createDecisionFeedback((notice, duration) => heraldShow(notice, duration), appScope),
   world, P, PROJ, announce, waitSince,
   onShown: () => edgeOver(VW),
   onGone: () => edgeBack(VW),
@@ -242,16 +236,12 @@ const D = createDecisions({
     if (h) { if (h.chatId) go(convOfChat(h.project)); else if (h.plainSession) go("c:" + h.plainSession); else heraldShow({ kind: "calm", text: "It isn't tied to a conversation", sub: h.title }, 3600); return; }
     go("t:" + tid);
   },
-  // a decision refused after its window: the honest correction replaces "All clear"
-  onNotSent: (title, why) => { appScope.timeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
-  onAllClear: (summary) => { appScope.timeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
   // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
   onUndone: (key) => {
-    if (currentView() === "home") homeSelection.restore(key);
+    if (currentView() === "home") restoreHomeDecision(key);
     MDOCK.undoReceipt(key);
     TP.dock?.undoReceipt(key);
   },
-  onBreak: (left) => heraldShow({ kind: "calm", text: "Taking a break", sub: `${left} wait safely` }, 5200),
 });
 const IQ = createIntel({
   world, PROJ,
@@ -449,21 +439,14 @@ const sideRender = createSideRows({
   view: currentView, world, CH, REC: { artifacts }, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
 });
 
-const homeParts = createHomeParts(homeSelection, D.needItems, Kit.isBinary);
-const { endRender, toggleHandled } = createHandled({ world, homeParts, isBusy, num, PROJ, threadMark, askTitle });
-
-
 /** The chat behind a conversation: "ws" → workspace, "p:x" → x (threads use their project). */
 const chatOf = convProject;
 const convOfChat = (/** @type {string} */ chat) => chat === "workspace" ? "ws" : "p:" + chat;
-/** @type {Parameters<typeof createNextCard<DecisionNeed>>[0]} */
-const nextCardOptions = { D, Kit, evidenceFor, PROJ, convOfChat };
-const nextCardHtml = createNextCard(nextCardOptions);
-const { homeRender, nextDecide } = createHomeView({
-  selection: homeSelection, isCurrent: () => currentView() === "home", D, world, Kit, EFFORT,
-  homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel,
-  SV: { homeOrder: (body) => SV.homeOrder(body) }, announce, schedule,
-}, appScope);
+const { homeParts, homeRender, openNext, restore: restoreHomeDecision } = createHomeController({
+  host: $("#home"), scope: appScope, isCurrent: () => currentView() === "home", D, world, Kit, EFFORT,
+  evidenceFor, convOfChat, threadMark, noun, isBusy, askTitle, PROJ, kernel, heraldShow,
+  SV: { homeOrder: (body) => SV.homeOrder(body) }, announce, schedule, decideKey: (key) => decideKey(key),
+});
 const messagesOf = createConversationMessages({ localMessages, shape: SHAPE, world, D, PROJ, convThread, chatOf, convProject, threadsOf });
 
 const pendingStops = createPendingRunStops();
@@ -703,7 +686,20 @@ const resolveThread = createThreadResolve({ world, schedule, announce, heraldFor
 const threadEditing = createThreadEditing({
   controls: threadControls, world, render: () => render(), schedule, announce, heraldShow, composerAt: (el) => composerAt(el), requestFocus: redrawFocus.request,
 });
-const { closeThreadMenu, startThreadEdit, saveThreadField, unfreeze } = threadEditing;
+const { closeThreadMenu } = threadEditing;
+const threadDelete = createThreadDelete({ world, render: () => render(), view: currentView, go, announce, heraldShow, PROJ });
+const threadMenuAction = createThreadMenuActions({
+  thread: world.thread, go, controls: threadControls, editing: threadEditing, deletion: threadDelete,
+  render: () => render(), schedule, scope: appScope, resolve: resolveThread, heraldShow,
+  closePage: () => STAGE.closePage("thread"), showThread: (id, input) => STAGE.show("thread", id, { focus: true, input }),
+  openOtherRuntime() {
+    const sid = sessionOf(currentView()), choice = IQ.runtimeChoice(sid);
+    const to = choice.list.find((option) => option.id !== choice.on && option.usable);
+    if (!to) return false;
+    IQ.open(sid, $("#iq"), { rt: to.id });
+    return true;
+  },
+});
 menuKeys($("#top"), { close: () => closeThreadMenu() });
 threadEditing.bind($("#top"));
 // "Coordinator needs you" in a chat's header: the card above the composer, unfolded and in focus
@@ -755,21 +751,6 @@ appScope.listen(document, "click", (event) => {
   if (t.closest("[data-create]")) { CREATE.open(); return; }
   const shell = action("data-shell");
   if (shell != null) { openShell(shell); return; }
-  if (t.closest("[data-open-all]")) { D.open(homeParts().next?.key); return; }
-  if (t.closest("[data-glances]")) { D.open(null, { only: "glance" }); return; }
-  const later = action("data-later");
-  // Focus moves to the next decision when the current selection changes.
-  if (later) { homeSelection.requestFocus(); D.laterNow(later); homeSelection.select(null); return; }
-  if (t.closest("[data-bring]")) {
-    homeSelection.requestFocus();
-    D.recallAll();
-    announce("Brought back. They're in today's list again.");
-    schedule();
-    return;
-  }
-  if (t.closest("[data-handled]")) { toggleHandled(); return; }
-  const bring = action("data-bring-in");
-  if (bring) { homeSelection.requestFocus(); D.bringIn(bring); return; }
   const recordUndo = action("data-rec-undo");
   if (recordUndo) { undoRecord(recordUndo); return; }
   // Return focus when the notice disappears, including when its opener redraws.
@@ -819,108 +800,11 @@ appScope.listen(document, "click", (event) => {
     transcriptFolds.toggle(key, { host: tc.msgs, restoreFocus: tb.contains(document.activeElement) });
     schedule(); return;
   }
-  const rs = t.closest("[data-resolve]");
-  const resolving = rs?.getAttribute("data-resolve");
-  if (rs && resolving) { resolveThread(resolving, rs.getAttribute("data-to") === "resolve"); return; }
-  const tm = t.closest("[data-tmenu]");
-  const menuId = tm?.getAttribute("data-tmenu");
-  if (tm && menuId) {
-    const open = threadControls.toggleMenu(menuId, tm.getAttribute("data-tmenu-in") === "page" ? "page" : "main");
-    render();
-    const opened = tm.parentElement?.querySelector(".tw-menu");
-    if (open && opened instanceof HTMLElement) focusOpened(opened, e);
-    return;
-  }
-  const menu = threadControls.menu();
-  const field = action("data-tfield");
-  // the thread's ⋯: previous / next thread, copy its branch's name
-  const tg = t.closest("[data-tgo]");
-  if (tg) {
-    const nextView = tg.getAttribute("data-tgo");
-    if (tg.getAttribute("aria-disabled") !== "true" && nextView) {
-      const page = menu?.location === "page", input = entryInput(e);
-      closeThreadMenu({ focus: false });
-      if (page && nextView.startsWith("t:")) STAGE.show("thread", nextView.slice(2), { focus: true, input });
-      else go(nextView);
-    }
-    return;
-  }
-  const tsd = action("data-tside");
-  if (tsd) {
-    const th = world.thread(tsd), input = entryInput(e);
-    closeThreadMenu({ focus: false });
-    if (th) {
-      go("p:" + th.project);
-      STAGE.show("thread", th.id, { focus: true, input });
-    }
-    return;
-  }
-  // from the page, what its own page's header does in place (rename, label, delete, another runtime): there, started
-  const fromPage = menu?.location === "page" && (t.closest("[data-tfield]:not([data-tfield=clear-label])") || t.closest("[data-tdel]") || t.closest("[data-tmove]"));
-  if (fromPage && menu) {
-    const tid = menu.id;
-    STAGE.closePage("thread"); threadControls.clearMenu();
-    go("t:" + tid); // drawn in this step: what the item leads to starts here too, never a frame later
-    if (fromPage.hasAttribute("data-tdel")) { threadDelete.ask(tid); $("[data-tdel-no]")?.focus({ preventScroll: true }); }
-    else if (field === "title" || field === "label") startThreadEdit(tid, field);
-    else { const sid = sessionOf(currentView()), ch = IQ.runtimeChoice(sid), to = ch.list.find((o) => o.id !== ch.on && o.usable); if (to) IQ.open(sid, $("#iq"), { rt: to.id }); }
-    return;
-  }
-  const branch = action("data-tcopy");
-  if (branch) {
-    closeThreadMenu();
-    navigator.clipboard?.writeText(branch).then(
-      () => heraldShow({ kind: "done", text: "Branch name copied", sub: branch }, 2400),
-      () => heraldShow({ kind: "stopped", text: "Couldn't copy the branch name", sub: branch }, 4200),
-    );
-    return;
-  }
-  const td = action("data-tdel");
-  if (td) {
-    threadControls.clearMenu();
-    threadDelete.ask(td);
-    appScope.frame(() => $("[data-tdel-no]")?.focus({ preventScroll: true }));
-    return;
-  }
-  if (t.closest("[data-tdel-no]")) {
-    const tid = threadDelete.cancel();
-    $(`[data-tmenu="${CSS.escape(tid || "")}"]`)?.focus({ preventScroll: true });
-    return;
-  }
-  const tdy = action("data-tdel-yes");
-  if (tdy) { threadDelete.confirm(tdy); return; }
   const lb = t.closest("[data-limit]");
   const limit = lb?.getAttribute("data-limit"), decision = lb?.getAttribute("data-limit-d");
   if (limit && decision) { void decideLimit(limit, decision); return; }
-  const tmv = t.closest("[data-tmove]");
-  if (tmv) {
-    // Give the runtime picker focus before dismissing the menu.
-    const sid = sessionOf(currentView()), ch = IQ.runtimeChoice(sid), to = ch.list.find((o) => o.id !== ch.on && o.usable);
-    if (to) IQ.open(sid, $("#iq"), { rt: to.id });
-    if (to) { threadControls.clearMenu(); schedule(); } else closeThreadMenu();
-    return;
-  }
-  const unf = t.closest("[data-unfreeze]");
-  const freezing = unf?.getAttribute("data-unfreeze");
-  if (freezing && unf instanceof HTMLElement) { unfreeze(freezing, unf); return; }
-  // Rename and the label open their field (focus goes there); Remove the label is done from ⋯ (focus back on it)
-  if (field && menu) {
-    if (field === "clear-label") { closeThreadMenu(); saveThreadField(menu.id, "label", ""); }
-    else if (field === "title" || field === "label") { threadControls.clearMenu(); startThreadEdit(menu.id, field); }
-    return;
-  }
-  if (menu && !t.closest(".tw-menu")) closeThreadMenu({ focus: false });
+  if (threadMenuAction(t, e)) return;
   if (t.closest("[data-ck]")) { const tc = convAt(t), th = convThread(tc.view); if (th) { toggleChecklist(th.id); if (tc === MAIN) checklistRender(D.needItems()); else checklistRender(D.needItems(), $("#tpthead"), tc.view, "tck-list"); } return; }
-  const o = t.closest("[data-nx-opt]");
-  if (o) {
-    const option = homeParts().next?.ask.options?.[Number(o.getAttribute("data-nx-opt"))];
-    if (option != null) { o.classList.add("pressed"); nextDecide({ option }); }
-    return;
-  }
-  if (t.closest("[data-nx-allow]")) { nextDecide("allow"); return; }
-  if (t.closest("[data-nx-back]")) { const card = $("#hm-next .next"); morph(card, () => { card.classList.add("noting"); card.querySelector(".nx-note").hidden = false; }, { duration: 280, fade: card.querySelector(".nx-note") }); card.querySelector("#nx-note-in").focus({ preventScroll: true }); return; }
-  if (t.closest("[data-nx-send]")) { nextDecide("deny", $("#nx-note-in").value); return; }
-  if (t.closest("[data-nx-cancel]")) { const card = $("#hm-next .next"); morph(card, () => { card.classList.remove("noting"); card.querySelector(".nx-note").hidden = true; }, { duration: 260 }); card.focus({ preventScroll: true }); return; }
   const retryId = action("data-retry");
   if (retryId) { retry(retryId); return; }
   // A stopped turn moves focus from Interrupt to Undo.
@@ -967,37 +851,6 @@ appScope.listen(document, "click", (event) => {
   const cp = t.closest("[data-copy]");
   if (cp) void codeCopy.copy(cp);
 });
-appScope.listen($("#home"), "keydown", (event) => {
-  const t = event.target;
-  if (!(t instanceof Element) || !("key" in event)) return;
-  const e = /** @type {KeyboardEvent} */ (event);
-  const note = t.closest("textarea");
-  if (note && note === t && note.id === "nx-note-in") {
-    if (e.isComposing || e.keyCode === 229) return; // a word being composed owns its keys: Enter and Escape too
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); nextDecide("deny", note.value); }
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); $("[data-nx-cancel]").click(); }
-    return;
-  }
-  // on the focused Home card: 1–9 answer, A allows a routine glance, D sends back, E details
-  const card = t.closest(".next");
-  if (!card || t !== card || e.metaKey || e.ctrlKey || e.altKey) return;
-  // Holding down a shortcut cannot submit another decision.
-  if (e.repeat) { e.preventDefault(); e.stopPropagation(); return; }
-  const n = homeParts().next;
-  if (!n || n.key !== card.getAttribute("data-key")) return;
-  if (/^[1-9]$/.test(e.key) && Array.isArray(n.ask.options) && !Kit.isBinary(n.ask) && n.effort === "glance") { const o = n.ask.options[+e.key - 1]; if (o != null) { e.preventDefault(); e.stopPropagation(); nextDecide({ option: o }); } }
-  else if (K.is(e, "allow") && Kit.isBinary(n.ask) && n.effort === "glance") { e.preventDefault(); e.stopPropagation(); nextDecide("allow"); }
-  else if (K.is(e, "back") && n.effort === "glance") {
-    e.preventDefault();
-    e.stopPropagation();
-    const back = card.querySelector("[data-nx-back]");
-    if (back instanceof HTMLElement) back.click();
-  }
-  else if (K.is(e, "details") || e.key === "Enter") { e.preventDefault(); e.stopPropagation(); decideKey(n.key); }
-});
-const openNext = createOpenNext({ homeParts, heraldShow, decideKey });
-
-const threadDelete = createThreadDelete({ world, render: () => render(), view: currentView, go, announce, heraldShow, PROJ });
 /** @type {Parameters<typeof createConversationHeader<DecisionNeed>>[0]} */
 const headerOptions = {
   threadControls, description: (project) => projectDescriptions.get(project), world, PICK, LP, LW, STAGE, kernel, atOf,

@@ -400,7 +400,7 @@
  },
  "js/app.js": {
   "dependencyKey": 613,
-  "lineLength": 59
+  "lineLength": 51
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,

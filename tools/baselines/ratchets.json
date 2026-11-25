@@ -1,17 +1,17 @@
 {
  "lines": {
-  "js/app.js": 1196,
+  "js/app.js": 1049,
   "css/app.css": 654,
   "css/panel.css": 536
  },
  "important": {
-  "modules/decisions/decisions.css": 2,
-  "shell/dialogs.css": 1,
-  "modules/artifacts/artifacts.css": 1,
   "css/foundation.css": 11,
-  "modules/conversation/msgx.css": 7,
   "css/panel.css": 10,
   "core/ui/foundation.css": 6,
-  "core/ui/markdown/rich.css": 2
+  "core/ui/markdown/rich.css": 2,
+  "shell/dialogs.css": 1,
+  "modules/artifacts/artifacts.css": 1,
+  "modules/conversation/msgx.css": 7,
+  "modules/decisions/decisions.css": 2
  }
 }
