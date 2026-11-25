@@ -96,6 +96,7 @@ await test("files: the tree lists one level, sorted; a file reads with a version
   const st = createStore(basic);
   const f = record(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=notes.txt").answer.body);
   assert.equal(f.content, "one\ntwo\nthree\n");
+  assert.ok(typeof f.version === "string");
   assert.match(f.version, /^sha256:/);
   assert.equal(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=nope").answer.status, 404);
 });
