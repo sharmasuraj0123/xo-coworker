@@ -24,9 +24,6 @@
  "modules/conversation/typing.js": {
   "setTimeout": 2
  },
- "modules/create-project/create.js": {
-  "setTimeout": 5
- },
  "modules/decisions/card-events.js": {
   "setTimeout": 2
  },

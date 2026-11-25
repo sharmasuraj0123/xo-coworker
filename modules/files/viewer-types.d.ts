@@ -30,9 +30,9 @@ export interface ViewerData {
   size_bytes?: number | null;
   remote?: boolean;
   editable?: boolean;
-  not_editable_reason?: string;
+  not_editable_reason?: string | null;
   truncated?: boolean;
-  place?: string;
+  place?: string | null;
   doc?: ViewerDocument;
 }
 

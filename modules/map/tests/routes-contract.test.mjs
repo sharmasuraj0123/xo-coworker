@@ -12,7 +12,8 @@ const seen = [];
 globalThis.fetch = async (url, init) => {
   const request = new URL(String(url), "http://local");
   seen.push([init?.method ?? "GET", request.pathname, Object.fromEntries(request.searchParams)]);
-  return Response.json({ files: [{ name: "readme", relative_path: "base/docs/readme" }] });
+  return Response.json({ project_id: "project/key", relative_path: "base/docs", dirs: [],
+    files: [{ name: "readme", relative_path: "base/docs/readme" }] });
 };
 const folders = createMapFolders(api, () => {});
 const folder = { project: "project/key", base: "base" };

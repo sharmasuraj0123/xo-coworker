@@ -5,12 +5,18 @@ import { readFileSync } from "node:fs";
 import { api, attachmentText, attachmentUrl } from "../../../core/platform/api.js";
 
 const { paths, taken } = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8"));
+const fixturesUrl = new URL("../../../core/platform/tests/fixtures/project-schedule-responses.json", import.meta.url);
+const fixture = JSON.parse(readFileSync(fixturesUrl, "utf8"));
 /** @type {[string, string][]} */
 const requests = [];
 const pathname = (/** @type {string | URL | Request} */ url) => new URL(String(url), "http://localhost/").pathname;
 globalThis.fetch = async (url, { method = "GET" } = {}) => {
-  requests.push([method, pathname(url)]);
-  return new Response("{}");
+  const path = pathname(url);
+  requests.push([method, path]);
+  const endpoint = path.split("/").at(-1);
+  const data = { tree: fixture.tree, file: method === "PUT" ? fixture.saved : fixture.file, versions: fixture.versions,
+    mkdir: fixture.folder, rename: fixture.rename, delete: fixture.delete, undo: fixture.undo };
+  return Response.json(data[endpoint] ?? {});
 };
 
 const file = "docs/index.html";

@@ -64,7 +64,7 @@ try {
   reads[1].resolve(Response.json({ files: "malformed" }));
   await new Promise(setImmediate);
   assert.equal(reported.length, 1);
-  assert.ok(reported[0] instanceof TypeError);
+  assert.equal(reported[0].code, "bad_answer");
   assert.doesNotMatch(host.textContent, /Reading…/);
   const retry = () => {
     const button = host.querySelector('button[data-node="/!"]');
@@ -80,7 +80,8 @@ try {
   retry();
   await new Promise(setImmediate);
   assert.equal(reads.length, 4);
-  reads[3].resolve(Response.json({ files: [{ name: "current.js" }], dirs: [] }));
+  reads[3].resolve(Response.json({ project_id: "demo", relative_path: "",
+    files: [{ name: "current.js", relative_path: "current.js" }], dirs: [] }));
   await new Promise(setImmediate);
   assert.match(host.textContent, /current\.js/);
   assert.doesNotMatch(host.textContent, /Try again|Reading…/);

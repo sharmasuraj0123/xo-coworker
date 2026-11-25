@@ -24,7 +24,8 @@ Object.assign(globalThis, {
   matchMedia: () => ({ get matches() { return phone; }, addEventListener() {}, removeEventListener() {} }),
   requestAnimationFrame(callback) { frames.set(++frameId, callback); return frameId; },
   cancelAnimationFrame(id) { frames.delete(id); },
-  fetch: async () => Response.json({ dirs: [], files: ["one.js", "two.js", "three.js"].map((name) => ({ name })) }),
+  fetch: async () => Response.json({ project_id: "project", relative_path: "", dirs: [],
+    files: ["one.js", "two.js", "three.js"].map((name) => ({ name, relative_path: name })) }),
 });
 Object.defineProperty(globalThis, "performance", { value: { now: () => Date.now() } });
 const { createMap } = await import("../modules/map/map.js");

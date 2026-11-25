@@ -93,7 +93,9 @@ t("quick open uses the coworker routes and sends the active worktree and search 
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input), "https://example.test/");
     requests.push({ method: init.method, path: url.pathname, query: Object.fromEntries(url.searchParams) });
-    return Response.json({});
+    return Response.json(url.pathname.endsWith("/paths")
+      ? { unchanged: true, stamp: "latest" }
+      : { root: "", files: 0, matches: [], truncated: false, took_ms: 1 });
   };
   try {
     await platformApi.projectPaths("front end", { worktree: "work/one", stamp: "latest" });

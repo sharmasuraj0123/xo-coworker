@@ -245,8 +245,7 @@
   "explicitAny": 2
  },
  "e2e/tests/store.test.mjs": {
-  "commentLines": 2,
-  "explicitAny": 3
+  "commentLines": 1
  },
  "e2e/worlds/lp-shell.cjs": {
   "commentLines": 2

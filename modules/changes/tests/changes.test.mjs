@@ -126,11 +126,20 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
 await t("a place is read on opening, and once more per finished edit (not per render), one read at a time", async () => {
   calls.length = 0;
   const T = store([{ id: "u1", done: true, rows: [row(1, "edit_file", WT + "/js/a.js")] }]);
-  reply = (u) => ({ status: 200, body: { root: ".xo/worktrees/thread-a", base_commit: "b0", computed_at: String(calls.length), files: [
-    { path: "js/a.js", status: "modified", additions: 2, deletions: 1, binary: false, patch: patch("js/a.js", "@@ -1,2 +1,3 @@\n a\n-b\n+B\n+c\n") },
-    { path: "big.json", status: "modified", additions: 9000, deletions: 0, binary: false, patch: null, patch_omitted: "response_budget" },
-    { path: "logo.png", status: "added", additions: null, deletions: null, binary: true, patch: null, patch_omitted: "binary" },
-  ].filter((f) => !u.searchParams.get("path") || f.path === u.searchParams.get("path")).map((f) => (u.searchParams.get("path") && f.path === "big.json" ? { ...f, patch: patch("big.json", "@@ -1 +1 @@\n-x\n+y\n"), patch_omitted: null } : f)) } });
+  reply = (u) => {
+    const path = u.searchParams.get("path");
+    const files = [
+      { path: "js/a.js", status: "modified", additions: 2, deletions: 1, binary: false,
+        version: "v1", patch: patch("js/a.js", "@@ -1,2 +1,3 @@\n a\n-b\n+B\n+c\n") },
+      { path: "big.json", status: "modified", additions: 9000, deletions: 0, binary: false, version: "v2",
+        ...(path ? { patch: patch("big.json", "@@ -1 +1 @@\n-x\n+y\n") } : { patch: null, patch_omitted: "response_budget" }) },
+      { path: "logo.png", status: "added", additions: null, deletions: null, binary: true,
+        version: "v3", patch: null, patch_omitted: "binary" },
+    ].filter((file) => !path || file.path === path);
+    return { status: 200, body: { project_id: "p", worktree: "thread-a", root: ".xo/worktrees/thread-a",
+      base_ref: null, base_commit: "b0", base_source: "head", head_commit: "b1", computed_at: String(calls.length),
+      truncated: false, total_files: files.length, files } };
+  };
   let changed = 0;
   const W = world(T);
   const C = createChanges({ api, world: W, onChange() { changed++; } });

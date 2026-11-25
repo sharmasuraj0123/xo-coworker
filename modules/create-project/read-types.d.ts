@@ -20,15 +20,15 @@ export interface CloneStatus {
   percent?: number;
   received_bytes?: number;
   idle_seconds?: number;
-  warning?: string;
-  error?: { message?: string; code?: string; detail?: string };
+  warning?: string | null;
+  error?: { message?: string; code?: string; detail?: string } | null;
 }
 
 export interface CloneActivity {
   t0: number;
   label?: string;
   host?: string | null;
-  timer?: ReturnType<typeof setTimeout>;
+  stopTick?: () => void;
   cloneId?: string;
   st?: CloneStatus;
 }

@@ -3,6 +3,8 @@
 import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
 import { readJsonEvents } from "./sse.js";
 import { engineStatus } from "./response.js";
+import { projectApi } from "./project-api.js";
+import { scheduleApi } from "./schedule-response.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
@@ -136,52 +138,14 @@ export const api = {
   worktrees: (chat) => chatActivityApi.worktrees(chat),
   removeWorktree: (chat, ts, confirm) => chatActivityApi.removeWorktree(chat, ts, confirm),
 
-  schedules: () => get("/schedules"),
-  schedule: (id) => get(`/schedules/${enc(id)}`),
-  scheduleRuns: (id, query = {}) => get(`/schedules/${enc(id)}/runs`, query),
-
-  /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. version: one of the file's versions from Space's version store, read only */
-  projectFile: (project, relativePath, at, { purpose, version } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}), ...(version ? { version } : {}) }),
-  /** Save a project file (Space; serve.py adds the UI's writer key). base_version: the version you started from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428 confirm_required (send again with confirm "runs_code"); 403 read_only_place | ui_only | outside_project. restoreOf: the version id a Restore brings back (Space records the save as kind "restore") */
-  saveProjectFile: (project, relativePath, content, baseVersion, confirm, { restoreOf = null } = {}) =>
-    request(`/xo-projects/${enc(project)}/file`, { method: "PUT", body: { relative_path: relativePath, content, base_version: baseVersion, ...(confirm ? { confirm } : {}) }, ...(restoreOf ? { headers: { "X-XO-Restore-Of": restoreOf } } : {}) }),
-  /** A file's versions, every writer's (Space's version store): {versions: [{id, n, version, at, by: {kind: ui|agent|disk, thread_ts?, message_id?}, kind, current}], head, more}. 404 on a Space without it. */
-  projectVersions: (project, relativePath, { limit = 50, before = null } = {}) => get(`/xo-projects/${enc(project)}/versions`, { relative_path: relativePath, limit, ...(before ? { before } : {}) }),
-  /** Every file in a place: {root, paths, dirs, truncated, stamp} or {unchanged} for the same stamp. */
-  projectPaths: (project, { worktree = null, stamp = null } = {}) => get(`/coworker/xo-projects/${enc(project)}/paths`, { ...(worktree ? { worktree } : {}), ...(stamp ? { stamp } : {}) }),
-  /** Text in a place's files: {root, matches: [{path, line, col, text, ranges}], files, truncated, took_ms}. */
-  projectSearch: (project, { q, worktree = null, regex = false, case: cs = false, word = false, glob = null, limit = 500 } = {}) =>
-    get(`/coworker/xo-projects/${enc(project)}/search`, { q, ...(worktree ? { worktree } : {}), regex: String(!!regex), case: String(!!cs), word: String(!!word), ...(glob ? { glob } : {}), limit }),
-  /** Rename or move a file or folder (the UI's writer key, serve.py): {relative_path, old_relative_path, kind, edit_id}. */
-  renameProjectFile: (project, relativePath, newRelativePath, confirm) => send("POST", `/xo-projects/${enc(project)}/files/rename`, { relative_path: relativePath, new_relative_path: newRelativePath, ...(confirm ? { confirm } : {}) }),
-  /** Delete a file or folder into Space's trash: {edit_id, kind, count}; undoProjectEdit brings it back. */
-  deleteProjectFile: (project, relativePath, baseVersion, confirm) => send("POST", `/xo-projects/${enc(project)}/files/delete`, { relative_path: relativePath, ...(baseVersion ? { base_version: baseVersion } : {}), ...(confirm ? { confirm } : {}) }),
-  /** A new folder. */
-  mkdirProject: (project, relativePath) => send("POST", `/xo-projects/${enc(project)}/files/mkdir`, { relative_path: relativePath }),
-  /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
-  undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
-  /** What changed in a project (Space): a thread's worktree against where its branch left the default branch, uncommitted work included, or the project's own checkout against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?, status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB). */
-  projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
-  /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. hidden files too (.env, .gitignore, .github/…): you can read and edit everything in a project */
-  projectTree: (project, relativePath, signal) =>
-    get(`/xo-projects/${enc(project)}/tree`, { relative_path: relativePath || undefined, hidden: "true" }, signal),
+  ...scheduleApi,
+  ...projectApi,
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
   /** A project file as a commit had it (the coworker service's version route): the Changes view's "Before" of a changed or deleted image (commit: /changes' base_commit). relativePath: the file now, project-relative (it may be gone); was: its name at that commit when it was renamed since (/changes' old_path, relative to the worktree). Images come inline. 404 version_not_found when the commit hadn't it. */
   projectVersion: (project, relativePath, { commit, was = null }, opts) => blob(`/coworker/xo-projects/${enc(project)}/version?relative_path=${enc(relativePath)}&commit=${enc(commit)}${was ? `&commit_path=${enc(was)}` : ""}&hidden=true`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
   projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}&hidden=true`, { ms: 300000 }),
-  /** Where xo-projects live: {roots: {...}, default}. Never hard-code the root. */
-  workspaceConfig: () => get("/config/workspace"),
-  /** Scaffold a new xo-project (xo-cowork-api). 409 when the folder exists. */
-  createProject: ({ path, displayName, description }) =>
-    send("POST", "/files/mkdir", { path, scaffold: true, display_name: displayName, ...(description ? { description } : {}) }),
-  /** Clone a Git repository into a new xo-project as a Space clone job (POST /xo-projects, wait:false): answers 202 {clone_id} at once; cloneStatus then reports {state, phase, percent, received_bytes, idle_seconds, error, warning}. 400/409/429 come back before anything is cloned. */
-  cloneProject: ({ id, url, displayName, description }) =>
-    send("POST", "/xo-projects", { project_id: id, repository_url: url, display_name: displayName, ...(description ? { description } : {}), wait: false }),
-  cloneStatus: (cloneId) => get(`/xo-projects/clones/${enc(cloneId)}`),
-  /** Stops a clone; Space removes what it had fetched. */
-  cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
   githubStatus: ({ signal } = {}) => get("/connectors/github/status", undefined, signal),
   githubIssues: (project, refresh = false, { signal } = {}) =>

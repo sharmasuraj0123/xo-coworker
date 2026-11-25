@@ -8,6 +8,8 @@ import { fmtSize } from "../../core/services/media/attachment-rules.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { ApiError } from "../../core/platform/http.js";
+import { createScope } from "../../core/kernel/scope.js";
+import { reportFailure } from "../../core/platform/util.js";
 import { parseRepo, projectFailure, slugify } from "./project-input.js";
 import { cloneError } from "./clone-notice.js";
 
@@ -18,13 +20,13 @@ const PHASE = /** @type {Record<string, string>} */ ({ counting: "Counting files
 const GH = ICON.github;
 
 /** @param {import("./types").CreateCtx} ctx */
-export function initCreate(ctx) {
+export function initCreate(ctx, scope = createScope()) {
   const dlg = $("#create-dlg"), form = $("#create-form");
   const name = $("#cp-name"), desc = $("#cp-desc"), repo = $("#cp-repo"), submit = $("#cp-submit"), cancel = $("#cp-cancel");
   let root = /** @type {string | null} */ (null), mode = "empty", nameTouched = false;
   let busy = /** @type {CloneActivity | null} */ (null);
   let gh = /** @type {GitHubState} */ ({ status: "unknown" });
-  let login = /** @type {ReturnType<typeof setTimeout> | undefined} */ (undefined);
+  let stopLogin = /** @type {(() => void) | undefined} */ (undefined);
 
   $("#dlg-ic").innerHTML = ICON.project;
   $("#cpm-empty").innerHTML = ICON.plus;
@@ -70,7 +72,7 @@ export function initCreate(ctx) {
   /** GitHub's device flow, in place; a code keeps being polled with the dialog closed, since Space allows one login at a time. */
   async function connect() {
     if (gh.status === "starting") return;
-    clearTimeout(login);
+    stopLogin?.();
     gh = { status: "starting" }; renderGh();
     // Connect lives in GitHub's line (#cp-gh) and in a failed clone's message (#cp-err): focus on either is focus on Connect
     const onConnect = () => { const a = document.activeElement; return !!a && ($("#cp-gh").contains(a) || $("#cp-err").contains(a)); };
@@ -99,11 +101,11 @@ export function initCreate(ctx) {
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
       try { r = await api.githubConnectPoll(s.session_id); }
       catch (failure) { r.error = failure instanceof ApiError && failure.status === 404 ? "That code expired." : ""; }
-      if (gh.session !== s.session_id) return; // a newer code took over
-      if (r.status === "pending") { login = setTimeout(poll, 5000); return; }
+      if (scope.signal.aborted || gh.session !== s.session_id) return;
+      if (r.status === "pending") { stopLogin = scope.timeout(poll, 5000); return; }
       settle(r.status === "connected" ? r : { status: "failed", error: r.error });
     };
-    login = setTimeout(poll, 5000);
+    stopLogin = scope.timeout(poll, 5000);
   }
 
   function setMode(/** @type {string} */ m, { focus = true } = {}) {
@@ -119,7 +121,7 @@ export function initCreate(ctx) {
 
   /** busy: {t0, label, cloneId?, st?} while creating or cloning. @param {boolean} on @param {import("./types").Repo | null} [repoOf] */
   function setBusy(on, repoOf) {
-    clearTimeout(busy?.timer);
+    busy?.stopTick?.();
     busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
     for (const b of $("#cp-mode").children) b.disabled = on;
@@ -158,7 +160,7 @@ export function initCreate(ctx) {
     $("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
     $("#cp-stop").hidden = !busy.cloneId;
     $("#cp-hint").hidden = s < 6;
-    busy.timer = setTimeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
+    busy.stopTick = scope.timeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
   }
   /** Follow a clone until it's done; throws its error, or "cancelled" once it's stopped from anywhere. @param {string} cloneId */
   async function follow(cloneId) {
@@ -166,11 +168,16 @@ export function initCreate(ctx) {
     if (!job) throw new Error("No clone is being followed.");
     job.cloneId = cloneId;
     for (;;) {
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((resolve) => {
+        const finish = scope.effect(() => () => resolve(undefined));
+        scope.timeout(finish, 1000);
+      });
+      scope.signal.throwIfAborted();
       /** @type {CloneStatus} */
       let st;
       try { st = await api.cloneStatus(cloneId); }
       catch (failure) { if (failure instanceof ApiError && failure.status === 404) throw failure; continue; }
+      scope.signal.throwIfAborted();
       job.st = st;
       if (st.state === "done") return st;
       if (st.state === "failed") {
@@ -238,13 +245,12 @@ export function initCreate(ctx) {
     };
     if (now || RM.matches) { dlg.close(); land(); return; }
     dlg.classList.add("is-closing");
-    setTimeout(() => { dlg.classList.remove("is-closing"); dlg.close(); land(); }, 160);
+    scope.timeout(() => { dlg.classList.remove("is-closing"); dlg.close(); land(); }, 160);
   }
 
-  /** warning: Space's word on what didn't stick. @param {string} id @param {string} title @param {string} description @param {string} line @param {string} [warning] */
+  /** @param {string} id @param {string} title @param {string} description @param {string} line @param {string | null} [warning] */
   async function done(id, title, description, line, warning) {
-    // The project is made either way: a failed refresh mustn't read as a failed clone (the next one shows it)
-    await ctx.world.act.refresh().catch(() => {});
+    await ctx.world.act.refresh().catch(reportFailure);
     ctx.welcome(id, description, `${title} ${line}${description ? ` · ${description.replace(/[.\s]+$/, "")}` : ""}`);
     const shown = dlg.open;
     setBusy(false);
@@ -280,6 +286,7 @@ export function initCreate(ctx) {
         await done(id, title, description, "created · folder, plan and memory scaffolded");
       }
     } catch (failure) {
+      if (scope.signal.aborted) return;
       setBusy(false);
       const err = projectFailure(failure);
       // Stop is gone: land on what starts it again
@@ -294,33 +301,33 @@ export function initCreate(ctx) {
     }
   }
 
-  $("#cp-mode").addEventListener("click", (/** @type {Event} */ e) => {
+  scope.listen($("#cp-mode"), "click", (/** @type {Event} */ e) => {
     const chosen = e.target instanceof Element ? e.target.closest("[data-mode]")?.getAttribute("data-mode") : null;
     if (chosen && chosen !== mode) setMode(chosen);
   });
-  $("#cp-mode").addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
-    if (!/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
+  scope.listen($("#cp-mode"), "keydown", (e) => {
+    if (!("key" in e) || typeof e.key !== "string" || !/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
     e.preventDefault();
     setMode(mode === "empty" ? "clone" : "empty", { focus: false });
     $(`#cp-mode [data-mode="${mode}"]`).focus();
   });
-  form.addEventListener("click", (/** @type {Event} */ e) => {
+  scope.listen(form, "click", (/** @type {Event} */ e) => {
     const action = e.target instanceof Element ? e.target.closest("[data-cp]")?.getAttribute("data-cp") : null;
     if (action === "connect") { e.preventDefault(); connect(); }
     // the device code: said copied only once it is; refused, said so (the code stays on screen to type)
     if (action === "copy" && gh.code) copyText(gh.code).then((ok) => ctx.announce(ok ? "Copied the code." : COPY_REFUSED));
   });
-  repo.addEventListener("input", () => {
+  scope.listen(repo, "input", () => {
     error("");
     renderRepoIcon();
     renderGh();
     const r = parseRepo(repo.value);
     if (!nameTouched) { name.value = r ? r.name : ""; renderWhere(); }
   });
-  name.addEventListener("input", () => { nameTouched = !!name.value; renderWhere(); error(""); });
-  cancel.addEventListener("click", close);
-  $("#cp-stop").addEventListener("click", stop);
-  form.addEventListener("submit", (/** @type {Event} */ e) => { e.preventDefault(); submitForm(); });
-  dlg.addEventListener("cancel", (/** @type {Event} */ e) => { e.preventDefault(); close(); });
+  scope.listen(name, "input", () => { nameTouched = !!name.value; renderWhere(); error(""); });
+  scope.listen(cancel, "click", () => close());
+  scope.listen($("#cp-stop"), "click", stop);
+  scope.listen(form, "submit", (/** @type {Event} */ e) => { e.preventDefault(); submitForm(); });
+  scope.listen(dlg, "cancel", (/** @type {Event} */ e) => { e.preventDefault(); close(); });
   return { open, close, isOpen: () => dlg.open };
 }

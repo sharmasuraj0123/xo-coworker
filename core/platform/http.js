@@ -2,7 +2,7 @@
 import { createScope } from "../kernel/scope.js";
 import { read, write, reportStorageFailure } from "./storage.js";
 import { reportFailure } from "./util.js";
-
+import { hasCheckedProjectResponse } from "./checked-project-routes.js";
 // Requests to XO Space through serve.py, relative to the page; inside Coder the session token rides on every one.
 
 const BASE = "api";
@@ -83,7 +83,8 @@ export async function requestJson(path, { method = "GET", body, signal, query, t
 
 /** @param {string} path @param {RequestOptions} [options] @returns {Promise<ReturnType<typeof JSON.parse>>} */
 export async function request(path, options) {
-  if (path.split("?", 1)[0] === CHAT_STATUS_PATH) throw new TypeError("Use the checked chat status route.");
+  const route = path.split(/[?#]/, 1)[0];
+  if (route === CHAT_STATUS_PATH || hasCheckedProjectResponse(route, options?.method)) throw new TypeError("Use the checked API route.");
   return requestJson(path, options);
 }
 

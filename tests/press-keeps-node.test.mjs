@@ -172,7 +172,14 @@ const t = async (name, fn) => {
     const fh = document.createElement("div"); host.replaceChildren(fh); fh.getBoundingClientRect = () => ({ width: 400 });
     FILES.mount(fh); FILES.show("p:p");
     const tick = () => new Promise((r) => setTimeout(r, 0));
-    const answer = async (rel, dirs, files) => { const c = calls.find((x) => x.rel === rel && !x.done); c.done = 1; c.res(Response.json({ dirs: dirs.map((n) => ({ name: n.split("/").pop(), relative_path: n })), files: files.map((n) => ({ name: n.split("/").pop(), relative_path: n, size_bytes: 1 })) })); await tick(); await tick(); };
+    const answer = async (rel, dirs, files) => {
+      const call = calls.find((row) => row.rel === rel && !row.done);
+      call.done = 1;
+      const entry = (n) => ({ name: n.split("/").pop(), relative_path: n });
+      call.res(Response.json({ project_id: "p", relative_path: rel, dirs: dirs.map(entry),
+        files: files.map((n) => ({ ...entry(n), size_bytes: 1 })) }));
+      await tick(); await tick();
+    };
     const row = (p) => fh.querySelector(`.fl-list [data-fl-dir="${p}"]`);
     const mark = (path, live) => { activity.clear(); activity.set(path, { target: `/w/p/${path}`, kind: "edit_file", status: live ? "running" : "completed" }); FILES.render("p:p"); };
     await answer("", ["a", "b", "c"], ["README.md"]);

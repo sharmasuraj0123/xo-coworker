@@ -50,13 +50,10 @@ export function createViewerReads({ V, docs, doc, changes, dropImage, render, an
       } else {
         const d = await readText(/** @type {Required<Pick<ViewerFile, "project" | "rel">>} */ (file));
         if (my !== V.gen) return;
-        if (typeof d.content !== "string") V.error = "XO sent this file without its text.";
-        else {
-          const current = /** @type {ViewerFile} */ (V.file);
-          d.doc = docs.open(current.project, current.rel, d);
-        }
-        V.data = d;
-        if (d.doc) loadVersions(d.doc);
+        const opened = typeof d.content === "string" ? docs.open(file.project, file.rel, d) : null;
+        if (!opened) V.error = "XO sent this file without its text.";
+        V.data = opened ? { ...d, doc: opened } : d;
+        if (opened) loadVersions(opened);
       }
       if (tab) { tab.data = V.data; tab.doc = V.data && V.data.doc || null; }
     } catch (cause) {

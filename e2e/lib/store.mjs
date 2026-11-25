@@ -175,10 +175,12 @@ export function answer(st, q) {
     if (!st.chats.some((c) => c.project === id)) return done(err(404, "not_found", "No such project"));
     const files = st.files[id] || {};
     const rel = query.get("relative_path") || "";
-    if (k[2] === "tree") return done(ok(treeOf(files, rel)));
+    if (k[2] === "tree") return done(ok({ project_id: id, relative_path: rel,
+      parent_relative_path: rel ? rel.split("/").slice(0, -1).join("/") : null, ...treeOf(files, rel) }));
     if (!(rel in files)) return done(err(404, "not_found", "No such file"));
     const content = String(files[rel]);
-    return done(ok({ kind: "code", name: rel.split("/").pop(), content, version: `sha256:e2e-${content.length}`, editable: true, size_bytes: Buffer.byteLength(content), place: "ordinary" }));
+    return done(ok({ project_id: id, relative_path: rel, kind: "code", name: rel.split("/").pop(), content,
+      version: `sha256:e2e-${content.length}`, editable: true, size_bytes: Buffer.byteLength(content), place: "ordinary", truncated: false }));
   }
   if (m !== "GET") {
     st.writes.push({ method: m, path: p, body: q.body, unknown: true });

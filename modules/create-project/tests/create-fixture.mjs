@@ -1,6 +1,8 @@
 // The New project dialog on a DOM, from the page's own markup, with Space's answers set by each test.
 import { dom, settle, deferred } from "../../../tests/lib/dom.mjs";
 import { OVERLAYS } from "../../../shell/overlays.js";
+import assert from "node:assert/strict";
+import { createScope } from "../../../core/kernel/scope.js";
 
 let dialogs = 0;
 /** Winds the last case's dialog down before the next case's page exists: its clone stops, its GitHub login goes quiet. */
@@ -46,11 +48,13 @@ export async function createDialog() {
     world: { state: { projects: [] }, act: { refresh: async () => {} } },
     welcome() {}, go: () => {}, heraldShow: (h) => heralds.push(h), announce: (s) => said.push(s), setDrawer: () => {}, onPhoneClose: () => {},
   };
-  const C = initCreate(ctx);
+  const scope = createScope();
+  const C = initCreate(ctx, scope);
   retire = async () => {
     clone.over = true; sessions.clear();
     for (const d of clone.waiting.splice(0)) d.resolve({ state: "cancelled" });
-    for (let i = 0; i < 60 && document.querySelector("#cp-cancel")?.textContent === "Close"; i++) await new Promise((r) => setTimeout(r, 50));
+    scope.dispose();
+    assert.equal(scope.size, 0);
     await settle();
   };
   const $ = (sel) => document.querySelector(sel);

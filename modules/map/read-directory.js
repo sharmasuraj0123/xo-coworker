@@ -16,7 +16,7 @@ async function readDirectory(api, fold, relative, signal) {
   try { tree = await api.projectTree(fold.project, relative, signal); }
   catch (error) {
     signal.throwIfAborted();
-    if (!(error instanceof ApiError)) throw error;
+    if (!(error instanceof ApiError) || error.code === "bad_answer") throw error;
     return { state: /** @type {const} */ ("error"), error: error.status === 404 ? "Not there any more" : READ_FAILED };
   }
   return { state: /** @type {const} */ ("ok"), dirs: (tree.dirs || []).map(strip), files: (tree.files || []).map(strip) };

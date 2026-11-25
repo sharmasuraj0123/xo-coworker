@@ -4,7 +4,7 @@ import { api } from "../../core/platform/api.js";
 
 /** @import { FilesScope } from "./scope.js" */
 
-/** @typedef {{name: string, relative_path?: string | null, size_bytes?: number | null, modified_at: string}} TreeEntry */
+/** @import { TreeEntry } from "../../core/platform/project-response-types.d.ts" */
 
 /** @typedef {{name: string, path: string, bytes: number | null, at: number}} FileRow */
 
@@ -27,7 +27,11 @@ export function createFolderReads(paint) {
     dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", retry: !!(had && had.state === "error"), v: ++VER });
     try {
       const d = await api.projectTree(/** @type {string} */ (s.project), apiRel(s, local));
-      const strip = (/** @type {TreeEntry} */ e) => { let p = String(e.relative_path || e.name); if (s.base && p.startsWith(s.base + "/")) p = p.slice(s.base.length + 1); return { name: e.name, path: p, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at) || 0 }; };
+      const strip = (/** @type {TreeEntry} */ e) => {
+        const path = e.relative_path || e.name;
+        const relative = s.base && path.startsWith(s.base + "/") ? path.slice(s.base.length + 1) : path;
+        return { name: e.name, path: relative, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at ?? "") || 0 };
+      };
       dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip), v: ++VER });
     } catch (err) {
       dirs.set(k, { state: "error", error: /** @type {{status?: number}} */ (err).status === 404 ? "Not there any more" : "Couldn't read it", v: ++VER });

@@ -1,3 +1,6 @@
+import type { ProjectApi } from "./project-response-types";
+import type { ScheduleApi } from "./schedule-response-types";
+
 type Json = ReturnType<typeof import("./http.js").request>;
 type Query = Record<string, unknown>;
 type Id = string;
@@ -5,7 +8,7 @@ interface BlobOptions { signal?: AbortSignal; ms?: number }
 interface ReadOptions { signal?: AbortSignal }
 type SignInRoute = "claude-code" | "codex" | "antigravity";
 
-export interface Api {
+export interface Api extends ProjectApi, ScheduleApi {
   status(options?: ReadOptions): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Json;
   models(runtime: string, options?: ReadOptions): Json;
@@ -69,29 +72,9 @@ export interface Api {
   worktrees(chat?: Id | null): Json;
   removeWorktree(chat: Id, ts: string, confirm?: string | null): Json;
 
-  schedules(): Json;
-  schedule(id: Id): Json;
-  scheduleRuns(id: Id, query?: Query): Json;
-
-  projectFile(project: Id, relativePath: string, at?: { commit: string | null; path?: string } | null, opts?: { purpose?: string; version?: string }): Json;
-  saveProjectFile(project: Id, relativePath: string, content: string, baseVersion: string | null, confirm?: string | null, opts?: { restoreOf?: string | null }): Json;
-  projectVersions(project: Id, relativePath: string, opts?: { limit?: number; before?: string | null }): Json;
-  projectPaths(project: Id, opts?: { worktree?: string | null; stamp?: string | null }): Json;
-  projectSearch(project: Id, opts?: { q?: string; worktree?: string | null; regex?: boolean; case?: boolean; word?: boolean; glob?: string | null; limit?: number }): Json;
-  renameProjectFile(project: Id, relativePath: string, newRelativePath: string, confirm?: string | null): Json;
-  deleteProjectFile(project: Id, relativePath: string, baseVersion?: string | null, confirm?: string | null): Json;
-  mkdirProject(project: Id, relativePath: string): Json;
-  undoProjectEdit(project: Id, editId: Id): Json;
-  projectChanges(project: Id, opts?: { worktree?: string | null; path?: string | null }): Json;
-  projectTree(project: Id, relativePath?: string | null, signal?: AbortSignal): Json;
   projectImage(project: Id, relativePath: string, opts?: BlobOptions): Promise<Blob>;
   projectVersion(project: Id, relativePath: string, at: { commit: string; was?: string | null }, opts?: BlobOptions): Promise<Blob>;
   projectDownload(project: Id, relativePath: string): Promise<Blob>;
-  workspaceConfig(): Json;
-  createProject(project: { path: string; displayName?: string; description?: string }): Json;
-  cloneProject(clone: { id: string; url: string; displayName?: string; description?: string }): Json;
-  cloneStatus(cloneId: Id): Json;
-  cancelClone(cloneId: Id): Json;
   githubStatus(options?: ReadOptions): Json;
   githubIssues(project: Id, refresh?: boolean, options?: ReadOptions): Json;
   githubIssue(project: Id, number: Id | number, signal?: AbortSignal): Json;

@@ -3,7 +3,7 @@
 import { ApiError, CHAT_STATUS_PATH, isResponseObject, requestJson } from "./http.js";
 
 /** @template T @param {string} path @param {(v: unknown) => v is T} check @param {import("./http").RequestOptions} [options] */
-async function requestChecked(path, check, options) {
+export async function requestChecked(path, check, options) {
   const value = await requestJson(path, options);
   options?.signal?.throwIfAborted();
   if (check(value)) return value;

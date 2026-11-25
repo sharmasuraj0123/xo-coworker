@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { isResponseObject } from "../../core/platform/http.js";
 import { createStore, answer, treeOf } from "../lib/store.mjs";
 import { startSpace } from "../lib/space.mjs";
 
@@ -13,28 +14,35 @@ const ROOT = join(DIR, "..", "..");
 const basic = JSON.parse(readFileSync(join(DIR, "..", "seeds", "basic.json"), "utf8"));
 let passed = 0;
 const test = async (/** @type {string} */ name, /** @type {() => unknown} */ fn) => { await fn(); passed++; console.log(`ok ${name}`); };
-/** @returns {{answer: {status: number, body: any}, frames: import("../lib/types.d.ts").Frame[]}} */
-const ask = (/** @type {import("../lib/types.d.ts").Store} */ st, /** @type {string} */ method, /** @type {string} */ path, /** @type {unknown} */ body = null) => { const u = new URL(path, "http://e2e"); return answer(st, { method, path: u.pathname, query: u.searchParams, body }); };
+/** @param {import("../lib/types.d.ts").Store} st @param {string} method @param {string} path @param {unknown} body */
+function ask(st, method, path, body = null) {
+  const u = new URL(path, "http://e2e");
+  return answer(st, { method, path: u.pathname, query: u.searchParams, body });
+}
+/** @param {unknown} value */
+function record(value) { assert.ok(isResponseObject(value)); return value; }
+/** @param {unknown} value */
+function records(value) { assert.ok(Array.isArray(value)); return value.map(record); }
 
 await test("an empty seed is the quiet Space: the Workspace and demo, no messages", () => {
   const st = createStore({});
   assert.deepEqual(st.chats.map((c) => [c.id, c.kind, c.project]), [["chat_ws", "workspace", null], ["chat_demo", "project", "demo"]]);
-  assert.equal(ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body.messages.length, 0);
+  assert.equal(records(record(ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body).messages).length, 0);
   assert.equal(ask(st, "GET", "/api/chat/status").answer.status, 200);
 });
 
 await test("a seed's rows come back in xo-space's shapes, filled where the seed is short", () => {
   const st = createStore(basic);
-  const { messages } = ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body;
-  assert.deepEqual(messages.map((/** @type {any} */ m) => m.seq), [1, 2, 3]);
+  const messages = records(record(ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body).messages);
+  assert.deepEqual(messages.map((m) => m.seq), [1, 2, 3]);
   assert.equal(messages[0].chat_id, "chat_demo");
   assert.deepEqual(messages[0].extra, {});
-  const { threads } = ask(st, "GET", "/api/chat/chats/chat_demo/threads").answer.body;
+  const threads = records(record(ask(st, "GET", "/api/chat/chats/chat_demo/threads").answer.body).threads);
   assert.equal(threads[0].title, "Tidy the README");
   assert.deepEqual(threads[0].outputs, []);
-  const page = ask(st, "GET", "/api/chat/chats/chat_demo/messages?thread=cmsg_e2e_readme").answer.body.messages;
-  assert.deepEqual(page.map((/** @type {any} */ m) => m.thread_ts), ["cmsg_e2e_readme", "cmsg_e2e_readme"]);
-  assert.equal(ask(st, "GET", "/api/chat/chats/chat_demo/threads/cmsg_e2e_readme").answer.body.ts, "cmsg_e2e_readme");
+  const page = record(ask(st, "GET", "/api/chat/chats/chat_demo/messages?thread=cmsg_e2e_readme").answer.body);
+  assert.deepEqual(records(page.messages).map((m) => m.thread_ts), ["cmsg_e2e_readme", "cmsg_e2e_readme"]);
+  assert.equal(record(ask(st, "GET", "/api/chat/chats/chat_demo/threads/cmsg_e2e_readme").answer.body).ts, "cmsg_e2e_readme");
   assert.equal(ask(st, "GET", "/api/chat/chats/chat_nope/messages").answer.status, 404);
 });
 
@@ -49,10 +57,10 @@ await test("a post is stored with the next seq, answered with its row, and strea
   const st = createStore(basic);
   const { answer: a, frames } = ask(st, "POST", "/api/chat/chats/chat_demo/messages", { text: "hello", client_id: "c1" });
   assert.equal(a.status, 200);
-  assert.equal(a.body.seq, 6, "after the seed's highest seq (5, in a thread)");
-  assert.equal(a.body.client_id, "c1");
+  assert.equal(record(a.body).seq, 6, "after the seed's highest seq (5, in a thread)");
+  assert.equal(record(a.body).client_id, "c1");
   assert.deepEqual(frames.map((f) => f.type), ["message"]);
-  assert.equal(ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body.messages.at(-1).text, "hello");
+  assert.equal(records(record(ask(st, "GET", "/api/chat/chats/chat_demo/messages").answer.body).messages).at(-1)?.text, "hello");
   assert.deepEqual(st.writes.map((w) => [w.method, w.path, !!w.unknown]), [["POST", "/api/chat/chats/chat_demo/messages", false]]);
 });
 
@@ -86,7 +94,7 @@ await test("files: the tree lists one level, sorted; a file reads with a version
   assert.deepEqual(treeOf(files, ""), { dirs: [{ name: "src", relative_path: "src" }], files: [{ name: "README.md", relative_path: "README.md", size_bytes: Buffer.byteLength(files["README.md"]) }, { name: "notes.txt", relative_path: "notes.txt", size_bytes: 14 }] });
   assert.deepEqual(treeOf(files, "src").files.map((f) => f.relative_path), ["src/app.js"]);
   const st = createStore(basic);
-  const f = ask(st, "GET", "/api/xo-projects/demo/file?relative_path=notes.txt").answer.body;
+  const f = record(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=notes.txt").answer.body);
   assert.equal(f.content, "one\ntwo\nthree\n");
   assert.match(f.version, /^sha256:/);
   assert.equal(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=nope").answer.status, 404);
@@ -118,7 +126,7 @@ await test("over HTTP: the app's files, the API, and a stream that opens with a 
 
 await test("a seeded project's deploy check says it needs preparing; another project's is a 404", () => {
   const st = createStore(basic);
-  const c = ask(st, "GET", "/api/deploy/demo/check").answer.body;
+  const c = record(ask(st, "GET", "/api/deploy/demo/check").answer.body);
   assert.equal(c.project, "demo");
   assert.equal(c.state, "needs-agent");
   assert.equal(ask(st, "GET", "/api/deploy/nope/check").answer.status, 404);
@@ -143,7 +151,9 @@ await test("seed rows keep their order: a missing seq follows the row before it;
 
 await test("a seeded project with no files has an empty tree; an unknown project's is a 404", () => {
   const st = createStore({});
-  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/tree").answer.body, { dirs: [], files: [] });
+  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/tree").answer.body, {
+    project_id: "demo", relative_path: "", parent_relative_path: null, dirs: [], files: [],
+  });
   assert.equal(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=a.md").answer.status, 404);
   assert.equal(ask(st, "GET", "/api/xo-projects/nope/tree").answer.status, 404);
 });

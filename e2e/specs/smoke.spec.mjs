@@ -9,7 +9,7 @@ const basic = /** @type {Seed} */ (JSON.parse(readFileSync(new URL("../seeds/bas
 const seed = { ...basic, routes: { ...basic.routes,
   "GET /api/coworker/xo-projects/demo/paths": { root: "/home/test/demo", paths: ["README.md", "src/app.js", "notes.txt"],
     dirs: ["src"], truncated: false, stamp: "smoke" },
-  "GET /api/xo-projects/demo/versions": { versions: [], head: null, more: false },
+  "GET /api/xo-projects/demo/versions": { relative_path: "notes.txt", versions: [], head: null, more: false },
 } };
 
 const profiles = /** @type {const} */ ([
