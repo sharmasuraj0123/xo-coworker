@@ -3197,7 +3197,8 @@
   },
   "js/skeleton.js": {
    "status": "moved",
-   "home": "modules/home/skeleton.js"
+   "home": "modules/home/skeleton.js",
+   "note": "On d58a2936 and release d639012b, two cached Home tiles were visible while the app entry was held, with zero computed-style or media reads before boot. All eight paired desktop and phone light and dark browser cases passed. The mounted first-paint test is modules/home/tests/skeleton.test.mjs."
   },
   "js/sse.js": {
    "status": "moved",
@@ -4934,7 +4935,7 @@
   "tests/browser/flows.test.cjs": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies held and refused Save, direct alert Try again after reopening, Find Close with Enter and Space, and Quick Open into an empty file (S231/C120), in desktop and phone light and dark on b9083e02 and release d639012b. Cross-file Save and caret focus after Save passed on both desktop themes and phone light on both pins. The phone-dark passes are incomplete because the Files row sometimes lost focus on entry. The legacy Saved Undo, invalid regex and Find geometry cases remain open. Find Escape on the Close button closes the viewer and drops focus on both pins."
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies held and refused Save, direct alert Try again after reopening, Find Close with Enter and Space, and Quick Open into an empty file (S231/C120), in desktop and phone light and dark on b9083e02 and release d639012b. Cross-file Save and caret focus after Save passed both desktop themes and phone light on both pins. The phone-dark Files row focus drop reproduced in one of three repeats on both d58a2936 and d639012b and is recorded as pre-existing for after P5. S139 (waiting) is verified on d58a2936 in all four profiles: native Retry requests the CodeMirror entry once, shows a busy state while held, and restores focus to the rendered editor. Release makes no new request in all four profiles. The legacy Saved Undo, invalid regex and Find geometry cases remain open. Find Escape on the Close button closes the viewer and drops focus on both pins."
   },
   "tests/browser/harness.cjs": {
    "status": "planned",
