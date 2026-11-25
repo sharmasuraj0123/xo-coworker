@@ -22,6 +22,5 @@ export interface FilesModuleOptions {
   schedule(): void;
   tree(): Omit<FilesDependencies, "world" | "viewer" | "onFold" | "changes" | "PROJ">;
   stage(): FilesStage;
-  openLineRef(button: HTMLElement): void;
-  openSharedFile(button: HTMLElement): void;
+  convAt(button: HTMLElement): { view: string };
 }

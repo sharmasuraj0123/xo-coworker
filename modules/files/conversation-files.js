@@ -1,8 +1,10 @@
 // @ts-check
 import { sharedFileRoute } from "../../core/services/world/relay.js";
 
-/** @param {import("./conversation-files-types.d.ts").ConversationFilesDeps} options */
-export function createConversationFiles({ currentView, convThread, convAt, CHG, VW }) {
+/** @import { ConversationFilesDeps } from "./conversation-files-types" */
+
+/** @param {Pick<ConversationFilesDeps, "currentView" | "convThread">} options */
+export function createFileRoute({ currentView, convThread }) {
   /** @param {string | null | undefined} path */
   function fileRoute(path, conv = currentView()) {
     const t = convThread(conv);
@@ -10,6 +12,13 @@ export function createConversationFiles({ currentView, convThread, convAt, CHG, 
     const rel = String(path || "").replace(/^\.\//, "");
     return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
   }
+  return fileRoute;
+}
+
+/** @param {ConversationFilesDeps} options */
+export function createConversationFiles(options) {
+  const { convAt, CHG, VW } = options;
+  const fileRoute = createFileRoute(options);
   /** @param {HTMLElement} btn */
   function openSharedFile(btn) {
     const raw = btn.dataset.fileBytes, n = raw == null || raw === "" ? NaN : Number(raw);

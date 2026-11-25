@@ -41,12 +41,13 @@ import { createShellRenderer } from "../shell/render.js";
 import { createShellFoundation } from "../shell/foundation.js";
 import { bootShell } from "../shell/boot.js";
 import { createLaunchpadSurface } from "../modules/launchpad/surface.js";
-import { createConversationFiles } from "../modules/files/conversation-files.js";
+import { createFileRoute } from "../modules/files/conversation-files.js";
 import { fileScope, localIn } from "../modules/files/scope.js";
 import { filePlace } from "../modules/files/search-place.js";
 import { createFileSearch } from "../modules/search/file-search.js";
 import { createJumpModule } from "../modules/search/jump-module.js";
-import { createChangeData } from "../modules/changes/data.js";
+import { changeDataModule } from "../modules/changes/data.js";
+import { setTheme } from "../modules/changes/diffview.js";
 import { lineRef, fileRef } from "../modules/changes/store.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { threadPresentation, threadPresentationModule } from "../modules/threads/presentation.js";
@@ -80,9 +81,7 @@ const noun = mountConversationMarkdown(appScope, SHAPE, (path) => fileRoute(path
 const { PROJ, projects, convThread, convProject, atOf } = place;
 const { convHost } = createMessageContext({ world, PROJ });
 
-const changeData = createChangeData(world, schedule);
-const CHG = changeData.changes;
-const { THEME, applyTheme } = createTheme(appScope, changeData.setTheme);
+const { THEME, applyTheme } = createTheme(appScope, setTheme);
 
 const threadActions = createThreadActions({
   notice: () => ({ movedHere: IQ.movedHere, waitSince }), notices, go, render, schedule, requestFocus: redrawFocus.request, composerAt: (element) => composerAt(element),
@@ -124,7 +123,7 @@ const files = createFilesModule({
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text),
     compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   tree: () => ({ isBusy, go, paths: PATHS }),
-  stage: () => STAGE, openSharedFile: (button) => openSharedFile(button), openLineRef: (button) => openLineRef(button),
+  stage: () => STAGE, convAt: (button) => convAt(button),
 });
 const { module: filesModule, viewer: VW, tree: FILES, page: FP } = files;
 const { paths: PATHS, quickOpen: QO } = createFileSearch(appScope, files, {
@@ -230,7 +229,7 @@ const { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender
 
 /** The conversation containing a control, or the main chat. */
 const convAt = (/** @type {Node | null} */ el) => (TP.box?.contains(el) && TP.C ? TP.C : MAIN);
-const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawingView() || currentView(), convThread, convAt, CHG, VW });
+const fileRoute = createFileRoute({ currentView: () => drawingView() || currentView(), convThread });
 bindConversationPress(appScope, kernel.places, announce, { go, showMsg, openFromPanel, thread: world.thread, heraldShow });
 const topRender = mountConversationHeader({
   ...place, ...threadPresentation, threadControls, description: (project) => CREATE.descriptions.get(project), world, PICK, LP, LW, STAGE, kernel,
@@ -253,7 +252,7 @@ const { SV, settings, setEl, keys, openKeys, closeKeys } = mountApplicationSetti
   preferences: { THEME, webPictures: WEBPICS }, mountRuntimes: (host) => createRuntimeSettings({ world, announce, ...host }),
   beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); }, onHidden: () => syncInert(),
 });
-const changesModule = createChangesModule(CHG, {
+const changesModule = createChangesModule({
   conversationAt: convAt, showChange: STAGE.showChange, openFile: VW.open, focusAfterDraw: redrawFocus.request,
 });
 /** @param {Parameters<typeof settings.close>[0]} [options] */
@@ -284,7 +283,7 @@ const syncInert = mountShellInteractions(appScope, kernel.layers, {
 });
 
 await bootShell(appScope, [
-  threadPageModule, applicationShape.module, services, changeData.module, decisionModel, threadPresentationModule, transcriptModule,
+  threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
   homeModule, JUMP.module, sinceModule, artifacts.module, runs.module, settings.module,
   MAP.module, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,
 ], { shapeIcon: SHAPE_IC, dispose: [SIDE.dispose, CH.dispose, disposeLaunchpad], THEME, applyTheme, SIDE, PHONE, setDrawer, render, world, schedule, follow, loadDraft });

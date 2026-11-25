@@ -227,7 +227,7 @@ Items inside first-party files: 2488 (moved 1791, deleted 236, planned 233, kept
 | `tests/image-text-mode.test.mjs` | 28 | moved | modules/files/tests/image-text-mode.test.mjs |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
 | `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/iq-one-path.test.mjs` | 22 | moved | tests/app-wiring.test.mjs · next: Boot opens and closes the same Intelligence picker from both mounted composers. |
+| `tests/iq-one-path.test.mjs` | 22 | moved | tests/boot/thread-composer.mjs · next: Boot opens and closes the same Intelligence picker from both mounted composers. |
 | `tests/jump-projects.test.mjs` | 47 | kept | tests/jump-projects.test.mjs |
 | `tests/key-layer.test.mjs` | 20 | moved | shell/tests/key-layer.test.mjs · next: The rewritten test exercises Escape, Tab, focus and inert holds through the shell layer stack. |
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -258,7 +258,7 @@ Items inside first-party files: 2488 (moved 1791, deleted 236, planned 233, kept
 | `tests/menu-motion.test.mjs` | 20 | kept | tests/menu-motion.test.mjs |
 | `tests/menu-one-active.test.mjs` | 45 | planned | core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/menu-open-unlit.test.mjs` | 35 | kept | tests/menu-open-unlit.test.mjs |
-| `tests/menu-successor.test.mjs` | 42 | moved | tests/app-wiring.test.mjs |
+| `tests/menu-successor.test.mjs` | 42 | moved | tests/boot/thread-and-runs.mjs |
 | `tests/menu-type.test.mjs` | 32 | kept | tests/menu-type.test.mjs |
 | `tests/merge.test.mjs` | 81 | planned | modules/files/tests/merge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/names.test.mjs` | 24 | planned | modules/repo/tests/names.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -295,7 +295,7 @@ Items inside first-party files: 2488 (moved 1791, deleted 236, planned 233, kept
 | `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reduced-motion.test.mjs` | 25 | planned | core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/refusal-mark.test.mjs` | 26 | planned | modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/refused.test.mjs` | 57 | split | tests/refused.test.mjs, tests/send-gate.test.mjs, tests/app-wiring.test.mjs, tests/conversation-file-question.test.mjs |
+| `tests/refused.test.mjs` | 57 | split | tests/refused.test.mjs, tests/send-gate.test.mjs, tests/boot/startup-and-chats.mjs, tests/conversation-file-question.test.mjs |
 | `tests/region-focus.test.mjs` | 28 | moved | modules/files/tests/region-focus.test.mjs |
 | `tests/render-focus.test.mjs` | 22 | moved | modules/files/tests/render-focus.test.mjs |
 | `tests/retry-waiting.test.mjs` | 34 | moved | modules/files/tests/retry-waiting.test.mjs |

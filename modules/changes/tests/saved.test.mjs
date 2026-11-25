@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createScope } from "../../../core/kernel/scope.js";
-import { createChangeData } from "../data.js";
+import { changeDataModule } from "../data.js";
 import { createKernel } from "../../../core/kernel/kernel.js";
 
 test("saving again restarts only that file's quiet interval", async (t) => {
@@ -11,7 +11,10 @@ test("saving again restarts only that file's quiet interval", async (t) => {
   const refreshed = [];
   const scope = createScope();
   const kernel = createKernel();
-  kernel.register(createChangeData({}, () => {}).module);
+  kernel.register({ manifest: { id: "xo.test-world", version: "1.0.0", kernel: "^1.1.0", provides: ["world"] },
+    activate(ctx) { ctx.provide("world", {}); },
+  });
+  kernel.register(changeDataModule);
   let savedSoon;
   kernel.register({ manifest: { id: "xo.save-test", version: "1.0.0", kernel: "^1.1.0", needs: ["changeData"] },
     activate(ctx) { savedSoon = ctx.use("changeData").save({ saved: (project, rel) => refreshed.push([project, rel]) }, scope); },

@@ -4,6 +4,7 @@ import { $ } from "../../core/platform/dom.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { createFileViewer } from "./viewer.js";
+import { createConversationFiles } from "./conversation-files.js";
 import { applyFileEvent } from "./file-events.js";
 import { createFiles } from "./files.js";
 import { createFilesPage } from "./page.js";
@@ -24,7 +25,7 @@ export function createFilesModule(options) {
   const module = {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "currentView", "announce", "projectName", "changeData"],
+      needs: ["world", "currentView", "announce", "projectName", "changeData", "placeContext"],
       contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
     },
     activate(ctx) {
@@ -53,17 +54,21 @@ export function createFilesModule(options) {
         stage, files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
       });
       viewer = mountedViewer;
+      const routes = createConversationFiles({
+        currentView: ctx.use("currentView"), convThread: ctx.use("placeContext").convThread,
+        convAt: options.convAt, CHG: changes, VW: mountedViewer,
+      });
       tree = files;
       page = filesPage;
       ctx.contribute("conversation.file-route", { id: "shared-file", route(/** @type {Element} */ target, /** @type {MouseEvent} */ event) {
         const button = target.closest("[data-file]");
         if (!(button instanceof HTMLElement)) return false;
-        event.preventDefault(); options.openSharedFile(button); return true;
+        event.preventDefault(); routes.openSharedFile(button); return true;
       } });
       ctx.contribute("conversation.press", pressEntry("reference", (target, event) => {
         const ref = target.closest("[data-ref]");
         if (!(ref instanceof HTMLElement)) return false;
-        event.preventDefault(); options.openLineRef(ref); return true;
+        event.preventDefault(); routes.openLineRef(ref); return true;
       }));
       ctx.contribute("panel.page", { id: "files", ...filesPage.entry });
     },

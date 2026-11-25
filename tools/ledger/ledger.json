@@ -2720,7 +2720,7 @@
      "reason": "The shell restores the covered Decisions or Files card."
     },
     "modules/changes/data.js": {
-     "anchor": "export function createChangeData",
+     "anchor": "export const changeDataModule",
      "reason": "Changes supplies its model and diff renderers to the active Files viewer."
     },
     "modules/create-project/module.js": {
@@ -5552,10 +5552,10 @@
   },
   "tests/iq-one-path.test.mjs": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs",
+   "home": "tests/boot/thread-composer.mjs",
    "note": "Boot opens and closes the same Intelligence picker from both mounted composers.",
    "evidence": {
-    "tests/app-wiring.test.mjs": {
+    "tests/boot/thread-composer.mjs": {
      "anchor": "togglePicker(\"#tiq\");",
      "reason": "The booted thread composer exercises the same picker entry as the Home composer."
     }
@@ -5713,9 +5713,9 @@
   },
   "tests/menu-successor.test.mjs": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs",
+   "home": "tests/boot/thread-and-runs.mjs",
    "evidence": {
-    "tests/app-wiring.test.mjs": {
+    "tests/boot/thread-and-runs.mjs": {
      "anchor": "the picker takes focus before the menu is dismissed",
      "reason": "The booted menu test verifies successor focus during dismissal."
     }
@@ -5877,7 +5877,7 @@
    "home": [
     "tests/refused.test.mjs",
     "tests/send-gate.test.mjs",
-    "tests/app-wiring.test.mjs",
+    "tests/boot/startup-and-chats.mjs",
     "tests/conversation-file-question.test.mjs"
    ],
    "evidence": {
@@ -5885,7 +5885,7 @@
      "anchor": "assert.match(announcements.at(-1), /Not sent: Routing is off for this chat/)",
      "reason": "The mounted send gate checks the routing refusal and its announcement."
     },
-    "tests/app-wiring.test.mjs": {
+    "tests/boot/startup-and-chats.mjs": {
      "anchor": "assert.match(document.querySelector(\"#herald\").textContent, /Not sent: This chat has ended/)",
      "reason": "The booted ended-chat refusal preserves the draft and announces why."
     },
@@ -15941,7 +15941,7 @@
   },
   "tests/panel-shell.test.mjs::ids::nv-shells": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs"
+   "home": "tests/boot/startup-and-chats.mjs"
   },
   "tests/panel-shell.test.mjs::ids::shd": {
    "status": "kept",
@@ -17358,15 +17358,15 @@
   },
   "tests/panel-parity.test.mjs::ids::tat-list": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs"
+   "home": "tests/boot/thread-composer.mjs"
   },
   "tests/panel-parity.test.mjs::ids::ttarget": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs"
+   "home": "tests/boot/thread-composer.mjs"
   },
   "tests/panel-shell.test.mjs::ids::ic-shells": {
    "status": "moved",
-   "home": "tests/app-wiring.test.mjs"
+   "home": "tests/boot/startup-and-chats.mjs"
   },
   "tests/rows-in-place.test.mjs::exports::reconcile": {
    "status": "kept",
