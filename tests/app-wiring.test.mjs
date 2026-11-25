@@ -7,6 +7,7 @@ import { xi } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { deferred, dom } from "./lib/dom.mjs";
 import { checkSettingsPreferences } from "./lib/settings-preferences.mjs";
+import { checkConversationFileRoutes, projectChanges } from "./lib/conversation-file-routes.mjs";
 
 const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
@@ -193,6 +194,8 @@ Object.assign(globalThis, {
       shapeReads++;
       return initialShape.promise;
     }
+    if (path === "/api/xo-projects/demo/changes") return Response.json(projectChanges);
+    if (path === "/api/coworker/xo-projects/demo/paths") return Response.json({ root: "/demo", stamp: "v1", paths: ["notes.md"], dirs: [], truncated: false });
     const resource = path.split("/").at(-1);
     if (path === "/api/chat/stream") { stormSignal = init?.signal; return new Response(streamBody); }
     if (path === "/api/chat/status" && heldStatusSignal === null) {
@@ -1093,6 +1096,10 @@ press("#nv-home");
 
 assert.ok(JSON.parse(storage.get("xo-seen")).home > lastHomeVisit, "Home records its visit in the app's Since store");
 await checkSettingsPreferences(kernel, press);
+await checkConversationFileRoutes(kernel, press, flushFrames, key, (path) => {
+  const data = { project_id: "demo", kind: "create", path };
+  stream.enqueue(encoder.encode(`event: file.version\ndata: ${JSON.stringify({ type: "file.version", data })}\n\n`));
+});
 {
   const timers = new Map();
   const realSet = globalThis.setTimeout, realClear = globalThis.clearTimeout;

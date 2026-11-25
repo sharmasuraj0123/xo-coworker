@@ -34,9 +34,6 @@
  "modules/map/map.js": {
   "observer": 1
  },
- "modules/search/quickopen.js": {
-  "setTimeout": 1
- },
  "modules/shells/panel.js": {
   "observer": 1
  },

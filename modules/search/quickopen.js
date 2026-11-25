@@ -10,8 +10,8 @@ import { missingRoute } from "../../core/platform/http.js";
 const SEARCH_MS = 220;
 const MAX_FILES = 60;
 
-/** @param {import("./types").QuickOpenDeps} deps */
-export function createQuickOpen({ paths, api, place, openFile, openFiles = () => [], announce = () => {}, layer = {} }) {
+/** @param {import("./types").SearchScope} scope @param {import("./types").QuickOpenDeps} deps */
+export function createQuickOpen(scope, { paths, api, place, openFile, openFiles = () => [], announce = () => {}, layer = {} }) {
   const el = document.createElement("div");
   el.className = "sheet";
   el.id = "qo";
@@ -30,11 +30,11 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   const ic = /** @type {HTMLElement} */ (el.querySelector(".qo-ic"));
   const where = /** @type {HTMLElement} */ (el.querySelector(".qo-where"));
   /** @type {import("./types").QuickOpenState} */
-  const S = { mode: "files", pl: /** @type {import("./types").Place} */ (/** @type {unknown} */ (null)), items: [], sel: 0, back: null, gen: 0, t: 0, o: { case: false, word: false, regex: false }, noSearch: false };
+  const S = { mode: "files", pl: /** @type {import("./types").Place} */ (/** @type {unknown} */ (null)), items: [], sel: 0, back: null, gen: 0, t: null, o: { case: false, word: false, regex: false }, noSearch: false };
 
   function open(mode = "files") {
     const pl = place();
-    if (!pl || !pl.project) return false;
+    if (scope.signal.aborted || !pl || !pl.project) return false;
     S.pl = pl; S.mode = mode; S.sel = 0; S.items = []; S.pendingEnter = false;
     S.back = document.activeElement;
     el.hidden = false;
@@ -52,7 +52,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   }
   function close({ restore = true } = {}) {
     if (el.hidden) return;
-    el.hidden = true; S.gen++; clearTimeout(S.t);
+    el.hidden = true; S.gen++; S.t?.(); S.t = null;
     layer.hidden && layer.hidden(el);
     if (restore && S.back && S.back.isConnected) /** @type {HTMLElement} */ (S.back).focus({ preventScroll: true });
   }
@@ -88,9 +88,9 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       foot.textContent = "Finding text in files needs the newer XO Space (its /search). Go to a file with ⌘P meanwhile.";
       return;
     }
-    list.innerHTML = S.items.map((/** @type {any} */ x, i) => x.kind === "head"
+    list.innerHTML = S.items.map((x, i) => x.kind === "head"
       ? `<li class="qo-h" role="presentation"><span class="qo-fi" aria-hidden="true">${fileIcon(x.path)}</span><span class="qo-n">${esc(x.path.split("/").pop())}</span><span class="qo-d">${esc(x.path)}</span><span class="qo-tag">${x.n}</span></li>`
-      : `<li id="qo-${i}" role="option" data-i="${i}" aria-selected="${i === S.sel}" class="qo-m"><span class="qo-ln">${x.line}</span><span class="qo-t">${hl(x.text, x.ranges)}</span></li>`).join("");
+      : x.kind !== "match" ? "" : `<li id="qo-${i}" role="option" data-i="${i}" aria-selected="${i === S.sel}" class="qo-m"><span class="qo-ln">${x.line}</span><span class="qo-t">${hl(x.text, x.ranges)}</span></li>`).join("");
     q.setAttribute("aria-activedescendant", S.items[S.sel] && S.items[S.sel].kind === "match" ? `qo-${S.sel}` : "");
   }
   /** @param {string} text @param {[number, number][] | undefined} ranges */
@@ -107,7 +107,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     foot.textContent = "Finding…";
     try {
       const worktree = S.pl.base ? S.pl.base.split("/").pop() : null;
-      const r = await api.projectSearch(S.pl.project, { q: text, worktree, ...S.o });
+      const r = await api.projectSearch(S.pl.project, { q: text, worktree, ...S.o, signal: scope.signal });
       if (my !== S.gen) return;
       /** @type {Map<string, import("./types").Match[]>} */
       const by = new Map();
@@ -121,7 +121,8 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       const n = (r.matches || []).length;
       foot.textContent = n ? `${n} ${n === 1 ? "match" : "matches"} in ${r.files ?? by.size} ${by.size === 1 ? "file" : "files"}${r.truncated ? " (the first ones)" : ""}` : "Nothing found.";
       announce(foot.textContent);
-    } catch (/** @type {any} */ err) {
+    } catch (cause) {
+      const err = /** @type {{ code?: string, message?: string } | null} */ (cause);
       if (my !== S.gen) return;
       if (missingRoute(err)) { S.noSearch = true; S.items = []; }
       else foot.textContent = err && err.code === "bad_regex" ? `Not a valid pattern: ${err.message || ""}` : (err && err.message) || "Couldn't search.";
@@ -151,26 +152,36 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   /** @param {Event} e */
   const row = (e) => /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-i]"));
 
-  q.addEventListener("input", () => {
+  scope.effect(() => () => {
+    S.gen++;
+    S.t?.(); S.t = null;
+    el.remove();
+  });
+
+  scope.listen(q, "input", () => {
     S.sel = 0; S.pendingEnter = false;
     if (S.mode === "files") drawFiles();
-    else { clearTimeout(S.t); S.t = setTimeout(search, SEARCH_MS); }
+    else {
+      S.t?.();
+      S.t = scope.timeout(() => { S.t = null; void search(); }, SEARCH_MS);
+    }
   });
-  q.addEventListener("keydown", (e) => {
+  scope.listen(q, "keydown", (event) => {
+    const e = /** @type {KeyboardEvent} */ (event);
     if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); move(e.key === "ArrowDown" ? 1 : -1); }
     else if (e.key === "Enter") {
       e.preventDefault();
-      if (S.mode === "text" && S.t && !S.items.length) { clearTimeout(S.t); search(); return; }
+      if (S.mode === "text" && S.t && !S.items.length) { S.t?.(); S.t = null; search(); return; }
       if (S.mode === "files" && !S.items.length && paths.of(S.pl).state === "loading") { S.pendingEnter = true; foot.textContent = "Opening the first match once the files are read…"; return; }
       pick(S.sel);
     }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
   });
-  list.addEventListener("click", (e) => { const li = row(e); if (li) pick(+(li.dataset.i ?? "")); });
-  list.addEventListener("pointermove", (e) => { const li = row(e); if (li && +(li.dataset.i ?? "") !== S.sel && S.items[+(li.dataset.i ?? "")]?.kind !== "head") { S.sel = +(li.dataset.i ?? ""); for (const x of list.querySelectorAll("[aria-selected]")) x.setAttribute("aria-selected", String(x === li)); } });
-  opts.addEventListener("click", (e) => { const b = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-qo-opt]")); if (!b) return; const k = /** @type {string} */ (b.dataset.qoOpt); S.o[k] = !S.o[k]; b.setAttribute("aria-pressed", String(S.o[k])); q.focus(); search(); });
-  el.addEventListener("mousedown", (e) => { if (e.target === el) close(); });
+  scope.listen(list, "click", (e) => { const li = row(e); if (li) pick(+(li.dataset.i ?? "")); });
+  scope.listen(list, "pointermove", (e) => { const li = row(e); if (li && +(li.dataset.i ?? "") !== S.sel && S.items[+(li.dataset.i ?? "")]?.kind !== "head") { S.sel = +(li.dataset.i ?? ""); for (const x of list.querySelectorAll("[aria-selected]")) x.setAttribute("aria-selected", String(x === li)); } });
+  scope.listen(opts, "click", (e) => { const b = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-qo-opt]")); if (!b) return; const k = /** @type {string} */ (b.dataset.qoOpt); S.o[k] = !S.o[k]; b.setAttribute("aria-pressed", String(S.o[k])); q.focus(); search(); });
+  scope.listen(el, "mousedown", (e) => { if (e.target === el) close(); });
 
   return {
     open, close,

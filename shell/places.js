@@ -27,6 +27,7 @@ const SPECS = [
   ["panel.page", "keyed", "app", "A page the right panel shows in place of its frames (Shell, Files, Thread).", true, [], ["mount"]],
   ["panel.title-action", "list", "app", "A button in the right panel's title bar.", false, ["label", "icon"], ["onPress"]],
   ["dock.bottom", "single", "app", "The dock under the conversation; it can move into a panel page.", false, [], ["mount"]],
+  ["conversation.file-route", "chain", "conversation", "Handles transcript file clicks in priority order.", false, [], ["route"]],
   ["conversation.source", "keyed", "app", "Where a conversation's rows come from, keyed by view prefix.", false, [], ["items"]],
   ["conversation.row", "keyed", "conversation", "How one kind of conversation row is drawn, keyed by its kind.", true, [], ["render"]],
   ["conversation.block", "keyed", "conversation", "How one block type of an agent's turn is drawn, keyed by type.", true, [], ["render"]],
@@ -59,6 +60,13 @@ const DEFS = SPECS.map(([id, kind, scope, description, openToApps, strings, fns]
 }));
 
 export const PLACES = Object.freeze(DEFS);
+
+/** @param {Kernel["places"]} places @param {Element} target @param {MouseEvent} event */
+export function routeConversationFile(places, target, event) {
+  /** @type {import("./surface-types.d.ts").FileRouteEntry[]} */
+  const routes = places.entries("conversation.file-route");
+  return routes.some((entry) => entry.route(target, event));
+}
 
 /** @typedef {{ name: string, sub: string, icon: string, run: () => void }} SearchMatch */
 

@@ -148,7 +148,7 @@
   "unusedExport": 1
  },
  "core/services/paths.js": {
-  "lineLength": 4
+  "lineLength": 3
  },
  "core/services/places.js": {
   "lineLength": 2
@@ -395,8 +395,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 612,
-  "lineLength": 41
+  "dependencyKey": 611,
+  "lineLength": 39
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,

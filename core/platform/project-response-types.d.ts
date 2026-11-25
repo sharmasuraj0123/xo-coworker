@@ -164,9 +164,9 @@ export interface ProjectApi {
   saveProjectFile(project: string, path: string, content: string, baseVersion: string | null,
     confirm?: string | null, options?: { restoreOf?: string | null }): Promise<SavedProjectFile>;
   projectVersions(project: string, path: string, options?: { limit?: number; before?: string | null }): Promise<ProjectVersions>;
-  projectPaths(project: string, options?: { worktree?: string | null; stamp?: string | null }): Promise<ProjectPaths>;
+  projectPaths(project: string, options?: { worktree?: string | null; stamp?: string | null; signal?: AbortSignal }): Promise<ProjectPaths>;
   projectSearch(project: string, options?: { q?: string; worktree?: string | null; regex?: boolean;
-    case?: boolean; word?: boolean; glob?: string | null; limit?: number }): Promise<ProjectSearch>;
+    case?: boolean; word?: boolean; glob?: string | null; limit?: number; signal?: AbortSignal }): Promise<ProjectSearch>;
   renameProjectFile(project: string, path: string, nextPath: string, confirm?: string | null): Promise<ProjectRename>;
   deleteProjectFile(project: string, path: string, baseVersion?: string | null, confirm?: string | null): Promise<ProjectDelete>;
   mkdirProject(project: string, path: string): Promise<ProjectFolder>;

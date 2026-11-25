@@ -20,6 +20,7 @@ Every entry also has an `id`, and may have `order` (lists), `priority` (chains) 
 | `panel.page` | keyed | app | yes | `mount` | A page the right panel shows in place of its frames (Shell, Files, Thread). |
 | `panel.title-action` | list | app | no | `label`, `icon`, `onPress` | A button in the right panel's title bar. |
 | `dock.bottom` | single | app | no | `mount` | The dock under the conversation; it can move into a panel page. |
+| `conversation.file-route` | chain | conversation | no | `route` | Handles transcript file clicks in priority order. |
 | `conversation.source` | keyed | app | no | `items` | Where a conversation's rows come from, keyed by view prefix. |
 | `conversation.row` | keyed | conversation | yes | `render` | How one kind of conversation row is drawn, keyed by its kind. |
 | `conversation.block` | keyed | conversation | yes | `render` | How one block type of an agent's turn is drawn, keyed by type. |

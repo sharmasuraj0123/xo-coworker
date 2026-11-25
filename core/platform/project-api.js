@@ -21,11 +21,11 @@ export const projectApi = {
     requestChecked(`/xo-projects/${enc(project)}/versions`, shapes.isProjectVersions, {
       query: { relative_path: relativePath, limit, before },
     }),
-  projectPaths: (project, { worktree = null, stamp = null } = {}) =>
-    requestChecked(`/coworker/xo-projects/${enc(project)}/paths`, shapes.isProjectPaths, { query: { worktree, stamp } }),
-  projectSearch: (project, { q, worktree = null, regex = false, case: cs = false, word = false, glob = null, limit = 500 } = {}) =>
+  projectPaths: (project, { worktree = null, stamp = null, signal } = {}) =>
+    requestChecked(`/coworker/xo-projects/${enc(project)}/paths`, shapes.isProjectPaths, { signal, query: { worktree, stamp } }),
+  projectSearch: (project, { q, worktree = null, regex = false, case: cs = false, word = false, glob = null, limit = 500, signal } = {}) =>
     requestChecked(`/coworker/xo-projects/${enc(project)}/search`, shapes.isProjectSearch, {
-      query: { q, worktree, regex: String(!!regex), case: String(!!cs), word: String(!!word), glob, limit },
+      signal, query: { q, worktree, regex: String(!!regex), case: String(!!cs), word: String(!!word), glob, limit },
     }),
   renameProjectFile: (project, relativePath, newRelativePath, confirm) =>
     requestChecked(`/xo-projects/${enc(project)}/files/rename`, shapes.isProjectRename, {

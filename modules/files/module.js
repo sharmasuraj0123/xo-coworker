@@ -1,6 +1,7 @@
 // @ts-check
 
 import { createFileViewer } from "./viewer.js";
+import { applyFileEvent } from "./file-events.js";
 import { createFiles } from "./files.js";
 import { createFilesPage } from "./page.js";
 
@@ -20,7 +21,7 @@ export function createFilesModule(options) {
   const module = {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "currentView", "announce"], contributes: ["panel.page:files"],
+      needs: ["world", "currentView", "announce"], contributes: ["panel.page:files", "conversation.file-route:shared-file"],
     },
     activate(ctx) {
       const announce = ctx.use("announce");
@@ -31,8 +32,10 @@ export function createFilesModule(options) {
         page = undefined;
         mountedViewer.dispose();
       });
+      const world = ctx.use("world"), treeOptions = options.tree();
+      ctx.effect(() => world.onEvent((event) => applyFileEvent(event, mountedViewer, treeOptions.paths)));
       const files = createFiles({
-        ...options.tree(), viewer: mountedViewer, world: ctx.use("world"), onFold: (folded) => page?.treeFolded(folded),
+        ...treeOptions, viewer: mountedViewer, world, onFold: (folded) => page?.treeFolded(folded),
       });
       const filesPage = createFilesPage({
         stage: options.stage(), files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
@@ -40,6 +43,11 @@ export function createFilesModule(options) {
       viewer = mountedViewer;
       tree = files;
       page = filesPage;
+      ctx.contribute("conversation.file-route", { id: "shared-file", route(/** @type {Element} */ target, /** @type {MouseEvent} */ event) {
+        const button = target.closest("[data-file]");
+        if (!(button instanceof HTMLElement)) return false;
+        event.preventDefault(); options.openSharedFile(button); return true;
+      } });
       ctx.contribute("panel.page", { id: "files", ...filesPage.entry });
     },
   };

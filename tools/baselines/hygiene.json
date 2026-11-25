@@ -94,8 +94,7 @@
   "explicitAny": 4
  },
  "core/services/paths.js": {
-  "commentLines": 1,
-  "explicitAny": 1
+  "commentLines": 1
  },
  "core/services/review.js": {
   "commentLines": 2,
@@ -500,8 +499,7 @@
   "commentLines": 5
  },
  "modules/search/quickopen.js": {
-  "commentLines": 11,
-  "explicitAny": 2
+  "commentLines": 11
  },
  "modules/settings/accounts.js": {
   "commentLines": 2

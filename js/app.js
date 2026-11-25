@@ -1,4 +1,5 @@
 // @ts-check
+import { routeConversationFile } from "../shell/places.js";
 import { createWorld } from "../core/services/world/store.js";
 import { esc } from "../core/platform/util.js";
 import { PHONE as viewportPhone } from "../core/platform/viewport.js";
@@ -98,8 +99,7 @@ import { createConversationFiles } from "../modules/files/conversation-files.js"
 import { createMediaOpener } from "../modules/files/open-media.js";
 import { fileScope, localIn } from "../modules/files/scope.js";
 import { filePlace } from "../modules/files/search-place.js";
-import { createPaths } from "../core/services/paths.js";
-import { createQuickOpen } from "../modules/search/quickopen.js";
+import { createFileSearch } from "../modules/search/file-search.js";
 import { createWorkspaceJump } from "../modules/search/jump-items.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
@@ -252,7 +252,7 @@ const {
 }, { turnHtml, turnAv });
 // what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, api, onChange: () => schedule() });
-const { module: filesModule, viewer: VW, tree: FILES, page: FP } = createFilesModule({
+const files = createFilesModule({
   viewer: {
   onChange: schedule, changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text), compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
@@ -270,30 +270,12 @@ const { module: filesModule, viewer: VW, tree: FILES, page: FP } = createFilesMo
   },
   renderers: { $, diff, jump: jumpDiff, isImageChange, drawImageChange },
   tree: () => ({ isBusy, PROJ, go: (v) => go(v), changes: CHG, paths: PATHS }),
-  stage: () => STAGE,
+  stage: () => STAGE, openSharedFile: (button) => openSharedFile(button),
 });
 const savedSoon = createSavedSoon(CHG);
-// a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
-appScope.effect(() => world.onEvent((e) => {
-  if (e.kind !== "file") return;
-  VW.fileChanged({ ...e.data, type: e.type });
-  const d = e.data || {}, m = /^(\.xo\/worktrees\/[^/]+)\/(.+)$/.exec(d.path || "");
-  if (d.project_id && (d.kind === "create" || d.kind === "delete" || d.kind === "rename")) {
-    PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
-  }
-}));
-// every file in a place (core/services/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
-const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
-/** The place the view shows files of (a thread's worktree, a project's folder), or null. */
-const placeNow = () => filePlace(currentView(), { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
-const QO = createQuickOpen({
-  paths: PATHS, api, place: placeNow, announce,
-  openFile: (rel, { line }) => {
-    const place = placeNow();
-    if (place) VW.open({ path: rel, name: rel.split("/").pop(), project: place.project, rel, ...(line ? { lines: [line, line] } : {}) }, null);
-  },
-  openFiles: () => VW.openFiles || [],
-  layer: { shown: () => syncInert(), hidden: () => syncInert() },
+const { module: filesModule, viewer: VW, tree: FILES, page: FP } = files;
+const { paths: PATHS, quickOpen: QO } = createFileSearch(appScope, files, {
+  place: () => filePlace(currentView(), { thread: world.thread, project: PROJ }), announce, syncInert: () => syncInert(),
 });
 // A picture opens over the conversation; Open in Files hands it to the Files viewer.
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
@@ -716,33 +698,7 @@ appScope.listen(document, "click", (event) => {
   if (t.closest("[data-lref-x]")) { fileReferences.remove(currentView()); lrefRender(); say.focus(); return; }
   const lr = t.closest("[data-ref]");
   if (lr instanceof HTMLElement) { e.preventDefault(); openLineRef(lr); return; }
-  // a changed file's chip: its diff in the panel's Changes; anything else (a link to a file), Files
-  const cf = t.closest(".tb-cf[data-file]");
-  // Unpin on the source row so opening the panel keeps the reading position.
-  if (cf) {
-    const cv = convAt(cf), c = CHG.forTarget(cv.view, cf.getAttribute("data-file") || "");
-    if (c) {
-      cv.follow.unpin(cf); // the row you clicked in stays where it is while the panel takes its room (follow.js)
-      const s = CHG.scope(cv.view);
-      const inFiles = () => {
-        if (!s || !(cf instanceof HTMLElement)) return;
-        const rel = s.worktree ? `.xo/worktrees/${s.worktree}/${c.path}` : c.path;
-        VW.open({ path: c.path, name: c.path.split("/").pop(), project: s.project, rel, show: "changes" }, cf);
-      };
-      // ⌘/Ctrl-click: its diff in the panel's Files page, as the file (the same place a file opens)
-      if (s && (e.metaKey || e.ctrlKey)) { inFiles(); return; }
-      // Focus the Changes row when the diff opens in the panel.
-      if (STAGE.showChange(c.path)) {
-        redrawFocus.request([`#stage [data-cx="${CSS.escape(c.path)}"]`, "#stage .cx-pd"]);
-        schedule();
-        return;
-      }
-      // a shape without the panel's Changes (Make content): its diff in Files instead
-      if (s) { inFiles(); return; }
-    }
-  }
-  const fb = t.closest("[data-file]");
-  if (fb instanceof HTMLElement) { e.preventDefault(); openSharedFile(fb); return; }
+  if (routeConversationFile(kernel.places, t, e)) return;
   const cp = t.closest("[data-copy]");
   if (cp) void codeCopy.copy(cp);
 });
@@ -809,7 +765,10 @@ const settings = createSettingsModule({
   beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
   onHidden: () => syncInert(),
 });
-const leafModules = [sinceModule, artifacts.module, runs.module, settings.module, MAP.module, createChangesModule(CHG), filesModule];
+const changesModule = createChangesModule(CHG, {
+  conversationAt: convAt, showChange: STAGE.showChange, openFile: VW.open, focusAfterDraw: redrawFocus.request,
+});
+const leafModules = [sinceModule, artifacts.module, runs.module, settings.module, MAP.module, changesModule, filesModule];
 for (const module of [...leafModules, routingModule, rulesModule, worktreesModule]) kernel.register(module);
 function openSettings() { settings.open(); }
 /** @param {Parameters<typeof settings.close>[0]} [options] */

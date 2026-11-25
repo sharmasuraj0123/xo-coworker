@@ -2565,6 +2565,9 @@
     "modules/settings/surface.js",
     "modules/map/module.js",
     "modules/changes/module.js",
+    "modules/changes/chip-route.js",
+    "modules/files/file-events.js",
+    "modules/search/file-search.js",
     "modules/files/module.js",
     "modules/decisions/feedback.js",
     "modules/home/controller.js",
@@ -2579,6 +2582,18 @@
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/changes/chip-route.js": {
+     "anchor": "export function createChangeChipRoute",
+     "reason": "Changes resolves transcript change chips before the generic file action."
+    },
+    "modules/files/file-events.js": {
+     "anchor": "export function applyFileEvent",
+     "reason": "Files refreshes its mounted viewer and updates paths for disk events."
+    },
+    "modules/search/file-search.js": {
+     "anchor": "export function createFileSearch",
+     "reason": "Search connects path updates and Quick Open selections to the active Files viewer."
+    },
     "modules/chats/surface.js": {
      "anchor": "export function createChatSurface",
      "reason": "Chats owns its composer recovery, message actions and control bindings."

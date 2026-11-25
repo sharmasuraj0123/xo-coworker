@@ -8,6 +8,10 @@ export type Surface<C> = Contributed<Entry & {
   render(host: HTMLElement, context: C): void;
 }>;
 
+export interface FileRouteEntry extends Entry {
+  route(target: Element, event: MouseEvent): boolean;
+}
+
 export interface SurfaceOptions {
   places: Places;
   place: string;

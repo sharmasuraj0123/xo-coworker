@@ -7,8 +7,10 @@ const SKIP = new Set([".git", "node_modules", "__pycache__", ".venv", "venv", "d
 const WALK_MAX = 20000; // paths walked from /tree before it stops (says so: truncated)
 const WALK_PARALLEL = 4;
 
-/** Every file in a place (⌘P, Find): Space's /paths when it has it, else a background walk of /tree; refreshed by file events, never a keystroke. @param {{ api: Record<string, any>, onChange?: (pl: Place) => void }} o */
-export function createPaths({ api, onChange = () => {} }) {
+/** @typedef {Pick<import("../platform/project-response-types").ProjectApi, "projectPaths" | "projectTree">} PathsApi */
+
+/** @param {{ api: PathsApi, signal?: AbortSignal, onChange?: (pl: Place) => void }} o */
+export function createPaths({ api, signal, onChange = () => {} }) {
   /** @type {Map<string, Entry>} */
   const P = new Map();
   let routeMissing = false;
@@ -20,20 +22,21 @@ export function createPaths({ api, onChange = () => {} }) {
   /** @param {Place} pl @param {{ force?: boolean }} [o] */
   async function load(pl, { force = false } = {}) {
     const e = entry(pl);
-    if (e.state === "loading" || (e.state === "ok" && !force)) return e;
+    if (signal?.aborted || e.state === "loading" || (e.state === "ok" && !force)) return e;
     const my = ++e.gen;
     e.state = "loading";
     const worktree = pl.base ? pl.base.split("/").pop() : null;
     if (!routeMissing && api.projectPaths) {
       try {
-        const r = await api.projectPaths(pl.project, { worktree, stamp: force ? e.stamp : null });
-        if (my !== e.gen) return e;
+        const r = await api.projectPaths(pl.project, { worktree, stamp: force ? e.stamp : null, ...(signal && { signal }) });
+        if (signal?.aborted || my !== e.gen) return e;
         if (!r.unchanged) Object.assign(e, { paths: r.paths || [], truncated: !!r.truncated, stamp: r.stamp || null });
         Object.assign(e, { state: "ok", via: "paths" });
         onChange(pl);
         return e;
       } catch (err) {
         // a Space without the route answers a bare 404 (no code); the route's own 404s say what isn't there
+        if (signal?.aborted || my !== e.gen) return e;
         if (missingRoute(err)) routeMissing = true;
         else { e.state = "error"; onChange(pl); return e; }
       }
@@ -47,9 +50,11 @@ export function createPaths({ api, onChange = () => {} }) {
     let shown = 0;
     const one = async () => {
       while (queue.length && my === e.gen) {
+        if (signal?.aborted) return;
         const rel = /** @type {string} */ (queue.shift());
         let d;
-        try { d = await api.projectTree(pl.project, [pl.base, rel].filter(Boolean).join("/")); } catch { continue; }
+        try { d = await api.projectTree(pl.project, [pl.base, rel].filter(Boolean).join("/"), signal); } catch { continue; }
+        if (signal?.aborted || my !== e.gen) return;
         for (const f of d.files || []) out.push(rel ? `${rel}/${f.name}` : f.name);
         for (const x of d.dirs || []) if (!SKIP.has(x.name)) queue.push(rel ? `${rel}/${x.name}` : x.name);
         if (out.length >= WALK_MAX) { e.truncated = true; queue.length = 0; }
@@ -57,7 +62,7 @@ export function createPaths({ api, onChange = () => {} }) {
       }
     };
     await Promise.all(Array.from({ length: WALK_PARALLEL }, one));
-    if (my !== e.gen) return e;
+    if (signal?.aborted || my !== e.gen) return e;
     e.paths = out.sort(); e.state = "ok";
     onChange(pl);
     return e;
@@ -79,7 +84,7 @@ export function createPaths({ api, onChange = () => {} }) {
       onChange(pl);
     },
     /** Forget a place (its list is read again next time). @param {Place} pl */
-    drop(pl) { P.delete(keyOf(pl)); },
+    drop(pl) { const e = P.get(keyOf(pl)); if (e) e.gen++; P.delete(keyOf(pl)); },
     get routeMissing() { return routeMissing; },
   };
 }

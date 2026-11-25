@@ -153,6 +153,16 @@
    ]
   },
   {
+   "id": "conversation.file-route",
+   "kind": "chain",
+   "scope": "conversation",
+   "description": "Handles transcript file clicks in priority order.",
+   "openToApps": false,
+   "requires": [
+    "route"
+   ]
+  },
+  {
    "id": "conversation.source",
    "kind": "keyed",
    "scope": "app",

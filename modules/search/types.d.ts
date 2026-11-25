@@ -1,3 +1,6 @@
+import type { ModuleContext } from "../../core/kernel/types.d.ts";
+
+export type SearchScope = Pick<ModuleContext, "signal" | "listen" | "effect" | "timeout">;
 export interface Place { project: string; base?: string | null; label?: string }
 export interface PathsEntry { state: string; paths?: string[]; truncated?: boolean }
 export interface Match { path: string; line: number; col?: number; text: string; ranges?: [number, number][] }
@@ -17,7 +20,7 @@ export interface QuickOpenDeps {
 }
 export interface QuickOpenState {
   mode: string; pl: Place; items: Item[]; sel: number; back: Element | null; gen: number;
-  t: ReturnType<typeof setTimeout> | 0; o: Record<string, boolean>; noSearch: boolean; pendingEnter?: boolean;
+  t: (() => void) | null; o: Record<string, boolean>; noSearch: boolean; pendingEnter?: boolean;
 }
 export interface JumpItem { v?: string; name: string; sub: string; icon: string; t?: boolean; run?: () => void }
 export interface JumpDeps {
