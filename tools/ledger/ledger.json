@@ -4909,7 +4909,7 @@
   "tests/browser/flows.test.cjs": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies retained typing across a held Save and a refused Save, including the next version and exact retry request, in desktop and phone light and dark on b9083e02 and release d639012b. The legacy alert/Retry, cross-file Save, Undo and Find cases remain open."
   },
   "tests/browser/harness.cjs": {
    "status": "planned",
@@ -14715,7 +14715,8 @@
   },
   "tests/browser/flows.test.cjs::ids::runs": {
    "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "home": "e2e/specs/flows.spec.mjs",
+   "note": "e2e/specs/runs-controls.spec.mjs verifies first-open refusal, S238 cached refusal and retry, stale lists after switching threads, C047 live opener, S100 named Stop, Stage Back focus and duplicate Stop/Undo on b9083e02 in desktop and phone light and dark, with release desktop-dark parity. Same-thread reopen and replaced-opener focus remain open. Runs Escape can reopen detail after focus reaches the panel region on both pins."
   },
   "tests/browser/flows.test.cjs::ids::drop-veil": {
    "status": "planned",
