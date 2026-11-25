@@ -6,7 +6,6 @@ import { threadGroupsModule, threadPresentationModule } from "../modules/threads
 import { navigationModule, shellFoundationModule } from "../shell/foundation.js";
 import { conversationPressModule } from "../shell/conversation-press.js";
 import { conversationMediaModule, conversationHeaderModule, noticeLineModule } from "../modules/conversation/surfaces.js";
-import "../core/ui/components/xo-select.js";
 import { intelModule } from "../modules/chats/intel-surface.js";
 import { runsModule } from "../modules/runs/module.js";
 import { shortcutsModule } from "../modules/settings/shortcuts-sheet.js";
@@ -49,7 +48,6 @@ import { artifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
 import { homeModule, homeSkeletonModule } from "../modules/home/module.js";
 import { threadRuntimeModule, runtimeSettingsModule } from "../modules/runtimes/module.js";
-import { SHAPE_IC } from "../modules/settings/index.js";
 import { themeModule } from "../shell/theme.js";
 
 await bootShell([
@@ -118,4 +116,4 @@ await bootShell([
   routingModule,
   rulesModule,
   worktreesModule,
-], SHAPE_IC);
+]);

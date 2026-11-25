@@ -880,9 +880,6 @@
  "modules/settings/host.js": {
   "lineLength": 2
  },
- "modules/settings/index.js": {
-  "unusedExport": 1
- },
  "modules/settings/keys-page.js": {
   "lineLength": 5
  },

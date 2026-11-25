@@ -23,6 +23,17 @@ test("forward references resolve lexical bindings even inside deferred callbacks
   assert.deepEqual(wiringGrowth(ready, ready + "\n".repeat(500)), []);
 });
 
+test("boot accepts imported modules and rejects hidden assembly with no object keys", () => {
+  const imports = 'import { bootShell as boot } from "../shell/boot.js"; import { feature } from "./feature.js";';
+  const base = imports + "await boot([feature]);";
+  const expected = ["js/app.js: boot must receive a static list of imported modules"];
+  assert.deepEqual(wiringGrowth(base, imports + "\nawait boot([feature]);"), []);
+  assert.deepEqual(wiringGrowth(base, imports + "await boot([feature()]);"), expected);
+  assert.deepEqual(wiringGrowth(base, imports + "feature.wire(); await boot([feature]);"), expected);
+  assert.deepEqual(wiringGrowth(base, imports + 'import "./wire.js"; await boot([feature]);'), expected);
+  assert.deepEqual(wiringGrowth(base, "assemble();"), expected);
+});
+
 test("package conformance rejects a committed increase against its original base", (context) => {
   const root = mkdtempSync(join(tmpdir(), "xo-package-wiring-"));
   context.after(() => rmSync(root, { force: true, recursive: true }));

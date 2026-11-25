@@ -1,4 +1,5 @@
 // @ts-check
+import "../core/ui/components/xo-select.js";
 import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
 import { startShell } from "./start.js";
 import { PHONE } from "../core/platform/viewport.js";
@@ -7,11 +8,11 @@ import { createScope } from "../core/kernel/scope.js";
 
 /** @import { ModuleDef } from "../core/kernel/types" */
 
-/** @param {ModuleDef[]} modules @param {string} shapeIcon */
-export async function bootShell(modules, shapeIcon) {
+/** @param {ModuleDef[]} modules */
+export async function bootShell(modules) {
   const scope = createScope();
   drawPlaceIcons();
-  drawFrameIcons(shapeIcon);
+  drawFrameIcons();
   scope.effect(() => kernel.dispose);
   for (const module of modules) kernel.register(module);
   scope.listen(window, "pagehide", (event) => {

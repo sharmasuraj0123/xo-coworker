@@ -13254,7 +13254,13 @@
   },
   "js/shapeview.js::exports::SHAPE_IC": {
    "status": "moved",
-   "home": "modules/settings/shape-page.js"
+   "home": "shell/frame-icons.js",
+   "evidence": {
+    "shell/frame-icons.js": {
+     "anchor": "shape: ICON.shape",
+     "reason": "The shell draws the Shape tab directly from the shared icon catalogue."
+    }
+   }
   },
   "js/shapeview.js::exports::UNKEPT": {
    "status": "moved",

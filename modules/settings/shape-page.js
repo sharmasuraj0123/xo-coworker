@@ -8,7 +8,6 @@ import { redraw } from "../../core/ui/redraw.js";
 import { bringWhole } from "../../core/ui/a11y/focus.js";
 import { rovingTab } from "../../core/ui/a11y/keynav.js";
 
-export const SHAPE_IC = ICON.shape;
 
 export const UNKEPT = "Applied for now: this browser won't keep it after a reload (its storage is full or switched off).";
 
