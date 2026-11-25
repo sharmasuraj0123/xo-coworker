@@ -9,7 +9,12 @@ import {
 const jump = document.querySelector("#jump");
 await checkFeatureOwnership(kernel, press, flushFrames);
 const app = document.querySelector("#app");
-assert.equal(Boolean(document.querySelector('#side input[type="search"], #side #pf-in')), false, "The sidebar uses Jump for project search");
+press("[data-project-list]");
+const projectSearch = document.querySelector("#rail-project-picker input");
+assert.ok(document.querySelector("#rail-project-picker [data-pin-project]"));
+projectSearch.value = "no-such-project";
+projectSearch.dispatchEvent(new window.Event("input"));
+assert.equal(document.querySelector("#rail-project-picker [data-pin-project]"), null);
 press("#side-jump");
 assert.equal(jump.hidden, false, "The visible sidebar search opens Jump");
 press("#side-jump");

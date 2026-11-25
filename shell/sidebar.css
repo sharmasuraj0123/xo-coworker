@@ -6,6 +6,13 @@
 .side-recents summary{cursor:pointer;padding:var(--s-2);color:var(--ink-3);font-size:var(--fs-meta)}
 .recent-dot{width:var(--s-1);height:var(--s-1);border-radius:var(--r-pill);background:var(--info)}
 .recent-dot.needs{background:var(--warn)}
+[data-project-list]{anchor-name:--project-list}
+#rail-project-picker{position:fixed;position-anchor:--project-list;inset:auto;margin:var(--s-2);
+  left:anchor(right);bottom:anchor(bottom);width:min(var(--side-w),90vw);max-height:70dvh;overflow:auto;
+  padding:var(--menu-pad);border:var(--hair) solid var(--line);border-radius:var(--r-menu);background:var(--float);color:var(--ink)}
+#rail-project-picker input{width:100%;padding:var(--s-2);font:inherit}
+.project-option{display:flex;align-items:center}
+.project-option [aria-pressed=true]{color:var(--accent)}
 .side > .nrow{margin-inline:var(--s-3);width:auto}
 #nv-chats{background:var(--fill-2)}
 #nv-chats .nr-ic{color:var(--accent)}

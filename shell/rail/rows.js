@@ -11,7 +11,7 @@ import { createCalmOrder } from "../sideorder.js";
 /** @import { Lifetime } from "../../core/kernel/types" */
 
 /** @template {SideNeed} N @param {Pick<Lifetime, "listen" | "timeout">} scope @param {SideRowsDeps<N>} deps */
-export function createSideRows(scope, { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
+export function createSideRows(scope, { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded, pinned }) {
   const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false });
   let cancelReorder = () => {};
   /** @type {Map<string, { n: number, until: number }>} */
@@ -75,7 +75,11 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
     cancelReorder();
     if (calm.next != null) cancelReorder = scope.timeout(() => sideRender(D.needItems()), calm.next + 50);
     const up = new Set(calm.top);
-    const items = [...rows.filter((r) => up.has(r.key)), ...(up.size && up.size < rows.length ? [{ key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"></div>` }] : []), ...rows.filter((r) => !up.has(r.key))];
+    const idle = rows.filter(r => !up.has(r.key));
+    const kept = idle.filter(r => pinned(r.key) || current === "p:" + r.key);
+    const visible = kept.length ? kept : idle.slice(0, 4);
+    const sep = up.size && visible.length ? [{ key: "pr-sep", html: '<div class="pr-sep" aria-hidden="true"></div>' }] : [];
+    const items = [...rows.filter(r => up.has(r.key)), ...sep, ...visible];
     const box = requireHtml("#projects"), sig = items.map((r) => r.key).join();
     const from = ready && sig !== signature && !still() ? new Map([.../** @type {HTMLCollectionOf<HTMLElement>} */ (box.children)].map((el) => [el, el.getBoundingClientRect().top])) : null;
     previousNeeds = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));

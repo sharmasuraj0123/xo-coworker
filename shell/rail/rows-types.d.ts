@@ -31,6 +31,7 @@ export interface SideRowsDeps<N extends SideNeed> {
   askShort: (need: N) => string;
   projectIcon: (project: string) => string;
   folded: () => boolean;
+  pinned: (id: string) => boolean;
 }
 
 declare module "../../core/kernel/types" {
