@@ -4,7 +4,8 @@ import { createScope } from "../core/kernel/scope.js";
 import { createHerald } from "../core/services/notices.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import { dom } from "./lib/dom.mjs";
-import { mountFailureSurface } from "../shell/failure-surface.js";
+import { createFailureSurface } from "../core/platform/failure.js";
+import { mountFailurePresenter } from "../shell/failure-surface.js";
 
 test("failure floods wait behind Undo as one line and reveal a diagnostic only on request", async (t) => {
   const { document } = await dom('<div id="app"><div id="dock"><div id="herald"></div><textarea></textarea></div></div>');
@@ -21,7 +22,7 @@ test("failure floods wait behind Undo as one line and reveal a diagnostic only o
   t.after(scope.dispose);
   const notices = createHerald({ state, setTimer: () => 0, clearTimer() {} });
   notices.show({ kind: "sent", text: "Sent", undo() {} });
-  const surface = mountFailureSurface({ ...scope, use: () => notices, frame: fn => fn() });
+  const surface = createFailureSurface(mountFailurePresenter({ ...scope, use: () => notices }), fn => fn());
   const message = 'Unexpected "<tag>"';
   for (let i = 0; i < 100; i++) surface.report(message, "xo.map");
   assert.equal(state.herald.text, "Sent");

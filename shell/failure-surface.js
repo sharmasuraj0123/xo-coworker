@@ -1,8 +1,9 @@
 // @ts-check
-import { createFailureSurface } from "../core/platform/failure.js";
 
-/** @param {import("../core/kernel/types").ModuleContext} ctx */
-export function mountFailureSurface(ctx) {
+/** @typedef {Parameters<typeof import("../core/platform/failure.js").createFailureSurface>[0]} PresentFailure */
+
+/** @param {import("../core/kernel/types").ModuleContext} ctx @returns {PresentFailure} */
+export function mountFailurePresenter(ctx) {
   const notices = ctx.use("notices");
   const mid = "system:application-failures";
   const dialog = document.createElement("dialog");
@@ -23,8 +24,8 @@ export function mountFailureSurface(ctx) {
     if (!dialog.open) dialog.showModal();
   });
   ctx.effect(() => () => { dialog.remove(); notices.drop(mid); });
-  return createFailureSurface((summary) => {
+  return (summary) => {
     const line = { kind: "halt", force: true, mid, ...summary };
     if (!notices.forMsg(mid, () => line, 8000)) notices.show(line, 8000);
-  }, (flush) => ctx.frame(flush));
+  };
 }

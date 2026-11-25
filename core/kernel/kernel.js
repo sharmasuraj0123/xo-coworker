@@ -99,7 +99,7 @@ export function createKernel(opts = {}) {
         scope.dispose();
         rec.activation = undefined;
         rec.error = String((e && typeof e === "object" && "message" in e && e.message) || e);
-        warn(`module ${id} failed to activate:`, e);
+        warn(id, e);
         bus.emit("kernel:module-failed", { id, error: rec.error });
       }
     }
