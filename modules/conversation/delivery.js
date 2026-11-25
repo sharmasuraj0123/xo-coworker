@@ -1,4 +1,5 @@
 // @ts-check
+import { FILE_MARK } from "./file-references.js";
 
 import { once } from "../../core/platform/pending.js";
 import { arrive } from "../../core/ui/motion.js";
@@ -57,7 +58,7 @@ export function createDelivery({
     const conv = thread ? K.view : convOfChat(chat);
     const here = conv === K.view;
     const ref = here && fileReferences.get(conv);
-    if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; fileReferences.remove(conv); }
+    if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `${FILE_MARK}${ref.path}`}\n\n${text}`; fileReferences.remove(conv); }
     const chips = files.count ? tray.take(K.view) : undefined;
     chips?.forEach(dropThumb);
     const to = thread ? thread.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat);

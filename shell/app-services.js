@@ -18,7 +18,7 @@ export function createAppServices({ world, announce, projectName, currentView },
       ctx.provide("announce", announce);
       ctx.provide("projectName", projectName);
       ctx.provide("currentView", currentView);
-      ctx.on("app:render", schedule);
+      ctx.onFlush("workspace", schedule);
     },
   };
 }

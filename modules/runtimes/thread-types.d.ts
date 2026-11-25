@@ -22,3 +22,7 @@ export interface ThreadRuntimeDeps {
   SHAPE: { on: (feature: string) => boolean };
   isHeld: (thread: RuntimeThread) => thread is RuntimeThread & { held: Hold };
 }
+
+declare module "../../core/kernel/types" {
+  interface Services { threadRuntime: ReturnType<typeof import("./thread.js").createThreadRuntime> }
+}

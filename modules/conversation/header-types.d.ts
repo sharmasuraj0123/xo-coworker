@@ -1,6 +1,6 @@
 import type { WorldThread } from "../../core/services/world/state-types.d.ts";
 import type { headerActionsHtml } from "../../shell/header.js";
-import type { createMessageContext } from "./message-context.js";
+import type { MessageContext } from "./message-context.js";
 
 export type HeaderThread = WorldThread;
 
@@ -20,7 +20,7 @@ export type HeaderDeps<N extends HeaderNeed> = {
   STAGE: { button(view: string): string };
   kernel: { places: Parameters<typeof headerActionsHtml>[0] };
   atOf(view: string): Parameters<typeof headerActionsHtml>[1];
-  convHost: ReturnType<typeof createMessageContext>["convHost"];
+  convHost: MessageContext["convHost"];
   homeParts(needs: N[]): { held: unknown[] };
   projects(): unknown[];
   doneToday(): unknown[];

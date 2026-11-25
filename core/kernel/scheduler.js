@@ -20,6 +20,7 @@ export function createScheduler(opts = {}) {
   let all = false, pending = false;
 
   function flushNow() {
+    if (scope.signal.aborted) return;
     cancelFrame?.();
     cancelFrame = undefined;
     pending = false;
@@ -38,9 +39,11 @@ export function createScheduler(opts = {}) {
       return () => { const i = flushers.indexOf(f); if (i >= 0) flushers.splice(i, 1); };
     },
     invalidate(key) {
+      if (scope.signal.aborted) return;
       if (key === undefined) all = true; else dirty.add(key);
       if (!pending) { pending = true; request(flushNow); }
     },
     flushNow,
+    dispose() { scope.dispose(); dirty.clear(); flushers.length = 0; },
   };
 }

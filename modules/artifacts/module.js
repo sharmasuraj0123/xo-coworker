@@ -23,14 +23,14 @@ export const artifactsModule = {
     ctx.effect(() => scope.dispose);
     const made = createMade({
       ...ctx.use("homeSkeleton"), scope, world: ctx.use("world"), PROJ: ctx.use("projectName"),
-      announce: ctx.use("announce"), go: ctx.use("navigation").go, schedule: () => ctx.emit("app:render"),
+      announce: ctx.use("announce"), go: ctx.use("navigation").go, schedule: () => ctx.invalidate("workspace"),
       VW: { open: (file, from) => ctx.emit("app:open-file", { file, from }) },
     });
     ctx.contribute("home.section", madeSection(made));
     ctx.provide("artifactCatalog", { latestOf: made.latestOf });
     ctx.contribute("page", { id: "artifacts", ...made.artifacts });
     const world = ctx.use("world");
-    ctx.on("app:paint", () => { if (world.state.loaded) paintCount(made.count()); });
+    ctx.on("app:render", () => { if (world.state.loaded) paintCount(made.count()); });
     ctx.effect(() => () => paintCount(0));
     ctx.contribute("search.provider", {
       id: "artifacts", items: made.jumpItems,

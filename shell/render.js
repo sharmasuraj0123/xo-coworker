@@ -6,19 +6,8 @@ import { usable } from "../core/ui/a11y/focus.js";
 import { redraw } from "../core/ui/redraw.js";
 import { faviconRender } from "./favicon.js";
 import { createSurfaceSlots } from "./surfaces.js";
-import { mapFrameAt } from "./panel/frame-bindings.js";
 
 /** @import { SurfaceScope } from "./surface-types.d.ts" */
-
-/** @param {() => void} render @param {ReturnType<typeof import("../core/kernel/scope.js").createScope>} scope */
-export function createShellScheduler(render, scope) {
-  let queued = false;
-  return function schedule() {
-    if (queued || scope.signal.aborted) return;
-    queued = true;
-    scope.frame(() => { queued = false; render(); });
-  };
-}
 
 /** @template {import("./render-types.d.ts").RenderNeed} Need @template {import("./render-types.d.ts").RenderThread} Thread @template {import("./render-types.d.ts").RenderConversation} Conversation @param {import("./render-types.d.ts").RenderDeps<Need, Thread, Conversation>} options */
 export function createShellRenderer({
@@ -77,7 +66,6 @@ export function createShellRenderer({
     sendRender();
     chipRender();
     D.sync();
-    mapFrameAt(places)?.api.render(v);
     VW.notice();
     STAGE.sync();
     LW.sync();

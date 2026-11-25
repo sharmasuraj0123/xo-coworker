@@ -84,7 +84,7 @@ await t("selecting a Jump result goes to its thread and opens the file", () => {
 });
 console.log(`\n${passed} passed`);
 
-kernel.bus.emit("app:paint");
+kernel.bus.emit("app:render");
 assert.equal(document.getElementById("arts-n").textContent, "2");
 assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts, 2");
 const previousCatalog = catalog();

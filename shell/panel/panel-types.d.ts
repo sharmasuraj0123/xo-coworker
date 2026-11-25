@@ -5,6 +5,8 @@ declare module "../../core/kernel/types" {
   interface Services { stage: ReturnType<typeof import("./panel.js").createStage> }
 }
 
+export type StageNavigation = Pick<ReturnType<typeof import("./panel.js").createStage>, "leave" | "close" | "isOpen">;
+
 interface Page { name: string; key: string }
 export interface StageState {
   open: boolean;
@@ -23,7 +25,6 @@ export interface StageState {
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
 interface MapApi {
   render(view: string): void;
-  agents(view: string): Agent[];
   mode: "graph" | "tree";
   setMode(mode: "graph" | "tree"): void;
   show(view: string): void;
@@ -71,6 +72,7 @@ export interface StageDeps {
   announce(message: string): void;
   onChange?(): void;
   frames?(): string[];
+  agents?: (view: string) => Agent[];
   threads?: ((view: string) => Group[]) | null;
   shell?: ((on: boolean, host?: HTMLElement, view?: string) => void) | null;
   owns?(event: Event): boolean;

@@ -1,5 +1,7 @@
 // @ts-check
 
+import { PHONE } from "../../core/platform/viewport.js";
+import { sessionOf } from "../../shell/place-context.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { replyNotices } from "./reply-notices.js";
@@ -10,108 +12,119 @@ import { chatOrder } from "../../core/services/world/conversation.js";
 import { heldShort, heldBadge } from "../../core/services/world/held.js";
 import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
 
-/** @import { Conversation } from "./types.d.ts" */
+/** @import { ChatButtons } from "./surface-types.d.ts" */
 
-/** @import { ChatControls } from "./controls-types.d.ts" */
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const chatModelModule = {
+  manifest: { id: "xo.chat-model", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "announce", "notices", "navigation", "currentView", "conversationSession", "conversationPresentation"],
+    provides: ["chats"] },
+  activate(ctx) {
+    const session = ctx.use("conversationSession"), view = ctx.use("currentView"), { go } = ctx.use("navigation");
+    const { turnHtml, turnAv } = ctx.use("conversationPresentation");
+    /** @type {((text: string) => void) | undefined} */
+    let recover;
+    const chats = createChats({
+      world: ctx.use("world"), announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
+      schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#msgs"), transcriptOpen: session.folds.open,
+      restore(text, { force = false } = {}) {
+        if (!recover) return false;
+        if (force && view() !== "chats") go("chats");
+        if (view() !== "chats" || (!force && session.composer.say.value.trim())) return false;
+        recover(text);
+        return true;
+      },
+    }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
+    ctx.effect(() => chats.dispose);
+    ctx.provide("chats", Object.assign(chats, {
+      /** @param {(text: string) => void} putBack */
+      attachRecovery(putBack) {
+        recover = putBack;
+        return () => { if (recover === putBack) recover = undefined; };
+      },
+    }));
+  },
+};
 
-/** @import { ChatButtons, ChatSurfaceOptions } from "./surface-types.d.ts" */
-
-/** @param {ChatSurfaceOptions} options @param {Pick<Conversation, "turnHtml" | "turnAv">} conversation */
-export function createChatSurface(options, conversation) {
-  const { world, announce, heraldShow, go, schedule, view, transcriptOpen, composer, putBack, stop } = options;
-  const list = requireHtml("#msgs");
-  const chats = createChats({
-    world, announce, heraldShow, go, schedule, view, listRoot: list, transcriptOpen,
-    restore(text, { force = false } = {}) {
-      if (force && view() !== "chats") go("chats");
-      if (view() !== "chats" || (!force && composer().value.trim())) return false;
-      putBack(text);
-      return true;
-    },
-  }, { ...conversation, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
-
-  /** @param {Omit<ChatControls, "list" | "chats">} controls */
-  function mountControls(controls) {
-    bindChatControls({ ...controls, list, chats });
-  }
-
-  /** @param {ChatButtons} buttons */
-  function bindComposerButtons({ scope, target, permissions, sendNow, intelligence, updateComposer, aim, toggleIntelligence }) {
-    /** @param {HTMLElement} anchor @param {string} part */
-    function setup(anchor, part) {
-      chats.toggleSetup(anchor, part);
-      updateComposer();
-    }
-    scope.listen(target, "click", () => {
-      const active = view();
-      if (active === "chats") setup(target, "cwd");
-      else if (active.startsWith("c:")) composer().focus();
-      else aim();
-    });
-    scope.listen(permissions, "click", () => { if (view() === "chats") setup(permissions, "mode"); });
-    scope.listen(sendNow, "click", () => {
-      chats.toggleNow(view());
-      updateComposer();
-      composer().focus();
-    });
-    scope.listen(intelligence, "click", () => {
-      const active = view();
-      if (active === "chats") setup(intelligence, "model");
-      else if (!chats.isChats(active)) toggleIntelligence(active, intelligence);
-    });
-  }
-
-  /** @param {Element} target */
-  function handleMessageAction(target) {
-    const confirmation = target.closest("[data-chc]");
-    const choice = confirmation?.getAttribute("data-chc");
-    if (confirmation && choice) {
-      const focused = confirmation.contains(confirmation.ownerDocument.activeElement);
-      chats.resolveConfirm(view(), choice);
-      if (focused) composer().focus({ preventScroll: true });
-      return true;
-    }
-    const retry = target.closest("[data-chat-retry]");
-    const retryId = retry?.getAttribute("data-chat-retry");
-    if (retry && retryId) {
-      const block = options.retryBlock();
-      if (block) { options.refuse(block, "the message stays, to retry"); return true; }
-      const focused = retry.contains(retry.ownerDocument.activeElement);
-      chats.retry(retryId);
-      if (focused) composer().focus({ preventScroll: true });
-      return true;
-    }
-    const editId = target.closest("[data-chat-edit]")?.getAttribute("data-chat-edit");
-    if (editId) {
-      const text = chats.edit(editId);
-      if (text != null) putBack(text);
-      return true;
-    }
-    if (!target.closest("[data-chat-stop]")) return false;
-    stop(target);
-    return true;
-  }
-
-  /** @type {import("../../core/kernel/types").ModuleDef} */
-  const module = {
-    manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "projectName", "currentView", "announce"], contributes: ["conversation.press:chat-message"] },
-    activate(ctx) {
-      const { updateComposer, aim, toggleIntelligence, phone } = options;
-      bindComposerButtons({
-        scope: ctx, target: requireHtml("#target", "button"),
-        permissions: requireHtml("#cs-perm", "button"), sendNow: requireHtml("#send-now", "button"),
-        intelligence: requireHtml("#iq", "button"),
-        updateComposer, aim, toggleIntelligence,
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const chatControlsModule = {
+  manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
+    needs: ["world", "projectName", "currentView", "announce", "notices", "conversationSession", "chats",
+      "intelligence", "composer", "runControls"],
+    contributes: ["conversation.press:chat-message"] },
+  activate(ctx) {
+    if (!PHONE) throw new Error("Chat controls need media queries");
+    const phone = PHONE, view = ctx.use("currentView"), session = ctx.use("conversationSession");
+    const chats = ctx.use("chats"), { updateComposer, putBack, liveBlock, refuse, mentions } = ctx.use("composer");
+    const composer = () => session.composer.say;
+    const stop = ctx.use("runControls").stopRun, intel = ctx.use("intelligence");
+    /** @param {ChatButtons} buttons */
+    function bindComposerButtons({ scope, target, permissions, sendNow, intelligence, aim, toggleIntelligence }) {
+      /** @param {HTMLElement} anchor @param {string} part */
+      function setup(anchor, part) {
+        chats.toggleSetup(anchor, part);
+        updateComposer();
+      }
+      scope.listen(target, "click", () => {
+        const active = view();
+        if (active === "chats") setup(target, "cwd");
+        else if (active.startsWith("c:")) composer().focus();
+        else aim();
       });
-      mountControls({
-        scope: ctx, scroller: requireHtml("#scroller"), greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"),
-        phone, updateComposer,
+      scope.listen(permissions, "click", () => { if (view() === "chats") setup(permissions, "mode"); });
+      scope.listen(sendNow, "click", () => {
+        chats.toggleNow(view());
+        updateComposer();
+        composer().focus();
       });
-      const reply = replyNotices(ctx.use("currentView"), ctx.use("projectName"), heraldShow, ctx.use("announce"), schedule);
-      ctx.effect(() => ctx.use("world").onEvent(reply));
-      ctx.contribute("conversation.press", pressEntry("chat-message", handleMessageAction));
-    },
-  };
-  return { chats, module };
-}
+      scope.listen(intelligence, "click", () => {
+        const active = view();
+        if (active === "chats") setup(intelligence, "model");
+        else if (!chats.isChats(active)) toggleIntelligence(active, intelligence);
+      });
+    }
+
+    /** @param {Element} target */
+    function handleMessageAction(target) {
+      const confirmation = target.closest("[data-chc]");
+      const choice = confirmation?.getAttribute("data-chc");
+      if (confirmation && choice) {
+        const focused = confirmation.contains(confirmation.ownerDocument.activeElement);
+        chats.resolveConfirm(view(), choice);
+        if (focused) composer().focus({ preventScroll: true });
+        return true;
+      }
+      const retry = target.closest("[data-chat-retry]");
+      const retryId = retry?.getAttribute("data-chat-retry");
+      if (retry && retryId) {
+        const block = liveBlock();
+        if (block) { refuse(block, "the message stays, to retry"); return true; }
+        const focused = retry.contains(retry.ownerDocument.activeElement);
+        chats.retry(retryId);
+        if (focused) composer().focus({ preventScroll: true });
+        return true;
+      }
+      const editId = target.closest("[data-chat-edit]")?.getAttribute("data-chat-edit");
+      if (editId) {
+        const text = chats.edit(editId);
+        if (text != null) putBack(text);
+        return true;
+      }
+      if (!target.closest("[data-chat-stop]")) return false;
+      stop(session.conversationAt(target).view);
+      return true;
+    }
+
+    bindComposerButtons({
+      scope: ctx, target: requireHtml("#target", "button"), permissions: requireHtml("#cs-perm", "button"),
+      sendNow: requireHtml("#send-now", "button"), intelligence: requireHtml("#iq", "button"),
+      updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
+    });
+    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
+      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer });
+    const reply = replyNotices(
+      view, ctx.use("projectName"), ctx.use("notices").show, ctx.use("announce"), () => ctx.invalidate("workspace"));
+    ctx.effect(() => ctx.use("world").onEvent(reply));
+    ctx.contribute("conversation.press", pressEntry("chat-message", handleMessageAction));
+  },
+};

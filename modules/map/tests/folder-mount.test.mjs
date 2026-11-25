@@ -1,4 +1,5 @@
 // @ts-check
+import { createMapAgents } from "../agents.js";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
@@ -35,7 +36,7 @@ const world = {
   act: {},
   project: () => ({ name: "Demo" }),
 };
-const map = createMap({ world, go() {}, announce() {}, isBusy: () => false, openFile() {}, stepLineHtml: () => "" });
+const map = createMap({ world, go() {}, announce() {}, isBusy: () => false, openFile() {}, activity: createMapAgents({ world, isBusy: () => false, stepLineHtml: () => "" }) });
 
 async function mount() {
   const scope = createScope();

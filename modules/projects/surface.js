@@ -5,7 +5,7 @@ import { createProjectIconPicker } from "./icon-picker.js";
 /** @import { IconHost } from "./icon-picker-types.d.ts" */
 
 /** @param {Pick<import("../../core/kernel/types").ModuleContext, "effect" | "listen">} scope @param {IconHost} host */
-export function mountProjectIcons(scope, host) {
+function mountProjectIcons(scope, host) {
   const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice(host);
   const { PICK, pickIcon, closePick } = createProjectIconPicker({ ...host, ownIcon, forgetIcon });
   scope.effect(() => closePick);
@@ -19,3 +19,15 @@ export function mountProjectIcons(scope, host) {
   });
   return { PICK, projectIcon };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const projectIconsModule = {
+  manifest: { id: "xo.project-icons", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "shape", "projectName", "announce"], provides: ["projectIcons"] },
+  activate(ctx) {
+    ctx.provide("projectIcons", mountProjectIcons(ctx, {
+      world: ctx.use("world"), SHAPE: ctx.use("shape"), PROJ: ctx.use("projectName"),
+      announce: ctx.use("announce"), render: () => ctx.emit("app:render"),
+    }));
+  },
+};

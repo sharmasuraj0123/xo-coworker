@@ -19,3 +19,10 @@ export type ComposerHost =
     session: import("../../core/kernel/types").Services["conversationSession"];
     STAGE: { pageShown: { name: string } | null };
   };
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    composer: ReturnType<typeof import("./composer-surface.js").createComposerSurface>;
+    runControls: import("./run-controls.js").RunControls;
+  }
+}

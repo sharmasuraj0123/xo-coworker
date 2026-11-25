@@ -16,3 +16,7 @@ export type MessageContextDeps = {
   };
   PROJ(id: string): string;
 };
+
+declare module "../../core/kernel/types" {
+  interface Services { messageContext: import("./message-context.js").MessageContext }
+}

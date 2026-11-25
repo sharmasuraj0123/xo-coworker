@@ -21,7 +21,9 @@
     "core/**/*.js",
     "core/**/*.d.ts",
     "shell/**/*.js",
+    "shell/**/*.d.ts",
     "modules/**/*.js",
+    "modules/**/*.d.ts",
     "boot.js",
     "apps-host/**/*.js"
   ],

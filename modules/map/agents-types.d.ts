@@ -39,9 +39,14 @@ export interface MapAgent {
 
 export interface MapAgentDeps {
   world: {
+    thread(id: string): MapThread | null | undefined;
     state: { turns?: Turns | null, projects: { id: string }[], threads: MapThread[] };
     act: { coordinatorBusy?: (project: string) => string | null | undefined };
   };
   isBusy: (thread: MapThread) => boolean;
   stepLineHtml: (text: string, kind: string) => string;
+}
+
+declare module "../../core/kernel/types" {
+  interface Services { mapAgents: ReturnType<typeof import("./agents.js").createMapAgents> }
 }

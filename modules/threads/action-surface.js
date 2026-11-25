@@ -25,7 +25,7 @@ export function createThreadActions() {
         "notices", "conversationSession", "intelligence", "decisionPresentation"], contributes: ["conversation.press:thread-menu"] },
     activate(ctx) {
       const world = ctx.use("world"), announce = ctx.use("announce"), view = ctx.use("currentView");
-      const schedule = () => ctx.emit("app:render"), render = () => ctx.emit("app:paint");
+      const schedule = () => ctx.invalidate("workspace"), render = () => ctx.emit("app:render");
       const { go } = ctx.use("navigation"), { request: requestFocus } = ctx.use("redrawFocus");
       const { composerAt } = ctx.use("conversationSession").focus;
       const stage = ctx.use("stage"), intel = ctx.use("intelligence"), notices = ctx.use("notices");

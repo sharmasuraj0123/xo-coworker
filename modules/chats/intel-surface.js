@@ -1,23 +1,29 @@
 // @ts-check
 
-import { mountPressRoutes, valuePress } from "../../shell/conversation-press.js";
+/** @typedef {ReturnType<typeof mountIntelligence>} IntelligenceSurface */
+
+import { pressEntry, valuePress } from "../../shell/conversation-press.js";
+import { sessionOf } from "../../shell/place-context.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { rtName } from "../../core/services/runtimes.js";
 import { createRecordLines } from "./record-lines.js";
 import { createIntel } from "./intel.js";
 
-/** @import { Composer, IntelSurfaceOptions } from "./surface-types.d.ts" */
-
-/** @template {Composer} T @param {IntelSurfaceOptions<T>} options */
-export function createIntelSurface({ composers, redrawChip, announce, openThread, records, scope, places, ...options }) {
-  const lines = createRecordLines(records);
-  scope.effect(() => mountPressRoutes(places, "xo.intelligence", { "record-undo": valuePress("data-rec-undo", lines.undoRecord) }));
+/** @param {import("../../core/kernel/types").ModuleContext} ctx */
+function mountIntelligence(ctx) {
+  const world = ctx.use("world"), shape = ctx.use("shape"), navigation = ctx.use("navigation");
+  const announce = ctx.use("announce"), conversation = ctx.use("conversationSession"), notices = ctx.use("notices");
+  const lines = createRecordLines({ view: ctx.use("currentView"), localMessages: conversation.localMessages, announce,
+    schedule: () => ctx.invalidate("workspace"), heraldShow: notices.show, placeRegion: conversation.region,
+    dismissRecord: (id) => notices.dismiss((notice) => notice.undo === id),
+  });
+  ctx.contribute("conversation.press", pressEntry("record-undo", valuePress("data-rec-undo", lines.undoRecord)));
   const intelligence = createIntel({
-    ...options, record: lines.recordLine,
-    onChange() { for (const composer of composers()) redrawChip(composer); },
+    world, PROJ: ctx.use("projectName"), simple: () => shape.opts("xo:composer/intel").mode === "simple",
+    record: lines.recordLine, onChange: () => ctx.emit("app:intelligence-changed"),
     onMoved(thread, runtime) {
       announce(`Continuing on ${rtName(runtime)}. This thread is frozen; write in it to pick it back up.`);
-      if (thread) openThread(thread.id);
+      if (thread) navigation.go("t:" + thread.id, { focus: true });
     },
   });
 
@@ -36,19 +42,21 @@ export function createIntelSurface({ composers, redrawChip, announce, openThread
     return true;
   }
 
-  /** @param {(view: string) => string} sessionOf */
-  function activate(sessionOf) {
+  function activate() {
     const sessions = [];
-    for (const composer of composers()) if (usable(composer.iq)) sessions.push(sessionOf(composer.view));
+    for (const composer of conversation.focus.composers()) if (usable(composer.iq)) sessions.push(sessionOf(composer.view));
     intelligence.activate(sessions);
   }
 
-  scope.effect(() => () => { lines.dispose(); intelligence.dispose(); });
-  const surface = { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
-  /** @type {import("../../core/kernel/types").ModuleDef} */
-  const module = {
-    manifest: { id: "xo.intelligence", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["intelligence"] },
-    activate(ctx) { ctx.provide("intelligence", surface); },
-  };
-  return { ...surface, module };
+  ctx.effect(() => () => { lines.dispose(); intelligence.dispose(); });
+  ctx.on("app:view-preparing", () => intelligence.close({ restore: false }));
+  return { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const intelModule = {
+  manifest: { id: "xo.intelligence", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "shape", "navigation", "announce", "conversationSession", "notices", "currentView", "projectName"],
+    contributes: ["conversation.press:record-undo"], provides: ["intelligence"] },
+  activate(ctx) { ctx.provide("intelligence", mountIntelligence(ctx)); },
+};

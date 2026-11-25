@@ -34,7 +34,7 @@ export function createFilesModule(options) {
       const world = ctx.use("world"), stage = ctx.use("stage"), session = ctx.use("conversationSession");
       const { changes, save, ...renderers } = ctx.use("changeData");
       const mountedViewer = createFileViewer({
-        announce, ask: options.ask, onChange: () => ctx.emit("app:render"), changes, edits: { saved: save(changes, ctx) },
+        announce, ask: options.ask, onChange: () => ctx.invalidate("workspace"), changes, edits: { saved: save(changes, ctx) },
         threadTitle: (ts) => world.thread(ts)?.title || null,
         away: () => { if (!page?.isOpen) return false; stage.back(); return true; },
         opened: (_, opts) => { ctx.emit("app:card-opened", "files"); page?.show(opts); },

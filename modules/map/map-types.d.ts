@@ -1,4 +1,4 @@
-import type { MapAgent, MapAgentDeps, MapThread } from "./agents-types";
+import type { MapAgentDeps, MapThread } from "./agents-types";
 import type { CameraDeps, Point } from "./camera-types";
 import type { DiagramDeps } from "./diagram-types";
 import type { DrawAgent, DrawingDeps } from "./drawing-types";
@@ -12,8 +12,9 @@ export type Scope =
 
 export interface MapFile { name?: string; path: string; project: string; rel: string }
 
-export interface MapDeps extends MapAgentDeps {
+export interface MapDeps extends Pick<MapAgentDeps, "isBusy"> {
   world: MapAgentDeps["world"] & TreeDeps["world"] & { thread(id: string): (MapThread & { branch?: string | null }) | null | undefined };
+  activity: ReturnType<typeof import("./agents.js").createMapAgents>;
   go(view: string): void;
   announce(message: string): void;
   openFile(file: MapFile, opener: HTMLElement): void;
@@ -25,7 +26,6 @@ export interface MapController {
   hide(): void;
   unmount(): void;
   live(view: string): boolean;
-  agents(view?: string | null): (Pick<MapAgent, "id" | "title" | "go" | "busy" | "waiting" | "color" | "since"> & { doing: string })[];
   readonly mode: "graph" | "tree";
   setMode(mode: "graph" | "tree"): void;
   render(view: string): void;

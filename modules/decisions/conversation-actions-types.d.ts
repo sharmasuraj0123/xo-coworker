@@ -2,7 +2,6 @@ import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 
 export type OpenOptions = { only?: "glance" | string[] | null; teach?: string | null };
 export type ActionDeps = {
-  places: import("../../core/kernel/types").Places;
   view(): string;
   unfold(key: string): void;
   scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;

@@ -25,12 +25,12 @@ export function createHomeModule(host) {
       const home = createHomeController({
         ...host, ...ctx.use("decisionPresentation"), scope, host: el, world: ctx.use("world"), announce: ctx.use("announce"),
         convOfChat, isBusy: ctx.use("threadPresentation").isBusy, PROJ: ctx.use("placeContext").PROJ,
-        schedule: () => ctx.emit("app:render"), isCurrent: () => view() === "home",
+        schedule: () => ctx.invalidate("workspace"), isCurrent: () => view() === "home",
       });
       controller = home;
       ctx.on("app:decision-undone", (key) => { if (view() === "home") home.restore(key); });
       ctx.contribute("conversation.press", pressEntry("next", valuePress("data-next", () => home.openNext(), true)));
-      ctx.emit("app:render");
+      ctx.invalidate("workspace");
     },
   };
   return { module,

@@ -7,7 +7,6 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 import { MAP_ICON, TOOL } from "./icons.js";
 import { afterPause } from "./after-pause.js";
 import { createMapFolders } from "./folders.js";
-import { createMapAgents } from "./agents.js";
 import { createMapTree } from "./tree.js";
 import { createMapCamera } from "./camera.js";
 import { createMapDrawing } from "./drawing.js";
@@ -43,7 +42,7 @@ function viewportHtml(mode, follow) {
 }
 
 /** @param {MapDeps} options @returns {MapController} */
-export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml }) {
+export function createMap({ world, go, announce, isBusy, openFile, activity }) {
   let el = /** @type {HTMLElement | null} */ (null);
   let mountScope = createScope();
   let folders = createMapFolders(api, () => paint(), mountScope);
@@ -74,7 +73,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     if (v.startsWith("p:")) return { kind: "project", pid: v.slice(2), key: v, fold: { project: v.slice(2), base: "" } };
     return { kind: "all", key: "all" };
   }
-  const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
+  const { agentOf, agentsIn, doingLine, verbOf } = activity;
   const headHtml = createMapHead(world, doingLine, verbOf);
   const load = (/** @type {Parameters<typeof folders.load>} */ ...args) => {
     void folders.load(...args).catch(reportFailure);
@@ -183,12 +182,6 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       el = null;
     },
     live: liveIn,
-    agents(v) {
-      const s = scopeOf(v || M.view);
-      const list = s.kind === "thread" ? [agentOf(s.t)] : agentsIn(s.kind === "project" ? s.pid : null);
-      return list.map((a) => ({ id: a.id, title: a.title, go: a.go, busy: a.busy, waiting: a.waiting, color: a.color, since: a.since,
-        doing: a.waiting ? "waiting for you" : `${verbOf(a)}${a.liveFile ? ` ${a.liveFile.path.split("/").pop()}` : ""}` }));
-    },
     get mode() { return M.mode; },
     setMode: (m) => tool(m, { focus: false }),
     render(v) {

@@ -27,7 +27,7 @@ const FOLD_IC = ICON.chevron;
 const FILES_IC = ICON.folder;
 
 /** @param {StageDeps} deps */
-export function createStage({ files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
+export function createStage({ files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, shell = null, owns = () => false, at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
   const layoutScope = createScope();
   // the Map starts folded, in its Graph: Threads and Changes have the room
@@ -151,7 +151,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
     if (!S.open) return;
     const v = view();
     const { map, changes } = binding;
-    const ag = map?.agents(v) ?? [];
+    const ag = agents(v);
     // a clock's figures aren't a change; what changes is drawn in place, so the row you're on stays itself
     const set = (/** @type {string} */ k, /** @type {HTMLElement} */ node, /** @type {string} */ html) => {
       const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1");

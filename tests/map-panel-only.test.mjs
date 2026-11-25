@@ -1,3 +1,4 @@
+import { createMapAgents } from "../modules/map/agents.js";
 // node tests/map-panel-only.test.mjs: the Map lives only in the right panel (no #map, no cv-map key, no body classes).
 import assert from "node:assert/strict";
 import { sourcePaths, readSource, sourceText } from "./lib/sources.mjs";
@@ -32,7 +33,7 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
   const { createMap } = await import("../modules/map/map.js");
   const { stepLineHtml } = await import("../core/ui/markdown/inline.js");
   const world = { state: { threads: [], projects: [], turns: null }, thread: () => null, project: () => null };
-  const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {}, stepLineHtml };
+  const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {}, activity: createMapAgents({ world, isBusy: () => false, stepLineHtml }) };
   const MAP = createMap(options);
 
   await t("Graph is the default, and a saved Diagram is restored", () => {
@@ -43,7 +44,7 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
 
   await t("its API is the panel's: mount, show, hide, render and the words the panel reads", () => {
     for (const k of ["isOpen", "toggle", "open", "close", "button", "tabs", "liveIn"]) assert.ok(!(k in MAP), `no standalone ${k}`);
-    for (const k of ["mount", "show", "hide", "render", "agents", "mode", "setMode"]) assert.ok(k in MAP, `the panel's ${k}`);
+    for (const k of ["mount", "show", "hide", "render", "mode", "setMode"]) assert.ok(k in MAP, `the panel's ${k}`);
   });
   await t("a render before the panel mounts it draws nowhere and opens nothing", () => {
     MAP.render("home");

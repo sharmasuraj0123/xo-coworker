@@ -2595,6 +2595,7 @@
     "modules/conversation/markdown.js",
     "shell/foundation.js",
     "modules/conversation/run-controls.js",
+    "modules/runs/module.js",
     "shell/panel/workspace-stage.js",
     "modules/conversation/surfaces.js",
     "modules/conversation/open-media.js",
@@ -2654,11 +2655,15 @@
      "reason": "Settings owns opening the shortcuts sheet, moving focus to Close and restoring focus on dismissal."
     },
     "modules/conversation/session.js": {
-     "anchor": "export function createConversationSession",
+     "anchor": "export const conversationSessionModule",
      "reason": "Conversation owns main and panel selection, composer focus, local messages and transcript folds."
     },
+    "modules/runs/module.js": {
+     "anchor": "export const runsModule",
+     "reason": "Runs mounts its Stage page and thread controls and publishes the live run count for the duration of activation."
+    },
     "modules/conversation/run-controls.js": {
-     "anchor": "export function mountRunControls",
+     "anchor": "export const runControlsModule",
      "reason": "Conversation connects pending stops with live runs and retires their timers."
     },
     "shell/panel/workspace-stage.js": {
@@ -2722,7 +2727,7 @@
      "reason": "Conversation owns Shape-aware Markdown image and noun rendering."
     },
     "shell/foundation.js": {
-     "anchor": "export function createShellFoundation",
+     "anchor": "export const shellFoundationModule",
      "reason": "The shell owns the world, view state, notices and render scheduler."
     },
     "shell/boot.js": {
@@ -2782,11 +2787,11 @@
      "reason": "The notice returns focus and dispatches its current undo action."
     },
     "modules/projects/surface.js": {
-     "anchor": "export function mountProjectIcons",
+     "anchor": "function mountProjectIcons",
      "reason": "Projects owns the icon picker and its document listeners."
     },
     "modules/launchpad/surface.js": {
-     "anchor": "export function createLaunchpadSurface",
+     "anchor": "export const launchpadModule",
      "reason": "Launchpad connects its window, project overview, deployment thread and notices."
     },
     "shell/place-context.js": {
@@ -2810,7 +2815,7 @@
      "reason": "The shell resolves shared navigation links and preserves the source row."
     },
     "modules/chats/surface.js": {
-     "anchor": "export function createChatSurface",
+     "anchor": "export const chatModelModule",
      "reason": "Chats owns its composer recovery, message actions and control bindings."
     },
     "modules/settings/application.js": {
@@ -2826,11 +2831,11 @@
      "reason": "Conversation binds the main composer, attachment picker, tray and file drop to their scope."
     },
     "modules/chats/intel-surface.js": {
-     "anchor": "export function createIntelSurface",
+     "anchor": "export const intelModule",
      "reason": "Intelligence owns picker coordination, catalog activation and runtime move feedback."
     },
     "modules/decisions/surface.js": {
-     "anchor": "export function createDecisionSurface",
+     "anchor": "export const decisionModule",
      "reason": "Decisions owns pacing, feedback and resolution of the selected review host."
     },
     "modules/threads/status.js": {
@@ -8435,7 +8440,8 @@
   },
   "js/app.js::functions::schedule": {
    "status": "moved",
-   "home": "shell/render.js"
+   "home": "core/kernel/scheduler.js",
+   "evidence": { "core/kernel/scheduler.js": { "anchor": "invalidate(key)", "reason": "The kernel coalesces workspace invalidations until the next frame." } }
   },
   "js/app.js::functions::render": {
    "status": "moved",
@@ -8541,7 +8547,8 @@
   },
   "js/app.js::functions::fileRoute": {
    "status": "moved",
-   "home": "modules/files/conversation-files.js"
+   "home": "core/services/file-route.js",
+   "evidence": { "core/services/file-route.js": { "anchor": "function fileRoute", "reason": "Transcript and Files share project and worktree path resolution." } }
   },
   "js/app.js::functions::openSharedFile": {
    "status": "moved",
@@ -8549,7 +8556,7 @@
   },
   "js/app.js::functions::youText": {
    "status": "moved",
-   "home": "modules/conversation/file-question.js"
+   "home": "modules/conversation/file-reference-text.js"
   },
   "js/app.js::functions::openLineRef": {
    "status": "moved",
@@ -9248,15 +9255,15 @@
   },
   "js/changes.js::exports::FILE_MARK": {
    "status": "moved",
-   "home": "modules/changes/store.js"
+   "home": "modules/conversation/file-references.js"
   },
   "js/changes.js::exports::fileRef": {
    "status": "moved",
-   "home": "modules/changes/store.js"
+   "home": "modules/conversation/file-references.js"
   },
   "js/changes.js::exports::lineRef": {
    "status": "moved",
-   "home": "modules/changes/store.js"
+   "home": "modules/conversation/file-references.js"
   },
   "js/changes.js::exports::scopeOf": {
    "status": "moved",
@@ -9272,11 +9279,11 @@
   },
   "js/changes.js::functions::fileRef": {
    "status": "moved",
-   "home": "modules/changes/store.js"
+   "home": "modules/conversation/file-references.js"
   },
   "js/changes.js::functions::lineRef": {
    "status": "moved",
-   "home": "modules/changes/store.js"
+   "home": "modules/conversation/file-references.js"
   },
   "js/changes.js::functions::scopeOf": {
    "status": "moved",
@@ -9916,11 +9923,11 @@
   },
   "js/files.js::exports::fileScope": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::exports::localIn": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::exports::newFileSay": {
    "status": "moved",
@@ -9936,11 +9943,11 @@
   },
   "js/files.js::functions::fileScope": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::functions::localIn": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::functions::newFileSay": {
    "status": "moved",

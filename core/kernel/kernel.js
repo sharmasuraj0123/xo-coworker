@@ -154,6 +154,7 @@ export function createKernel(opts = {}) {
     dispose() {
       if (disposed) return;
       disposed = true;
+      scheduler.dispose();
       for (const id of [...mods.keys()].reverse()) {
         if (mods.get(id)?.status === "disabled") continue;
         for (const child of dependents(id)) deactivate(child, "disabled");

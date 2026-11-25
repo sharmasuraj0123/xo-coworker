@@ -11,7 +11,7 @@ globalThis.fetch = async (url) => {
   const r = reply(u);
   return { ok: r.status < 300, status: r.status, statusText: "", type: "basic", text: async () => JSON.stringify(r.body) };
 };
-const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../store.js");
+const { scopeOf, activityIn, createChanges } = await import("../store.js");
 const { choose, newestHunkLine } = await import("../frame.js");
 const { countsHtml } = await import("../../../core/ui/components/counts.js");
 const { api } = await import("../../../core/platform/api.js");
@@ -211,22 +211,6 @@ await t("counts read +n −n, and say nothing for a side with none", () => {
   assert.equal(countsHtml({ additions: null, deletions: null }), "");
 });
 
-await t("a question about lines: \"path:a-b\", a blank line, the question; nothing else reads as one", () => {
-  assert.deepEqual(lineRef("js/follow.js:36-43\n\nWhy only the real bottom?"), { path: "js/follow.js", a: 36, b: 43, rest: "Why only the real bottom?" });
-  assert.deepEqual(lineRef("Makefile:7\n\nwhat runs here?\nand here"), { path: "Makefile", a: 7, b: 7, rest: "what runs here?\nand here" });
-  assert.equal(lineRef("js/a.js:9-3\n\nbackwards"), null);
-  assert.equal(lineRef("js/a.js:36-43 no blank line"), null);
-  // a whole file (Ask about this): its own marker, whatever the path looks like; never guessed from a first line
-  assert.deepEqual(fileRef("File: README.md\n\nwhat is this for?"), { path: "README.md", rest: "what is this for?" });
-  assert.deepEqual(fileRef("File: Makefile\n\nwhat runs?"), { path: "Makefile", rest: "what runs?" });
-  assert.deepEqual(fileRef("File: LICENSE\n\nwhich one?"), { path: "LICENSE", rest: "which one?" });
-  assert.deepEqual(fileRef("File: docs/my notes.md\n\nspaces too"), { path: "docs/my notes.md", rest: "spaces too" });
-  assert.equal(fileRef("README.md\n\nno marker, no capsule"), null);
-  assert.equal(fileRef("e.g.\n\nthis"), null);
-  assert.equal(fileRef("Hello\n\nthere"), null);
-  assert.equal(lineRef("Note: 12 things\n\nhi"), null);
-  assert.equal(lineRef("see js/a.js:3\n\nmid-sentence"), null);
-  assert.equal(lineRef(""), null);
-});
+
 
 console.log(`\n${passed} passed`);

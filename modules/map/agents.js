@@ -70,5 +70,15 @@ export function createMapAgents({ world, isBusy, stepLineHtml }) {
   /** @param {MapStep | null} row */
   const ingOf = (row) => { const w = String((row && row.line) || "").replace(/[`*_]/g, "").trim().split(/[\s…·.]+/)[0] || ""; return /^[A-Za-z]{3,}ing$/.test(w) ? w.toLowerCase() : ""; };
 
-  return { agentOf, agentsIn, doingLine, verbOf };
+  /** @param {string} view */
+  function agents(view) {
+    const thread = view.startsWith("t:") ? world.thread(view.slice(2)) : null;
+    const list = thread ? [agentOf(thread)] : agentsIn(view.startsWith("p:") ? view.slice(2) : null);
+    return list.map((agent) => ({
+      id: agent.id, title: agent.title, go: agent.go, busy: agent.busy, waiting: agent.waiting, color: agent.color, since: agent.since,
+      doing: agent.waiting ? "waiting for you" : verbOf(agent) + (agent.liveFile ? " " + agent.liveFile.path.split("/").pop() : ""),
+    }));
+  }
+
+  return { agentOf, agentsIn, agents, doingLine, verbOf };
 }

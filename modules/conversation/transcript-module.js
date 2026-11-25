@@ -1,4 +1,5 @@
 // @ts-check
+import { youText } from "./file-reference-text.js";
 import { createConversationMessages } from "./messages.js";
 import { heldWords } from "../../core/services/world/held.js";
 import { convOfChat } from "../../shell/place-context.js";
@@ -6,7 +7,6 @@ import { tickElapsed } from "../../shell/elapsed.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { transcriptActions } from "./transcript-actions.js";
 import { createTyping } from "./typing.js";
-import { createMessageContext } from "./message-context.js";
 import { createMessageDetails } from "./message-details.js";
 import { createMessageItems } from "./message-items.js";
 import { createConversationDrawing } from "./draw.js";
@@ -18,7 +18,7 @@ export function createTranscriptModule(host) {
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.transcript", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "shape", "placeContext", "decisionPresentation", "threadPresentation", "changeData"],
+      needs: ["world", "shape", "placeContext", "decisionPresentation", "threadPresentation", "changeData", "messageContext"],
       optional: ["artifactCatalog"],
       contributes: ["conversation.press:older", "conversation.press:fold", "conversation.press:checklist",
         "conversation.press:interrupt"] },
@@ -28,10 +28,10 @@ export function createTranscriptModule(host) {
       const { changes: CHG } = ctx.use("changeData");
       const messagesOf = createConversationMessages({
         ...place, world, shape, D: decision.D, localMessages: host.localMessages, chatOf: place.convProject });
-      const context = createMessageContext({ world, PROJ: place.PROJ });
+      const context = ctx.use("messageContext");
       const typing = createTyping({
         world, CH: host.CH, PROJ: place.PROJ, convThread: place.convThread, chatOf: place.convProject, isBusy: status.isBusy,
-        openAsk: context.openAsk, heldWords, schedule: () => ctx.emit("app:render"), tick: tickElapsed,
+        openAsk: context.openAsk, heldWords, schedule: () => ctx.invalidate("workspace"), tick: tickElapsed,
         sendingTo(chat) {
           return host.localMessages.list(convOfChat(chat)).find(
             (row) => row.who === "you" && row.status === "sending" && row.target === chat) ?? null;
@@ -42,7 +42,7 @@ export function createTranscriptModule(host) {
           return ctx.optional("artifactCatalog")?.latestOf(thread, project) ?? null;
         } },
         ...host, ...place, ...status, ...decision, world, SHAPE: shape, aliases: host.localMessages.aliases });
-      const items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf });
+      const items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf, youText });
       draw = createConversationDrawing({ ...host.reading, ...host, CHG, msgItems: items.msgItems, typingRender: typing.render });
       const routes = transcriptActions({ ...host.actions(), needs: decision.D.needItems, convThread: place.convThread });
       for (const [id, route] of Object.entries(routes)) {

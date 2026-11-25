@@ -1,7 +1,7 @@
-import type { WorldThread } from "../../core/services/world/state-types.d.ts";
-import type { RunsPageDeps } from "./page-types.d.ts";
+import type { createRunsStrip } from "./strip.js";
 
-export interface RunsHost extends Omit<RunsPageDeps, "world" | "announce"> {
-  shape: { on(id: string): boolean };
-  threadAt(target: Element): WorldThread | null;
+declare module "../../core/kernel/types" {
+  interface Services {
+    runs: { working: ReturnType<typeof createRunsStrip>["workingRuns"]; isOpen(): boolean; back(): void };
+  }
 }

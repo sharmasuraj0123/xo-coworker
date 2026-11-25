@@ -35,3 +35,7 @@ export interface LaunchpadHost {
   schedule(): void;
   notices: Parameters<typeof createLaunchpadHerald>[0];
 }
+
+declare module "../../core/kernel/types" {
+  interface Services { launchpad: Pick<import("./surface.js").LaunchpadSurface, "LP" | "LW" | "LPP"> }
+}

@@ -1,4 +1,6 @@
 // @ts-check
+import { prepareStageNavigation } from "./navigation.js";
+import { PHONE } from "../../core/platform/viewport.js";
 import { panelPlace } from "../place-context.js";
 import { createStage } from "./panel.js";
 import { bindPanelHeaderControls } from "./header-controls.js";
@@ -27,7 +29,10 @@ export function mountWorkspaceStage(scope, options, { place, shape, launch }) {
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["stage"] },
-    activate(ctx) { ctx.provide("stage", stage); },
+    activate(ctx) {
+      ctx.provide("stage", stage);
+      ctx.on("app:view-preparing", (change) => prepareStageNavigation(stage, !!PHONE?.matches, change));
+    },
   };
   return { stage, module };
 }

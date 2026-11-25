@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createMapAgents } from "../agents.js";
 import { createMapHead } from "../head.js";
 
-const world = { state: { threads: [], projects: [] }, act: {}, project: () => ({ name: "Operations & support" }) };
+const world = { thread: () => null, state: { threads: [], projects: [] }, act: {}, project: () => ({ name: "Operations & support" }) };
 const { agentOf, doingLine, verbOf } = createMapAgents({ world, isBusy: () => false, stepLineHtml: (line) => line });
 const head = createMapHead(world, doingLine, verbOf);
 const thread = { id: "one", title: "<Debug>", project: "project", state: "working", branch: "test&verify", held: { for: "memory" } };

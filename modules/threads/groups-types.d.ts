@@ -44,3 +44,7 @@ export interface ThreadGroupDeps<N extends ThreadNeed> {
   isHeld: (thread: ThreadInfo) => boolean;
 }
 export type GroupLabels = Record<ThreadGroup, string>;
+
+declare module "../../core/kernel/types" {
+  interface Services { threadGroups: ReturnType<typeof import("./groups.js").createThreadGroups> }
+}

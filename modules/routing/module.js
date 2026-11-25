@@ -9,7 +9,7 @@ export const routingModule = {
   activate(ctx) {
     const settings = ctx.use("settings");
     const page = createRoutingPage(settings, {
-      world: ctx.use("world"), announce: ctx.use("announce"), PROJ: ctx.use("projectName"), onChange: () => ctx.emit("app:render"),
+      world: ctx.use("world"), announce: ctx.use("announce"), PROJ: ctx.use("projectName"), onChange: () => ctx.invalidate("workspace"),
     });
     ctx.effect(() => page.dispose);
     ctx.effect(() => settings.bindPage(PAGE, page));

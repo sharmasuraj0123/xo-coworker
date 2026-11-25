@@ -12,9 +12,9 @@ import { createThreadPage } from "./thread-page.js";
 /** @template D @template {DockNeed} N @param {ThreadPageDeps<D, N> & Navigation} options */
 export function createThreadPageModule(options) {
   const { TP, drawThreadPage, tpMount, tpShow, tpFocus, tpClose } = createThreadPage(options);
-  /** @type {PageSpec & import("./session-types").ThreadPageEntry} */
+  /** @type {PageSpec & import("../../core/kernel/types").Entry} */
   const page = {
-    id: "thread", session: TP, shown: () => options.STAGE.pageShown?.name === "thread",
+    id: "thread",
     title: (id) => options.convThread("t:" + id)?.title || "Thread",
     mount: tpMount, onShow: tpShow, focusEntry: tpFocus, close: tpClose,
     escape() {
@@ -28,8 +28,11 @@ export function createThreadPageModule(options) {
   };
   /** @type {ModuleDef} */
   const module = {
-    manifest: { id: "xo.thread-page", version: "1.0.0", kernel: "^1.1.0", contributes: ["panel.page:thread"] },
+    manifest: { id: "xo.thread-page", version: "1.0.0", kernel: "^1.1.0", needs: ["conversationSession"],
+      contributes: ["panel.page:thread"] },
     activate(ctx) {
+      const session = ctx.use("conversationSession");
+      ctx.effect(() => session.attachPanel({ session: TP, shown: () => options.STAGE.pageShown?.name === "thread" }));
       ctx.contribute("panel.page", page);
       ctx.on("app:decision-undone", (key) => TP.dock?.undoReceipt(key));
       /** @param {Event} event */

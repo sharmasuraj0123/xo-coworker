@@ -37,5 +37,6 @@ export type StopDeps = {
   dismissStops: () => void;
   inUse: (selector: string) => Focus;
   running: (view?: string) => Run | null;
-  workingRuns: (thread: Thread) => number;
+  workingRuns: (thread: Parameters<typeof import("../../core/services/world/run-count.js").workingRunCount>[0]
+    & { sessionId?: string | null }) => number;
 };

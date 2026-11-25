@@ -48,7 +48,7 @@ const renderCard = D.cardHtml;
 D.cardHtml = (...args) => { renders++; return renderCard(...args); };
 const mountScope = createScope();
 const { main: dock } = mountDecisionDock({ scope: mountScope, view: () => "t:thread", region: () => region,
-  bus: kernel.bus, places: kernel.places, announce() {},
+  on: kernel.bus.on, announce() {},
   CH: { isChats: () => false }, D, world,
   convThread: () => thread, convHost: () => null, askShort: (need) => need.ask.title,
   schedule() {}, dockGestures() {},

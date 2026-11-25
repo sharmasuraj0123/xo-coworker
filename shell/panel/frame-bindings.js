@@ -7,7 +7,7 @@ import { ownSurface } from "../surfaces.js";
 /** @import { SurfaceScope } from "../surface-types.d.ts" */
 
 /** @param {Pick<StageDeps["places"], "get">} places */
-export function mapFrameAt(places) {
+function mapFrameAt(places) {
   return /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
 }
 

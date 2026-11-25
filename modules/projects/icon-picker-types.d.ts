@@ -12,3 +12,8 @@ export interface IconPickerDeps {
   announce: (text: string) => void;
   render: () => void;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services { projectIcons: Pick<ReturnType<typeof import("./icon-picker.js").createProjectIconPicker>, "PICK">
+    & Pick<ReturnType<typeof import("./icon-choice.js").createProjectIconChoice>, "projectIcon"> }
+}

@@ -61,6 +61,7 @@ export interface Scheduler {
   onFlush(key: string, fn: () => void): Undo;
   invalidate(key?: string): void;
   flushNow(): void;
+  dispose(): void;
 }
 
 export interface Layer {

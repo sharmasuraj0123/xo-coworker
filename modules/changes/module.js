@@ -13,7 +13,7 @@ export const changesModule = {
   activate(ctx) {
     const { changes } = ctx.use("changeData");
     const route = createChangeChipRoute({
-      changes, schedule: () => ctx.emit("app:render"), conversationAt: ctx.use("conversationSession").conversationAt,
+      changes, schedule: () => ctx.invalidate("workspace"), conversationAt: ctx.use("conversationSession").conversationAt,
       showChange: ctx.use("stage").showChange, focusAfterDraw: ctx.use("redrawFocus").request,
       openFile: (file, from) => ctx.emit("app:open-file", { file, from }),
     });

@@ -15,7 +15,7 @@ export const sinceModule = {
   activate(ctx) {
     const since = createSince({
       world: ctx.use("world"), api: chatActivityApi, announce: ctx.use("announce"),
-      schedule: () => ctx.emit("app:render"),
+      schedule: () => ctx.invalidate("workspace"),
     });
     ctx.effect(() => since.dispose);
     since.view = ctx.use("currentView");

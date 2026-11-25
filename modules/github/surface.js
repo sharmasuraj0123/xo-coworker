@@ -6,11 +6,12 @@ import { createGhPage } from "./page.js";
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const githubModule = {
   manifest: { id: "xo.github", version: "1.0.0", kernel: "^1.1.0",
-    needs: ["stage", "currentView", "placeContext", "announce", "navigation"],
+    needs: ["stage", "currentView", "placeContext", "announce", "navigation", "composer"],
     contributes: ["panel.page:github", "panel.page:ghitem", "panel.title-action:github"] },
   activate(ctx) {
     const stage = ctx.use("stage"), view = ctx.use("currentView"), announce = ctx.use("announce");
     const { atOf } = ctx.use("placeContext"), { go } = ctx.use("navigation");
+    const { insertText } = ctx.use("composer");
     const page = createGhPage({
       api, view, announce, projectOf: (v) => atOf(v).project ?? "",
       stage: {
@@ -22,7 +23,7 @@ export const githubModule = {
         if (view() !== destination) go(destination);
         const what = item.kind === "pr" ? "Review pull request #" : "Work on issue #";
         ctx.frame(() => {
-          ctx.emit("app:compose-text", `${what}${item.number}, “${item.title}”: ${item.url}`);
+          insertText(`${what}${item.number}, “${item.title}”: ${item.url}`);
           announce("The ask is in the message box. Send it to start a thread.");
         });
       },
@@ -44,6 +45,6 @@ export const githubModule = {
       },
     };
     ctx.contribute("panel.title-action", action);
-    ctx.emit("app:render");
+    ctx.invalidate("workspace");
   },
 };

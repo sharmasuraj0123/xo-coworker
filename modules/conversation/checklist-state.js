@@ -3,7 +3,7 @@
 const FRESH_MS = 1500;
 const REFRESH_MS = 1560;
 
-/** @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope @param {() => void} schedule */
+/** @param {Pick<import("../../core/kernel/types").ModuleContext, "timeout">} scope @param {() => void} schedule */
 export function createChecklistState(scope, schedule) {
   /** @type {Set<string>} */
   const open = new Set();

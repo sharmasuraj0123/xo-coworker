@@ -1,4 +1,6 @@
 // @ts-check
+
+/** @typedef {ReturnType<typeof createConversationSession>} ConversationSession */
 import { requireHtml } from "../../core/platform/dom.js";
 import { pageEl } from "../../shell/place-context.js";
 import { createConv } from "./draw.js";
@@ -9,20 +11,27 @@ import { createMainComposer } from "./main-composer.js";
 import { createComposerFocus } from "./composer-focus.js";
 import { PHONE } from "../../core/platform/viewport.js";
 
-/** @import { ThreadPageEntry } from "./session-types" */
+/** @import { ThreadPageAttachment } from "./session-types" */
 
-/** @param {() => string} view @param {Pick<import("../../core/kernel/types").Places, "get">} places @param {() => void} schedule */
-export function createConversationSession(view, places, schedule) {
+/** @param {() => string} view @param {() => void} schedule */
+function createConversationSession(view, schedule) {
   const main = createConv({
     view, msgs: requireHtml("#msgs"), scroller: requireHtml("#scroller"),
     column: requireHtml("#column"), typing: requireHtml("#typing"), main: true,
     follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest },
   });
-  const page = () => /** @type {ThreadPageEntry | undefined} */ (places.get("panel.page", "thread"));
-  const panel = () => page()?.session;
+  /** @type {ThreadPageAttachment | undefined} */
+  let threadPage;
+  /** @param {ThreadPageAttachment} page */
+  function attachPanel(page) {
+    if (threadPage) throw new Error("The thread composer is already attached");
+    threadPage = page;
+    return () => { if (threadPage === page) threadPage = undefined; };
+  }
+  const panel = () => threadPage?.session;
   const composer = createMainComposer(view, main);
   const focus = createComposerFocus({
-    main: composer, isThread: () => page()?.shown() ?? false,
+    main: composer, isThread: () => threadPage?.shown() ?? false,
     coversChat: () => document.body.classList.contains("stage-full") || !!PHONE?.matches,
     panel() {
       const thread = panel();
@@ -36,11 +45,16 @@ export function createConversationSession(view, places, schedule) {
   }
   const localMessages = createLocalMessages(), folds = createTranscriptFolds();
   const region = () => pageEl(view()) || main.scroller;
-  const session = { main, panel, conversationAt, localMessages, folds, region, composer, focus };
-  /** @type {import("../../core/kernel/types").ModuleDef} */
-  const module = {
-    manifest: { id: "xo.conversation-session", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["conversationSession"] },
-    activate(ctx) { ctx.effect(() => focus.dispose); ctx.provide("conversationSession", session); },
-  };
-  return { session, module };
+  return { main, attachPanel, panel, conversationAt, localMessages, folds, region, composer, focus };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const conversationSessionModule = {
+  manifest: { id: "xo.conversation-session", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["currentView"], provides: ["conversationSession"] },
+  activate(ctx) {
+    const session = createConversationSession(ctx.use("currentView"), () => ctx.invalidate("workspace"));
+    ctx.effect(() => session.focus.dispose);
+    ctx.provide("conversationSession", session);
+  },
+};

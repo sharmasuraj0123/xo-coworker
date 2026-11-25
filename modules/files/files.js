@@ -3,7 +3,8 @@ import { redraw } from "../../core/ui/redraw.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { esc, copyText, COPY_REFUSED, space } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { scopeOf, fileScope, localIn, parentOf } from "./scope.js";
+import { fileScope, localIn } from "../../core/services/file-scope.js";
+import { scopeOf, parentOf } from "./scope.js";
 import { touched } from "./marks.js";
 import { createFilesTree } from "./tree.js";
 import { apiRel, createFolderReads } from "./folder-reads.js";
@@ -14,7 +15,7 @@ import { createSectionFolds } from "./section-folds.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { pointerFollows } from "../../core/ui/a11y/keynav.js";
 
-/** @import { FileLocation, FilesScope } from "./scope.js" */
+/** @import { FileLocation, FileScope as FilesScope } from "../../core/services/file-scope-types" */
 
 /** @import { FilesDependencies, FilesState, MenuState } from "./files-types.d.ts" */
 

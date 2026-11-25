@@ -1,8 +1,7 @@
 // @ts-check
 
-import { esc } from "../../core/platform/util.js";
-import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { noticeFor } from "../../core/services/notices.js";
+import { fileScope, localIn } from "../../core/services/file-scope.js";
 
 /** @import { FileQuestionDeps, QuestionFile } from "./file-question-types.d.ts" */
 
@@ -11,19 +10,8 @@ import { noticeFor } from "../../core/services/notices.js";
 /** @param {FileQuestionDeps} deps */
 export function createFileQuestion({
   view, localMessages, fileReferences, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
-  fileScope, localIn, lineRef, fileRef, lrefRender,
+  lrefRender,
 }) {
-  /** @param {string} text */
-  function youText(text) {
-    const r = lineRef(text);
-    if (!r) {
-      const f = fileRef(text);
-      if (!f) return esc(text);
-      return `<a href="#${esc(f.path)}" class="lk lk-in lk-file" data-ref="${esc(f.path)}" title="${esc(f.path)}"><span class="lk-ic">${fileIcon(f.path.split("/").pop())}</span><span class="lk-t">${esc(f.path.split("/").pop())}</span></a>\n${esc(f.rest)}`;
-    }
-    const name = r.path.split("/").pop(), lines = r.a === r.b ? `${r.a}` : `${r.a}–${r.b}`;
-    return `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${lines}`)}"><span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${esc(name)} · ${lines}</span></a>\n${esc(r.rest)}`;
-  }
   /** @param {QuestionFile | null | undefined} f */
   function askPlace(f) {
     if (!f || !f.project || !f.rel) return null;
@@ -75,5 +63,5 @@ export function createFileQuestion({
     return true;
   }
 
-  return { youText, askPlace, askAboutLines, composeAbout, askAboutFile };
+  return { askPlace, askAboutLines, composeAbout, askAboutFile };
 }

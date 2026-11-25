@@ -1,10 +1,12 @@
 // @ts-check
 
+/** @typedef {ReturnType<typeof createMessageContext>} MessageContext */
+
 import { esc } from "../../core/platform/util.js";
 import { reactionGroups } from "../../core/services/world/conversation.js";
 
 /** @param {import("./message-context-types.d.ts").MessageContextDeps} options */
-export function createMessageContext({ world, PROJ }) {
+function createMessageContext({ world, PROJ }) {
   /** @param {string} v */
   function convHost(v) {
     const hosts = world.state.hosts || [];
@@ -54,3 +56,10 @@ export function createMessageContext({ world, PROJ }) {
 
   return { convHost, openAsk, fwdSource, reactionsHtml };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const messageContextModule = {
+  manifest: { id: "xo.message-context", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "projectName"], provides: ["messageContext"] },
+  activate(ctx) { ctx.provide("messageContext", createMessageContext({ world: ctx.use("world"), PROJ: ctx.use("projectName") })); },
+};

@@ -34,6 +34,31 @@ export async function checkFeatureOwnership(kernel, press, flushFrames) {
     assert.ok(replacement.every((entry) => !first.includes(entry)));
     if (id === "xo.home") assert.equal(document.querySelectorAll("#hm-body").length, 1);
   }
+  let activity, session;
+  kernel.register({
+    manifest: { id: "test.active-features", version: "1.0.0", kernel: "^1.1.0",
+      needs: ["navigation", "currentView", "mapAgents", "conversationSession"] },
+    activate(ctx) {
+      activity = ctx.use("mapAgents");
+      session = ctx.use("conversationSession");
+      const navigation = ctx.use("navigation"), view = ctx.use("currentView"), previous = view();
+      navigation.go("ws");
+      assert.equal(view(), "ws", "a consumer can navigate synchronously as soon as its dependency activates");
+      navigation.go(previous);
+    },
+  });
+  const result = await kernel.enable("test.active-features");
+  assert.deepEqual(result.failed, []);
+  await kernel.disable("xo.map");
+  assert.equal(kernel.places.get("panel.frame", "map"), undefined);
+  assert.equal(activity.agents("t:boot-thread")[0]?.title, "Thread from the panel");
+  await kernel.enable("xo.map");
+  assert.ok(session.panel(), "the mounted thread page attaches its conversation");
+  await kernel.disable("xo.thread-page");
+  assert.equal(session.panel(), undefined, "retiring the thread page detaches its composer");
+  await kernel.enable("xo.thread-page");
+  assert.ok(session.panel(), "the replacement page attaches its conversation");
+  await kernel.disable("test.active-features");
   const githubControl = () => document.querySelector("#stage [data-open-gh]");
   const previous = githubControl();
   assert.ok(previous);

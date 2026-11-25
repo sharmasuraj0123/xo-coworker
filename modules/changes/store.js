@@ -10,20 +10,6 @@ import { prefetch } from "./diffview.js";
 const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
 const QUIET = 250; // ms: edits that finish together are read once
 
-export const FILE_MARK = "File: ";
-/** A question about a whole file (Ask about this): "File: path\n\nquestion". @param {string | null | undefined} text */
-export function fileRef(text) {
-  const m = /^File: ([^\n]+)\n\n([\s\S]+)$/.exec(String(text || ""));
-  return m && m[1].trim() ? { path: m[1].trim(), rest: m[2] } : null;
-}
-/** A question about lines: the message starts "path:a-b" (or "path:a") and a blank line, then the question. @param {string | null | undefined} text */
-export function lineRef(text) {
-  const m = /^([^\s:]+\.[^\s:]*|[^\s:]*\/[^\s:]+|[A-Za-z][\w.-]*):(\d+)(?:-(\d+))?\n\n([\s\S]*)$/.exec(String(text || ""));
-  if (!m) return null;
-  const a = +m[2], b = m[3] ? +m[3] : a;
-  return a > 0 && b >= a ? { path: m[1], a, b, rest: m[4] } : null;
-}
-
 /** @param {string | null | undefined} view @param {Pick<ChangesWorld, "thread">} world @returns {Scope | null} */
 export function scopeOf(view, world) {
   if (view && view.startsWith("t:")) {

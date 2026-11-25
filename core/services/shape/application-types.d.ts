@@ -11,5 +11,6 @@ export interface ApplicationShape {
 declare module "../../kernel/types" {
   interface Services {
     shape: ReturnType<typeof createShapeStore>;
+    terminalCapability: (available: () => boolean) => void;
   }
 }

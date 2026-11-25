@@ -1,19 +1,7 @@
 // @ts-check
-import { sharedFileRoute } from "../../core/services/world/relay.js";
+import { createFileRoute } from "../../core/services/file-route.js";
 
 /** @import { ConversationFilesDeps } from "./conversation-files-types" */
-
-/** @param {Pick<ConversationFilesDeps, "currentView" | "convThread">} options */
-export function createFileRoute({ currentView, convThread }) {
-  /** @param {string | null | undefined} path */
-  function fileRoute(path, conv = currentView()) {
-    const t = convThread(conv);
-    const pid = !t && conv.startsWith("p:") ? conv.slice(2) : null;
-    const rel = String(path || "").replace(/^\.\//, "");
-    return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
-  }
-  return fileRoute;
-}
 
 /** @param {ConversationFilesDeps} options */
 export function createConversationFiles(options) {

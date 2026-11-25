@@ -1,4 +1,5 @@
 // @ts-check
+import { createThreadGroups } from "./groups.js";
 import { glyphOf, isBusy, isHeld, stOf, threadInfo, wordOf } from "./status.js";
 import { setThreadInfo } from "../../core/ui/markdown/markdown.js";
 import { threadTitleInput, threadLabelInput } from "./editing.js";
@@ -18,5 +19,19 @@ export const threadPresentationModule = {
   activate(ctx) {
     ctx.provide("threadPresentation", threadPresentation);
     ctx.effect(() => { setThreadInfo(threadInfo(ctx.use("world").thread)); return () => setThreadInfo(null); });
+  },
+};
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const threadGroupsModule = {
+  manifest: { id: "xo.thread-groups", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "decisionPresentation", "mapAgents", "threadRuntime", "placeContext"],
+    provides: ["threadGroups"] },
+  activate(ctx) {
+    const { D, askShort } = ctx.use("decisionPresentation");
+    ctx.provide("threadGroups", createThreadGroups({
+      world: ctx.use("world"), D, MAP: ctx.use("mapAgents"), convProject: ctx.use("placeContext").convProject,
+      askShort, threadMark: ctx.use("threadRuntime").threadMark, isBusy, isHeld,
+    }));
   },
 };

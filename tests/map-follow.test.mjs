@@ -1,4 +1,5 @@
 // @ts-check
+import { createMapAgents } from "../modules/map/agents.js";
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { createScope } from "../core/kernel/scope.js";
@@ -74,7 +75,7 @@ try {
     target = "/home/coder/project/one.js";
     const host = document.getElementById(view);
     const spoken = [], opened = [];
-    const map = createMap({ world, go: (place) => opened.push(place), announce: (text) => spoken.push(text), isBusy: () => true, openFile() {}, stepLineHtml: () => "" });
+    const map = createMap({ world, go: (place) => opened.push(place), announce: (text) => spoken.push(text), isBusy: () => true, openFile() {}, activity: createMapAgents({ world, isBusy: () => true, stepLineHtml: () => "" }) });
     map.render("t:worker");
     const mountScope = createScope();
     map.mount(host, mountScope);

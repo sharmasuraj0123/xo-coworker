@@ -136,7 +136,6 @@ const file = { project: "demo", rel: "notes.md" };
 const fileSends = [];
 const fileQuestion = createFileQuestion({
   view: () => S.view, localMessages, fileReferences, world: { state }, PROJ: (id) => id, convOfChat: (id) => "p:" + id,
-  fileScope: (picked) => ({ project: picked.project }), localIn: (_, picked) => picked.rel,
   blockFor: delivery.blockFor, refuse: delivery.refuse,
   deliverLive: (message) => fileSends.push(message), schedule() {}, heraldShow: herald.show,
 });

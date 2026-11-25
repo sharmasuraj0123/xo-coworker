@@ -383,7 +383,7 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 252,
+  "dependencyKey": 147,
   "lineLength": 11
  },
  "modules/artifacts/artifacts.css": {
@@ -422,8 +422,8 @@
   "unusedExport": 2
  },
  "modules/changes/store.js": {
-  "lineLength": 10,
-  "unusedExport": 3
+  "lineLength": 9,
+  "unusedExport": 2
  },
  "modules/changes/types.d.ts": {
   "lineLength": 1
@@ -503,7 +503,7 @@
   "lineLength": 1
  },
  "modules/conversation/file-question.js": {
-  "lineLength": 4
+  "lineLength": 2
  },
  "modules/conversation/follow.js": {
   "lineLength": 2
@@ -649,7 +649,7 @@
   "lineLength": 2
  },
  "modules/files/conversation-files.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "modules/files/documents.js": {
   "functionLines": 1,
@@ -694,7 +694,7 @@
   "lineLength": 5
  },
  "modules/files/scope.js": {
-  "lineLength": 7
+  "lineLength": 4
  },
  "modules/files/section-folds.js": {
   "lineLength": 1
@@ -821,7 +821,6 @@
   "lineLength": 8
  },
  "modules/map/map.js": {
-  "functionLines": 1,
   "unusedExport": 1
  },
  "modules/map/tree.js": {

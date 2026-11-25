@@ -4,6 +4,7 @@ import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { dom } from "./lib/dom.mjs";
 globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", addEventListener() {}, removeEventListener() {} });
 const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
+const { prepareStageNavigation } = await import("../shell/panel/navigation.js");
 const { createNavigation } = await import("../shell/navigation.js");
 const { createNavigationState } = await import("../shell/navigation-state.js");
 const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
@@ -21,12 +22,12 @@ for (const focus of [true, false]) {
     target.addEventListener("focus", onFocus, { once: true });
     const { go } = createNavigation({
       location: createNavigationState(),
-      VW: { editing: false, leave() {} },
-      STAGE: { isOpen: true, leave() {}, close(options) { calls.push(options); } },
-      IQ: { close() {} }, PHONE: { matches: true }, bus: { emit() {} },
-      clearDock() {}, clearThreadEdit() {}, say, scroller,
-      closeSettings() {}, setDrawer() {}, saveDraft() {}, follow() {},
-      pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => null,
+      bus: { emit(topic, change) {
+        if (topic === "app:view-preparing") {
+          prepareStageNavigation({ isOpen: true, leave() {}, close: (options) => calls.push(options) }, true, change);
+        }
+      } },
+      say, scroller, pageEl: () => null, convThread: () => null,
     });
     go("ws", { panel: true, focus });
     assert.deepEqual(calls, [{ restore: false, quiet: true }, "focus"]);
@@ -39,12 +40,12 @@ t("Back uses a thread’s recorded parent and leaves the place trail untouched",
   location.visit("t:thread", {});
   let confirmLeave;
   const viewer = { editing: true, leave(next) { confirmLeave = next; } };
-  const { back } = createNavigation({ location, VW: viewer, STAGE: { isOpen: false, leave() {}, close() {} },
-    IQ: { close() {} }, PHONE: { matches: false }, bus: { emit() {} }, clearDock() {}, clearThreadEdit() {},
-    say: document.querySelector("#say"), scroller: document.querySelector("#scroller"), closeSettings() {}, setDrawer() {},
-    saveDraft() {}, follow() {}, pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => ({ project: "project" }),
+  const navigation = createNavigation({
+    location, bus: { emit() {} }, say: document.querySelector("#say"), scroller: document.querySelector("#scroller"),
+    pageEl: () => null, convThread: () => ({ project: "project" }),
   });
-  back();
+  navigation.beforeLeave((resume) => { if (!viewer.editing) return true; viewer.leave(resume); return false; });
+  navigation.back();
   assert.equal(location.view(), "t:thread", "Back waits for the open editor's confirmation");
   viewer.editing = false;
   confirmLeave();

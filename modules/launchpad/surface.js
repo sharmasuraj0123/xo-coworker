@@ -1,4 +1,6 @@
 // @ts-check
+
+/** @typedef {ReturnType<typeof createLaunchpadSurface>} LaunchpadSurface */
 import { requireHtml } from "../../core/platform/dom.js";
 import { heldShort } from "../../core/services/world/held.js";
 import { createLaunchpad } from "./launchpad.js";
@@ -8,7 +10,7 @@ import { createLpPage } from "./page.js";
 import { createLaunchpadHerald } from "./herald.js";
 
 /** @param {import("./surface-types").LaunchpadHost} host */
-export function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIcon, projects, go, announce, schedule, notices }) {
+function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIcon, projects, go, announce, schedule, notices }) {
   /** @param {string | null | undefined} v */
   const lpProject = (v) => v?.startsWith("p:") ? v.slice(2) : v?.startsWith("t:") ? world.thread(v.slice(2))?.project ?? null : null;
   /** @param {string} p @param {string | null} [id] */
@@ -31,3 +33,19 @@ export function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIco
     press: (name) => LW.press(name) });
   return { LP, LW, LPP, lpProject, dispose() { LPP.dispose(); LW.dispose(); } };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const launchpadModule = {
+  manifest: { id: "xo.launchpad", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["world", "threadPresentation", "placeContext", "projectIcons", "navigation", "announce", "notices"], provides: ["launchpad"] },
+  activate(ctx) {
+    const { isBusy, isHeld } = ctx.use("threadPresentation"), { PROJ, projects } = ctx.use("placeContext");
+    const surface = createLaunchpadSurface({
+      world: ctx.use("world"), projectIcon: ctx.use("projectIcons").projectIcon, go: ctx.use("navigation").go,
+      announce: ctx.use("announce"), notices: ctx.use("notices"), schedule: () => ctx.invalidate("workspace"),
+      isBusy, isHeld, PROJ, projects,
+    });
+    ctx.effect(() => surface.dispose);
+    ctx.provide("launchpad", surface);
+  },
+};
