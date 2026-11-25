@@ -1,7 +1,7 @@
 // @ts-check
 
 import { bindingNames, literal, member, SOURCE, TEST, walk } from "./syntax.mjs";
-import { checksLifecycle, lifecycleRule } from "./lifecycle.mjs";
+import { checksLifecycle, lifecycleRules } from "./lifecycle.mjs";
 import { sourceReads } from "./source-reads.mjs";
 import { domWrites } from "./dom-expando.mjs";
 
@@ -21,6 +21,7 @@ export function javascriptRules(file, source, { tree, comments }, report, files)
   const lifecycle = checksLifecycle(file);
   const topLevelValues = new Set(tree.body.flatMap((item) =>
     (item.declaration ?? item).declarations?.map((decl) => decl.init) ?? []));
+  if (lifecycle) lifecycleRules(tree, file, report);
   if (production) {
     for (const line of domWrites(tree, comments, source)) report("domExpando", line);
     for (const comment of comments) {
@@ -31,8 +32,7 @@ export function javascriptRules(file, source, { tree, comments }, report, files)
   }
   walk(tree, (node, parent) => {
     const count = (rule) => report(rule, node.loc.start.line);
-    if (lifecycle) lifecycleRule(node, source, count);
-    else if (production && node.type === "CatchClause" && !node.body.body.length
+    if (!lifecycle && production && node.type === "CatchClause" && !node.body.body.length
         && comments.some((comment) => comment.start > node.body.start && comment.end < node.body.end)) {
       count("commentOnlyCatch");
     }

@@ -7,9 +7,14 @@ Use the checkout for the package's changed-file check.
 
 Each baseline records findings by path and rule. It can only decrease.
 `--update-baselines` removes allowances once the checks pass. The changed-file
-gate clears type escape hatches, legacy comments, comment-only catches, viewport
-constants, DOM expandos and source-reading tests about the changed files. Other
-findings are subject to the per-file ratchet as their owning packages remove them.
+gate clears type escape hatches, legacy comments, swallowing catches, bare
+global listeners, direct storage access, timers, viewport constants, DOM
+expandos and source-reading tests about the changed files. Other findings are
+subject to the per-file ratchet as their owning packages remove them.
+
+The lifecycle check follows lexical bindings in application and core code. It
+recognizes bare and qualified browser globals and catches that silently return a
+fallback. Shared scope and storage primitives own the underlying platform calls.
 
 Source-read attribution traces static paths and recognizable templates. Dynamic
 reads still count against their test file. The expando rule detects underscore

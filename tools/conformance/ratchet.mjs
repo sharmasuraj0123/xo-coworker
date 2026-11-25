@@ -10,6 +10,7 @@ const CLEAR_ON_TOUCH = new Set([
   "commentOnlyCatch", "commentReference", "changelogComment", "explicitAny",
   "sourceRead", "sourceReadTarget", "inlineViewportQuery", "viewportLiteral", "domExpando", "missingTsCheck",
   "typeSuppression",
+  "globalListener", "storage", "setTimeout", "setInterval", "requestAnimationFrame",
 ]);
 
 /** @param {ReturnType<typeof inventory>} findings */

@@ -34,11 +34,17 @@ const kind = (findings) => findings.map(({ rule }) => rule).sort();
 const jsCases = [
   ["observer", "new ResizeObserver(callback);"],
   ["globalListener", 'window.document["addEventListener"]("click", callback);'],
+  ["globalListener", 'addEventListener("click", callback);', "core/ui/example.js"],
+  ["setTimeout", "window.setTimeout(callback, delay);", "core/services/example.js"],
   ["setTimeout", "globalThis.setTimeout(callback, delay);"],
   ["setInterval", "setInterval(callback, delay);"],
   ["requestAnimationFrame", "requestAnimationFrame(callback);"],
   ["storage", 'globalThis["localStorage"].getItem(key);'],
   ["commentOnlyCatch", "try { run(); } catch { /* skipped */ }"],
+  ["commentOnlyCatch", "function run() { try { read(); } catch { return; } }"],
+  ["commentOnlyCatch", "function read() { try { return load(); } catch { return fallback; } }"],
+  ["commentOnlyCatch", "operation().catch(() => {});"],
+  ["commentOnlyCatch", "operation().catch(() => null);"],
   ["explicitAny", "/** @type {{ x: Array<any>, any: string }} */\nconst shape = value;"],
   ["domExpando", 'const card = document.createElement("div");\ncard["cache"] = 1;'],
   ["inlineViewportQuery", "window.matchMedia(`(max-width: 760px)`);"],
@@ -63,6 +69,24 @@ for (const [rule, source, file = FILE, header = HEADER] of jsCases) {
     assert.equal(compare(findings, EMPTY, new Set()).errors.length, 1);
   });
 }
+
+test("scoped resources, local bindings and reported failures stay clear", (context) => {
+  const source = [
+    'import { setInterval } from "./clock.js";',
+    'function mount({ addEventListener, setTimeout }, window, localStorage) {',
+    '  addEventListener("click", callback); setInterval(callback); setTimeout(callback);',
+    '  window.setTimeout(callback, 2); localStorage.getItem("model");',
+    '}',
+    '{ const ResizeObserver = Mock; new ResizeObserver(callback); }',
+    'function make() { requestAnimationFrame(callback); var requestAnimationFrame = run; }',
+    'scope.listen(document, "click", callback); scope.frame(callback);',
+    'const state = { localStorage: 1 };',
+    'function readState() { try { return read(); } catch (error) { report(error); return null; } }',
+    'load().catch(error => { throw error; });',
+  ].join("\n");
+  const root = fixture(context, { "core/ui/example.js": HEADER + source });
+  assert.deepEqual(inventory(root), []);
+});
 
 test("only the canonical calendar day constant owns the millisecond literal", (context) => {
   const calendar = "core/platform/calendar.js";
