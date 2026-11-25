@@ -53,20 +53,9 @@
 @import url("../modules/shells/sheet-phone.css");
 @import url("../modules/since/layout.css");
 @import url("../modules/artifacts/cards.css");
-/* Match the final layout to prevent shifts when loading finishes. */
-.sk{display:inline-block;vertical-align:middle;height:8px;max-width:100%;border-radius:999px;background:var(--fill-2);animation:sk-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
-.sk.sk-l{height:16px}
-.sk.sk-lb{height:10px}
-.hm-h .sk.sk-l{height:20px}
-@keyframes sk-breathe{to{opacity:.5}}
-@media (prefers-reduced-motion:reduce){.sk{animation:none}}
-.hm-sk{overflow:hidden;pointer-events:none}
-.hm-sk.is-card{display:flex;flex-direction:column}
-.hm-sk .sk-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-4);padding:var(--s-6);border-radius:var(--r-3xl);border:1px solid var(--line-faint);background:var(--surface)}
-.hm-sk .sk-card .sk{flex:none}
-.handled.hm-sk .hd-ic{background:var(--fill-2)}
-.md-it.is-sk{pointer-events:none}
-.md-it.is-sk .md-open{cursor:default}
+@import url("../core/ui/skeleton.css");
+@import url("../modules/home/skeleton.css");
+@import url("../modules/artifacts/skeleton.css");
 :root[data-theme="light"] .sk{background:var(--fill-2)}
 :root[data-theme="light"] .hm-sk .sk-card{border-color:var(--line-soft)}
 :root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--fill-2)}

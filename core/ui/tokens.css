@@ -178,6 +178,7 @@
   --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
   --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:80px; --stroke-artifact-focus:2px;
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
+  --h-skeleton-label:10px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;

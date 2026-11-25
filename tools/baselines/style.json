@@ -24,8 +24,8 @@
  "css/app.css": {
   "px-effect": 15,
   "px-position": 16,
-  "px-radius": 4,
-  "px-size": 54,
+  "px-radius": 3,
+  "px-size": 50,
   "px-spacing": 117,
   "px-stroke": 5,
   "rawColor": 38,

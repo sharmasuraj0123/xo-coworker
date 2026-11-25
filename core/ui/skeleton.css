@@ -1,0 +1,8 @@
+/* Match the final layout to prevent shifts when loading finishes. */
+.sk{display:inline-block;vertical-align:middle;height:var(--s-2);max-width:100%;border-radius:var(--r-pill);background:var(--fill-2);
+  animation:sk-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
+.sk.sk-l{height:var(--s-4)}
+.sk.sk-lb{height:var(--h-skeleton-label)}
+.hm-h .sk.sk-l{height:var(--s-5)}
+@keyframes sk-breathe{to{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
