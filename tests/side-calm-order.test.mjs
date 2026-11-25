@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../shell/sideorder.js";
 import { createSideRows } from "../shell/rail/rows.js";
+import { createScope } from "../core/kernel/scope.js";
 import { dom } from "./lib/dom.mjs";
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -60,7 +61,14 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   const matches = side.matches.bind(side);
   side.matches = (selector) => selector === ":focus-within" ? side.contains(document.activeElement) : matches(selector);
   const needs = [];
-  const sideRender = createSideRows({ view: () => "home",
+  const timers = new Map();
+  let nextTimer = 0;
+  const scope = createScope({ timers: {
+    setTimeout(fn, duration) { timers.set(++nextTimer, { fn, duration }); return nextTimer; },
+    clearTimeout(id) { timers.delete(id); },
+    setInterval, clearInterval,
+  } });
+  const sideRender = createSideRows(scope, { view: () => "home",
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
     CH: { isChats: () => false }, places: { get: () => undefined }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
@@ -74,16 +82,24 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   needs.push({ admitted: true, group: "ask", t: { project: "a" } });
   sideRender(needs);
   assert.deepEqual(order(), ["b", "pr-sep", "a"]);
-  const schedule = globalThis.setTimeout;
-  let settle;
-  globalThis.setTimeout = (fn, duration) => { assert.equal(duration, 800); settle = fn; };
-  try { side.dispatchEvent(new window.Event("pointerleave")); } finally { globalThis.setTimeout = schedule; }
-  assert.equal(typeof settle, "function");
-  settle();
+  side.dispatchEvent(new window.Event("pointerleave"));
+  const [settle] = timers.values();
+  assert.equal(settle.duration, 800);
+  settle.fn();
   assert.deepEqual(order(), ["a", "b"]);
   assert.ok(box.firstElementChild === alpha);
   assert.equal(alpha.getAttribute("aria-label"), "Alpha. 1 needs you: Needs review");
   assert.equal(document.getElementById("nv-home").getAttribute("aria-current"), "page");
+  side.dispatchEvent(new window.Event("pointerenter"));
+  needs.length = 0;
+  sideRender(needs);
+  side.dispatchEvent(new window.Event("pointerleave"));
+  assert.ok(timers.size > 0, "the final reorder is pending when its rail retires");
+  scope.dispose();
+  assert.equal(scope.size, 0);
+  assert.equal(timers.size, 0, "retiring the rail cancels pending reorders");
+  side.dispatchEvent(new window.Event("pointerleave"));
+  assert.equal(timers.size, 0);
 });
 
 {

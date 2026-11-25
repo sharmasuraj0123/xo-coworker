@@ -154,7 +154,7 @@ const GH = mountGithubPage(appScope, { stage: STAGE, view: currentView, projectO
 const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 
-const sideRender = createSideRows({
+const sideRender = createSideRows(appScope, {
   view: currentView, world, CH, places: kernel.places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
 });
 

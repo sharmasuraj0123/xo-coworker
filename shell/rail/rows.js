@@ -8,9 +8,10 @@ import { createCalmOrder } from "../sideorder.js";
 
 /** @import { Hold, SideNeed, SideRowsDeps } from "./rows-types.d.ts" */
 
-/** @template {SideNeed} N @param {SideRowsDeps<N>} deps */
-export function createSideRows({ view, world, CH, places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
-  const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false, t: 0 });
+/** @template {SideNeed} N @param {import("../surface-types").SurfaceScope} scope @param {SideRowsDeps<N>} deps */
+export function createSideRows(scope, { view, world, CH, places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
+  const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false });
+  let cancelReorder = () => {};
   /** @type {Map<string, { n: number, until: number }>} */
   const washes = new Map();
   /** @type {Map<string, number>} */
@@ -71,8 +72,8 @@ export function createSideRows({ view, world, CH, places, D, projects, convThrea
     const held = SIDE_CALM.over || ($("#side").matches(":focus-within") && !!document.activeElement?.matches(":focus-visible"));
     const calm = SIDE_CALM.order(rows.map((r) => ({ id: r.key, active: r.active, urgent: r.urgent })), now, { first: !ready, held });
     SIDE_CALM.pending = calm.pending;
-    clearTimeout(SIDE_CALM.t);
-    if (calm.next != null) SIDE_CALM.t = setTimeout(() => sideRender(D.needItems()), calm.next + 50);
+    cancelReorder();
+    if (calm.next != null) cancelReorder = scope.timeout(() => sideRender(D.needItems()), calm.next + 50);
     const up = new Set(calm.top);
     const items = [...rows.filter((r) => up.has(r.key)), ...(up.size && up.size < rows.length ? [{ key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"></div>` }] : []), ...rows.filter((r) => !up.has(r.key))];
     const box = $("#projects"), sig = items.map((r) => r.key).join();
@@ -85,10 +86,13 @@ export function createSideRows({ view, world, CH, places, D, projects, convThrea
     ready = true;
   };
   {
-    const side = $("#side"), settle = () => { if (SIDE_CALM.pending) setTimeout(() => !SIDE_CALM.over && sideRender(D.needItems()), 800); };
-    side.addEventListener("pointerenter", () => { SIDE_CALM.over = true; });
-    side.addEventListener("pointerleave", () => { SIDE_CALM.over = false; settle(); });
-    side.addEventListener("focusout", (/** @type {FocusEvent} */ e) => { if (!side.contains(/** @type {Node | null} */ (e.relatedTarget))) settle(); });
+    const side = $("#side");
+    const settle = () => {
+      if (SIDE_CALM.pending) scope.timeout(() => !SIDE_CALM.over && sideRender(D.needItems()), 800);
+    };
+    scope.listen(side, "pointerenter", () => { SIDE_CALM.over = true; });
+    scope.listen(side, "pointerleave", () => { SIDE_CALM.over = false; settle(); });
+    scope.listen(side, "focusout", (event) => { if (!side.contains(/** @type {FocusEvent} */ (event).relatedTarget)) settle(); });
   }
   return sideRender;
 }
