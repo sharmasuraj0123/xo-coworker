@@ -383,8 +383,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 88,
-  "lineLength": 10
+  "dependencyKey": 70,
+  "lineLength": 8
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,

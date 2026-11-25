@@ -10,3 +10,11 @@ export type ViewportOptions = Omit<PagingDeps, "MAIN"> & Live & {
   takeFoldChange: ReturnType<typeof createTranscriptFolds>["takeChange"];
   heraldRoom(): void;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    mainViewport: import("./main-viewport.js").MainViewport;
+    lightbox: ReturnType<typeof import("./lightbox.js").createLightbox>;
+    noticeLine: ReturnType<typeof import("./notice-line.js").createNoticeLine>;
+  }
+}

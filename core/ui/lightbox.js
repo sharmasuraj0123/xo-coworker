@@ -396,5 +396,5 @@ export function createLightbox({ openFile = null, announce = () => {}, pictures 
     scrim.animate([{ opacity: o }, { opacity: 1 }], { duration: BACK_MS, easing: EASE });
   }
 
-  return { open, close, get isOpen() { return L.open; } };
+  return { open, close, dispose: scope.dispose, get isOpen() { return L.open; } };
 }

@@ -2613,6 +2613,9 @@
     "modules/conversation/transcript-module.js",
     "modules/decisions/dock-surface.js",
     "modules/conversation/thread-page-module.js",
+    "modules/conversation/composer-module.js",
+    "modules/conversation/file-question-module.js",
+    "modules/search/file-search-module.js",
     "modules/conversation/composer-surface.js",
     "modules/conversation/main-viewport.js",
     "modules/conversation/transcript-actions.js",
@@ -2680,7 +2683,7 @@
      "reason": "Artifacts contributes its count to the shell rail and publishes transcript records through its optional catalog service."
     },
     "modules/conversation/surfaces.js": {
-     "anchor": "export function mountConversationMedia",
+     "anchor": "export const conversationMediaModule",
      "reason": "Conversation mounts its header, notice undo and media routes."
     },
     "modules/conversation/open-media.js": {
@@ -2764,7 +2767,7 @@
      "reason": "Threads publishes status and header presentation through the kernel."
     },
     "modules/conversation/transcript-module.js": {
-     "anchor": "export function createTranscriptModule",
+     "anchor": "export const transcriptModule",
      "reason": "Conversation obtains the active presentation services and draws transcript rows."
     },
     "modules/decisions/dock-surface.js": {
@@ -2775,12 +2778,24 @@
      "anchor": "export function createThreadPageModule",
      "reason": "Conversation owns the thread page contribution, its Escape behavior and transfer to the main chat."
     },
+    "modules/conversation/composer-module.js": {
+     "anchor": "export const composerModule",
+     "reason": "The composer publishes its editing and delivery controls during activation."
+    },
+    "modules/conversation/file-question-module.js": {
+     "anchor": "export const fileQuestionsModule",
+     "reason": "Conversation owns the composer and live delivery routes for questions about files."
+    },
+    "modules/search/file-search-module.js": {
+     "anchor": "export const fileSearchModule",
+     "reason": "Search owns its path cache and quick-open navigation against the active Files viewer."
+    },
     "modules/conversation/composer-surface.js": {
      "anchor": "export function createComposerSurface",
      "reason": "Conversation connects drafts, delivery, controls and attachments to the active composer."
     },
     "modules/conversation/main-viewport.js": {
-     "anchor": "export function mountMainViewport",
+     "anchor": "export const mainViewportModule",
      "reason": "The main transcript owns paging, reading position and dock observation."
     },
     "modules/conversation/transcript-actions.js": {
@@ -2804,7 +2819,7 @@
      "reason": "The shell resolves routes to their project and thread and supplies project labels."
     },
     "shell/conversation-press.js": {
-     "anchor": "export function bindConversationPress",
+     "anchor": "export const conversationPressModule",
      "reason": "The shell dispatches shared clicks to currently mounted feature contributions in the original order."
     },
     "shell/interactions.js": {

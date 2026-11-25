@@ -1,4 +1,5 @@
 // @ts-check
+import { createScope } from "../../core/kernel/scope.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { mountMainDecoration } from "./main-decoration.js";
 import { watchDock } from "./dock-layout.js";
@@ -10,8 +11,10 @@ import { createConversationPaging } from "./paging.js";
 
 /** @import { ViewportOptions, ViewportScope } from "./main-viewport-types.d.ts" */
 
+/** @typedef {ReturnType<typeof mountMainViewport>} MainViewport */
+
 /** @param {ViewportScope} scope @param {ViewportOptions} options */
-export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, heraldRoom, ...paging }) {
+function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, heraldRoom, ...paging }) {
   const { scroller, msgs: msgsEl } = MAIN;
   const reading = createReadingLayout({ takeFoldChange, MAIN });
   const { loadAhead, loadOlderNow } = createConversationPaging({ ...paging, MAIN }, scope.signal);
@@ -32,3 +35,22 @@ export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, her
   const live = createLiveConversation({ ...paging, view });
   return { ...live, returnPill, scroller, msgsEl, reading, loadAhead, loadOlderNow };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const mainViewportModule = {
+  manifest: { id: "xo.main-viewport", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["mainViewport"],
+    needs: ["conversationSession", "currentView", "placeContext", "world", "chats", "noticeLine"] },
+  activate(ctx) {
+    const scope = createScope();
+    ctx.effect(() => scope.dispose);
+    const session = ctx.use("conversationSession"), place = ctx.use("placeContext");
+    const viewport = mountMainViewport(scope, {
+      main: session.main, view: ctx.use("currentView"), takeFoldChange: session.folds.takeChange,
+      heraldRoom: ctx.use("noticeLine").heraldRoom, CH: ctx.use("chats"), world: ctx.use("world"),
+      convThread: place.convThread, chatOf: place.convProject, render: () => ctx.emit("app:render"),
+    });
+    ctx.on("app:view-visited", viewport.follow);
+    ctx.on("app:return-target", viewport.returnPill);
+    ctx.provide("mainViewport", viewport);
+  },
+};

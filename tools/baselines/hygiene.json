@@ -48,10 +48,6 @@
  "core/kernel/layers.js": {
   "explicitAny": 1
  },
- "core/kernel/places.js": {
-  "commentLines": 2,
-  "explicitAny": 3
- },
  "core/platform/clipboard.js": {
   "commentOnlyCatch": 1
  },

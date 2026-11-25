@@ -63,7 +63,7 @@ const DEFS = SPECS.map(([id, kind, scope, description, openToApps, strings, fns]
 
 export const PLACES = Object.freeze(DEFS);
 
-/** @param {Kernel["places"]} places @param {Element} target @param {MouseEvent} event */
+/** @param {Pick<Kernel["places"], "entries">} places @param {Element} target @param {MouseEvent} event */
 export function routeConversationFile(places, target, event) {
   /** @type {import("./surface-types.d.ts").FileRouteEntry[]} */
   const routes = places.entries("conversation.file-route");
