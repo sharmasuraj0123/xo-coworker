@@ -5,6 +5,7 @@ import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { family, inventory } from "./inventory.mjs";
 import { applyCoverage, readCoverage } from "./coverage.mjs";
+import { wiringGrowth } from "./app-wiring.mjs";
 
 export const FAMILIES = ["lifecycle", "hygiene", "structure", "style"];
 const CLEAR_ON_TOUCH = new Set([
@@ -150,6 +151,15 @@ export function checkConformance(root, baselineDir, { update, base }) {
   }
   if (growth.length) return growth.join("\n");
   const touched = changes(repository);
+  const app = "js/app.js";
+  if (repository && touched.has(app) && existsSync(join(root, app))) {
+    const priorApp = repository.git(["ls-tree", repository.ref, "--", app]);
+    if (priorApp.status !== 0) throw new Error(priorApp.error?.message ?? priorApp.stderr);
+    const original = priorApp.stdout ? repository.git(["show", `${repository.ref}:${app}`]) : { status: 0, stdout: "" };
+    if (original.status !== 0) throw new Error(original.error?.message ?? original.stderr);
+    const wiring = wiringGrowth(original.stdout, readFileSync(join(root, app), "utf8"));
+    if (wiring.length) return wiring.join("\n");
+  }
   const { coverage, prior } = loadCoverage(root, baselineDir, repository);
   const migrated = applyCoverage(root, inventory(root), coverage, prior, touched);
   const { current, errors } = compare(migrated.remaining, baselines, touched, prior ?? {});
