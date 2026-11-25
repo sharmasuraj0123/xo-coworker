@@ -55,7 +55,7 @@ import { threadPresentation, threadPresentationModule } from "../modules/threads
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadActions } from "../modules/threads/action-surface.js";
 import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
-import { mountGithubPage } from "../modules/github/surface.js";
+import { githubModule } from "../modules/github/surface.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
 import { changesModule } from "../modules/changes/module.js";
 import { createProjectModule } from "../modules/create-project/module.js";
@@ -132,17 +132,15 @@ const { panelThreads, threadCounts } = createThreadGroups({
   world, D, MAP: { agents: (view) => mapFrameAt(kernel.places)?.api.agents(view) ?? [] }, convProject, askShort,
   threadMark: (t) => threadMark(t), isBusy, isHeld,
 });
-const { LP, LW, LPP, lpProject, dispose: disposeLaunchpad } = createLaunchpadSurface({
+const { LP, LW, LPP, dispose: disposeLaunchpad } = createLaunchpadSurface({
   world, isBusy, isHeld, PROJ, projectIcon, projects, go, announce, schedule, notices,
 });
 const { stage: STAGE, module: stageModule } = mountWorkspaceStage(appScope, {
   files: FILES, openFiles: () => FP.show({ focus: true }),
-  github: { show: () => GH.show(), leave: () => GH.leave(), has: (view) => GH.has(view) },
   viewer: VW, view: currentView, go: (v, e) => openFromPanel(v, e), announce, onChange: schedule,
   threads: (v) => panelThreads(v),
   shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e), places: kernel.places,
 }, { place, shape: SHAPE, launch: LW });
-const GH = mountGithubPage(appScope, { stage: STAGE, view: currentView, projectOf: lpProject, announce }, go, (text) => insertText(text, MK));
 const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 
@@ -186,6 +184,7 @@ const { saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
   render: () => render(), go, PHONE, isBusy, sendWhileRunning, noun, IQ, sessionOf, running, projects, projectIcon,
   stopRun, VW, SHAPE,
 });
+appScope.effect(() => kernel.bus.on("app:compose-text", (text) => insertText(text, MK)));
 const { heraldBox, heraldRender, heraldRoom } = mountNoticeLine(appScope, kernel.places, {
   notice: notices.current, world, MK, composerNow, panelHost: () => session.panel()?.box ?? null, connDest, placeRegion,
 }, { requestFocus: redrawFocus.request, undo: notices.undo, undoRecord });
@@ -274,6 +273,6 @@ appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
 await bootShell(appScope, [
   shellServices, failureModule, navigationModule, sessionModule, stageModule, intelModule, edgeCardsModule,
   threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
-  homeSkeletonModule, homeModule, JUMP.module, sinceModule, artifactsModule, runs.module, settings.module,
+  githubModule, homeSkeletonModule, homeModule, JUMP.module, sinceModule, artifactsModule, runs.module, settings.module,
   mapModule, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,
 ], { shapeIcon: SHAPE_IC, dispose: [SIDE.dispose, CH.dispose, disposeLaunchpad], THEME, applyTheme, SIDE, PHONE, setDrawer, render, world, schedule, follow, loadDraft });

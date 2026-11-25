@@ -388,7 +388,7 @@
  },
  "js/app.js": {
   "dependencyKey": 253,
-  "lineLength": 13
+  "lineLength": 12
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -1023,7 +1023,7 @@
  },
  "shell/panel/panel.js": {
   "functionLines": 1,
-  "lineLength": 21
+  "lineLength": 20
  },
  "shell/phone.css": {
   "lineLength": 7

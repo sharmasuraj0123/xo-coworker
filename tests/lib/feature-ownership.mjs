@@ -34,6 +34,16 @@ export async function checkFeatureOwnership(kernel, press, flushFrames) {
     assert.ok(replacement.every((entry) => !first.includes(entry)));
     if (id === "xo.home") assert.equal(document.querySelectorAll("#hm-body").length, 1);
   }
+  const githubControl = () => document.querySelector("#stage [data-open-gh]");
+  const previous = githubControl();
+  assert.ok(previous);
+  assert.equal(kernel.places.get("panel.page", "ghitem")?.owner, "xo.github");
+  await kernel.disable("xo.github");
+  assert.equal(githubControl(), null);
+  assert.equal(kernel.places.get("panel.page", "github"), undefined);
+  await kernel.enable("xo.github");
+  assert.equal(document.querySelectorAll("#stage [data-open-gh]").length, 1);
+  assert.ok(githubControl() !== previous);
   const jump = document.querySelector("#jump");
   press("#side-jump");
   assert.equal(jump.hidden, false);

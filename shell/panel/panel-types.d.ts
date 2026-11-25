@@ -53,11 +53,17 @@ export interface FrameState {
   agents: { folded: boolean; rows: number | null; h?: number; groups: Record<string, boolean> };
   map: { folded: boolean; h: number };
 }
-interface GithubPanel { has(view: string): Promise<boolean>; show(): void; leave?(): void }
+export interface PanelTitleAction extends Entry {
+  label: string;
+  icon: string;
+  onPress(): void;
+  init?(button: HTMLButtonElement): void;
+  sync?(button: HTMLButtonElement, view: string, page?: string): void;
+  leave?(): void;
+}
 export interface StageDeps {
   files: { changes(view: string): Change[] };
   openFiles?: (() => void) | null;
-  github?: GithubPanel | null;
   place?(view: string): boolean;
   viewer: { open(file: StageFile, from?: Element | null): void };
   view(): string;

@@ -2733,7 +2733,7 @@
      "reason": "Project creation owns its sidebar opener, delegated route and dialog lifetime."
     },
     "modules/github/surface.js": {
-     "anchor": "export function mountGithubPage",
+     "anchor": "export const githubModule",
      "reason": "GitHub sends issue and pull request text to the project composer."
     },
     "modules/threads/action-surface.js": {

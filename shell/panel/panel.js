@@ -14,6 +14,7 @@ import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
 import { createCover, createWidth } from "./width.js";
 import { countsHtml } from "../../core/ui/components/counts.js";
+import { bindTitleActions } from "./title-actions.js";
 import { bindPanelFrames } from "./frame-bindings.js";
 /** @import { FrameState, StageDeps, StageState } from "./panel-types.d.ts" */
 
@@ -26,7 +27,7 @@ const FOLD_IC = ICON.chevron;
 const FILES_IC = ICON.folder;
 
 /** @param {StageDeps} deps */
-export function createStage({ files, openFiles = null, github = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
+export function createStage({ files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
   const layoutScope = createScope();
   // the Map starts folded, in its Graph: Threads and Changes have the room
@@ -53,7 +54,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   const frame = (/** @type {string} */ id, /** @type {string} */ title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (/** @type {string} */ a, /** @type {string} */ b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
-    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${github ? `<button type="button" class="stg-ic" data-open-gh aria-pressed="false" title="Issues and pull requests" aria-label="Issues and pull requests" hidden>${ICON.github}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
+    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body"><div class="stg-frames">` +
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden>${ICON.follow}</button>`) + gutter("changes", "map") +
@@ -129,6 +130,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   let nameOf = () => "";
   const PG = createPages({ el, S, places, at, view, threads, shell, nameOf: () => nameOf, placeless, open, close, paint, onChange });
   const { PAGES, show, back, dropPages, requestClose, setShell } = PG;
+  const titleActions = bindTitleActions(query("[data-stg-shell], [data-stg-full]"), places, layoutScope);
   const mapLayout = { hide: () => binding.map?.hide(), show: (/** @type {string} */ v) => binding.map?.show(v) };
   const FR = createFrames({ el, S, fr, frames: activeFrames, view, map: mapLayout, persist, paint });
   function layout() { FR.layout(); }
@@ -157,10 +159,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     };
     set("head", query(".stg-t"), PG.titleHtml());
     const covered = !!S.page;
-    if (github) {
-      const button = query("[data-open-gh]");
-      github.has(v).then((ok) => { if (button.hidden === ok) button.hidden = !ok; });
-    }
+    titleActions.sync(v, S.page?.name);
     const tg = threads?.(v);
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = query(".tg-q");
@@ -230,7 +229,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   }
 
   function close({ restore = true, quiet = false } = {}) {
-    github?.leave?.();
+    titleActions.leave();
     if (S.page) dropPages();
     if (!S.open) return;
     S.open = false;
@@ -299,7 +298,6 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       if (fr.map.folded) { fr.map.folded = false; layout(); }
       binding.map.setMode(mode); paint(); return;
     }
-    if (t.closest("[data-open-gh]")) { if (S.page?.name === "github" || S.page?.name === "ghitem") dropPages(); else github?.show(); return; }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(entryInput(e)); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { binding.changes?.toggleFollow(); paint(); return; }
     const ch = closest("[data-change]"), rel = ch?.dataset.change;
@@ -360,8 +358,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     },
     get isShell() { return S.page?.name === "shell"; },
     shellOff: () => setShell(false),
-    page: PG.page, show, back, closePage: PG.closePage, requestClose,
-    leave() { github?.leave?.(); dropPages(); },
+    page: PG.page, show, back, dropPages, closePage: PG.closePage, requestClose,
+    leave() { titleActions.leave(); dropPages(); },
     get slot() { return query(".stg-pa"); },
     get pageShown() { return S.page ? { ...S.page } : null; },
     repaint: () => paint(),

@@ -46,3 +46,7 @@ export interface Stage {
   show(name: string, key: string, options: { focus: boolean }): void;
   pageShown?: { name: string } | null;
 }
+
+declare module "../../core/kernel/types" {
+  interface Topics { "app:compose-text": string }
+}
