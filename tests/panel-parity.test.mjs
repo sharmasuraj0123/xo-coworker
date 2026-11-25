@@ -5,7 +5,7 @@ import { dom, same } from "./lib/dom.mjs";
 import { resolveTokens } from "./lib/tokens.mjs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
-import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
+import { createPanelThreadOpener } from "../shell/panel/thread-navigation.js";
 
 test("notices move to the composer in use, with independent space and an Undo focus target", async () => {
   const { document } = await dom(`
@@ -86,12 +86,11 @@ test("a panel link keeps its message when it opens either conversation", async (
   const panel = { view: "t:demo" };
   const calls = [];
   const open = createPanelThreadOpener({
-    view: () => state.view, TP: { C: panel }, world: { thread: () => true },
-    STAGE: { show: (page, key) => calls.push([page, key]) },
+    view: () => state.view, panelConversation: () => panel, world: { thread: () => true },
     go: (...args) => calls.push(args), showMsg: (...args) => calls.push(args),
   });
   const event = { target: document.querySelector("span") };
-  open("t:demo", event);
+  open("t:demo", event, (page, key) => calls.push([page, key]));
   assert.deepEqual(calls.splice(0), [["thread", "demo"], ["message-7", panel]]);
   open("t:demo", { ...event, metaKey: true });
   assert.deepEqual(calls, [["t:demo", { panel: true }], ["message-7"]]);

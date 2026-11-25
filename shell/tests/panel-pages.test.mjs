@@ -20,7 +20,10 @@ let closed = false;
 let placeless = false;
 let allowClose = false;
 let closeError = null;
+const { createScope } = await import("../../core/kernel/scope.js");
+const scope = createScope();
 const panel = createPages({
+  scope,
   el, S: state, places: K.places, at: () => location, view: () => location.view,
   threads: () => [{ k: "needs", rows: [{}] }], shell: (on) => log.push(["shell", on]),
   nameOf: () => () => "Project", placeless: () => placeless, open: () => { state.open = true; },
@@ -95,4 +98,6 @@ assert.deepEqual(log.splice(0), [["undo"]]);
 placeless = true;
 assert.equal(panel.show("files"), false);
 assert.equal(box("files").hidden, true);
+scope.dispose();
+assert.equal(scope.size, 0);
 console.log("panel pages: one page, shell Back, close confirmation, and kernel registration");
