@@ -9,7 +9,7 @@ import { xi, hasIcon } from "../core/ui/icons/icon.js";
 
 /** @typedef {import("../core/kernel/types").Entry & { label: string, icon: string, onPress(at: At): void }} Action */
 
-/** The buttons for where you are, in the place's order. @param {Places} places @param {At} at */
+/** The buttons for where you are, in the place's order. @param {Pick<Places, "entries">} places @param {At} at */
 export function headerActionsHtml(places, at) {
   /** @type {Action[]} */
   const actions = places.entries("header.action", at);

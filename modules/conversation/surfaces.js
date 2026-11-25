@@ -1,4 +1,5 @@
 // @ts-check
+import { createScope } from "../../core/kernel/scope.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { viewerFile } from "../../core/services/media/items.js";
 import { wireDragOut } from "../../core/services/media/hydrate.js";
@@ -9,14 +10,28 @@ import { createNoticeLine } from "./notice-line.js";
 import { createMediaOpener } from "./open-media.js";
 import { createLightbox } from "./lightbox.js";
 
-/** @import { MainHeader, HeaderNeed } from "./header-types" */
-
-/** @import { SurfaceScope } from "../../shell/surface-types" */
-
-/** @template {HeaderNeed} N @param {MainHeader<N>} host @param {SurfaceScope} scope @param {() => void} schedule */
-export function mountConversationHeader(host, scope, schedule) {
-  return createTopHeader({ ...host, conversationHeaderHtml: createConversationHeader(host) }, scope, schedule);
-}
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const conversationHeaderModule = {
+  manifest: { id: "xo.conversation-header", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["conversationHeader"],
+    needs: ["world", "placeContext", "threadPresentation", "threadControls", "projectDescriptions", "projectIcons", "launchpad", "stage",
+      "messageContext", "threadGroups", "threadMenu", "threadRuntime", "navigationState", "chats", "checklist"], optional: ["threadActions", "home"] },
+  activate(ctx) {
+    const scope = createScope(), project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
+    ctx.effect(() => scope.dispose);
+    const descriptions = ctx.use("projectDescriptions");
+    /** @type {import("./header-types").MainHeader<import("../../core/services/decision-types").RankedNeed>} */
+    const header = {
+      ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), threadControls: ctx.use("threadControls"),
+      description: (id) => descriptions.get(id), world: ctx.use("world"), ...project, LP, LW, STAGE: ctx.use("stage"), places: ctx.places,
+      emit: ctx.emit, convHost: ctx.use("messageContext").convHost, homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] },
+      threadCounts: ctx.use("threadGroups").threadCounts, threadMenuHtml: ctx.use("threadMenu"), rtTag: ctx.use("threadRuntime").rtTag,
+      location: ctx.use("navigationState"), CH: ctx.use("chats"), checklistRender: ctx.use("checklist").render,
+      tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
+    };
+    const render = createTopHeader({ ...header, conversationHeaderHtml: createConversationHeader(header) }, scope, () => ctx.invalidate("workspace"));
+    ctx.provide("conversationHeader", render);
+  },
+};
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const noticeLineModule = {

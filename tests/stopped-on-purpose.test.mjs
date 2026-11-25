@@ -139,7 +139,7 @@ await t("A requested stop retains its explanation across the header, checklist a
   const header = createTopHeader({ location: { view, parentOf: () => undefined },
     convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },
     PROJ: () => "Project", conversationHeaderHtml: () => ({ who: "<h1>Test</h1>", controls: "" }),
-    LP: { ensure() {} }, tdelRender() {}, kernel }, scope, () => {});
+    LP: { ensure() {} }, tdelRender() {}, places: kernel.places, emit: kernel.bus.emit }, scope, () => {});
   const { panelThreads } = createThreadGroups({ world: { state: { threads: [thread] } }, D: { needItems: () => [] }, MAP: { agents: () => [] },
     convProject: () => "p", askShort: () => "", threadMark: () => "", isBusy, isHeld: () => false });
   header([]);

@@ -4,7 +4,7 @@ import { decisionDockModule, decisionModule } from "../modules/decisions/surface
 import { threadGroupsModule, threadPresentation, threadPresentationModule } from "../modules/threads/presentation.js";
 import { navigationModule, shellFoundationModule } from "../shell/foundation.js";
 import { conversationPressModule } from "../shell/conversation-press.js";
-import { conversationMediaModule, mountConversationHeader, noticeLineModule } from "../modules/conversation/surfaces.js";
+import { conversationMediaModule, conversationHeaderModule, noticeLineModule } from "../modules/conversation/surfaces.js";
 import "../core/ui/components/xo-select.js";
 import * as Kit from "../modules/decisions/kit.js";
 import { intelModule } from "../modules/chats/intel-surface.js";
@@ -65,9 +65,9 @@ import { themeModule } from "../core/ui/theme.js";
 const workspaceModule = {
   manifest: { id: "xo.workspace", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "rail", "navigationState", "placeContext", "redrawFocus", "drawer", "toastLine",
-      "conversationSession", "shellDock", "stage", "navigation", "projectIcons", "projectDescriptions", "threadRuntime", "decisionPresentation",
-      "launchpad", "intelligence", "shortcuts", "threadControls", "threadMenu",
-      "threadGroups", "checklist", "chats", "decisionDock", "messageContext", "composer", "lightbox", "noticeLine", "mainViewport", "fileSearch"], optional: ["home", "jump", "settingsFrame", "createProject", "runs", "files", "transcript", "threadActions", "threadPage"] },
+      "conversationSession", "shellDock", "stage", "navigation", "decisionPresentation",
+      "launchpad", "intelligence", "shortcuts", "conversationHeader",
+      "decisionDock", "composer", "lightbox", "noticeLine", "mainViewport", "fileSearch"], optional: ["home", "jump", "settingsFrame", "createProject", "runs", "files", "transcript", "threadActions", "threadPage"] },
   activate(ctx) {
 const appScope = createScope();
 ctx.effect(() => appScope.dispose);
@@ -80,29 +80,21 @@ const currentView = navigationState.view;
 const { main: MAIN, region: placeRegion } = session;
 const { composer: MK } = session;
 const { say } = MK;
-const { convHost } = ctx.use("messageContext");
 
 const { rows: sideRender } = ctx.use("rail");
 
-const threadControls = ctx.use("threadControls");
 
 const { isBusy } = threadPresentation;
 const { D, pings } = ctx.use("decisionPresentation");
 const { activate: activateIntel } = ctx.use("intelligence");
 
-const CH = ctx.use("chats");
 const files = () => ctx.optional("files");
 
 const wsHeadRender = createWorkspaceHeader(currentView, projects);
-const { PICK, projectIcon } = ctx.use("projectIcons");
-const { rtTag } = ctx.use("threadRuntime");
-const { threadCounts } = ctx.use("threadGroups");
-const { LP, LW, LPP } = ctx.use("launchpad");
+const { LW, LPP } = ctx.use("launchpad");
 const STAGE = ctx.use("stage");
-const threadMenuHtml = ctx.use("threadMenu");
 
 
-const { render: checklistRender } = ctx.use("checklist");
 
 const { main: MDOCK } = ctx.use("decisionDock");
 const dockRender = MDOCK.render;
@@ -118,11 +110,7 @@ const { msgsEl, loadAhead } = ctx.use("mainViewport");
 /** @type {import("../core/kernel/types").Services["transcript"]} */
 const drawConv = (conversation, needs) => ctx.optional("transcript")?.(conversation, needs);
 
-const topRender = mountConversationHeader({
-  ...place, ...threadPresentation, threadControls, description: (project) => ctx.use("projectDescriptions").get(project), world, PICK, LP, LW, STAGE, kernel,
-  convHost, homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] }, threadCounts, projectIcon, threadMenuHtml, rtTag, location: navigationState, CH, checklistRender, tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
-}, appScope, schedule);
-
+const topRender = ctx.use("conversationHeader");
 
 /** @type {Parameters<typeof createShellRenderer<DecisionNeed, WorldThread, Conversation>>[0]} */
 const rendererOptions = {
@@ -143,7 +131,7 @@ appScope.effect(() => kernel.bus.on("app:render", () => {
 };
 
 await bootShell([
-  interactionModule, railModule, startupModule, jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
+  conversationHeaderModule, interactionModule, railModule, startupModule, jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
   createProjectModule, projectDescriptionsModule, appServicesModule, shellFoundationModule, failureModule, shapeModule, conversationSessionModule, edgeCardsModule, changeDataModule,
   messageContextModule, decisionDockModule, chatModelModule, chatControlsModule, threadGroupsModule, checklistModule, conversationPresentationModule, launchpadModule, intelModule, projectIconsModule, threadRuntimeModule, decisionModule, navigationModule, threadPresentationModule, homeSkeletonModule, railCountsModule, workspaceModule, githubModule, sinceModule, artifactsModule,
   threadPageModule, threadControlsModule, threadActionsModule, conversationPressModule, conversationMediaModule, noticeLineModule, mainViewportModule, transcriptModule, stageModule, filesModule, composerModule, shellDockModule, shellPanelModule, fileSearchModule, fileQuestionsModule, runsModule, runControlsModule, mapAgentsModule, mapModule, changesModule, routingModule, rulesModule, worktreesModule,

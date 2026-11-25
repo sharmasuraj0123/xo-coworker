@@ -2689,7 +2689,7 @@
     },
     "modules/conversation/surfaces.js": {
      "anchor": "export const conversationMediaModule",
-     "reason": "Conversation mounts its header, notice undo and media routes."
+     "reason": "Conversation resolves its header services and mounts its notice undo and media routes."
     },
     "modules/conversation/open-media.js": {
      "anchor": "export function createMediaOpener",

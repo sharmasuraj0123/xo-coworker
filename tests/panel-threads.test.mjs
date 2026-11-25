@@ -57,7 +57,7 @@ test("the project header counts all thread states and places Threads before Depl
   });
   const render = createTopHeader({
     location: { view: () => "p:p", parentOf: () => undefined },
-    PROJ, conversationHeaderHtml, kernel, convThread: () => null,
+    PROJ, conversationHeaderHtml, places: kernel.places, emit: kernel.bus.emit, convThread: () => null,
     CH: { isChats: () => false }, STAGE: panel, atOf: () => ({}),
     LP: { button: () => '<button id="deploy">Deploy</button>', ensure() {} }, LW: { isOpen: false },
     checklistRender() {}, tdelRender() {},

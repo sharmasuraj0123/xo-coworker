@@ -13,10 +13,10 @@ import { createSurfaceSlots } from "./surfaces.js";
 
 /** @template {Thread} T @template {Need} N @param {HeaderDeps<T, N>} deps @param {SurfaceScope} scope @param {() => void} schedule */
 export function createTopHeader(deps, scope, schedule) {
-  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender } = deps;
+  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, places, emit, atOf, LP, LW, tdelRender } = deps;
   /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
   const drawDetails = createSurfaceSlots({
-    places: kernel.places, place: "header.detail", read: () => kernel.places.entries("header.detail"), scope, schedule,
+    places, place: "header.detail", read: () => places.entries("header.detail"), scope, schedule,
     fallback: () => requireHtml("#scroller"), hideOnRetire: true,
   });
   /** @param {N[]} needs */
@@ -47,14 +47,14 @@ export function createTopHeader(deps, scope, schedule) {
     const { who, controls } = conversationHeaderHtml(v, t, needs);
     if (who != null) redraw($("#top-who"), who);
     const pv = v.startsWith("p:");
-    const endHtml = t ? "" : (pv ? controls + headerActionsHtml(kernel.places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
+    const endHtml = t ? "" : (pv ? controls + headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
     redraw($("#top-end"), endHtml);
     LP.ensure(v);
     checklistRender(needs);
     tdelRender(t);
     const painted = { project: pv ? v.slice(2) : null, needs };
     drawDetails((id) => document.getElementById(id), painted);
-    kernel.bus.emit("app:conversation-header", painted);
+    emit("app:conversation-header", painted);
   }
   return topRender;
 }

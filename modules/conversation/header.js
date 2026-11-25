@@ -12,7 +12,7 @@ import { headerActionsHtml } from "../../shell/header.js";
 
 /** @template {HeaderNeed} N @param {HeaderDeps<N>} options */
 export function createConversationHeader({
-  threadControls, description, world, PICK, LP, LW, STAGE, kernel, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
+  threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
   threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
 }) {
   /** @param {number} n @param {string} word */
@@ -68,7 +68,7 @@ export function createConversationHeader({
       const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
         `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${menu}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
         (menu ? threadMenuHtml(t) : "") + `</span>` : "";
-      const ext = headerActionsHtml(kernel.places, atOf(v)), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`;
+      const ext = headerActionsHtml(places, atOf(v)), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`;
       who = `${title}${label}<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
       if (ed && $("#tw-edit")) who = null;
     } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;

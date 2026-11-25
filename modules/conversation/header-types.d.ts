@@ -18,7 +18,7 @@ export type HeaderDeps<N extends HeaderNeed> = {
   LP: { button(view: string, open: boolean): string };
   LW: { isOpen: boolean };
   STAGE: { button(view: string): string };
-  kernel: { places: Parameters<typeof headerActionsHtml>[0] };
+  places: Parameters<typeof headerActionsHtml>[0];
   atOf(view: string): Parameters<typeof headerActionsHtml>[1];
   convHost: MessageContext["convHost"];
   homeParts(needs: N[]): { held: unknown[] };
@@ -40,3 +40,7 @@ export type HeaderDeps<N extends HeaderNeed> = {
 };
 export type MainHeader<N extends HeaderNeed> = HeaderDeps<N>
   & Omit<import("../../shell/header-types").HeaderDeps<HeaderThread, N>, "conversationHeaderHtml">;
+
+declare module "../../core/kernel/types" {
+  interface Services { conversationHeader(needs: import("../../core/services/decision-types").RankedNeed[]): void }
+}

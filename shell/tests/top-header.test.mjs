@@ -27,7 +27,7 @@ const render = createTopHeader({
   checklistRender: () => calls.push("checklist"),
   PROJ: () => "Project",
   conversationHeaderHtml: () => ({ who: title, controls: '<button data-stage-open>Threads</button>' }),
-  kernel: K, atOf: () => ({ project: "p" }), LW: { isOpen: false },
+  places: K.places, emit: K.bus.emit, atOf: () => ({ project: "p" }), LW: { isOpen: false },
   LP: { button: () => "<button>Deploy</button>", ensure: () => calls.push("launchpad") },
   tdelRender: () => calls.push("delete"),
 }, createScope(), () => {});
