@@ -3106,6 +3106,7 @@
     "core/services/storm/client.js",
     "core/services/storm/stream.js",
     "core/services/storm/load.js",
+    "core/services/storm/thread-reads.js",
     "core/services/storm/account.js",
     "core/services/storm/history.js",
     "core/services/storm/hops.js",
@@ -3127,6 +3128,10 @@
     "core/services/storm/index.js": {
      "anchor": "export function stormSource(state, emit, event, scope)",
      "reason": "Storm's entry installs the world-owned stream, reads, selectors and commands."
+    },
+    "core/services/storm/thread-reads.js": {
+     "anchor": "export function installThreadReads(ctx)",
+     "reason": "Thread reads and record reconciliation moved out of Storm's workspace loader."
     },
     "core/services/storm/client.js": {
      "anchor": "streamUrl: api.streamUrl",

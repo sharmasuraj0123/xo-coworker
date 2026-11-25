@@ -17,10 +17,11 @@ function keepLastRead(error, fallback) {
 
 /** @param {Ctx} ctx @param {(id: string) => Row | null} threadOf */
 function createThreadCommands(ctx, threadOf) {
-  const { rawThreads } = ctx;
   const { signal } = ctx.scope;
   /** @param {string} threadId @param {Row | null} t @param {import("./types").Sent} sent */
-  const keepAnswer = (threadId, t, sent) => rawThreads.set(threadId, { ...rawThreads.get(threadId), ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...ctx.sessRead(t, sent) });
+  const keepAnswer = (threadId, t, sent) => ctx.threadRecords.write(threadId, {
+    ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...ctx.sessRead(t, sent),
+  });
   return {
     /** Resolve or reopen: idempotent, so Undo is the same call the other way. @param {string} threadId */
     resolve: async (threadId, resolved = true) => {
@@ -28,7 +29,9 @@ function createThreadCommands(ctx, threadOf) {
       const r = threadOf(threadId);
       if (!r) throw new Error("Unknown thread");
       const before = { state: r.state, resolved_at: r.resolved_at };
-      rawThreads.set(threadId, { ...r, state: resolved ? "resolved" : "working", resolved_at: resolved ? new Date().toISOString() : null });
+      ctx.threadRecords.write(threadId, {
+        state: resolved ? "resolved" : "working", resolved_at: resolved ? new Date().toISOString() : null,
+      });
       ctx.soon();
       const sent = ctx.sentAt();
       try {
@@ -39,7 +42,7 @@ function createThreadCommands(ctx, threadOf) {
         return t;
       } catch (err) {
         if (signal.aborted) throw err;
-        rawThreads.set(threadId, { ...rawThreads.get(threadId), ...before });
+        ctx.threadRecords.write(threadId, before);
         ctx.soon();
         throw err;
       }
@@ -51,7 +54,7 @@ function createThreadCommands(ctx, threadOf) {
       if (!r) throw new Error("Unknown thread");
       const res = await client.deleteThread(r.chat_id, threadId, { keep_branch: keepBranch, ...(confirm ? { confirm } : {}) });
       if (signal.aborted) return { ...res, row: r };
-      rawThreads.delete(threadId);
+      ctx.threadRecords.remove(threadId);
       ctx.soon();
       return { ...res, row: r };
     },
@@ -60,7 +63,7 @@ function createThreadCommands(ctx, threadOf) {
       signal.throwIfAborted();
       const t = await client.restoreThread(row.chat_id, threadId);
       if (signal.aborted) return t;
-      rawThreads.set(threadId, { ...row, ...(t || {}), _at: Date.now() });
+      ctx.threadRecords.write(threadId, { ...row, ...(t || {}), _at: Date.now() });
       ctx.soon();
       return t;
     },
@@ -169,10 +172,11 @@ export function createCommands(ctx) {
       return saved;
     },
     refresh: async () => {
+      const { signal: readSignal } = ctx.reads;
       await ctx.loadChats();
-      if (signal.aborted) return;
-      await mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads);
-      if (!signal.aborted) { ctx.commit(); emit(); }
+      if (readSignal.aborted) return;
+      await mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, readSignal);
+      if (!readSignal.aborted) { ctx.commit(); emit(); }
     },
     /** @param {string} id @param {{ signal?: AbortSignal }} [options] */
     run: (id, options) => worldRead(signal, options?.signal, (readSignal) => client.run(id, { signal: readSignal })),

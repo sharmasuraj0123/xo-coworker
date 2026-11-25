@@ -1,23 +1,41 @@
 // @ts-check
 import { client, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
+import { once } from "../../platform/pending.js";
 import { currentPools } from "../world/sessions.js";
 import { mapLimit } from "./load.js";
 import { LOAD_CAP, STATUS_MS, STATUS_RETRY_MS, RUNTIMES_MS } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
 
+/** @param {Ctx} ctx @param {(signal: AbortSignal) => Promise<void>} read @param {() => number} period */
+function poll(ctx, read, period) {
+  /** @type {WeakMap<AbortSignal, symbol>} */
+  const keys = new WeakMap();
+  /** @type {(() => void) | undefined} */
+  let timer;
+  const load = async () => {
+    const cycle = ctx.reads;
+    const { signal } = cycle;
+    if (signal.aborted) return;
+    const key = keys.get(signal) ?? Symbol();
+    keys.set(signal, key);
+    await once(key, async () => {
+      timer?.();
+      const next = cycle.effect(() => () => {
+        if (!ctx.scope.signal.aborted) timer = ctx.scope.timeout(load, period());
+      });
+      try { await read(signal); }
+      finally { next(); }
+    });
+  };
+  return load;
+}
+
 /** The account side: the engine's status and pools, the runtimes and router, paid usage and runtime policies. @param {Ctx} ctx */
 export function installAccount(ctx) {
-  const { state, emit, scope } = ctx;
-  const { signal } = scope;
-  /** @type {(() => void) | undefined} */
-  let statusT;
-  /** @type {(() => void) | undefined} */
-  let runtimesT;
-  ctx.loadStatus = async () => {
-    if (signal.aborted) return;
-    statusT?.();
+  const { state, emit } = ctx;
+  ctx.loadStatus = poll(ctx, async (signal) => {
     const sig = ctx.poolsSig();
     try {
       const status = await client.status({ signal });
@@ -38,20 +56,11 @@ export function installAccount(ctx) {
     }
     if (ctx.poolsSig() !== sig) ctx.commit();
     emit();
-    statusT = scope.timeout(ctx.loadStatus, state.statusError ? STATUS_RETRY_MS : STATUS_MS);
-  };
-  /** @type {Promise<void> | null} */
-  let runtimesBusy = null;
+  }, () => state.statusError ? STATUS_RETRY_MS : STATUS_MS);
   // what a held thread waits on is its pool: a pool that changes rebuilds the threads, not only the composer
   ctx.poolsSig = () => Object.entries(state.pools).map(([id, p]) => `${id}|${p.state}|${p.resets_at}|${p.reason}`).sort().join(",");
   const poolHeld = () => currentPools(state.pools, state.runtimes).some((/** @type {Row} */ p) => p.state === "closed" || p.state === "paid");
-  ctx.refreshRuntimes = () => {
-    if (!runtimesBusy) runtimesBusy = ctx.loadRuntimes().finally(() => { runtimesBusy = null; });
-    return runtimesBusy;
-  };
-  ctx.loadRuntimes = async () => {
-    if (signal.aborted) return;
-    runtimesT?.();
+  ctx.loadRuntimes = ctx.refreshRuntimes = poll(ctx, async (signal) => {
     try {
       const { runtimes } = await client.runtimes({ signal });
       if (!signal.aborted) state.runtimes = runtimes || [];
@@ -61,18 +70,17 @@ export function installAccount(ctx) {
       const router = await client.router({ signal });
       if (!signal.aborted) state.router = router;
     } catch (error) { reportReadFailure(error, signal, true); }
-    if (signal.aborted) return;
-    emit();
-    runtimesT = scope.timeout(ctx.loadRuntimes, RUNTIMES_MS);
-  };
+    if (!signal.aborted) emit();
+  }, () => RUNTIMES_MS);
 
-  /** @type {Promise<void> | null} */
+  /** @type {{ signal: AbortSignal, promise: Promise<void> } | null} */
   let paidBusy = null;
   /** Paid usage: the advisory's facts and the founder's modes. A server without them leaves what was read. */
   ctx.loadPaid = () => {
+    const { signal } = ctx.reads;
     if (signal.aborted) return Promise.resolve();
-    if (paidBusy) return paidBusy;
-    paidBusy = (async () => {
+    if (paidBusy?.signal === signal) return paidBusy.promise;
+    const promise = (async () => {
       let changed = false;
       const sig = ctx.poolsSig();
       try {
@@ -97,21 +105,26 @@ export function installAccount(ctx) {
       const usageOpen = [...state.review.values()].some((it) => it.state === "open" && it.kind === "usage");
       if (ctx.poolsSig() !== sig || usageOpen) ctx.commit();
       emit();
-    })().finally(() => { paidBusy = null; });
-    return paidBusy;
+    })().finally(() => { if (paidBusy?.signal === signal) paidBusy = null; });
+    paidBusy = { signal, promise };
+    return promise;
   };
 
   ctx.loadSpacePolicy = async () => {
+    const { signal } = ctx.reads;
     if (signal.aborted) return;
     try {
       const policy = await client.runtimePolicy({ signal });
       if (!signal.aborted) state.policy = policy;
     } catch (error) { reportReadFailure(error, signal, true); }
   };
-  /** @type {Map<string, Promise<void>>} */
-  const policyReads = new Map();
+  /** @type {WeakMap<AbortSignal, Map<string, Promise<void>>>} */
+  const readsByCycle = new WeakMap();
   ctx.loadChatPolicy = (chat, fresh = false) => {
+    const { signal } = ctx.reads;
     if (signal.aborted) return null;
+    const policyReads = readsByCycle.get(signal) || new Map();
+    readsByCycle.set(signal, policyReads);
     if (!chat || (!fresh && policyReads.has(chat))) return chat ? policyReads.get(chat) || null : null;
     const read = client.chatRuntimePolicy(chat, { signal }).then((p) => {
       if (signal.aborted) return;
@@ -121,9 +134,11 @@ export function installAccount(ctx) {
     return read;
   };
   ctx.loadPolicies = async () => {
+    const { signal } = ctx.reads;
     await ctx.loadSpacePolicy();
     if (signal.aborted || !state.policy) return;
-    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId, true));
+    const projects = state.projects.filter((p) => p.kind === "project" && p.chatId);
+    await mapLimit(projects, LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId, true), signal);
     if (!signal.aborted) emit();
   };
 }

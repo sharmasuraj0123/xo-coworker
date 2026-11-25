@@ -44,15 +44,22 @@ export function startStorm(ctx) {
     if (recovering) return recovering;
     if (!state.error && state.projects.length) return;
     recovering = (async () => {
+      const cycle = ctx.renewReads();
+      ctx.clearSought();
       ctx.holding = true;
       const cutoff = Promise.withResolvers();
-      const finish = () => cutoff.resolve(undefined);
-      const cancelCutoff = scope.timeout(finish, 15000);
-      const releaseCutoff = scope.effect(() => finish);
-      await Promise.race([ctx.loadAll(), cutoff.promise]).catch((error) => {
-        if (!signal.aborted) reportFailure(error);
-      }).finally(() => { cancelCutoff(); releaseCutoff(); });
-      if (replayHeld()) emit();
+      const cancelCutoff = cycle.timeout(() => cutoff.resolve(true), 15000);
+      const release = cycle.effect(() => () => cutoff.resolve(false));
+      const expired = await Promise.race([ctx.loadAll().then(() => false), cutoff.promise]).catch((error) => {
+        if (!cycle.signal.aborted) reportFailure(error);
+        return false;
+      }).finally(() => { cancelCutoff(); release(); });
+      if (cycle.signal.aborted) return;
+      if (expired) { ctx.renewReads(); ctx.clearSought(); }
+      if (!replayHeld()) return;
+      emit();
+      const { signal: current } = ctx.reads;
+      void loadWatched(current).catch((error) => { if (!current.aborted) reportFailure(error); });
     })();
     try { await recovering; } finally { recovering = null; }
   };
@@ -70,19 +77,32 @@ export function startStorm(ctx) {
     return !signal.aborted;
   }
 
-  // a reset for retention or a replaced store: the thread list is refreshed in place (no false "new thread" lines); what's on screen loads again
+  /** @param {AbortSignal} readSignal */
+  async function loadWatched(readSignal) {
+    if (readSignal.aborted) return;
+    await Promise.all([...watched.projects].map((project) => ctx.loadTimeline(project)));
+    if (readSignal.aborted) return;
+    if (watched.thread) await ctx.loadThread(watched.thread);
+    if (!readSignal.aborted && watched.side && watched.side !== watched.thread) await ctx.loadThread(watched.side);
+  }
+
+  // A reset refreshes the thread list in place and reloads the open conversations.
   async function reload() {
+    const cycle = ctx.renewReads();
     state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {}; state.found = {}; framesBefore.clear();
     ctx.clearSought();
     state.review.clear(); state.routed = {}; state.turns = createTurns();
     await ctx.loadAll();
-    if (signal.aborted) return;
-    for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) rawThreads.delete(ts);
-    await Promise.all([...watched.projects].map((p) => ctx.loadTimeline(p)));
-    if (signal.aborted) return;
-    if (watched.thread) await ctx.loadThread(watched.thread);
-    if (!signal.aborted && watched.side && watched.side !== watched.thread) await ctx.loadThread(watched.side);
-    if (!signal.aborted) { ctx.commit(); emit(); }
+    if (cycle.signal.aborted) return;
+    for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) ctx.threadRecords.remove(ts);
+    await loadWatched(cycle.signal);
+    if (cycle.signal.aborted) return;
+    if (ctx.holding) {
+      if (!replayHeld()) return;
+    } else ctx.commit();
+    if (cycle.signal.aborted) return;
+    state.loaded = true;
+    emit();
   }
 
   function startStream() {
@@ -93,7 +113,10 @@ export function startStorm(ctx) {
         if (signal.aborted) return;
         state.conn = s; state.connInfo = info;
         if (s !== "connecting") releaseSubscription();
-        if (s === "live" && state.loaded) { ctx.loadStatus(); if (state.error || !state.projects.length) ctx.recover(); }
+        if (s === "live" && state.loaded) {
+          if (state.error || !state.projects.length) ctx.recover();
+          ctx.loadStatus();
+        }
         emit();
       },
       onReset: async () => { await reload(); },
@@ -102,14 +125,16 @@ export function startStorm(ctx) {
   }
 
   async function boot() {
+    const cycle = ctx.reads;
     startStream();
     await subscribed.promise;
-    if (signal.aborted) return;
+    if (cycle.signal.aborted) return;
     await Promise.all([ctx.loadAll(), ctx.loadStatus(), ctx.loadActive()]);
-    if (!replayHeld()) return;
+    if (cycle.signal.aborted || !replayHeld()) return;
     state.loaded = true;
     emit();
-    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId));
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP,
+      async (p) => ctx.loadChatPolicy(p.chatId), cycle.signal);
   }
   scope.interval(() => {
     const keep = new Set();

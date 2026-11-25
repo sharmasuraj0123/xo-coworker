@@ -23,10 +23,13 @@ export interface Watched {
 export interface Ctx {
   state: WorldState;
   scope: ReturnType<typeof import("../../kernel/scope.js").createScope>;
+  readonly reads: Ctx["scope"];
+  renewReads: () => Ctx["scope"];
   emit: () => void;
   event: (e: StormEvent) => void;
   chatProject: Map<string, string | null>;
-  rawThreads: Map<string, Row>;
+  rawThreads: ReadonlyMap<string, Row>;
+  threadRecords: ReturnType<typeof import("./thread-reads.js").createThreadRecords>;
   watched: Watched;
   trimmed: Set<string>;
   framesBefore: Map<string, number | null>;
@@ -55,7 +58,7 @@ export interface Ctx {
   soon: () => void;
   emitSoon: () => void;
 
-  setProjects: (chats: Row[]) => void;
+  noteChat: (chat: Row) => void;
   loadChats: () => Promise<void>;
   maybeChats: () => void;
   loadThreads: (p: Project) => Promise<void>;

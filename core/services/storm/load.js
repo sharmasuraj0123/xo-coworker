@@ -1,74 +1,117 @@
 // @ts-check
 import { client, NEWEST, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
+import { once } from "../../platform/pending.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
 
-/** Run `fn` over `items`, at most `cap` at a time. @template T @param {Iterable<T>} items @param {number} cap @param {(x: T) => Promise<unknown>} fn */
-export async function mapLimit(items, cap, fn) {
-  const list = [...items];
-  const run = async () => { while (list.length) await fn(/** @type {T} */ (list.shift())); };
+/** @param {Row | undefined} previous @param {Row} update */
+function mergeChat(previous, update) {
+  const row = { ...previous, ...update };
+  const pinKeys = ["agent", "model", "effort"].filter((key) => key in update);
+  if (previous?.pin || update.pin || pinKeys.length) {
+    row.pin = { ...previous?.pin, ...update.pin };
+    for (const key of pinKeys) row.pin[key] = update[key];
+  }
+  return row;
+}
+
+/** @param {Row} c @param {import("../world/state-types").WorldState["projects"][number]} [previous] */
+function projectOfChat(c, previous) {
+  const id = c.kind === "workspace" ? "workspace" : c.project;
+  return {
+    ...previous, id, name: c.kind === "workspace" ? "Workspace" : c.project, kind: c.kind,
+    chatId: c.id, pid: c.project_pid || null, routing: c.routing || null, pin: c.pin || null, hasChat: true,
+  };
+}
+
+/** @template T @param {Iterable<T>} items @param {number} cap @param {(x: T) => Promise<unknown>} fn @param {AbortSignal} [signal] */
+export async function mapLimit(items, cap, fn, signal) {
+  const list = Array.from(items);
+  const pending = list.values();
+  const run = async () => {
+    for (const value of pending) {
+      if (signal?.aborted) return;
+      await fn(value);
+    }
+  };
   await Promise.all(Array.from({ length: Math.min(cap, list.length) }, run));
 }
 
 /** Reading the Space with GETs: chats, threads, sessions and review items. @param {Ctx} ctx */
 export function installLoad(ctx) {
-  const { state, chatProject, rawThreads, scope } = ctx;
-  const { signal } = scope;
+  const { state, chatProject } = ctx;
   let chatsAt = 0;
-  /** @type {Promise<void> | null} */
-  let chatsBusy = null;
-
-  ctx.setProjects = (chats) => {
+  /** @type {WeakMap<AbortSignal, Map<string, Row>>} */
+  const updates = new WeakMap();
+  /** @param {Row[]} chats */
+  function setProjects(chats) {
     const prev = new Map(state.projects.map((p) => [p.id, p]));
+    const prevChat = new Map(chatProject);
     chatProject.clear();
-    state.projects = chats.filter((c) => !c.retired_at).map((c) => {
+    state.projects = chats.filter((c) => c.kind && !c.retired_at).map((c) => {
       const id = c.kind === "workspace" ? "workspace" : c.project;
       chatProject.set(c.id, id);
-      return { ...(prev.get(id) || {}), id, name: c.kind === "workspace" ? "Workspace" : c.project, kind: c.kind, chatId: c.id, pid: c.project_pid || null, routing: c.routing || null, pin: c.pin || null, hasChat: true };
+      return projectOfChat(c, prev.get(id));
     });
-    for (const c of chats) if (c.retired_at) chatProject.set(c.id, c.project || null);
+    for (const c of chats) if (c.retired_at) chatProject.set(c.id, c.project || prevChat.get(c.id) || null);
+  }
+  ctx.noteChat = (d) => {
+    if (!d.id) return;
+    const pending = updates.get(ctx.reads.signal);
+    pending?.set(d.id, mergeChat(pending.get(d.id), d));
+    const current = state.projects.find((p) => p.chatId === d.id);
+    if (d.retired_at) {
+      chatProject.set(d.id, d.project || current?.id || chatProject.get(d.id) || null);
+      state.projects = state.projects.filter((p) => p !== current);
+      ctx.soon();
+    } else if (!current && d.kind && !chatProject.has(d.id)) {
+      const project = projectOfChat({ pin: { agent: null, model: null, effort: null }, ...d });
+      chatProject.set(d.id, project.id);
+      state.projects.push(project);
+      ctx.soon();
+    } else if (current) {
+      if ("routing" in d) current.routing = d.routing;
+      if (["agent", "model", "effort"].some((key) => key in d)) current.pin = mergeChat(current, d).pin;
+      ctx.emit();
+    }
   };
   ctx.loadChats = async () => {
+    const { signal } = ctx.reads;
     if (signal.aborted) return;
-    if (chatsBusy) return chatsBusy;
-    chatsBusy = (async () => {
+    await once(signal, async () => {
+      if (signal.aborted) return;
+      /** @type {Map<string, Row>} */
+      const pending = new Map();
+      updates.set(signal, pending);
       try {
         const { chats } = await client.chats({ signal });
         if (signal.aborted) return;
         const before = new Set(state.projects.map((p) => p.chatId));
-        ctx.setProjects(chats || []);
+        /** @type {Row[]} */
+        const listed = chats || [];
+        const current = new Map(listed.map((c) => [c.id, c]));
+        for (const [id, update] of pending) current.set(id, mergeChat(current.get(id), update));
+        updates.delete(signal);
+        setProjects([...current.values()]);
         chatsAt = Date.now();
         state.error = null; state.errorCode = null;
-        // a project chat we haven't seen: its threads (there may be none yet)
         const fresh = state.projects.filter((p) => p.kind === "project" && !before.has(p.chatId));
-        if (state.loaded) await mapLimit(fresh, LOAD_CAP, ctx.loadThreads);
+        if (state.loaded) await mapLimit(fresh, LOAD_CAP, ctx.loadThreads, signal);
       } catch (err) {
         if (signal.aborted) return;
         state.error = err instanceof Error ? err.message : String(err);
         state.errorCode = err instanceof ApiError ? err.code : null;
         reportReadFailure(err, signal);
         ctx.scheduleRecover();
-      }
-      ctx.soon();
-    })();
-    try { return await chatsBusy; } finally { chatsBusy = null; }
+      } finally { updates.delete(signal); }
+      if (!signal.aborted) ctx.soon();
+    });
   };
   ctx.maybeChats = () => { if (Date.now() - chatsAt > CHATS_MIN_MS) ctx.loadChats(); };
-  ctx.loadThreads = async (p) => {
-    if (signal.aborted) return;
-    const asked = Date.now(), sent = ctx.sentAt();
-    try {
-      const { threads } = await client.threads(p.chatId, { signal });
-      if (signal.aborted) return;
-      const seen = new Set();
-      for (const r of threads || []) { seen.add(r.ts); rawThreads.set(r.ts, { ...(rawThreads.get(r.ts) || {}), ...r, _at: Date.now(), _readAt: Date.now(), ...ctx.sessRead(r, sent) }); }
-      // gone from the listing, unless a frame made it after the listing was read
-      for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
-    } catch (error) { reportReadFailure(error, signal, true); }
-  };
   ctx.loadActive = async () => {
+    const { signal } = ctx.reads;
     if (signal.aborted) return;
     try {
       const { turns } = await client.active({ signal });
@@ -76,7 +119,8 @@ export function installLoad(ctx) {
       for (const x of turns || []) if (x.turn_id && x.session_id && !state.turns.get(x.turn_id)) state.turns.apply({ type: "turn.started", envelope: { type: "turn.started", turn_id: x.turn_id, session_id: x.session_id, chat_id: x.chat_id || null, thread_ts: x.thread_ts || null, ts: x.started_at || null, data: { origin: x.origin || null } } });
     } catch (error) { reportReadFailure(error, signal, true); }
   };
-  async function loadSessions() {
+  /** @param {AbortSignal} signal */
+  async function loadSessions(signal) {
     // the coordinators (for "is replying") and the thread sessions' live state
     try {
       let after = 0;
@@ -90,7 +134,8 @@ export function installLoad(ctx) {
       }
     } catch (error) { reportReadFailure(error, signal, true); }
   }
-  async function loadReview() {
+  /** @param {AbortSignal} signal */
+  async function loadReview(signal) {
     try {
       let after = null;
       const seen = new Set();
@@ -104,8 +149,8 @@ export function installLoad(ctx) {
       for (const id of [...state.review.keys()]) if (!seen.has(id)) state.review.delete(id);
     } catch (error) { reportReadFailure(error, signal, true); }
   }
-  // the "Routed to …" receipts come from the projects' copies; at boot, the projects the workspace forwarded to have their newest page read
-  async function loadRouted() {
+  /** Read the project copies used for the "Routed to …" receipts. @param {AbortSignal} signal */
+  async function loadRouted(signal) {
     const ws = ctx.chatIdOf("workspace");
     if (!ws) return;
     try {
@@ -116,42 +161,20 @@ export function installLoad(ctx) {
       const projects = history.filter((h) => h.kind === "forward").map((h) => ctx.projectOf(h.chat_id));
       const targets = new Set(projects.filter((p) => p != null));
       targets.delete("workspace");
-      await mapLimit(targets, LOAD_CAP, (/** @type {string} */ p) => ctx.loadTimeline(p));
+      await mapLimit(targets, LOAD_CAP, ctx.loadTimeline, signal);
     } catch (error) { reportReadFailure(error, signal, true); }
   }
   /** Everything, from the server. Returns once the world can render. */
   ctx.loadAll = async () => {
+    const { signal } = ctx.reads;
     await ctx.loadChats();
     if (signal.aborted || !state.projects.length) return;
     await Promise.all([
-      mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads),
-      loadSessions(), loadReview(), loadRouted(), ctx.loadRuntimes(), ctx.loadSpacePolicy(),
+      mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, signal),
+      loadSessions(signal), loadReview(signal), loadRouted(signal), ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
 
-  /** @type {Set<string>} */
-  const refetchBusy = new Set();
-  ctx.refetchThread = async (chatId, ts) => {
-    if (signal.aborted || !chatId || refetchBusy.has(ts)) return;
-    refetchBusy.add(ts);
-    const sent = ctx.sentAt();
-    try {
-      const x = await client.thread(chatId, ts, { signal });
-      if (signal.aborted) return;
-      rawThreads.set(ts, { ...x, _readAt: Date.now(), ...ctx.sessRead(x, sent) }); ctx.soon();
-    } catch (error) { reportReadFailure(error, signal, true); }
-    finally { refetchBusy.delete(ts); }
-  };
-  /** @type {Set<string>} */
-  const sessionAsked = new Set();
-  ctx.fillSession = async (chatId, ts) => {
-    if (signal.aborted || !chatId || sessionAsked.has(ts)) return;
-    sessionAsked.add(ts);
-    const sent = ctx.sentAt();
-    try {
-      const x = await client.thread(chatId, ts, { signal }), r = rawThreads.get(ts);
-      if (signal.aborted) return;
-      if (r && x && !r.session) { rawThreads.set(ts, { ...r, session: x.session || null, pin: x.pin || r.pin || {}, ...ctx.sessRead(x, sent) }); ctx.soon(); }
-    } catch { sessionAsked.delete(ts); }
-  };
+
 }
+

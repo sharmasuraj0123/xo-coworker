@@ -64,12 +64,14 @@ test("disposal retires one world, including held reads, queued lookups and accep
   backend.routes["GET " + statusPath] = () => status.promise;
   const beforeDispose = new Set([...pendingTimers].filter(([, delay]) => delay === 60000).map(([handle]) => handle));
   assert.equal(beforeDispose.size, 2, "each world owns a prune timer");
+  const beforeReads = backend.asked.length;
   const pendingStatus = first.act.status();
   const pendingHistory = first.act.loadTimeline("demo");
   const pendingWrite = first.act.reply("thread", "An accepted reply");
+  await until(() => backend.asked.slice(beforeReads).some(({ path }) => path === statusPath));
   first.act.findRows("demo", ["older"]);
   const readCount = backend.asked.filter(({ path }) => path === messagesPath).length;
-  const watched = backend.asked.slice(-3);
+  const watched = backend.asked.slice(beforeReads);
   const priorNow = first.state.now;
   let published = 0;
   const unsubscribe = first.subscribe(() => { published++; });
@@ -80,7 +82,9 @@ test("disposal retires one world, including held reads, queued lookups and accep
   assert.equal(listeners.get("visibilitychange").length, 1);
   assert.equal(listeners.get("online").length, 1);
   assert.deepEqual(backend.asked.slice(0, 2).map(({ signal }) => signal.aborted), [true, false]);
-  assert.deepEqual(watched.map(({ method, signal }) => [method, signal.aborted]), [["GET", true], ["GET", true], ["POST", false]]);
+  assert.deepEqual(watched.map(({ method, path, signal }) => [method, path, signal.aborted]).sort(), [
+    ["GET", messagesPath, true], ["GET", statusPath, true], ["POST", messagesPath, false],
+  ]);
 
   backend.routes["GET " + statusPath] = { pools: [{ id: "live", state: "open" }] };
   fire("visibilitychange");

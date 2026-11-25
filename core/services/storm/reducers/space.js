@@ -21,21 +21,7 @@ export const space = {
     if (d.kind && d.thread_ts && ctx.isWatched(d.thread_ts)) ctx.hopsSoon(d.thread_ts);
   },
   chat(ctx, env, d) {
-    const { state, chatProject } = ctx;
-    // a creation carries `kind`: add it from the event, no re-listing
-    if (d.kind) {
-      if (!chatProject.has(d.id)) {
-        const id = d.kind === "workspace" ? "workspace" : d.project;
-        chatProject.set(d.id, id);
-        if (!state.projects.some((p) => p.chatId === d.id)) state.projects.push({ id, name: d.kind === "workspace" ? "Workspace" : d.project, kind: d.kind, chatId: d.id, routing: null, pin: { agent: null, model: null, effort: null }, hasChat: true });
-        ctx.soon();
-      }
-      return;
-    }
-    if (d.retired_at) { ctx.loadChats(); return; }
-    const p = state.projects.find((x) => x.chatId === d.id);
-    if (p) { for (const k of ["routing", "agent", "model", "effort"]) if (k in d) { if (k === "routing") p.routing = d.routing; else p.pin = { ...(p.pin || {}), [k]: d[k] }; } }
-    ctx.emit();
+    ctx.noteChat(d);
   },
   settings(ctx, env, d) {
     if (d.key === "router") { ctx.state.router = d.value; ctx.emit(); }

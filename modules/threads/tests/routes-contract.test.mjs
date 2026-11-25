@@ -3,6 +3,7 @@ import { createScope } from "../../../core/kernel/scope.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createCommands } from "../../../core/services/storm/commands.js";
+import { createThreadRecords } from "../../../core/services/storm/thread-reads.js";
 import { createThreadResolve } from "../resolve.js";
 
 /** @type {{ paths: Record<string, string[]> }} */
@@ -15,9 +16,12 @@ globalThis.fetch = async (url, init) => {
   calls.push([init?.method, request.pathname, JSON.parse(String(init?.body))]);
   return Response.json({});
 };
-const rawThreads = new Map([["thread/key", { chat_id: "chat/key", state: "working" }]]);
+const threadRecords = createThreadRecords();
+threadRecords.write("thread/key", { chat_id: "chat/key", state: "working" });
 const ctx = {
-  scope: createScope(), rawThreads, soon() {}, sentAt() { return {}; }, sessRead() { return {}; } };
+  scope: createScope(), rawThreads: threadRecords.rows, threadRecords,
+  soon() {}, sentAt() { return {}; }, sessRead() { return {}; },
+};
 const act = createCommands(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ (ctx)));
 const resolve = createThreadResolve({
   world: { act, thread: () => ({ title: "Review" }) },

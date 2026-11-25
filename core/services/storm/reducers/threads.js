@@ -10,10 +10,12 @@ export const threads = {
     if (!ts) return;
     const old = rawThreads.get(ts);
     if (!old && !d.chat_id) { ctx.refetchThread(env.chat_id, ts); return; }
-    /** @type {import("../types").Row} */
-    const thread = { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...ctx.sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) };
-    rawThreads.set(ts, thread);
-    if (!thread.session) ctx.fillSession(thread.chat_id, ts);
+    const now = Date.now();
+    const thread = ctx.threadRecords.write(ts, {
+      ...d, _at: now, ...("busy" in d ? { _readAt: now } : {}), ...ctx.sessRead(d, { at: now, seq: env.seq ?? state.lastSeq }),
+      chat_id: d.chat_id || old?.chat_id || env.chat_id, updated_at: d.updated_at || env.ts || old?.updated_at,
+    });
+    if (thread && !thread.session) ctx.fillSession(thread.chat_id, ts);
     ctx.soon();
   },
   // the old thread froze and a linked new thread starts from its work
@@ -31,6 +33,6 @@ export const threads = {
   },
   card(ctx, env, d) {
     const r = ctx.rawThreads.get(d.ts);
-    if (r) { ctx.rawThreads.set(d.ts, { ...r, card: d.card, updated_at: env.ts || r.updated_at }); ctx.soon(); }
+    if (r) { ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at }); ctx.soon(); }
   },
 };
