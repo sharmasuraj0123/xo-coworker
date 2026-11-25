@@ -6,10 +6,12 @@ const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
 
-const IOS = /iP(hone|ad|od)/.test(navigator.platform) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
-const STANDALONE = matchMedia("(display-mode: standalone)").matches || ("standalone" in navigator && navigator.standalone === true);
-/** Safari owns its left edge (its own Back, which history makes the app's Back); a home-screen app has none. @param {number} x */
-export const edgeIsSafari = (x) => IOS && !STANDALONE && x < 24;
+/** @param {number} x */
+export function edgeIsSafari(x) {
+  if (x >= 24) return false;
+  const ios = /iP(hone|ad|od)/.test(navigator.platform) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+  return ios && !matchMedia("(display-mode: standalone)").matches && !("standalone" in navigator && navigator.standalone === true);
+}
 
 /** The one touch a gesture owns. @type {object | null} */
 let claimed = null;

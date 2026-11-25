@@ -8,7 +8,8 @@ import { createScope } from "../../core/kernel/scope.js";
 test("startup, activation and browser failures reach the notice line once while the shell is live", async t => {
   const logged = t.mock.method(console, "error", () => {});
   const { window } = await dom("");
-  const { kernel, failureModule } = await import("../kernel.js");
+  const { createShellKernel } = await import("../kernel.js");
+  const kernel = createShellKernel();
   const frames = [];
   globalThis.requestAnimationFrame = fn => frames.push(fn);
   globalThis.cancelAnimationFrame = () => {};
@@ -27,7 +28,6 @@ test("startup, activation and browser failures reach the notice line once while 
     manifest: { id: "test.notices", version: "1.0.0", kernel: "^1.1.0", provides: ["notices"] },
     activate(ctx) { ctx.provide("notices", notices); },
   });
-  kernel.register(failureModule);
   kernel.bus.emit("app:started", await kernel.start());
   for (const frame of frames.splice(0)) frame(0);
   assert.equal(shown, 1);
