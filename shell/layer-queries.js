@@ -2,14 +2,14 @@
 
 /** @typedef {{ id: string, open: () => boolean, close: () => boolean | void, overlay?: boolean, tab?: () => HTMLElement | null, inertsApp?: boolean, watchHidden?: HTMLElement }} AppLayer */
 
-/** @param {ReadonlyMap<string, AppLayer>} entries @param {readonly string[]} tabOrder */
+/** @param {() => readonly import("../core/kernel/types").Layer[]} entries @param {readonly string[]} tabOrder */
 export function layerQueries(entries, tabOrder) {
-  const surfaces = [...entries.values()];
+  const find = (/** @type {string} */ id) => entries().find((layer) => layer.id === id);
 
   function keyLayer() {
     for (const id of tabOrder) {
-      const layer = entries.get(id);
-      if (!layer?.open()) continue;
+      const layer = find(id);
+      if (!layer?.open?.()) continue;
       const el = layer.tab?.();
       if (el) return el;
     }
@@ -18,8 +18,8 @@ export function layerQueries(entries, tabOrder) {
 
   return {
     keyLayer,
-    isOpen: (/** @type {string} */ id) => entries.get(id)?.open() ?? false,
-    inertsApp: () => surfaces.some((layer) => layer.inertsApp && layer.open()),
-    watched: surfaces.flatMap((layer) => layer.watchHidden ? [layer.watchHidden] : []),
+    isOpen: (/** @type {string} */ id) => find(id)?.open?.() ?? false,
+    inertsApp: () => entries().some((layer) => layer.inertsApp && layer.open?.()),
+    watched: () => entries().flatMap((layer) => layer.watchHidden ? [layer.watchHidden] : []),
   };
 }

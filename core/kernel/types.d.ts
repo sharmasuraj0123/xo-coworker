@@ -81,6 +81,9 @@ export interface Layer {
   escape?(): boolean;
   back?(): boolean;
   modal?: boolean;
+  tab?(): HTMLElement | null;
+  inertsApp?: boolean;
+  watchHidden?: HTMLElement;
   returnFocus?: Element | null;
 }
 export interface Layers {
@@ -143,7 +146,7 @@ export interface ModuleContext {
   onFlush(key: string, fn: () => void): Undo;
   invalidate(key?: string): void;
   pushLayer(layer: Layer): Undo;
-  readonly layers: Pick<Layers, "back" | "escape" | "open">;
+  readonly layers: Pick<Layers, "back" | "escape" | "open" | "list" | "watch">;
   readonly places: Pick<Places, "entries" | "get" | "first" | "watch" | "has">;
   log(...args: unknown[]): void;
 }

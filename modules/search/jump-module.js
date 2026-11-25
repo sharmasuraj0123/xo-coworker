@@ -1,4 +1,6 @@
 // @ts-check
+import { sheetGesture } from "../../shell/gestures.js";
+import { ownLayer } from "../../shell/layers.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { pageEl, sessionOf } from "../../shell/place-context.js";
 import { createWorkspaceJump } from "./jump-items.js";
@@ -26,6 +28,8 @@ export const jumpModule = {
       },
     }, ctx);
     ctx.effect(() => jump.close);
+    sheetGesture(ctx, { host: el, card: () => el.querySelector(".sheet-card"), open: () => !el.hidden, close: jump.close });
+    ownLayer(ctx, { id: "jump", tab: () => el, inertsApp: true, watchHidden: el, open: () => !el.hidden, close: jump.close });
     ctx.provide("jump", jump);
   },
 };

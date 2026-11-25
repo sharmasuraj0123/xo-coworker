@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { dom, same } from "../../tests/lib/dom.mjs";
 import { createKernel } from "../../core/kernel/index.js";
 import { createScope } from "../../core/kernel/scope.js";
-import { stackLayers } from "../layers.js";
+import { ownLayer, stackLayers } from "../layers.js";
 import { createOverlayFocus, mountKeyboardLayers } from "../keyboard-layers.js";
 
 const controls = '<button tabindex="0">First</button><button tabindex="0">Last</button>';
@@ -25,13 +25,15 @@ const files = byId("files"), content = byId("content");
 const phone = new window.EventTarget();
 phone.matches = false;
 const layer = (id, host, config) => ({ id, open: () => !host.hidden, close: () => { host.hidden = true; }, ...config });
-const stack = stackLayers(createKernel().layers, [
+const kernel = createKernel();
+const stack = stackLayers(kernel.layers);
+const undos = [
   layer("jump", jump, { tab: () => jump, watchHidden: jump, inertsApp: true }),
   layer("keys", keys, { tab: () => keys, watchHidden: keys, inertsApp: true }),
   layer("quickopen", quickopen, { inertsApp: true }),
   layer("settings", settings, { watchHidden: settings, tab: () => phone.matches ? settings : null }),
   { id: "drawer", open: () => app.classList.contains("drawer"), close: () => app.classList.remove("drawer"), tab: () => phone.matches ? side : null },
-]);
+].map((layer) => ownLayer({ layers: kernel.layers, pushLayer: kernel.layers.push }, layer));
 const { syncInert, dispose } = mountKeyboardLayers({ layers: stack, phone, app, main, side, settings });
 const mutation = async () => { await Promise.resolve(); await Promise.resolve(); };
 const tab = (target, shiftKey = false) => {

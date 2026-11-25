@@ -1,4 +1,7 @@
 // @ts-check
+import { sheetGesture } from "../../shell/gestures.js";
+import { requireHtml } from "../../core/platform/dom.js";
+import { ownLayer } from "../../shell/layers.js";
 
 /** @typedef {ReturnType<typeof mountIntelligence>} IntelligenceSurface */
 
@@ -61,6 +64,10 @@ export const intelModule = {
   activate(ctx) {
     const intelligence = mountIntelligence(ctx);
     ctx.on("workspace:painted", intelligence.activate);
+    const picker = intelligence.intelligence;
+    const pop = requireHtml("#iq-pop");
+    sheetGesture(ctx, { host: pop, open: () => picker.isOpen && pop.classList.contains("is-sheet"), close: () => picker.close() });
+    ownLayer(ctx, { id: "intel", open: () => picker.isOpen, close: () => { picker.close(); } });
     ctx.provide("intelligence", intelligence);
   },
 };

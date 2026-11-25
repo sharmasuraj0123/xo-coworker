@@ -1,4 +1,5 @@
 // @ts-check
+import { ownLayer } from "../../shell/layers.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { viewerFile } from "../../core/services/media/items.js";
 import { watchMedia, wireDragOut } from "../../core/services/media/hydrate.js";
@@ -71,6 +72,7 @@ export const conversationMediaModule = {
       open(tile, event);
       return true;
     }));
+    ownLayer(ctx, { id: "lightbox", open: () => lightbox.isOpen, close: () => { lightbox.close(); }, overlay: false });
     ctx.provide("lightbox", lightbox);
   },
 };

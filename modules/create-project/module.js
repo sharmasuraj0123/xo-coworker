@@ -1,4 +1,5 @@
 // @ts-check
+import { ownLayer } from "../../shell/layers.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { RM } from "../../core/ui/motion.js";
@@ -38,6 +39,7 @@ export const createProjectModule = {
       dialog.close({ now: true, restore: false });
       requireHtml("#create-dlg", "dialog").classList.remove("is-closing");
     });
+    ownLayer(ctx, { id: "create", open: dialog.isOpen, close: () => { dialog.close(); } });
     ctx.provide("createProject", dialog);
     ctx.listen(requireHtml("#side-add", "button"), "click", dialog.open);
     ctx.contribute("conversation.press", pressEntry("create", valuePress("data-create", dialog.open, true)));

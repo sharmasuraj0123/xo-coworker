@@ -1,4 +1,6 @@
 // @ts-check
+import { sheetGesture } from "../../shell/gestures.js";
+import { ownLayer } from "../../shell/layers.js";
 
 import { requireHtml } from "../../core/platform/dom.js";
 import * as K from "../../core/platform/keys.js";
@@ -35,6 +37,10 @@ export const shortcutsModule = {
   manifest: { id: "xo.shortcuts", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["overlayFocus"], provides: ["shortcuts"] },
   activate(ctx) {
     const schedule = () => ctx.invalidate("workspace");
-    ctx.provide("shortcuts", createShortcutsSheet(ctx, ctx.use("overlayFocus"), () => ctx.emit("app:sync-inert"), schedule));
+    const sheet = createShortcutsSheet(ctx, ctx.use("overlayFocus"), () => ctx.emit("app:sync-inert"), schedule);
+    const el = sheet.keys;
+    sheetGesture(ctx, { host: el, card: () => el.querySelector(".sheet-card"), open: () => !el.hidden, close: sheet.closeKeys });
+    ownLayer(ctx, { id: "keys", tab: () => el, inertsApp: true, watchHidden: el, open: () => !el.hidden, close: sheet.closeKeys });
+    ctx.provide("shortcuts", sheet);
   },
 };

@@ -2839,7 +2839,7 @@
     },
     "shell/interactions.js": {
      "anchor": "export const interactionModule",
-     "reason": "The shell composes its layers, global keys, history and touch gestures."
+     "reason": "The shell orders Back, Escape and Tab across owner-registered layers. Features mount their sheet and page gestures with their activation."
     },
     "shell/panel/header-controls.js": {
      "anchor": "export function bindPanelHeaderControls",

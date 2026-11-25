@@ -6,26 +6,24 @@ const ORDER = {
   escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
   tab: ["keys", "jump", "settings", "drawer"],
 };
-/** @import { Layers } from "../core/kernel/types" */
+/** @import { ModuleContext, Layer } from "../core/kernel/types" */
 
-/** @param {Pick<Layers, "push" | "back" | "escape" | "open">} layers @param {import("./layer-queries.js").AppLayer[]} list */
-export function stackLayers(layers, list) {
-  const entries = new Map(list.map((layer) => [layer.id, layer]));
-  if (entries.size !== list.length) throw new Error("shell layers must have unique ids");
-  const ids = [...new Set([...ORDER.back, ...ORDER.escape])];
-  for (const id of entries.keys()) if (!ids.includes(id)) throw new Error(`layer "${id}" has no place in the shell's order`);
-  const undos = ids.reverse().flatMap((id) => {
-    const layer = entries.get(id);
-    if (!layer) return [];
-    const close = () => layer.open() && layer.close() !== false;
-    return layers.push({ id, open: layer.open, overlay: layer.overlay,
-      back: ORDER.back.includes(id) ? close : undefined, escape: ORDER.escape.includes(id) ? close : undefined });
-  });
+/** @param {Pick<ModuleContext, "pushLayer" | "layers">} ctx @param {import("./layer-queries.js").AppLayer} layer */
+export function ownLayer(ctx, layer) {
+  const { id, close, ...details } = layer;
+  if (!ORDER.escape.includes(id) && !ORDER.back.includes(id)) throw new Error(`layer "${id}" has no place in the shell's order`);
+  if (ctx.layers.list().some((active) => active.id === id)) throw new Error("shell layers must have unique ids");
+  const dismiss = () => layer.open() && close() !== false;
+  return ctx.pushLayer({ ...details, id, back: ORDER.back.includes(id) ? dismiss : undefined,
+    escape: ORDER.escape.includes(id) ? dismiss : undefined });
+}
+
+/** @param {ModuleContext["layers"]} layers */
+export function stackLayers(layers) {
   return {
     back: () => layers.back(["failure-details", ...ORDER.back]),
     escape: () => layers.escape(["failure-details", ...ORDER.escape]),
-    ...layerQueries(entries, ORDER.tab),
-    open: layers.open,
-    undo: () => { for (const u of undos.reverse()) u(); },
+    ...layerQueries(layers.list, ORDER.tab),
+    open: layers.open, watch: layers.watch,
   };
 }

@@ -25,7 +25,7 @@ test("failure floods wait behind Undo as one line and reveal a diagnostic only o
   const notices = createHerald({ state, setTimer: () => 0, clearTimer() {} });
   notices.show({ kind: "sent", text: "Sent", undo() {} });
   const layers = createLayers();
-  const stack = stackLayers(layers, []);
+  const stack = stackLayers(layers);
   const surface = createFailureSurface(mountFailurePresenter({ ...scope, use: () => notices, pushLayer: layers.push }), fn => fn());
   const message = 'Unexpected "<tag>"';
   for (let i = 0; i < 100; i++) surface.report(message, "xo.map");

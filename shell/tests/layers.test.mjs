@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createKernel } from "../../core/kernel/index.js";
-import { stackLayers } from "../layers.js";
+import { ownLayer, stackLayers } from "../layers.js";
 
 const backOrder = ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"];
 const escapeOrder = ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"];
@@ -19,12 +19,14 @@ const entries = ids.map((id) => ({
   },
   overlay: id !== "lightbox" && id !== "viewer",
 }));
-const layers = stackLayers(kernel.layers, entries);
+const ctx = { layers: kernel.layers, pushLayer: kernel.layers.push };
+const undos = entries.map((layer) => ownLayer(ctx, layer));
+const layers = stackLayers(kernel.layers);
 assert.equal(kernel.layers.list().length, ids.length);
 assert.equal(layers.back(), false);
 assert.equal(layers.escape(), false);
-assert.throws(() => stackLayers(kernel.layers, [{ ...entries[0], id: "nowhere" }]), /no place in the shell's order/);
-assert.throws(() => stackLayers(kernel.layers, [entries[0], entries[0]]), /unique ids/);
+assert.throws(() => ownLayer(ctx, { ...entries[0], id: "nowhere" }), /no place in the shell's order/);
+assert.throws(() => ownLayer(ctx, entries[0]), /unique ids/);
 
 function compete(action, shown, expected) {
   open.clear();
@@ -62,6 +64,6 @@ assert.equal(layers.open(), true);
 assert.equal(layers.open({ overlay: true }), false);
 open.add("panel-sheet");
 assert.equal(layers.open({ overlay: true }), true);
-layers.undo();
+undos.forEach((undo) => undo());
 assert.equal(kernel.layers.list().length, 0);
 console.log("shell layers follow release Back and Escape priorities");

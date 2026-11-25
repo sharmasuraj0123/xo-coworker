@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createKernel } from "../core/kernel/index.js";
-import { stackLayers } from "../shell/layers.js";
+import { ownLayer, stackLayers } from "../shell/layers.js";
 import { MAIN_LAYERS } from "../shell/overlays.js";
 import { dom, same } from "./lib/dom.mjs";
 
@@ -43,10 +43,11 @@ assert.deepEqual(events, ["opened", "closed"]);
 
 const kernel = createKernel();
 const action = [];
-const layers = stackLayers(kernel.layers, [
+const layers = stackLayers(kernel.layers);
+const undos = [
   { id: "viewer", open: () => true, close: () => { action.push("viewer"); } },
   { id: "decisions", open: () => true, close: () => { action.push("decisions"); } },
-]);
+].map((layer) => ownLayer({ layers: kernel.layers, pushLayer: kernel.layers.push }, layer));
 assert.equal(layers.back(), true);
 assert.deepEqual(action, ["viewer"]);
-layers.undo();
+undos.forEach((undo) => undo());

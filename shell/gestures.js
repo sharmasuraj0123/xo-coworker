@@ -1,5 +1,6 @@
 // @ts-check
 
+import { requireHtml } from "../core/platform/dom.js";
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { menuKeys } from "../core/ui/a11y/keynav.js";
 import { createScope } from "../core/kernel/scope.js";
@@ -8,6 +9,7 @@ import { drag, glide, follow, unstyle, tick, scrollsX, scrolledY, edgeIsSafari, 
 
 /** @typedef {(element: HTMLElement) => string} WordsOf */
 
+/** @import { Lifetime } from "../core/kernel/types" */
 /** @import { Sheet, SurfaceGestures } from "./gesture-types.d.ts" */
 
 /** @param {number} d */
@@ -56,7 +58,7 @@ export function wireGestures(A, scope) {
   let mode = /** @type {"back" | "drawer" | null} */ (null);
   const conv = $("#conv"), dock = $("#dock");
   drag(main, {
-    axis: "x",
+    axis: "x", signal: scope.signal,
     start: ({ x, target }) => {
       mode = null;
       if (edgeIsSafari(x) || target.closest(OWN) || target.closest("#dock, #panel, #viewer, #settings, .iq-pop") || A.overlay()) return false;
@@ -82,12 +84,12 @@ export function wireGestures(A, scope) {
       if (mode === "back") {
         if (committed(dx, vx, W(), 0.35)) {
           tick();
-          await Promise.all([glide(conv, `translateX(${W()}px)`, { ms: 180 }), glide(dock, `translateX(${W()}px)`, { ms: 180 })]);
-          A.back();
+          await Promise.all([glide(conv, `translateX(${W()}px)`, { scope, ms: 180 }), glide(dock, `translateX(${W()}px)`, { scope, ms: 180 })]);
+          if (!scope.signal.aborted) A.back();
           unstyle(conv, dock);
           conv.classList.remove("is-swiped");
         } else {
-          await Promise.all([glide(conv, "translateX(0)"), glide(dock, "translateX(0)")]);
+          await Promise.all([glide(conv, "translateX(0)", { scope }), glide(dock, "translateX(0)", { scope })]);
           unstyle(conv, dock); conv.classList.remove("is-swiped");
         }
         return;
@@ -95,11 +97,11 @@ export function wireGestures(A, scope) {
       const w = side.offsetWidth;
       if (committed(dx, vx, w, 0.4)) {
         tick();
-        await Promise.all([glide(side, "translateX(0)", { ms: 200 }), glide(scrim, "", { ms: 200, opacity: 1 })]);
+        await Promise.all([glide(side, "translateX(0)", { scope, ms: 200 }), glide(scrim, "", { scope, ms: 200, opacity: 1 })]);
         unstyle(side, scrim); side.classList.remove("is-drag");
-        A.drawer(true);
+        if (!scope.signal.aborted) A.drawer(true);
       } else {
-        await Promise.all([glide(side, "translateX(-102%)"), glide(scrim, "", { opacity: 0 })]);
+        await Promise.all([glide(side, "translateX(-102%)", { scope }), glide(scrim, "", { scope, opacity: 0 })]);
         unstyle(side, scrim); side.classList.remove("is-drag");
         scrim.hidden = true;
       }
@@ -109,18 +111,18 @@ export function wireGestures(A, scope) {
 
   /** @type {import('../core/platform/gestures.js').Drag} */
   const closeDrawer = {
-    axis: "x",
+    axis: "x", signal: scope.signal,
     start: ({ target }) => A.isDrawer() && !target.closest(OWN),
     accept: (dx) => dx < 0,
     move: (dx) => { follow(side, `translateX(${Math.min(0, dx)}px)`); follow(scrim, "", Math.max(0, 1 + dx / side.offsetWidth)); },
     end: async (dx, _dy, vx) => {
       if (committed(dx, vx, side.offsetWidth, 0.3)) {
         tick();
-        await glide(side, "translateX(-102%)", { ms: 180 });
-        A.drawer(false);
+        await glide(side, "translateX(-102%)", { scope, ms: 180 });
+        if (!scope.signal.aborted) A.drawer(false);
         unstyle(side, scrim);
       } else {
-        await Promise.all([glide(side, "translateX(0)"), glide(scrim, "", { opacity: 1 })]);
+        await Promise.all([glide(side, "translateX(0)", { scope }), glide(scrim, "", { scope, opacity: 1 })]);
         unstyle(side, scrim);
       }
     },
@@ -128,62 +130,66 @@ export function wireGestures(A, scope) {
   };
   drag(side, closeDrawer);
   drag(scrim, closeDrawer);
+}
 
-  /** @param {HTMLElement} el @param {() => boolean} open @param {() => void} close */
-  const page = (el, open, close) => drag(el, {
-    axis: "x",
-    start: ({ x, target }) => A.phone() && open() && !edgeIsSafari(x) && !target.closest(OWN) && !scrollsX(target, el) && !target.closest(".vw-img.is-actual"),
+/** @param {Lifetime} scope @param {HTMLElement} el @param {() => boolean} open @param {() => void} close */
+export function pageGesture(scope, el, open, close) {
+  drag(el, {
+    axis: "x", signal: scope.signal,
+    start: ({ x, target }) => open() && !edgeIsSafari(x) && !target.closest(OWN) && !scrollsX(target, el) && !target.closest(".vw-img.is-actual"),
     accept: (dx) => dx > 0,
     move: (dx) => follow(/** @type {HTMLElement} */ (el), `translateX(${dx}px)`),
     end: async (dx, _dy, vx) => {
-      if (committed(dx, vx, W(), 0.35)) { tick(); await glide(/** @type {HTMLElement} */ (el), `translateX(${W()}px)`, { ms: 180 }); close(); unstyle(el); }
-      else { await glide(/** @type {HTMLElement} */ (el), "translateX(0)"); unstyle(el); }
+      const width = document.getElementById("main")?.clientWidth || innerWidth;
+      if (committed(dx, vx, width, 0.35)) {
+        tick();
+        await glide(el, `translateX(${width}px)`, { scope, ms: 180 });
+        if (!scope.signal.aborted) close();
+      } else await glide(el, "translateX(0)", { scope });
+      unstyle(el);
     },
     cancel: () => unstyle(el),
   });
-  page($("#settings"), A.settingsOpen, A.closeSettings);
-  page($("#viewer"), A.viewerOpen, A.closeViewer);
+}
 
-  /** @param {HTMLElement} host @param {() => HTMLElement | null} card @param {() => boolean} open @param {() => void} close */
-  const putAway = (host, card, open, close, frac = 0.25) => {
-    /** @type {HTMLElement | null} */
-    let el = null;
-    drag(host, {
-      axis: "y", signal: scope.signal,
-      start: ({ target }) => {
-        el = card();
-        if (!el || !open() || !el.contains(target) || target.closest(OWN) || target.closest(".vw-img.is-actual")) return false;
-        if (window.visualViewport && (/** @type {VisualViewport} */ (visualViewport)).scale > 1.01) return false; // pinch-zoomed: the finger pans
-        return scrolledY(target, el) <= 0;
-      },
-      accept: (_dx, dy) => dy > 0,
-      move: (_dx, dy) => follow(/** @type {HTMLElement} */ (el), `translateY(${Math.max(0, dy)}px)`),
-      end: async (_dx, dy, _vx, vy) => {
-        const h = (/** @type {HTMLElement} */ (el)).offsetHeight || innerHeight;
-        if (committed(dy, vy, h, frac)) {
-          tick();
-          await glide(/** @type {HTMLElement} */ (el), `translateY(${h}px)`, { ms: 180, opacity: 0 });
-          if (scope.signal.aborted) { unstyle(el); return; }
-          close();
-          const closed = el;
-          const finish = scope.effect(() => () => unstyle(closed));
-          scope.timeout(finish, 360);
-        } else { await glide(/** @type {HTMLElement} */ (el), "translateY(0)"); unstyle(el); }
-      },
-      cancel: () => unstyle(el),
-    });
-  };
-  for (const s of A.sheets) putAway(s.host, s.card || (() => s.host), s.open, s.close);
-  const viewer = $("#viewer");
-  putAway(viewer, () => viewer, () => A.phone() && A.viewerOpen(), A.closeViewer, 0.2);
+/** @param {Lifetime} scope @param {Sheet} sheet */
+export function sheetGesture(scope, { host, card = () => host, open, close, fraction: frac = 0.25 }) {
+  /** @type {HTMLElement | null} */
+  let el = null;
+  drag(host, {
+    axis: "y", signal: scope.signal,
+    start: ({ target }) => {
+      el = card();
+      if (!el || !open() || !el.contains(target) || target.closest(OWN) || target.closest(".vw-img.is-actual")) return false;
+      if (window.visualViewport && (/** @type {VisualViewport} */ (visualViewport)).scale > 1.01) return false; // pinch-zoomed: the finger pans
+      return scrolledY(target, el) <= 0;
+    },
+    accept: (_dx, dy) => dy > 0,
+    move: (_dx, dy) => follow(/** @type {HTMLElement} */ (el), `translateY(${Math.max(0, dy)}px)`),
+    end: async (_dx, dy, _vx, vy) => {
+      const h = (/** @type {HTMLElement} */ (el)).offsetHeight || innerHeight;
+      if (committed(dy, vy, h, frac)) {
+        tick();
+        await glide(/** @type {HTMLElement} */ (el), `translateY(${h}px)`, { scope, ms: 180, opacity: 0 });
+        if (scope.signal.aborted) { unstyle(el); return; }
+        close();
+        const closed = el;
+        const finish = scope.effect(() => () => unstyle(closed));
+        scope.timeout(finish, 360);
+      } else { await glide(/** @type {HTMLElement} */ (el), "translateY(0)", { scope }); unstyle(el); }
+    },
+    cancel: () => unstyle(el),
+  });
+}
 
-  // ── Needs you: swipe the card sideways for the next ask or the one before. It never answers. ──
-  const stage = $("#pn-stage"), foot = $("#pn-foot");
+/** @param {Lifetime} scope @param {() => boolean} open */
+export function decisionGesture(scope, open) {
+  const stage = requireHtml("#pn-stage"), foot = requireHtml("#pn-foot");
   const navBtn = (/** @type {number} */ d) => /** @type {HTMLButtonElement | null} */ (foot.querySelector(`[data-nav="${d}"]`));
   let can = false;
   drag(stage, {
-    axis: "x",
-    start: ({ target }) => A.panelOpen() && !target.closest(OWN) && !scrollsX(target, stage),
+    axis: "x", signal: scope.signal,
+    start: ({ target }) => open() && !target.closest(OWN) && !scrollsX(target, stage),
     accept: () => true,
     move: (dx) => {
       const b = navBtn(dx < 0 ? 1 : -1);
@@ -195,18 +201,17 @@ export function wireGestures(A, scope) {
       const w = stage.offsetWidth;
       if (can && committed(dx, vx, w, 0.28)) {
         tick();
-        await glide(stage, `translateX(${dx < 0 ? -w : w}px)`, { ms: 160, opacity: 0 });
+        await glide(stage, `translateX(${dx < 0 ? -w : w}px)`, { scope, ms: 160, opacity: 0 });
+        if (scope.signal.aborted) { unstyle(stage); return; }
         navBtn(dx < 0 ? 1 : -1)?.click();
         follow(stage, `translateX(${dx < 0 ? w * 0.3 : -w * 0.3}px)`, 0);
         void stage.offsetWidth;
-        await glide(stage, "translateX(0)", { ms: 220, opacity: 1 });
-      } else await glide(stage, "translateX(0)", { opacity: 1 });
+        await glide(stage, "translateX(0)", { scope, ms: 220, opacity: 1 });
+      } else await glide(stage, "translateX(0)", { scope, opacity: 1 });
       unstyle(stage);
     },
     cancel: () => unstyle(stage),
   });
-
-
 }
 
 /** @param {HTMLElement} runsCard @param {() => boolean} detail @param {() => void} back @param {AbortSignal} signal */

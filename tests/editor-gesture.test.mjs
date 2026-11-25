@@ -24,7 +24,7 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
   document.getSelection = () => null;
   document.hasFocus = () => false;
   const { mount } = await import("../modules/files/editor.js");
-  const { wireGestures } = await import("../shell/gestures.js");
+  const { pageGesture } = await import("../shell/gestures.js");
   const viewer = document.querySelector("#viewer");
   const editor = await mount(document.querySelector("#editor"), {
     docs: { textOf: () => "File contents", attach() {} },
@@ -33,11 +33,7 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
   });
   const scope = createScope();
   try {
-    wireGestures({
-      phone: () => true,
-      viewerOpen: () => true,
-      sheets: [],
-    }, scope);
+    pageGesture(scope, viewer, () => true, () => {});
     const touch = (target, type, clientX) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });
       const points = [{ identifier: 1, clientX, clientY: 30 }];

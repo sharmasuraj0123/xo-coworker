@@ -1,4 +1,5 @@
 // @ts-check
+import { ownLayer } from "../../shell/layers.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { createShells } from "./dock.js";
 import { createShellPanel } from "./panel.js";
@@ -13,6 +14,7 @@ export const shellDockModule = {
       notify: (notice) => notices.show(notice, 6000), onChange: () => ctx.invalidate("workspace") });
     ctx.effect(() => dock.dispose);
     ctx.effect(() => terminal(() => dock.available));
+    ownLayer(ctx, { id: "shells", open: () => dock.raised, close: () => dock.lower() });
     ctx.provide("shellDock", dock);
   },
 };

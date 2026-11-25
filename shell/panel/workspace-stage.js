@@ -1,4 +1,5 @@
 // @ts-check
+import { ownLayer } from "../layers.js";
 import { prepareStageNavigation } from "./navigation.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { panelPlace } from "../place-context.js";
@@ -34,6 +35,7 @@ export const stageModule = {
     bindPanelHeaderControls(ctx, stage, ctx.use("launchpad").LW, view);
     ctx.on("app:view-preparing", (change) => prepareStageNavigation(stage, !!PHONE?.matches, change));
     ctx.contribute("workspace.paint", { id: "stage", order: 70, paint: () => stage.sync() });
+    ownLayer(ctx, { id: "panel-sheet", open: () => stage.isOpen && !!PHONE?.matches, close: () => { stage.close(); } });
     ctx.provide("stage", stage);
   },
 };

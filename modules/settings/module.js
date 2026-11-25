@@ -1,4 +1,6 @@
 // @ts-check
+import { pageGesture } from "../../shell/gestures.js";
+import { ownLayer } from "../../shell/layers.js";
 
 import { createSettingsHost } from "./host.js";
 import { settingsPageEvents } from "./page-events.js";
@@ -36,6 +38,10 @@ export const settingsFrameModule = {
       onHidden: () => ctx.emit("app:sync-inert"),
     });
     ctx.on("app:view-preparing", () => frame.close({ restore: false }));
+    const el = requireHtml("#settings");
+    pageGesture(ctx, el, () => !!PHONE?.matches && !el.hidden, () => frame.close());
+    ownLayer(ctx, { id: "settings", tab: () => PHONE?.matches ? el : null, watchHidden: el,
+      open: () => !el.hidden, close: () => { frame.close(); } });
     ctx.provide("settingsFrame", frame);
   },
 };

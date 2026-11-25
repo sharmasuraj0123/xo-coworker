@@ -72,6 +72,7 @@ export function createKernel(opts = {}) {
       invalidate: (key) => scheduler.invalidate(key),
       layers: {
         back: (ids) => !U.signal.aborted && layers.back(ids), escape: (ids) => !U.signal.aborted && layers.escape(ids),
+        list: () => U.signal.aborted ? [] : layers.list(), watch: (fn) => U.effect(() => layers.watch(fn)),
         open: (options) => !U.signal.aborted && layers.open(options),
       },
       pushLayer: (layer) => U.effect(() => layers.push(layer, id)),

@@ -1,6 +1,8 @@
 // @ts-check
+import { ownLayer } from "./layers.js";
 import { createNavigation } from "./navigation.js";
 import { pageEl as pageElement } from "./place-context.js";
+import { requireHtml } from "../core/platform/dom.js";
 import { createDrawer } from "./phone.js";
 import { createOverlayFocus } from "./keyboard-layers.js";
 import { regionRings } from "../core/ui/a11y/ring.js";
@@ -21,7 +23,10 @@ export const shellFoundationModule = {
     ctx.effect(() => notices.dispose);
     ctx.provide("notices", notices);
     ctx.provide("redrawFocus", createRedrawFocus());
-    ctx.provide("drawer", { set: createDrawer(ctx, PHONE, () => ctx.emit("app:sync-inert")) });
+    const set = createDrawer(ctx, PHONE, () => ctx.emit("app:sync-inert"));
+    ownLayer(ctx, { id: "drawer", tab: () => PHONE?.matches ? requireHtml("#side") : null,
+      open: () => requireHtml("#app").classList.contains("drawer"), close: () => set(false) });
+    ctx.provide("drawer", { set });
     ctx.provide("overlayFocus", createOverlayFocus(ctx));
     ctx.provide("toastLine", (text) => { announce(text); notices.show({ kind: "done", text }, 1600); });
     ctx.interval(tickElapsed, 1000);

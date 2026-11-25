@@ -23,7 +23,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   let runsDeep = false;
   wireGestures({
     view: () => "t:thread", phone: () => true, overlay: () => false,
-    back: () => calls.push("thread"), sheets: [],
+    back: () => calls.push("thread"),
   }, scope);
   wireRunsGesture(runsCard, () => runsDeep, () => calls.push("runs"), scope.signal);
   const swipe = async (target, distance) => {

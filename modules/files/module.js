@@ -1,4 +1,7 @@
 // @ts-check
+import { pageGesture, sheetGesture } from "../../shell/gestures.js";
+import { PHONE } from "../../core/platform/viewport.js";
+import { ownLayer } from "../../shell/layers.js";
 
 import { $, requireHtml } from "../../core/platform/dom.js";
 import { usable } from "../../core/ui/a11y/focus.js";
@@ -54,6 +57,13 @@ export const filesModule = {
     });
     ctx.contribute("workspace.paint", { id: "viewer", order: 60, paint: () => mountedViewer.notice() });
     ctx.contribute("workspace.paint", { id: "files", order: 90, paint: () => filesPage.sync() });
+    const viewerHost = requireHtml("#viewer");
+    const viewerOnPhone = () => !!PHONE?.matches && mountedViewer.isOpen;
+    const closeViewer = () => { mountedViewer.close(); };
+    pageGesture(ctx, viewerHost, viewerOnPhone, closeViewer);
+    sheetGesture(ctx, { host: viewerHost, open: viewerOnPhone, close: closeViewer, fraction: 0.2 });
+    ownLayer(ctx, { id: "files-page", open: () => filesPage.isOpen, close: () => { stage.back(); } });
+    ownLayer(ctx, { id: "viewer", open: () => mountedViewer.isOpen, close: () => { mountedViewer.close({ ask: true }); }, overlay: false });
     ctx.provide("files", { tree: files, viewer: mountedViewer, page: filesPage });
     ctx.effect(() => ctx.use("navigation").beforeLeave((resume) => {
       if (!mountedViewer.editing) return true;

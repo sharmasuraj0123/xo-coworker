@@ -46,8 +46,13 @@ export function mountKeyboardLayers({ layers, phone, app, main, side, settings }
     scope.listen(phone, "change", syncInert);
     const observer = new MutationObserver(syncInert);
     scope.observe(observer);
-    for (const el of layers.watched) observer.observe(el, { attributes: true, attributeFilter: ["hidden"] });
-    syncInert();
+    const refresh = () => {
+      observer.disconnect();
+      for (const el of layers.watched()) observer.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+      syncInert();
+    };
+    scope.effect(() => layers.watch(refresh));
+    refresh();
   });
   scope.listen(window, "keydown", (e) => {
     if (!("key" in e) || e.key !== "Tab" || e.defaultPrevented) return;

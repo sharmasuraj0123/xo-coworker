@@ -1,4 +1,6 @@
 // @ts-check
+import { sheetGesture } from "../../shell/gestures.js";
+import { ownLayer } from "../../shell/layers.js";
 
 import { PHONE } from "../../core/platform/viewport.js";
 import { sessionOf } from "../../shell/place-context.js";
@@ -35,6 +37,7 @@ export const chatModelModule = {
       },
     }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
     ctx.effect(() => chats.dispose);
+    ownLayer(ctx, { id: "chat-setup", open: () => chats.setupOpen, close: () => { chats.closeSetup(); } });
     ctx.provide("chats", chats);
   },
 };
@@ -113,6 +116,9 @@ export const chatControlsModule = {
       sendNow: requireHtml("#send-now", "button"), intelligence: requireHtml("#iq", "button"),
       updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
     });
+    const setup = requireHtml("#cs-pop");
+    sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
+      close: () => { chats.closeSetup(); updateComposer(); } });
     bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
       greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer });
     const reply = replyNotices(

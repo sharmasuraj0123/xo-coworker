@@ -1,4 +1,8 @@
 // @ts-check
+import { decisionGesture, sheetGesture } from "../../shell/gestures.js";
+import { PHONE } from "../../core/platform/viewport.js";
+import { requireHtml } from "../../core/platform/dom.js";
+import { ownLayer } from "../../shell/layers.js";
 import { mountDecisionDock } from "./dock-surface.js";
 import { createScope } from "../../core/kernel/scope.js";
 
@@ -43,6 +47,9 @@ export const decisionModule = {
     const presentation = { D: decisions, pings: createDecisionPings(pingOptions),
       EFFORT, askTitle, askShort, waitSince, Kit, evidenceFor };
     ctx.contribute("workspace.paint", { id: "decisions", order: 50, paint: decisions.sync });
+    decisionGesture(ctx, decisions.isOpen);
+    sheetGesture(ctx, { host: requireHtml("#panel"), open: () => !!PHONE?.matches && decisions.isOpen(), close: () => decisions.close() });
+    ownLayer(ctx, { id: "decisions", open: decisions.isOpen, close: () => { decisions.close(); } });
     ctx.provide("decisionPresentation", presentation);
   },
 };
