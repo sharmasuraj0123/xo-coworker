@@ -43,7 +43,7 @@ export interface ShapeStoreOptions {
 }
 
 export interface ShapeSyncOptions {
-  scope: ReturnType<typeof import("../../kernel/scope.js").createScope>;
+  scope: import("../../kernel/types").Lifetime;
   remote: Remote | null;
   notice: NonNullable<ShapeStoreOptions["notice"]>;
   retryMs: number[];

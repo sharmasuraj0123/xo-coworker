@@ -4,7 +4,6 @@
 
 import * as keys from "../../core/platform/keys.js";
 import { $, $$, findHtml, isHtml, requireHtml } from "../../core/platform/dom.js";
-import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
@@ -17,7 +16,7 @@ import { listenSide } from "./side-events.js";
 /** @import { SideDeps, Place, Side } from "./side-types.d.ts" */
 
 /** The sidebar's fold, bar and More, wired to its markup in index.html. @param {SideDeps} deps */
-export function createSide({ shape: SHAPE, keys: K = keys, announce, render, toggleJump, scope = createScope() }) {
+export function createSide({ shape: SHAPE, keys: K = keys, announce, render, toggleJump, scope }) {
   let popHtml = "";
   /** @type {Side} */
   const SIDE = {
@@ -143,7 +142,6 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       if (popHtml !== html) { redraw(pop, html); popHtml = html; }
     },
     editing: false,
-    dispose: scope.dispose,
     edit(on) {
       SIDE.editing = !!on; SIDE.drawMore();
       const pop = requireHtml("#side-more");

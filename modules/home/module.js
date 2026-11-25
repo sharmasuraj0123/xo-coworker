@@ -1,7 +1,6 @@
 // @ts-check
 import { skTile, bar, rememberedMade } from "./skeleton.js";
 import { requireHtml } from "../../core/platform/dom.js";
-import { createScope } from "../../core/kernel/scope.js";
 import { convOfChat } from "../../shell/place-context.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { createHomeController } from "./controller.js";
@@ -12,10 +11,10 @@ export const homeModule = {
     needs: ["world", "currentView", "announce", "placeContext", "decisionPresentation", "threadPresentation", "conversationPresentation",
       "shapeView", "threadRuntime", "notices", "decisionDock"] },
   activate(ctx) {
-    const scope = createScope(), view = ctx.use("currentView"), el = requireHtml("#home");
-    ctx.effect(() => () => { scope.dispose(); el.replaceChildren(); });
+    const view = ctx.use("currentView"), el = requireHtml("#home");
+    ctx.effect(() => () => el.replaceChildren());
     const home = createHomeController({
-      ...ctx.use("decisionPresentation"), scope, host: el, places: ctx.places, world: ctx.use("world"), announce: ctx.use("announce"),
+      ...ctx.use("decisionPresentation"), scope: ctx, host: el, places: ctx.places, world: ctx.use("world"), announce: ctx.use("announce"),
       convOfChat, isBusy: ctx.use("threadPresentation").isBusy, PROJ: ctx.use("placeContext").PROJ,
       threadMark: ctx.use("threadRuntime").threadMark, noun: ctx.use("conversationPresentation").noun, SV: ctx.use("shapeView"),
       heraldShow: ctx.use("notices").show, decideKey: ctx.use("decisionDock").decideKey,

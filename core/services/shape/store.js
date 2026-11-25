@@ -22,7 +22,7 @@ const fetchPreset = async (id, signal) => {
   return r.json();
 };
 
-/** @param {ShapeStoreOptions} [options] @param {ReturnType<typeof createScope>} [scope] */
+/** @param {ShapeStoreOptions} [options] @param {import("../../kernel/types").Lifetime} [scope] */
 export function createShapeStore({
   storage = localStore(reportStorageFailure) || memory(), load = fetchPreset, caps = null, remote = null,
   notice = () => {}, retryMs = RETRY_MS,

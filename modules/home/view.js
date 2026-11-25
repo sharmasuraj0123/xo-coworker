@@ -11,9 +11,9 @@ import { thenHtml } from "./then.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */
 
-/** @import { SurfaceScope } from "../../shell/surface-types.d.ts" */
+/** @import { Lifetime } from "../../core/kernel/types" */
 
-/** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options @param {SurfaceScope} scope */
+/** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options @param {Lifetime} scope */
 export function createHomeView(options, scope) {
   const { selection, isCurrent, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today } = options;
   const { num, noun, plural, isBusy, askTitle, PROJ, places, SV, announce, schedule } = options;

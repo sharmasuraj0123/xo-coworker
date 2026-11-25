@@ -133,7 +133,7 @@ assert.equal(pop.getAttribute("role"), "menu");
 assert.equal(Boolean(document.querySelector("#nv-pins")), false);
 
 pop.querySelector('[role="menuitem"]').focus();
-SIDE.dispose();
+scope.dispose();
 assert.equal(scope.size, 0);
 assert.equal(shapeChanged, undefined);
 assert.equal(pop.hidden, true);
@@ -143,13 +143,14 @@ click(more);
 click(document.querySelector("#side-jump"));
 assert.equal(pop.hidden, true);
 assert.equal(jumps, 0);
-const replacement = createSide(deps);
+const nextScope = createScope();
+const replacement = createSide({ ...deps, scope: nextScope });
 click(more);
 assert.equal(pop.hidden, false);
 assert.equal(pop.querySelectorAll("[data-side-edit]").length, 1);
 click(document.querySelector("#side-jump"));
 assert.equal(jumps, 1);
-replacement.dispose();
+nextScope.dispose();
 
 const editorRules = publishedRules().filter(({ sel }) => /^\.(?:sm-sep\b|se-)/.test(sel));
 assert.ok(editorRules.some(({ sel }) => sel === ".se-grip"));

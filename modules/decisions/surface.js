@@ -4,7 +4,6 @@ import { PHONE } from "../../core/platform/viewport.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { ownLayer } from "../../shell/layers.js";
 import { mountDecisionDock } from "./dock-surface.js";
-import { createScope } from "../../core/kernel/scope.js";
 
 import { createDecisionPings } from "../../shell/decision-pings.js";
 import { convOfChat } from "../../shell/place-context.js";
@@ -60,10 +59,8 @@ export const decisionDockModule = {
     needs: ["chats", "decisionPresentation", "world", "placeContext", "messageContext", "currentView", "conversationSession", "announce"],
     provides: ["decisionDock"], contributes: ["workspace.paint:decision-dock", "conversation.press:decide", "conversation.press:limit"] },
   activate(ctx) {
-    const scope = createScope();
-    ctx.effect(() => scope.dispose);
     const dock = mountDecisionDock({
-      scope, CH: ctx.use("chats"), D: ctx.use("decisionPresentation").D, world: ctx.use("world"),
+      scope: ctx, CH: ctx.use("chats"), D: ctx.use("decisionPresentation").D, world: ctx.use("world"),
       convThread: ctx.use("placeContext").convThread, convHost: ctx.use("messageContext").convHost, on: ctx.on,
       schedule: () => ctx.invalidate("workspace"), view: ctx.use("currentView"), region: ctx.use("conversationSession").region,
       announce: ctx.use("announce"),

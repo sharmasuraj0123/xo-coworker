@@ -13,7 +13,7 @@ export type DockState = {
   gen: number;
 };
 
-export type DockScope = ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+export type DockScope = import("../../core/kernel/types").Lifetime;
 export type Mount = {
   scope: DockScope;
   el: HTMLElement;

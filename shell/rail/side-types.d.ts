@@ -1,4 +1,3 @@
-import type { createScope } from "../../core/kernel/scope.js";
 import type { createShapeStore } from "../../core/services/shape/store.js";
 
 export interface SideDeps {
@@ -7,7 +6,7 @@ export interface SideDeps {
   announce(text: string): void;
   render(): void;
   toggleJump(): void;
-  scope?: ReturnType<typeof createScope>;
+  scope: import("../../core/kernel/types").Lifetime;
 }
 
 export interface Place { id: string; name: string; sel?: string; ic?: () => string; set?: boolean }

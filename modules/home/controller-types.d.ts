@@ -1,5 +1,4 @@
 import type { FrameNeeds } from "../../shell/render-types";
-import type { createScope } from "../../core/kernel/scope.js";
 import type { HandledDeps } from "./handled-types.d.ts";
 import type { NextCardDeps } from "./next-card-types.d.ts";
 import type { HomeViewDeps, HomeViewNeed } from "./view-types.d.ts";
@@ -11,7 +10,7 @@ export interface HomeControllerOptions<N extends HomeViewNeed>
     Pick<NextCardDeps<N>, "evidenceFor" | "convOfChat">,
     Pick<HandledDeps<N>, "threadMark"> {
   host: HTMLElement;
-  scope: ReturnType<typeof createScope>;
+  scope: import("../../core/kernel/types").Lifetime;
   D: HomeViewDeps<N>["D"] & NextCardDeps<N>["D"] & {
     needItems: () => N[];
     open: (key?: string | null, options?: { only: "glance" }) => unknown;
