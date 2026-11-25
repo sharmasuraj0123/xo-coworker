@@ -7432,7 +7432,8 @@
   },
   "js/app.js::functions::applyTheme": {
    "status": "moved",
-   "home": "core/ui/theme.js"
+   "home": "core/ui/theme.js",
+   "note": "F25 Chromium trace on 7c43b3e9 and bffc3cbb: dark-to-light toggle moved the 12,740-element style update out of the click handler. Handler return fell from 144.082\u2013195.818 ms to 1.205\u20131.499 ms. First renderer paint completed in 169.814\u2013170.332 ms, within the parent range of 160.894\u2013217.770 ms. Canvas, chrome and switch state matched in four captures."
   },
   "js/app.js::functions::announce": {
    "status": "moved",
@@ -14271,8 +14272,8 @@
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__af": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "deleted",
+   "reason": "The approved All Threads retirement removed the overlay filter identity probe."
   },
   "tests/browser/conversation.test.cjs::globals::__rb": {
    "status": "planned",
@@ -14283,16 +14284,16 @@
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__u": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "deleted",
+   "reason": "The approved All Threads retirement removed the overlay swipe resolve Retry and Undo probe."
   },
   "tests/browser/conversation.test.cjs::globals::__copied": {
    "status": "planned",
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__op": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "deleted",
+   "reason": "The approved All Threads retirement removed both old overlay opener probes."
   },
   "tests/browser/conversation.test.cjs::globals::__x": {
    "status": "planned",
@@ -14335,8 +14336,8 @@
    "home": "e2e/specs/abort.spec.mjs"
   },
   "tests/browser/flows.test.cjs::exports::line$": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "deleted",
+   "reason": "The inventory fragment came from interpolated source in a retired synthetic editor fixture. The editor Find behavior remains in the vendor evidence queue."
   },
   "tests/browser/flows.test.cjs::functions::editing": {
    "status": "deleted",
@@ -14873,8 +14874,9 @@
    "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-unsynced": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs",
+   "note": "The shape store test exercises reload, replay and refusal with the production key. The mounted Shape test checks notice placement."
   },
   "tests/browser/settings.test.cjs::storage::cv-keys": {
    "status": "planned",
