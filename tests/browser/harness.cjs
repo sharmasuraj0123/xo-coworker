@@ -238,7 +238,7 @@ async function hooks(page) {
     const source = await response.text();
     const anchor = "  boot().catch(";
     if (source.split(anchor).length !== 2) throw new Error("Storm hook needs one boot anchor");
-    const hook = "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();recoverT?.();}};\n";
+    const hook = "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();ctx.renewReads();}};\n";
     await r.fulfill({ response, body: source.replace(anchor, hook + anchor) });
   });
 }
