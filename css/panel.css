@@ -61,7 +61,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 /* Pointer movement and keyboard navigation share one active item through focus. */
 .fl-menu svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
-.fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
+.fl-new-r{display:flex;align-items:center;gap:var(--s-2);height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
 .fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .fl-new-r input[aria-invalid="true"]{border-color:var(--err)}
 .fl-new-say{box-sizing:border-box;height:28px;margin:0;padding:6px 6px 0 calc(6px + var(--d) * 16px + 18px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
@@ -96,11 +96,11 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 }
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
 .vw-ic svg,.vw-ic svg.fi{width:var(--ic);height:var(--ic)}
-.vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}
+.vw-t{display:flex;align-items:baseline;gap:var(--s-2);min-width:0}
 .vw-t{flex:1}
 .vw-t h2{flex:0 1 auto;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);letter-spacing:0}
 .vw-meta{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.vw-acts{gap:4px}
+.vw-acts{gap:var(--s-1)}
 .vw-btn{width:var(--h-ctl);height:var(--h-ctl);padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
 .vw-btn span{display:none}
 .vw-btn svg{width:var(--ic);height:var(--ic)}
@@ -108,7 +108,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .vw-seg{height:var(--h-ctl);padding:3px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .vw-seg button{height:var(--h-sm);padding:0 8px;border-radius:calc(var(--r-sm) - 4px);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .vw-x{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm)}
-.vw-seg button{display:inline-flex;align-items:center;gap:4px}
+.vw-seg button{display:inline-flex;align-items:center;gap:var(--s-1)}
 .vw-seg button svg{display:none;width:var(--ic);height:var(--ic)}
 @container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:var(--h-sm);padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
 /* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */
@@ -118,12 +118,12 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .md-ic{width:auto;height:auto;background:none;border:0}
 .md-ic svg,.md-ic svg.fi{width:var(--h-sm);height:var(--h-sm)}
 /* ── the Map in the panel: the same scope line, then one surface edge to edge ─────────────────────── */
-.map-host .mp-top{padding:12px var(--pe) 8px}
+.map-host .mp-top{padding:var(--s-3) var(--pe) var(--s-2)}
 .map-host .mp-t h2{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .map-host .mp-sub{margin-top:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
-.map-host .mp-now{margin:0 var(--pe) 8px;padding:6px 8px 6px 16px;border-radius:var(--r-sm)}
+.map-host .mp-now{margin:0 var(--pe) var(--s-2);padding:6px var(--s-2) 6px var(--s-4);border-radius:var(--r-sm)}
 .map-host .mp-nl{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.map-host .mp-legend{padding:0 var(--pe) 8px;gap:4px}
+.map-host .mp-legend{padding:0 var(--pe) var(--s-2);gap:var(--s-1)}
 .map-host .mp-who{height:var(--h-sm);padding:0 8px;gap:8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .map-host .dg{margin:0;border-radius:0;border-width:1px 0 0}
 .dg-tools{border-radius:var(--r-sm)}
