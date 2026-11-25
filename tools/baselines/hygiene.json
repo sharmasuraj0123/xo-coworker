@@ -735,18 +735,12 @@
   "changelogComment": 2,
   "commentLines": 4
  },
- "tests/stalled-own-message.test.mjs": {
-  "changelogComment": 1
- },
  "tests/stopped-on-purpose.test.mjs": {
   "commentLines": 3
  },
  "tests/storm-recover.test.mjs": {
   "commentLines": 1,
   "explicitAny": 2
- },
- "tests/storm.test.mjs": {
-  "commentLines": 3
  },
  "tests/turnview.test.mjs": {
   "changelogComment": 2,

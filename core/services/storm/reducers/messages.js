@@ -32,6 +32,7 @@ export const messages = {
   reaction(ctx, env, d) {
     const { state } = ctx;
     const ts = d.thread_ts || env.thread_ts;
+    ctx.noteMessageEdit(ts ? "thread:" + ts : "project:" + ctx.projectOf(env.chat_id), d, env.ts ?? null, true);
     const inThread = ts && addReaction(state.threadMsgs[ts], d, env.ts);
     if (inThread) { state.threadMsgs[ts] = inThread; ctx.soon(); return; }
     const project = ctx.projectOf(env.chat_id);
@@ -42,6 +43,7 @@ export const messages = {
   "message.updated"(ctx, env, d) {
     const { state } = ctx;
     const ts = d.thread_ts || env.thread_ts;
+    ctx.noteMessageEdit(ts ? "thread:" + ts : "project:" + ctx.projectOf(d.chat_id || env.chat_id), d, env.ts ?? null, false);
     const inThread = ts && updateMessage(state.threadMsgs[ts], d);
     if (inThread) { state.threadMsgs[ts] = inThread; ctx.soon(); return; }
     const project = ctx.projectOf(d.chat_id || env.chat_id);

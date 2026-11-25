@@ -2,6 +2,7 @@
 import { client, NEWEST, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
 import { once } from "../../platform/pending.js";
+import { retryRead } from "./read-policy.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
@@ -122,47 +123,46 @@ export function installLoad(ctx) {
   /** @param {AbortSignal} signal */
   async function loadSessions(signal) {
     // the coordinators (for "is replying") and the thread sessions' live state
-    try {
-      let after = 0;
-      for (let i = 0; i < 10; i++) {
-        const sent = ctx.sentAt();
-        const d = await client.sessions({ after_seq: after, limit: 500 }, { signal });
-        if (signal.aborted) return;
-        for (const s of d.sessions || []) ctx.noteSession(s, sent);
-        if (!d.next_after_seq) break;
-        after = d.next_after_seq;
-      }
-    } catch (error) { reportReadFailure(error, signal, true); }
+    let after = 0;
+    for (let i = 0; i < 10; i++) {
+      const sent = ctx.sentAt();
+      const d = await client.sessions({ after_seq: after, limit: 500 }, { signal });
+      if (signal.aborted) return;
+      for (const s of d.sessions || []) ctx.noteSession(s, sent);
+      if (!d.next_after_seq) break;
+      after = d.next_after_seq;
+    }
   }
   /** @param {AbortSignal} signal */
   async function loadReview(signal) {
-    try {
-      let after = null;
-      const seen = new Set();
-      for (let i = 0; i < 10; i++) {
-        const d = await client.review({ state: "open", limit: 500, ...(after ? { after_seq: after } : {}) }, { signal });
-        if (signal.aborted) return;
-        for (const it of d.items || []) { seen.add(it.id); state.review.set(it.id, it); }
-        if (!d.next_after_seq) break;
-        after = d.next_after_seq;
+    let after = null;
+    const unseen = new Map(state.review);
+    for (let i = 0; i < 10; i++) {
+      const d = await client.review({ state: "open", limit: 500, ...(after ? { after_seq: after } : {}) }, { signal });
+      if (signal.aborted) return;
+      for (const it of d.items || []) {
+        if (state.review.get(it.id) === unseen.get(it.id)) state.review.set(it.id, it);
+        unseen.delete(it.id);
       }
-      for (const id of [...state.review.keys()]) if (!seen.has(id)) state.review.delete(id);
-    } catch (error) { reportReadFailure(error, signal, true); }
+      if (!d.next_after_seq) {
+        for (const [id, previous] of unseen) if (state.review.get(id) === previous) state.review.delete(id);
+        break;
+      }
+      after = d.next_after_seq;
+    }
   }
   /** Read the project copies used for the "Routed to …" receipts. @param {AbortSignal} signal */
   async function loadRouted(signal) {
     const ws = ctx.chatIdOf("workspace");
     if (!ws) return;
-    try {
-      const { hops } = await client.hops(ws, { before_seq: NEWEST, limit: 500 }, { signal });
-      if (signal.aborted) return;
-      /** @type {Row[]} */
-      const history = hops || [];
-      const projects = history.filter((h) => h.kind === "forward").map((h) => ctx.projectOf(h.chat_id));
-      const targets = new Set(projects.filter((p) => p != null));
-      targets.delete("workspace");
-      await mapLimit(targets, LOAD_CAP, ctx.loadTimeline, signal);
-    } catch (error) { reportReadFailure(error, signal, true); }
+    const { hops } = await client.hops(ws, { before_seq: NEWEST, limit: 500 }, { signal });
+    if (signal.aborted) return;
+    /** @type {Row[]} */
+    const history = hops || [];
+    const projects = history.filter((h) => h.kind === "forward").map((h) => ctx.projectOf(h.chat_id));
+    const targets = new Set(projects.filter((p) => p != null));
+    targets.delete("workspace");
+    await mapLimit(targets, LOAD_CAP, ctx.loadTimeline, signal);
   }
   /** Everything, from the server. Returns once the world can render. */
   ctx.loadAll = async () => {
@@ -171,7 +171,8 @@ export function installLoad(ctx) {
     if (signal.aborted || !state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, signal),
-      loadSessions(signal), loadReview(signal), loadRouted(signal), ctx.loadRuntimes(), ctx.loadSpacePolicy(),
+      ...[loadSessions, loadReview, loadRouted].map((read) => retryRead(ctx.reads, read)),
+      ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
 }

@@ -94,6 +94,5 @@
  "tests/lib/layers.mjs::eslint(no-shadow)": 2,
  "tests/scroller-ring.test.mjs::eslint(no-shadow)": 1,
  "tests/storm-harness.mjs::eslint(no-underscore-dangle)": 1,
- "tests/storm.test.mjs::eslint(no-shadow)": 3,
  "tests/turnview.test.mjs::eslint(no-shadow)": 1
 }

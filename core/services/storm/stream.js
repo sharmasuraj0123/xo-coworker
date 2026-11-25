@@ -3,13 +3,25 @@ import { client, coderHeaders, SSEStream } from "./client.js";
 import { createTurns } from "../world/turns.js";
 import { LOAD_CAP, RUNS_KEEP } from "./config.js";
 import { mapLimit } from "./load.js";
+import { retryDelay } from "./read-policy.js";
 import { reportFailure } from "../notices/failures.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Frame} Frame */
 
+/** @param {Ctx} ctx */
+function pruneHistory({ state, watched, rawThreads, trimmed }) {
+  const keep = new Set();
+  for (const ts of [watched.thread, watched.side]) { const t = ts && rawThreads.get(ts); if (t && t.session_id) keep.add(t.session_id); }
+  if (watched.session) keep.add(watched.session); // an open plain chat keeps its turns
+  for (const sid of state.turns.prune(keep)) { if (sid != null) trimmed.add(sid); }
+  // sub-agents: keep every live one and the open thread's; the rest only up to a bounded log
+  const ended = [...state.runs.values()].filter((r) => !["running", "waiting"].includes(r.state) && !keep.has(r.session));
+  if (ended.length > RUNS_KEEP) for (const r of ended.sort((a, b) => String(a.ended_at || "").localeCompare(String(b.ended_at || ""))).slice(0, ended.length - RUNS_KEEP)) state.runs.delete(r.id);
+}
+
 /** Boot: open the stream from "now", hold its frames, GET everything, apply the held frames in order; then the stream alone. @param {Ctx} ctx */
 export function startStorm(ctx) {
-  const { state, rawThreads, chatProject, watched, trimmed, framesBefore, emit, scope } = ctx;
+  const { state, rawThreads, chatProject, watched, framesBefore, emit, scope } = ctx;
   const { signal } = scope;
   /** @type {Frame[]} */
   let held = [];
@@ -33,10 +45,14 @@ export function startStorm(ctx) {
 
   /** @type {(() => void) | null} */
   let recoverT = null;
-  /** The first load failed (storm restarting, the server down): try again until it works. */
-  ctx.scheduleRecover = (ms = 8000) => {
-    if (signal.aborted || recoverT) return;
-    recoverT = scope.timeout(() => { recoverT = null; void ctx.recover(); }, ms);
+  let attempt = 0;
+  ctx.scheduleRecover = () => {
+    const delay = retryDelay(attempt);
+    if (signal.aborted || recoverT || delay === undefined) return;
+    attempt++;
+    const cycle = ctx.reads;
+    const clear = cycle.effect(() => () => { recoverT = null; });
+    recoverT = cycle.timeout(() => { clear(); void ctx.recover().catch(reportFailure); }, delay);
   };
   /** @type {Promise<void> | null} */
   let recovering = null;
@@ -58,6 +74,7 @@ export function startStorm(ctx) {
       if (cycle.signal.aborted) return;
       if (expired) { ctx.renewReads(); ctx.clearSought(); }
       if (!replayHeld()) return;
+      if (!state.error) attempt = 0;
       emit();
       const { signal: current } = ctx.reads;
       void loadWatched(current).catch((error) => { if (!current.aborted) reportFailure(error); });
@@ -115,7 +132,7 @@ export function startStorm(ctx) {
         state.conn = s; state.connInfo = info;
         if (s !== "connecting") releaseSubscription();
         if (s === "live" && state.loaded) {
-          if (state.error || !state.projects.length) ctx.recover();
+          if (state.error || !state.projects.length) void ctx.recover().catch(reportFailure);
           ctx.loadStatus();
         }
         emit();
@@ -137,15 +154,7 @@ export function startStorm(ctx) {
     await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP,
       async (p) => ctx.loadChatPolicy(p.chatId), cycle.signal);
   }
-  scope.interval(() => {
-    const keep = new Set();
-    for (const ts of [watched.thread, watched.side]) { const t = ts && rawThreads.get(ts); if (t && t.session_id) keep.add(t.session_id); }
-    if (watched.session) keep.add(watched.session); // an open plain chat keeps its turns
-    for (const sid of state.turns.prune(keep)) { if (sid != null) trimmed.add(sid); }
-    // sub-agents: keep every live one and the open thread's; the rest only up to a bounded log
-    const ended = [...state.runs.values()].filter((r) => !["running", "waiting"].includes(r.state) && !keep.has(r.session));
-    if (ended.length > RUNS_KEEP) for (const r of ended.sort((a, b) => String(a.ended_at || "").localeCompare(String(b.ended_at || ""))).slice(0, ended.length - RUNS_KEEP)) state.runs.delete(r.id);
-  }, 60000);
+  scope.interval(() => pruneHistory(ctx), 60000);
   const events = typeof window === "undefined" ? globalThis : window;
   scope.listen(events, "visibilitychange", () => {
     if (document.hidden) return;

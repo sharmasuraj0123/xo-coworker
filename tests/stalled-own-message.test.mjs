@@ -55,7 +55,6 @@ await until(() => world.state.loaded);
 be.push("message", { seq: 10, chat_id: "chat_p", thread_ts: "t1", data: msg("m_agent", 10, "agent", "Done. Anything else?") });
 await settle();
 
-// the frames xo-space sent on 20 Nov (seq 448426, 448428, 448429): your message, the stall, then working
 be.push("message", { seq: 20, chat_id: "chat_p", thread_ts: "t1", data: msg("m_you", 20, "owner", "how big of a change is this?") });
 be.push("thread", { seq: 22, chat_id: "chat_p", thread_ts: "t1", data: { ts: "t1", state: "needs_reply", activity: "stalled", wait_reason: "open task has no running turn or pending input" } });
 await settle();

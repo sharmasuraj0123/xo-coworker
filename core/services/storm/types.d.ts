@@ -21,6 +21,7 @@ export interface Watched {
 
 /** What the storm parts share: the world's state, its private records, and each part's functions. */
 export interface Ctx {
+  noteMessageEdit: (key: string, data: Row, at: string | null, reaction: boolean) => void;
   state: WorldState;
   scope: ReturnType<typeof import("../../kernel/scope.js").createScope>;
   readonly reads: Ctx["scope"];

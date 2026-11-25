@@ -280,10 +280,6 @@
   "lineLength": 7,
   "unusedExport": 1
  },
- "core/services/world/timeline.js": {
-  "lineLength": 2,
-  "unusedExport": 44
- },
  "core/services/world/turns.js": {
   "functionLines": 1,
   "lineLength": 5
@@ -1115,9 +1111,6 @@
   "sourceRead": 1
  },
  "tests/shape-presets.test.mjs": {
-  "sourceRead": 1
- },
- "tests/speaker-names.test.mjs": {
   "sourceRead": 1
  }
 }

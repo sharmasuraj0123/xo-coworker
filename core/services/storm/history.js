@@ -3,6 +3,7 @@ import { client, NEWEST, reportReadFailure } from "./client.js";
 import { createLru } from "../../platform/cache.js";
 import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
+import { beginMessageRead } from "./message-reads.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
 const LOOKUP_RETRY_MS = 1000;
@@ -16,6 +17,18 @@ function loading(cycle, page, flag) {
 /** Conversations read backwards by seq, a page at a time, and rows looked up by id. @param {Ctx} ctx */
 export function installHistory(ctx) {
   const { state, rawThreads, trimmed, framesBefore, emit } = ctx;
+  /** @type {WeakMap<AbortSignal, Map<string, ReturnType<typeof beginMessageRead>>>} */
+  const reads = new WeakMap();
+  /** @param {string} key @param {import("./types").MessageRow[] | undefined} initial */
+  function begin(key, initial) {
+    const { signal } = ctx.reads;
+    const active = reads.get(signal) || new Map();
+    reads.set(signal, active);
+    const read = beginMessageRead(initial);
+    active.set(key, read);
+    return { reconcile: read.reconcile, close: () => active.delete(key) };
+  }
+  ctx.noteMessageEdit = (key, data, at, reaction) => reads.get(ctx.reads.signal)?.get(key)?.record(data, at, reaction);
 
   /** The copies of the workspace's messages in a project, for the "Routed to …" receipts. @param {string} project @param {Row[]} rows */
   function noteCopies(project, rows) {
@@ -43,16 +56,17 @@ export function installHistory(ctx) {
     if (h && (h.loading || h.loaded)) return;
     const page = state.hist[project] = { loading: false, loaded: false, all: false, error: null, before: null };
     const stopLoading = loading(cycle, page, "loading");
+    const read = begin("project:" + project, state.timeline[project]);
     emit();
     try {
       const d = await client.messages(chat, { before_seq: NEWEST, limit: PAGE }, { signal });
       if (signal.aborted) return;
-      ctx.addRows(project, d.messages || []);
+      ctx.addRows(project, read.reconcile(state.timeline[project], d.messages || []));
       state.hist[project] = { loading: false, loaded: true, all: !d.next_before_seq, error: null, before: d.next_before_seq || null };
     } catch (err) {
       if (signal.aborted) return;
       state.hist[project] = { loading: false, loaded: false, all: false, error: err instanceof Error ? err.message : null, before: null };
-    } finally { stopLoading(); }
+    } finally { read.close(); stopLoading(); }
     emit();
   };
   /** The page just before the oldest we have: each page is fetched exactly once. */
@@ -63,16 +77,17 @@ export function installHistory(ctx) {
     const h = state.hist[project];
     if (signal.aborted || !chat || !h || h.all || h.loading || !h.before) return;
     const stopLoading = loading(cycle, h, "loading");
+    const read = begin("project:" + project, state.timeline[project]);
     emit();
     try {
       const d = await client.messages(chat, { before_seq: h.before, limit: OLDER_PAGE }, { signal });
       if (signal.aborted) return;
-      ctx.addRows(project, d.messages || []);
+      ctx.addRows(project, read.reconcile(state.timeline[project], d.messages || []));
       h.before = d.next_before_seq || null;
       h.all = !h.before;
       h.olderError = null;
     } catch (err) { if (signal.aborted) return; h.olderError = err instanceof Error ? err.message : String(err); }
-    finally { stopLoading(); }
+    finally { read.close(); stopLoading(); }
     emit();
   };
   /** An open thread: its newest page of messages and its session's recent turns, once; older pages come as you scroll up. */
@@ -87,11 +102,12 @@ export function installHistory(ctx) {
       trimmed.delete(r.session_id);
       const oldest = (state.threadMsgs[ts] || [])[0];
       ctx.loadTurns(r.session_id).then(() => loadOlderTurns(r.session_id, oldest ? oldest.seq : null, signal))
-        .then(() => { if (!signal.aborted) ctx.soon(); });
+        .then(() => { if (!signal.aborted) ctx.soon(); }).catch((error) => reportReadFailure(error, signal));
       return;
     }
     if (th.loading || th.loaded) return;
     const stopLoading = loading(cycle, th, "loading");
+    const read = begin("thread:" + ts, state.threadMsgs[ts]);
     ctx.soon();
     try {
       // its notes and the messages relayed into it (hops) land with the page: arriving after it, they moved what you were reading
@@ -101,11 +117,11 @@ export function installHistory(ctx) {
         ctx.hopsOnce(ts),
       ]);
       if (signal.aborted) return;
-      const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
+      const { list } = mergeRows(state.threadMsgs[ts] || [], read.reconcile(state.threadMsgs[ts], m.messages || []));
       state.threadMsgs[ts] = list;
       Object.assign(th, pageAfter(th, m), { error: null });
     } catch (err) { if (signal.aborted) return; th.error = err instanceof Error ? err.message : String(err); }
-    finally { stopLoading(); }
+    finally { read.close(); stopLoading(); }
     ctx.soon();
   };
   /** The thread's page just before the oldest we hold, with its turns' frames, so the page lands once, whole. */
@@ -116,7 +132,7 @@ export function installHistory(ctx) {
     const th = state.threadHist[ts];
     if (signal.aborted || !r || !th || !canPageOlder(th)) return;
     const stopLoading = loading(cycle, th, "older");
-    const beforeRead = new Map((state.threadMsgs[ts] || []).map((row) => [row.id, row]));
+    const read = begin("thread:" + ts, state.threadMsgs[ts]);
     ctx.soon();
     try {
       const m = await client.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE }, { signal });
@@ -125,11 +141,10 @@ export function installHistory(ctx) {
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null, signal);
       if (signal.aborted) return;
       const current = state.threadMsgs[ts] || [];
-      const newer = new Set(current.filter((row) => beforeRead.get(row.id) !== row).map((row) => row.id));
-      state.threadMsgs[ts] = mergeRows(current, m.messages.filter((row) => !newer.has(row.id))).list;
+      state.threadMsgs[ts] = mergeRows(current, read.reconcile(current, m.messages)).list;
       Object.assign(th, pageAfter(th, m), { olderError: null });
     } catch (err) { if (signal.aborted) return; th.olderError = err instanceof Error ? err.message : String(err); }
-    finally { stopLoading(); }
+    finally { read.close(); stopLoading(); }
     ctx.soon();
   };
   /** @param {string} session @param {number | null} floor @param {AbortSignal} signal */
