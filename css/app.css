@@ -51,8 +51,7 @@
 @import url("../shell/gesture-phone.css");
 @import url("../shell/panel/sheet-grip.css");
 @import url("../modules/shells/sheet-phone.css");
-
-.since{flex:none;padding:var(--s-3) var(--hg);border-bottom:1px solid var(--line-view)}
+@import url("../modules/since/layout.css");
 
 .md-grid{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .md-it{position:relative;--nest-r:var(--r-lg);--nest-in:calc(var(--cell-in) + 1px);display:flex;flex-direction:column;border-radius:var(--nest-r);border:1px solid var(--line);background:var(--fill-1);overflow:hidden;transition:border-color var(--d-hover) var(--ease),background-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
