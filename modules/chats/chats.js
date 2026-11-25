@@ -44,7 +44,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   const { loadList, loadChat } = createChatReads(C, { world, sessions, session, schedule, ensureModels, titles: titleList, signal: scope.signal });
   /** @param {Session} s */
-  const titleFor = (s) => titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
+  const titleFor = (s) => s.title?.trim() || titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
   /** @param {string | null | undefined} cwd */
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
   /** @param {string} t */
@@ -281,6 +281,12 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   return {
     dispose: scope.dispose, leaveList: titleList.stop,
+    recent() {
+      const rows = sessions().sort(recentFirst);
+      return { count: rows.length, rows: rows.slice(0, 4).map((row) => ({
+        id: row.id, title: titleFor(row), state: waiting(row) ? "needs" : inTurn(row) || world.act.sessionBusy?.(row.id) ? "working" : "",
+      })) };
+    },
     /** @param {string} v */
     isChats: (v) => v === "chats" || v?.startsWith("c:") === true,
     /** @param {string} v */

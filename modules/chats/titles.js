@@ -53,7 +53,7 @@ export function createChatTitles(root, session, searchChanged) {
     if (signal.aborted || row?.native_id !== native || entry(row)) return;
     const title = text ? shortTitle(text) : "";
     cache.set(id, { native, title });
-    if (title) {
+    if (title && !row.title?.trim()) {
       for (const node of root?.querySelectorAll(".chl-row") ?? []) {
         if (node.getAttribute("data-go") !== "c:" + id) continue;
         const label = node.querySelector(".chl-t");
@@ -83,7 +83,7 @@ export function createChatTitles(root, session, searchChanged) {
     /** @param {Session[]} rows @param {string} query */
     observe(rows, query) {
       queue ??= createTitleQueue(root, {
-        native(id) { const row = session(id); return row && !entry(row) ? row.native_id : null; },
+        native(id) { const row = session(id); return row && !row.title?.trim() && !entry(row) ? row.native_id : null; },
         read,
         settled: searchChanged,
       });

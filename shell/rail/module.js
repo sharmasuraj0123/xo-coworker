@@ -2,6 +2,8 @@
 import { requireHtml } from "../../core/platform/dom.js";
 import { createSide } from "./side.js";
 import { createSideRows } from "./rows.js";
+import { esc } from "../../core/platform/util.js";
+import { reconcile } from "../../core/ui/redraw.js";
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const railModule = {
@@ -19,6 +21,19 @@ export const railModule = {
       projects: place.projects, convThread: place.convThread,
       ...ctx.use("threadPresentation"), askShort, projectIcon: ctx.use("projectIcons").projectIcon, folded: () => side.folded,
     });
-    ctx.provide("rail", { side, rows });
+    const chats = ctx.use("chats"), recent = requireHtml(".side-recents");
+    const list = requireHtml(".side-recents nav"), history = requireHtml("[data-chat-history]", "button");
+    ctx.listen(history, "click", () => chats.showAll(true));
+    ctx.listen(requireHtml("#nv-chats"), "click", () => chats.showAll(false));
+    ctx.provide("rail", { side, rows(needs) {
+      rows(needs);
+      const data = chats.recent();
+      recent.hidden = !data.count;
+      history.textContent = `See all · ${data.count}`;
+      reconcile(list, data.rows.map(({ id, title, state }) => ({
+        key: id, html: `<button type="button" class="nrow" data-go="c:${esc(id)}"><span class="nr-name">${esc(title)}</span>`
+          + (state ? `<i class="recent-dot ${state}" aria-label="${state === "needs" ? "Needs you" : "Working"}"></i>` : "") + "</button>",
+      })));
+    } });
   },
 };

@@ -2,6 +2,10 @@
 
 .nav{padding:var(--s-1) var(--s-3) 0}
 .side-top .brand{order:-1}
+.side-recents{padding-inline:var(--s-3);margin-bottom:var(--s-2);overflow:auto}
+.side-recents summary{cursor:pointer;padding:var(--s-2);color:var(--ink-3);font-size:var(--fs-meta)}
+.recent-dot{width:var(--s-1);height:var(--s-1);border-radius:var(--r-pill);background:var(--info)}
+.recent-dot.needs{background:var(--warn)}
 .side > .nrow{margin-inline:var(--s-3);width:auto}
 #nv-chats{background:var(--fill-2)}
 #nv-chats .nr-ic{color:var(--accent)}

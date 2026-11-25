@@ -38,6 +38,7 @@ export interface SessionFields extends Pin {
 }
 
 export interface SessionRecord extends SessionFields {
+  title?: string | null;
   id: string;
   chat_id?: string | null;
   thread_ts?: string | null;

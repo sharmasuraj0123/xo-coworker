@@ -176,6 +176,8 @@ await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
 await new Promise(setImmediate);
 const secondChat = document.querySelector('.chl-row[data-go="c:second-plain-chat"]');
+assert.equal(document.querySelector('.side-recents [data-go="c:plain-chat"]').textContent.trim(), "Draft ideas");
+assert.equal(document.querySelector('.side-recents [data-go="ws"]'), null);
 assert.ok(visibleChatTitles.has(secondChat), "the mounted Chats list observes a row that needs its title");
 assert.equal(chatTitleSignal, undefined);
 visibleChatTitles.get(secondChat)([{ target: secondChat, isIntersecting: true }]);
