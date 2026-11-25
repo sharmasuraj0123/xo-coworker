@@ -30,6 +30,8 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
       const inner = `${ic}<span class="hr-t">${esc(h.text)}</span>${h.sub ? `<span class="hr-s">${esc(h.sub)}</span>` : ""}${h.open ? `<span class="hr-go">Open ${ICON.arrow}</span>` : h.decide ? `<span class="hr-go">Look ${ICON.arrow}</span>` : ""}`;
       html = h.open ? `<button type="button" class="hr hr-ev k-${h.kind}" data-go="${esc(h.open)}" data-hn="${h.n}">${inner}</button>`
         : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
+        : h.details ? `<div class="hr hr-ev k-halt">${inner}<button type="button" class="hr-undo" data-key="failure-details" ` +
+          `data-failure-details="${esc(h.details)}" aria-haspopup="dialog">Details</button></div>`
         : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
         : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
     } else if (c) {
@@ -38,7 +40,8 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     if (!box) return;
     const prior = lines.get(box);
     const fa = document.activeElement;
-    if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(prior?.notice)?.focus({ preventScroll: true });
+    const readingFailure = h?.details && fa?.matches("[data-failure-details]");
+    if (!readingFailure && fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(prior?.notice)?.focus({ preventScroll: true });
     if (prior?.html !== html && redraw(box, html) && prior && html) box.firstElementChild?.classList.add("is-in");
     lines.set(box, { notice: h, html });
     heraldRoom();

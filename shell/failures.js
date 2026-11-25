@@ -1,12 +1,11 @@
 // @ts-check
-import { createFailureSurface } from "../core/platform/failure.js";
+import { mountFailureSurface } from "./failure-surface.js";
 
 /** @type {import("../core/kernel/types").ModuleDef} */
 export const failureModule = {
   manifest: { id: "xo.failure-notices", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["notices"] },
   activate(ctx) {
-    const notices = ctx.use("notices");
-    const surface = createFailureSurface((text) => notices.show({ kind: "halt", force: true, text }));
+    const surface = mountFailureSurface(ctx);
     ctx.listen(window, "error", (event) => {
       const error = /** @type {ErrorEvent} */ (event);
       surface.report(error.error ?? error.message, "Application error");

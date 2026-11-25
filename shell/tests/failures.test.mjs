@@ -8,10 +8,18 @@ import { failureModule } from "../failures.js";
 test("startup, activation and browser failures reach the notice line once while the shell is live", async () => {
   const { window } = await dom("");
   const kernel = createKernel({ warn() {} });
-  const messages = [];
+  const frames = [];
+  globalThis.requestAnimationFrame = fn => frames.push(fn);
+  globalThis.cancelAnimationFrame = () => {};
+  let line = null, shown = 0;
+  const notices = {
+    show(notice) { shown++; line = notice; },
+    forMsg(mid, make) { if (!line || line.mid !== mid) return false; line = make(line); return true; },
+    drop() { line = null; },
+  };
   kernel.register({
     manifest: { id: "test.notices", version: "1.0.0", kernel: "^1.1.0", provides: ["notices"] },
-    activate(ctx) { ctx.provide("notices", { show: (notice) => messages.push(notice.text) }); },
+    activate(ctx) { ctx.provide("notices", notices); },
   });
   kernel.register(failureModule);
   const broken = {
@@ -20,15 +28,23 @@ test("startup, activation and browser failures reach the notice line once while 
   };
   kernel.register(broken);
   kernel.bus.emit("app:started", await kernel.start());
-  assert.deepEqual(messages, ["test.feature: Unavailable"]);
+  frames.shift()(0);
+  assert.equal(shown, 1);
+  assert.equal(line.details, "test.feature: Unavailable");
   await kernel.enable(broken.manifest.id);
   const error = Object.assign(new window.Event("error"), { error: new Error("Render failed") });
   const rejection = Object.assign(new window.Event("unhandledrejection"), { reason: "Read failed" });
   window.dispatchEvent(error);
   window.dispatchEvent(rejection);
-  assert.deepEqual(messages.slice(1), ["test.feature: Unavailable", "Application error: Render failed", "Application error: Read failed"]);
+  frames.shift()(0);
+  assert.equal(shown, 1);
+  assert.equal(line.text, "Something went wrong in the app. (4 reports)");
+  assert.match(line.details, /test.feature: Unavailable \(×2\)/);
+  assert.match(line.details, /Application error: Render failed/);
+  assert.match(line.details, /Application error: Read failed/);
   kernel.dispose();
   window.dispatchEvent(error);
   window.dispatchEvent(rejection);
-  assert.equal(messages.length, 4);
+  assert.equal(frames.length, 0);
+  assert.equal(line, null);
 });
