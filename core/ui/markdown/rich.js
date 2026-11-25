@@ -2,7 +2,6 @@
 
 // Draws a reply's math (KaTeX) and diagrams (Mermaid) in place and gives charts their hover, only between keystrokes, every drawing cached by its source.
 
-import { createScope } from "../../kernel/scope.js";
 import { reportFailure } from "../../platform/util.js";
 import { setRich } from "./inline.js";
 import { createRichElements, RichInputError } from "./rich-elements.js";
@@ -10,8 +9,7 @@ import { createRichElements, RichInputError } from "./rich-elements.js";
 const QUIET = 600;
 const SLICE = 8;
 const MAX_TEX = 4000, MAX_DIAGRAM = 20000;
-const root = document.documentElement;
-const theme = () => `${root.dataset.theme === "light" ? "light" : "dark"}:${root.dataset.flavour || "stone"}`;
+const theme = () => `${document.documentElement.dataset.theme === "light" ? "light" : "dark"}:${document.documentElement.dataset.flavour || "stone"}`;
 
 /** @type {Map<string, string>} */
 const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
@@ -31,56 +29,10 @@ function cachedDiagram(src) {
   if (FAILED.has(src)) return { error: FAILED.get(src) };
   return DIAGRAMS.get(theme() + "\n" + src) || LATEST.get(src) || null;
 }
-setRich({ math: cachedMath, diagram: cachedDiagram });
-
-let lastInput = -Infinity;
-const scope = createScope();
-const { signal } = scope;
-const noteInput = () => { lastInput = performance.now(); };
-const quietFor = () => performance.now() - lastInput;
-async function afterPause() {
-  let remaining = QUIET - quietFor();
-  while (remaining > 0 && !signal.aborted) {
-    await scope.delay(remaining + 16);
-    remaining = QUIET - quietFor();
-  }
-}
 
 const PENDING = ".md-math:not(.is-done):not(.is-failed), .md-diagram:not(.is-done):not(.is-failed), .md-diagram.is-done:not([data-dg-theme])";
 const { attached, isDrawing, ownRichElement, drawRichElement } = createRichElements(drawMath, diagramFor);
 export { ownRichElement, drawRichElement };
-let running = false, again = false;
-function wake() {
-  if (signal.aborted) return;
-  if (running) { again = true; return; }
-  running = true;
-  pass().catch(reportFailure).finally(() => { running = false; if (again) { again = false; wake(); } });
-}
-async function pass() {
-  while (!signal.aborted) {
-    const stale = document.querySelectorAll(`.md-diagram.is-done:not(.is-failed)[data-dg-theme]:not([data-dg-theme="${theme()}"])`);
-    const candidates = /** @type {HTMLElement[]} */ ([...document.querySelectorAll(PENDING), ...stale]);
-    const todo = candidates.filter((element) => attached(element) && !isDrawing(element));
-    if (!todo.length) return;
-    await afterPause();
-    if (signal.aborted) return;
-    // what's on screen first, then the rest from the bottom up (the latest reply is what's being read)
-    const vh = innerHeight;
-    const rank = (/** @type {Element} */ el) => { const r = el.getBoundingClientRect(); return r.bottom >= 0 && r.top <= vh ? 0 : r.top > vh ? 1 : 2; };
-    todo.sort((a, b) => rank(a) - rank(b));
-    let t0 = performance.now(), did = 0;
-    for (const el of todo) {
-      if (signal.aborted) return;
-      if (!el.isConnected) continue;
-      if (quietFor() < QUIET) break; // a key: stop, and wait for the next pause
-      await drawRichElement(el, signal);
-      did++;
-      if (performance.now() - t0 > SLICE) { await scope.delay(0); t0 = performance.now(); }
-    }
-    if (!did) await scope.delay(QUIET);
-  }
-}
-
 /** @typedef {{renderToString(tex: string, options: Record<string, string | number | boolean>): string}} Katex */
 
 /** @type {Promise<Katex> | null} */
@@ -123,7 +75,6 @@ let mermaidP = null;
 let mermaidTheme = null;
 let seq = 0;
 /** A colour token as #rrggbb, whatever the stylesheet wrote it in (oklch, color-mix): Mermaid reads only plain colours. */
-const probe = /** @type {CanvasRenderingContext2D} */ (document.createElement("canvas").getContext("2d", { willReadFrequently: true }));
 /** @param {string} css @param {string} fallback */
 function hexOf(css, fallback) {
   const el = document.createElement("i");
@@ -131,6 +82,7 @@ function hexOf(css, fallback) {
   document.body.append(el);
   const c = getComputedStyle(el).color;
   el.remove();
+  const probe = /** @type {CanvasRenderingContext2D} */ (document.createElement("canvas").getContext("2d", { willReadFrequently: true }));
   probe.clearRect(0, 0, 1, 1);
   probe.fillStyle = fallback; probe.fillStyle = c; probe.fillRect(0, 0, 1, 1);
   const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
@@ -249,15 +201,55 @@ function chartLeave(e) {
   }
 }
 
-let started = false;
-/** Start watching the page for formulas and diagrams to draw (once). */
-export function startRich() {
-  if (started || signal.aborted) return;
-  started = true;
+/** @param {import("../../kernel/types").Lifetime & Pick<import("../../kernel/types").ModuleContext, "delay">} scope */
+export function startRich(scope) {
+  scope.effect(() => { setRich({ math: cachedMath, diagram: cachedDiagram }); return () => setRich(null); });
+  let lastInput = -Infinity;
+  const { signal } = scope;
+  const noteInput = () => { lastInput = performance.now(); };
+  const quietFor = () => performance.now() - lastInput;
+  async function afterPause() {
+    let remaining = QUIET - quietFor();
+    while (remaining > 0 && !signal.aborted) {
+      await scope.delay(remaining + 16);
+      remaining = QUIET - quietFor();
+    }
+  }
+
+  let running = false, again = false;
+  function wake() {
+    if (signal.aborted) return;
+    if (running) { again = true; return; }
+    running = true;
+    pass().catch(reportFailure).finally(() => { running = false; if (again) { again = false; wake(); } });
+  }
+  async function pass() {
+    while (!signal.aborted) {
+      const stale = document.querySelectorAll(`.md-diagram.is-done:not(.is-failed)[data-dg-theme]:not([data-dg-theme="${theme()}"])`);
+      const candidates = /** @type {HTMLElement[]} */ ([...document.querySelectorAll(PENDING), ...stale]);
+      const todo = candidates.filter((element) => attached(element) && !isDrawing(element));
+      if (!todo.length) return;
+      await afterPause();
+      if (signal.aborted) return;
+      // what's on screen first, then the rest from the bottom up (the latest reply is what's being read)
+      const vh = innerHeight;
+      const rank = (/** @type {Element} */ el) => { const r = el.getBoundingClientRect(); return r.bottom >= 0 && r.top <= vh ? 0 : r.top > vh ? 1 : 2; };
+      todo.sort((a, b) => rank(a) - rank(b));
+      let t0 = performance.now(), did = 0;
+      for (const el of todo) {
+        if (signal.aborted) return;
+        if (!el.isConnected) continue;
+        if (quietFor() < QUIET) break; // a key: stop, and wait for the next pause
+        await drawRichElement(el, signal);
+        did++;
+        if (performance.now() - t0 > SLICE) { await scope.delay(0); t0 = performance.now(); }
+      }
+      if (!did) await scope.delay(QUIET);
+    }
+  }
   for (const type of ["keydown", "pointerdown", "wheel", "touchstart", "compositionupdate"]) {
     scope.listen(window, type, noteInput, { capture: true, passive: true });
   }
-  scope.listen(window, "pagehide", (event) => { if (!("persisted" in event && event.persisted)) scope.dispose(); });
   let scheduled = false;
   const content = new MutationObserver(() => {
     if (scheduled || signal.aborted) return;
@@ -268,7 +260,7 @@ export function startRich() {
   content.observe(document.body, { childList: true, subtree: true });
   const styles = new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); });
   scope.observe(styles);
-  styles.observe(root, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
+  styles.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
   scope.listen(document, "pointermove", (event) => chartHover(/** @type {PointerEvent} */ (event)), { passive: true });
   scope.listen(document, "pointerout", (event) => chartLeave(/** @type {PointerEvent} */ (event)), { passive: true });
   if (document.querySelector(PENDING)) wake();

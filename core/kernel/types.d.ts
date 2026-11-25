@@ -134,6 +134,7 @@ export interface ModuleContext {
   on: Bus["on"];
   emit: Bus["emit"];
   listen(target: EventTarget, type: string, fn: EventListenerOrEventListenerObject, opts?: boolean | AddEventListenerOptions): Undo;
+  delay(ms: number): Promise<void>;
   timeout(fn: () => void, ms: number): Undo;
   interval(fn: () => void, ms: number): Undo;
   frame(fn: (t: number) => void): Undo;

@@ -90,16 +90,6 @@ function webFailed(box, it) {
   else if (fresh) album.after(/** @type {Element} */ (line));
 }
 
-const page = createScope();
-if (typeof document !== "undefined") {
-  page.listen(document, "error", (e) => {
-    const img = /** @type {MediaImage | null} */ (e.target);
-    if (!img || !img.matches || !img.matches("img[data-mx-web]")) return;
-    const it = mediaItemOf(img.dataset.mxImg, img);
-    if (it) failed(img, /** @type {HTMLElement | null} */ (img.closest(".mx-one,.mx-tile")), it);
-  }, true);
-}
-
 export const PICTURE_FACE = ".mx-one, .mx-tile, button.att-ic.is-img";
 /** @type {ReturnType<typeof createLru<string, string>>} */
 const tones = createLru({ max: MEDIA_CACHE_MAX });
@@ -123,7 +113,14 @@ export function pictureTone(img) {
   tones.set(k, t);
   return t;
 }
-if (typeof document !== "undefined") {
+/** @param {Pick<import("../../kernel/types").ModuleContext, "listen">} page */
+export function watchMedia(page) {
+  page.listen(document, "error", (e) => {
+    const img = /** @type {MediaImage | null} */ (e.target);
+    if (!img || !img.matches || !img.matches("img[data-mx-web]")) return;
+    const it = mediaItemOf(img.dataset.mxImg, img);
+    if (it) failed(img, /** @type {HTMLElement | null} */ (img.closest(".mx-one,.mx-tile")), it);
+  }, true);
   page.listen(document, "pointerover", (e) => {
     const target = /** @type {HTMLElement | null} */ (e.target);
     const face = target && target.closest && /** @type {HTMLElement | null} */ (target.closest(PICTURE_FACE));

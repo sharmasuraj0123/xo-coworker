@@ -11,7 +11,7 @@ globalThis.fetch = (input, init) => {
   return fixtureFetch(input, init);
 };
 await import("../boot.js");
-const { kernel } = await import("../shell/kernel.js");
+const { default: kernel } = await import("../js/app.js");
 try {
   initialChats.resolve(Response.json({ chats: [{ id: "project-chat", kind: "project", project: "demo" }] }));
   async function settle() { await new Promise((resolve) => setImmediate(resolve)); flushFrames(); }

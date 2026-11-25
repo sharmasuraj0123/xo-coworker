@@ -10,7 +10,7 @@ function staticBoot(tree) {
   if (!boot) return undefined;
   if (imports.some((statement) => !statement.specifiers.length)) return false;
   const body = tree.body.filter((statement) => statement.type !== "ImportDeclaration");
-  const invocation = body[0]?.expression;
+  const invocation = body[0]?.type === "ExportDefaultDeclaration" ? body[0].declaration : body[0]?.expression;
   if (body.length !== 1 || invocation?.type !== "AwaitExpression") return false;
   const call = invocation.argument;
   if (call.type !== "CallExpression" || call.callee.name !== boot.local.name || call.arguments.length !== 1) return false;
@@ -43,4 +43,39 @@ export function wiringGrowth(previous, current) {
     errors.push(`js/app.js: forward references increased from ${before.references} to ${after.references}`);
   }
   return errors;
+}
+
+const firstPaint = new Set(["shell/frame.js", "modules/home/skeleton.js"]);
+const setup = new Set(["createKernel", "createShellKernel", "definePlaces", "addEventListener", "listen", "observe", "setRich", "register"]);
+
+/** @param {string} file @param {object} tree @param {Function} report */
+export function importEffects(file, tree, report) {
+  if (!/^(core|modules|shell)\//.test(file) || firstPaint.has(file)) return;
+  const names = new Map();
+  for (const node of tree.body) {
+    if (node.type === "ImportDeclaration") {
+      for (const spec of node.specifiers) names.set(spec.local.name, spec.imported?.name ?? spec.local.name);
+    } else if (node.type === "VariableDeclaration" || node.type === "ExportNamedDeclaration") {
+      for (const decl of (node.declaration ?? node).declarations ?? []) {
+        if (file === "core/platform/http.js" && decl.id.name === "coderToken") continue;
+        inspect(decl.init);
+      }
+    } else if (!["FunctionDeclaration", "ClassDeclaration", "ExportAllDeclaration"].includes(node.type)) {
+      report("importEffect", node.loc.start.line);
+    }
+  }
+  function inspect(node) {
+    if (!node || typeof node !== "object" || /^(ArrowFunction|Function|Class)/.test(node.type)) return;
+    if (node.type === "CallExpression") {
+      const name = node.callee.name ?? node.callee.property?.name;
+      if (setup.has(names.get(name) ?? name) || node.callee.type === "ArrowFunctionExpression" || node.callee.type === "FunctionExpression") {
+        report("importEffect", node.loc.start.line);
+      }
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (key === "loc") continue;
+      if (Array.isArray(value)) value.forEach(inspect);
+      else inspect(value);
+    }
+  }
 }

@@ -134,7 +134,7 @@ t("![alt](relative.png) is a picture in the conversation's folder", () => {
 });
 
 const { document, window } = await dom(`${chartHtml(JSON.stringify(SPEC))}<button>Outside the chart</button>`);
-globalThis.MutationObserver = class { observe() {} };
+globalThis.MutationObserver = class { observe() {} disconnect() {} };
 globalThis.getComputedStyle = window.getComputedStyle;
 Object.getPrototypeOf(document.createElement("canvas")).getContext = () => ({
   clearRect() {}, fillRect() {}, getImageData() { return { data: [0, 0, 0, 255] }; },
@@ -156,7 +156,9 @@ const hooks = registerHooks({
   },
 });
 const { drawRichElement, startRich } = await import("../core/ui/markdown/rich.js");
-startRich();
+const { createScope } = await import("../core/kernel/scope.js");
+const richScope = createScope();
+startRich(richScope);
 const loadedAtStartup = [...mermaidLoads];
 const diagramSource = "```mermaid\nflowchart LR\n  A --> B\n```";
 const renderedDiagram = document.createElement("div");
@@ -224,3 +226,5 @@ passed++;
 console.log("  ok  KaTeX is requested on first use and draws once both assets load");
 
 console.log(`\n${passed} passed`);
+
+richScope.dispose();

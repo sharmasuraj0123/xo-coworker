@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { runGit } from "../../git-environment.mjs";
-import { wiringGrowth } from "../app-wiring.mjs";
+import { javascript } from "../syntax.mjs";
+import { importEffects, wiringGrowth } from "../app-wiring.mjs";
 import { checkConformance, FAMILIES } from "../ratchet.mjs";
 
 test("root wiring counts assigned bags, member calls, nested literals and spreads", () => {
@@ -60,4 +61,16 @@ test("package conformance rejects a committed increase against its original base
   commit();
   assert.equal(checkConformance(root, baselines, { base, update: true }),
     "js/app.js: dependency keys increased from 0 to 1\njs/app.js: forward references increased from 0 to 1");
+});
+
+test("importing features leaves boot and subscriptions to activation", () => {
+  const effects = (source, file = "modules/demo/module.js") => {
+    const lines = [];
+    importEffects(file, javascript(source, file).tree, (_, line) => lines.push(line));
+    return lines;
+  };
+  assert.deepEqual(effects('import { createKernel as kernel } from "./kernel.js";\nconst app = kernel();'), [2]);
+  assert.deepEqual(effects('if (document) document.addEventListener("click", handler);'), [1]);
+  assert.deepEqual(effects('export const module = { activate(ctx) { ctx.listen(document, "click", handler); } };'), []);
+  assert.deepEqual(effects('home.append(skeleton);', "shell/frame.js"), []);
 });

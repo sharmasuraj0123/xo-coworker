@@ -18,7 +18,7 @@ initialChats.resolve(Response.json({ chats: [
   { id: "project-chat", kind: "project", project: "demo" },
   { id: "catalog-chat", kind: "project", project: "catalog-test" },
 ] }));
-const { kernel } = await import("../../shell/kernel.js");
+const { default: kernel } = await import("../../js/app.js");
 const { renderMarkdown } = await import("../../core/ui/markdown/markdown.js");
 const pictureMarkup = "![Diagram](https://example.org/diagram.png)";
 assert.match(renderMarkdown(pictureMarkup), /data-mx=/, "boot mounts media rendering for Markdown pictures");

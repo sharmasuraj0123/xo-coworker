@@ -1,16 +1,17 @@
 // @ts-check
+import { trackPress } from "../core/ui/press.js";
 import { defineXoSelect } from "../core/ui/components/xo-select.js";
 import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
 import { startShell } from "./start.js";
 import { PHONE } from "../core/platform/viewport.js";
-import { kernel } from "./kernel.js";
+import { createShellKernel } from "./kernel.js";
 import { createScope } from "../core/kernel/scope.js";
 
 /** @import { ModuleDef } from "../core/kernel/types" */
 
 /** @param {ModuleDef[]} modules */
 export async function bootShell(modules) {
-  const scope = createScope();
+  const kernel = createShellKernel(), scope = createScope();
   defineXoSelect();
   drawPlaceIcons();
   drawFrameIcons();
@@ -22,6 +23,7 @@ export async function bootShell(modules) {
   });
   const report = await kernel.start();
   kernel.bus.emit("app:started", report);
+  return kernel;
 }
 
 /** @type {import("../core/kernel/types").ModuleDef} */
@@ -29,6 +31,7 @@ export const startupModule = {
   manifest: { id: "xo.startup", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["theme", "rail", "drawer", "world", "mainViewport", "composer"] },
   activate(ctx) {
+    trackPress(document, ctx);
     const phone = PHONE;
     if (!phone) throw new Error("The application requires media queries.");
     const setDrawer = ctx.use("drawer").set;

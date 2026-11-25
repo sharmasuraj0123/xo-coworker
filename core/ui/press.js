@@ -1,14 +1,11 @@
 // @ts-check
 
-import { createScope } from "../kernel/scope.js";
-
 const CLICK_GRACE_MS = 600;
 /** @type {WeakMap<Document, () => Element | null>} */
 const trackers = new WeakMap();
 
-/** @param {Document} doc */
-function track(doc) {
-  const scope = createScope();
+/** @param {Document} doc @param {import("../kernel/types").Lifetime} scope */
+export function trackPress(doc, scope) {
   let pressed = /** @type {Element | null} */ (null);
   let cancel = () => {};
   const clear = () => { cancel(); pressed = null; };
@@ -22,12 +19,10 @@ function track(doc) {
   scope.listen(doc, "click", clear, true);
   const read = () => pressed?.isConnected ? pressed : null;
   trackers.set(doc, read);
-  return read;
+  scope.effect(() => () => { if (trackers.get(doc) === read) trackers.delete(doc); });
 }
-
-if (typeof document !== "undefined") track(document);
 
 /** @param {Document | undefined} doc */
 export function pressedNode(doc = globalThis.document) {
-  return doc ? (trackers.get(doc) || track(doc))() : null;
+  return doc ? trackers.get(doc)?.() ?? null : null;
 }

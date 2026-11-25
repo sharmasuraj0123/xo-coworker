@@ -13,7 +13,7 @@ export const WEBPICS = "xo:conversation/webpics";
 
 /** @typedef {(path: string | null | undefined, view?: string) => FileRoute | null | undefined} ResolveFile */
 
-/** @param {Pick<import("../../core/kernel/types").ModuleContext, "effect">} scope @param {Shape} shape @param {ResolveFile} route */
+/** @param {Parameters<typeof startRich>[0]} scope @param {Shape} shape @param {ResolveFile} route */
 export function mountConversationMarkdown(scope, shape, route) {
   /** @param {{ alt: string, url?: string, file?: string }[]} list @param {string} [view] */
   function pictures(list, view) {
@@ -27,7 +27,7 @@ export function mountConversationMarkdown(scope, shape, route) {
     return (own.length ? mediaHtml(own, { side: "them" }) : "") + webImagesHtml(web);
   }
   scope.effect(() => { setWebImages(pictures); return () => setWebImages(null); });
-  startRich();
+  startRich(scope);
   /** @param {string} word */
   return (word) => {
     const chosen = shape.word(word);

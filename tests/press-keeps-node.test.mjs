@@ -20,7 +20,13 @@ const t = async (name, fn) => {
   const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
   const { landed } = await import("../core/ui/landing.js");
   const { markSkeleton } = await import("../core/ui/skeleton-mark.js");
+  const { createScope } = await import("../core/kernel/scope.js");
+  const { trackPress } = await import("../core/ui/press.js");
   const host = document.getElementById("host");
+  ev(host, "pointerdown");
+  assert.ok(pressedNode() === null);
+  const scope = createScope();
+  trackPress(document, scope);
 
   await t("redraw keeps matching controls and focuses the replacement when a control changes tag", () => {
     assert.equal(redraw(host, '<button data-fid="back">Back</button>'), true);
@@ -261,5 +267,9 @@ const t = async (name, fn) => {
       assert.equal(input.value, "draft.md");
     });
   }
+  scope.dispose();
+  ev(host, "pointerdown");
+  assert.ok(pressedNode() === null, "a retired tracker leaves the document alone");
+
 }
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

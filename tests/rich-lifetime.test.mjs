@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { dom } from "./lib/dom.mjs";
 
-test("the rich Markdown scheduler preserves cached pages and retires held draws on permanent pagehide", async (t) => {
+test("the rich Markdown scheduler releases its observers and fences held draws when its owner retires", async (t) => {
   const BrowserEvent = globalThis.Event;
   const { document } = await dom('<span class="md-math" data-tex="x"></span>');
   const formula = document.querySelector(".md-math");
@@ -29,18 +29,18 @@ test("the rich Markdown scheduler preserves cached pages and retires held draws 
   assert.deepEqual(observers, [], "import does not create observers");
   assert.equal(queries.mock.callCount(), 0, "import does not scan the page for rich content");
   assert.equal(document.head.childElementCount, 0, "import does not request drawing assets");
-  const pagehide = (persisted) => browser.dispatchEvent(Object.assign(new BrowserEvent("pagehide"), { persisted }));
-  t.after(() => pagehide(false));
+  const { createScope } = await import("../core/kernel/scope.js");
+  const scope = createScope();
+  t.after(scope.dispose);
 
-  startRich();
+  startRich(scope);
   await Promise.resolve();
   assert.equal(document.head.childElementCount, 2, "the scheduler began a real lazy math draw");
-  pagehide(true);
   assert.deepEqual(observers.map(({ disconnected }) => disconnected), [false, false]);
 
   observers[0].callback();
   browser.dispatchEvent(new BrowserEvent("keydown"));
-  pagehide(false);
+  scope.dispose();
   assert.deepEqual(observers.map(({ disconnected }) => disconnected), [true, true]);
   assert.ok(unlisten.mock.calls.some(({ arguments: [type] }) => type === "keydown"));
   assert.deepEqual(unchart.mock.calls.map(({ arguments: [type] }) => type).sort(), ["pointermove", "pointerout"]);

@@ -67,7 +67,7 @@ export function createKernel(opts = {}) {
       effect: U.effect,
       on: (topic, ...args) => U.effect(() => bus.on(topic, ...args)),
       emit: bus.emit,
-      listen: U.listen, timeout: U.timeout, interval: U.interval, frame: U.frame, observe: U.observe, signal: U.signal,
+      listen: U.listen, delay: U.delay, timeout: U.timeout, interval: U.interval, frame: U.frame, observe: U.observe, signal: U.signal,
       onFlush: (key, fn) => U.effect(() => scheduler.onFlush(key, fn)),
       invalidate: (key) => scheduler.invalidate(key),
       layers: {

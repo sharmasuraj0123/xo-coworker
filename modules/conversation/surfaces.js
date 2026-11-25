@@ -1,7 +1,7 @@
 // @ts-check
 import { requireHtml } from "../../core/platform/dom.js";
 import { viewerFile } from "../../core/services/media/items.js";
-import { wireDragOut } from "../../core/services/media/hydrate.js";
+import { watchMedia, wireDragOut } from "../../core/services/media/hydrate.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { createTopHeader } from "../../shell/top-header.js";
 import { createConversationHeader } from "./header.js";
@@ -63,6 +63,7 @@ export const conversationMediaModule = {
     const lightbox = createLightbox({ openFile: (item, from) => viewer.open(viewerFile(item), from), announce: ctx.use("announce") });
     ctx.effect(() => lightbox.dispose);
     const open = createMediaOpener({ msgsEl, LB: lightbox, VW: viewer });
+    watchMedia(ctx);
     wireDragOut(ctx, msgsEl);
     ctx.contribute("conversation.press", pressEntry("media", (target, event) => {
       const tile = target.closest("[data-mx]");

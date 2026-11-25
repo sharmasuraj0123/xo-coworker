@@ -6,7 +6,10 @@ import { createKernel } from "../core/kernel/index.js";
 import { createFailureReporting } from "./failures.js";
 import { definePlaces } from "./places.js";
 
-const reporting = createFailureReporting();
-export const failureModule = reporting.module;
-export const kernel = createKernel({ warn: reporting.warn });
-definePlaces(kernel);
+export function createShellKernel() {
+  const reporting = createFailureReporting();
+  const kernel = createKernel({ warn: reporting.warn });
+  definePlaces(kernel);
+  kernel.register(reporting.module);
+  return kernel;
+}

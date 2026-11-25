@@ -27,7 +27,6 @@ import { mapAgentsModule, mapModule } from "../modules/map/module.js";
 import { stageModule } from "../shell/panel/workspace-stage.js";
 import { railCountsModule } from "../shell/rail/counts.js";
 import { railModule } from "../shell/rail/module.js";
-import { failureModule } from "../shell/kernel.js";
 import { interactionModule } from "../shell/interactions.js";
 import { edgeCardsModule } from "../shell/edge-cards.js";
 import { workspaceRendererModule } from "../shell/render.js";
@@ -50,7 +49,7 @@ import { homeModule, homeSkeletonModule } from "../modules/home/module.js";
 import { threadRuntimeModule, runtimeSettingsModule } from "../modules/runtimes/module.js";
 import { themeModule } from "../shell/theme.js";
 
-await bootShell([
+export default await bootShell([
   conversationHeaderModule,
   interactionModule,
   railModule,
@@ -67,7 +66,6 @@ await bootShell([
   projectDescriptionsModule,
   appServicesModule,
   shellFoundationModule,
-  failureModule,
   shapeModule,
   conversationSessionModule,
   edgeCardsModule,

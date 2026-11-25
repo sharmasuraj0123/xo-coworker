@@ -70,7 +70,9 @@ document.createElement = (name, options) => name === "canvas" ? {
 for (const img of document.querySelectorAll("img")) {
   Object.defineProperties(img, { complete: { value: true }, naturalWidth: { value: 8 } });
 }
-const { PICTURE_FACE } = await import("../core/services/media/hydrate.js");
+const { PICTURE_FACE, watchMedia } = await import("../core/services/media/hydrate.js");
+const mediaScope = (await import("../core/kernel/scope.js")).createScope();
+watchMedia(mediaScope);
 
 test("each picture-faced button has hover and press overlays", () => {
   const controls = new Set(list.comma(PICTURE_FACE).map((selector) => selector.replace(/^button/, "")));

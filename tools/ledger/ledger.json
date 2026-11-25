@@ -2747,7 +2747,7 @@
     },
     "modules/conversation/markdown.js": {
      "anchor": "export function mountConversationMarkdown",
-     "reason": "Conversation owns Shape-aware Markdown image and noun rendering."
+     "reason": "Conversation owns Shape-aware pictures and nouns and mounts rich Markdown hooks for its activation."
     },
     "shell/foundation.js": {
      "anchor": "export const shellFoundationModule",
@@ -2755,7 +2755,7 @@
     },
     "shell/boot.js": {
      "anchor": "export async function bootShell",
-     "reason": "The shell activates registered modules and retires them at permanent pagehide."
+     "reason": "Boot constructs a fresh kernel, registers its failure presenter and activates the feature modules; permanent pagehide retires them."
     },
     "shell/edge-cards.js": {
      "anchor": "export const edgeCardsModule",
