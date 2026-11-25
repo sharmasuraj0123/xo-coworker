@@ -7,8 +7,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 488 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 126 |
-| kept | 74 |
+| planned | 111 |
+| kept | 89 |
 | split | 39 |
 | split-region | 3 |
 
@@ -162,8 +162,8 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/cardparts.test.mjs` | 154 | kept | tests/cardparts.test.mjs |
 | `tests/changes.test.mjs` | 215 | moved | modules/changes/tests/changes.test.mjs |
 | `tests/chats-list.test.mjs` | 152 | kept | tests/chats-list.test.mjs |
-| `tests/checklist-empty.test.mjs` | 27 | planned | modules/threads/tests/checklist-empty.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/codemirror-vendor.test.mjs` | 97 | planned | modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/checklist-empty.test.mjs` | 27 | kept | tests/checklist-empty.test.mjs · next: Mounted checklist verifies the Runs-only path, first real step and disclosure. |
+| `tests/codemirror-vendor.test.mjs` | 97 | kept | tests/codemirror-vendor.test.mjs · next: Current vendor paths, content hashes, deferred configuration and shared editor and merge state are tested. |
 | `tests/composer-popover-height.test.mjs` | 26 | kept | tests/composer-popover-height.test.mjs |
 | `tests/composer-row-size.test.mjs` | 34 | kept | tests/composer-row-size.test.mjs |
 | `tests/concentric.test.mjs` | 53 | kept | tests/concentric.test.mjs |
@@ -175,23 +175,23 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/copied-speaker.test.mjs` | 21 | kept | tests/copied-speaker.test.mjs |
 | `tests/copy-path-fail.test.mjs` | 57 | moved | modules/files/tests/copy-path-fail.test.mjs |
-| `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/cover-inert.test.mjs` | 28 | kept | tests/cover-inert.test.mjs · next: Mounted Stage verifies cover and overlap, focus reachability, redraw and disposal with independent inert ownership. |
 | `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks |
 | `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
 | `tests/css-wellformed.test.mjs` | 80 | planned | core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-heights.test.mjs` | 25 | planned | core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ctl-scale.test.mjs` | 180 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/ctl-scale.test.mjs` | 180 | kept | tests/ctl-scale.test.mjs · next: Published control census and mounted link behavior verify size and phone row steps. |
 | `tests/design-budget.test.mjs` | 160 | planned | core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/details-toggle.test.mjs` | 22 | kept | tests/details-toggle.test.mjs |
-| `tests/diff-redraw-focus.test.mjs` | 43 | planned | modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/diffview.test.mjs` | 82 | planned | modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/diff-redraw-focus.test.mjs` | 43 | kept | tests/diff-redraw-focus.test.mjs · next: Mounted Files viewer verifies retry focus, busy state, duplicate suppression and failure retirement. |
+| `tests/diffview.test.mjs` | 82 | kept | tests/diffview.test.mjs · next: Current renderer and worker loading, pinned language inventory and generated syntax themes are tested. |
 | `tests/disclosure-corners.test.mjs` | 20 | kept | tests/disclosure-corners.test.mjs |
 | `tests/dock-focus.test.mjs` | 62 | planned | modules/decisions/tests/dock-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/dock-reset.test.mjs` | 34 | kept | tests/dock-reset.test.mjs |
 | `tests/docs.test.mjs` | 348 | planned | modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/done-line.test.mjs` | 27 | kept | tests/done-line.test.mjs |
 | `tests/dots-motion.test.mjs` | 21 | kept | tests/dots-motion.test.mjs |
-| `tests/drafts.test.mjs` | 77 | planned | core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/drafts.test.mjs` | 77 | kept | tests/drafts.test.mjs · next: Retains file draft isolation, write count, eviction, refusal and storage fallback through the Files owner. |
 | `tests/dropdown-held.test.mjs` | 27 | planned | core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/edge-card.test.mjs` | 48 | kept | tests/edge-card.test.mjs |
 | `tests/edge-ring.test.mjs` | 18 | planned | core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -201,7 +201,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/event-lines.test.mjs` | 25 | kept | tests/event-lines.test.mjs |
 | `tests/field-ring.test.mjs` | 41 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/file-cache.test.mjs` | 25 | moved | modules/files/tests/file-cache.test.mjs |
-| `tests/files-stop-look.test.mjs` | 23 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/files-stop-look.test.mjs` | 23 | kept | tests/files-stop-look.test.mjs · next: Published Stop and Send dimensions, fill, focus ring and glyph are checked together. send-calm.test.mjs covers the booted Stop glyph. |
 | `tests/files-tree-scroll-fold.test.mjs` | 54 | planned | modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files.test.mjs` | 66 | planned | modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/find-bar.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-bar stylesheet (FIND_CSS); tests/diffview.test.mjs checks the adapter offers no editor |
@@ -278,9 +278,9 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/path-copy-inline.test.mjs` | 24 | moved | modules/files/tests/path-copy-inline.test.mjs |
 | `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-cascade.test.mjs` | 27 | kept | tests/phone-cascade.test.mjs · next: Cross-surface cascade guard verifies phone precedence and dimensions, including compound compact winners. |
-| `tests/phone-floor.test.mjs` | 140 | planned | core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/phone-floor.test.mjs` | 140 | kept | tests/phone-floor.test.mjs · next: Published phone floors retain the icon widths, label, link and field guards. |
 | `tests/phone-hit-area.test.mjs` | 34 | planned | core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-panel-go.test.mjs` | 40 | planned | shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/phone-panel-go.test.mjs` | 40 | kept | tests/phone-panel-go.test.mjs · next: Retains real Map, Stage and Launchpad navigation adapters plus close order, Back parent and pane routing. |
 | `tests/picker-keys.test.mjs` | 34 | planned | modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/pierre-find-focus.test.mjs` | 36 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/press-inks.test.mjs` | 55 | planned | core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -290,8 +290,8 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/quickopen.test.mjs` | 103 | kept | tests/quickopen.test.mjs |
 | `tests/rail-badge.test.mjs` | 17 | kept | tests/rail-badge.test.mjs |
 | `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
-| `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/reconcile-focus.test.mjs` | 32 | planned | core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rec-undo-focus.test.mjs` | 26 | kept | tests/rec-undo-focus.test.mjs · next: Exercises record Undo and expiry with focus restored before redraw. |
+| `tests/reconcile-focus.test.mjs` | 32 | kept | tests/reconcile-focus.test.mjs · next: Mounted reconciliation keeps or restores focus, including distinct fallback behavior in both conversations. |
 | `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reduced-motion.test.mjs` | 25 | planned | core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/refusal-mark.test.mjs` | 26 | planned | modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -300,7 +300,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/render-focus.test.mjs` | 22 | moved | modules/files/tests/render-focus.test.mjs |
 | `tests/retry-waiting.test.mjs` | 34 | planned | modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reveal-focus.test.mjs` | 20 | moved | modules/changes/tests/reveal-focus.test.mjs |
-| `tests/rich-markdown.test.mjs` | 133 | planned | modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rich-markdown.test.mjs` | 133 | kept | tests/rich-markdown.test.mjs · next: Retains math, chart, diagram and escaping behavior and exercises deferred renderer outcomes. |
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring.test.mjs` | 124 | kept | tests/ring.test.mjs |
 | `tests/routing-truth.test.mjs` | 45 | moved | modules/routing/tests/routing-truth.test.mjs |
@@ -323,7 +323,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/shape-unkept.test.mjs` | 29 | moved | modules/settings/tests/shape-unkept.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/shape.test.mjs` | 957 | planned | core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shell-grip.test.mjs` | 35 | planned | core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/shell-grip.test.mjs` | 35 | kept | tests/shell-grip.test.mjs · next: Published shell CSS retains grip geometry, inset ring, composer clearance and phone visibility. |
 | `tests/shells.test.mjs` | 125 | planned | shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/side-bar.test.mjs` | 80 | planned | shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/side-calm-order.test.mjs` | 100 | kept | tests/side-calm-order.test.mjs |
@@ -333,7 +333,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/space-scale.test.mjs` | 38 | kept | tests/space-scale.test.mjs |
 | `tests/speaker-names.test.mjs` | 72 | kept | tests/speaker-names.test.mjs |
 | `tests/stage-head-back.test.mjs` | 51 | kept | tests/stage-head-back.test.mjs |
-| `tests/stage-inplace.test.mjs` | 23 | planned | shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stage-inplace.test.mjs` | 23 | kept | tests/stage-inplace.test.mjs · next: Mounted Agents and Changes retain the existing controls and active focus as rows and counts update. |
 | `tests/stage-list-edge.test.mjs` | 22 | kept | tests/stage-list-edge.test.mjs |
 | `tests/stage-pages.test.mjs` | 137 | planned | shell (panel host)/tests/stage-pages.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/stale-pass.test.mjs` | 47 | planned | core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

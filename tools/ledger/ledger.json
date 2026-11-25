@@ -4859,12 +4859,14 @@
    "home": "tests/chats-list.test.mjs"
   },
   "tests/checklist-empty.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/checklist-empty.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/checklist-empty.test.mjs",
+   "note": "Mounted checklist verifies the Runs-only path, first real step and disclosure."
   },
   "tests/codemirror-vendor.test.mjs": {
-   "status": "planned",
-   "home": "modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/codemirror-vendor.test.mjs",
+   "note": "Current vendor paths, content hashes, deferred configuration and shared editor and merge state are tested."
   },
   "tests/composer-popover-height.test.mjs": {
    "status": "kept",
@@ -4912,8 +4914,9 @@
    "evidence": { "modules/files/tests/copy-path-fail.test.mjs": { "anchor": "assert.deepEqual(attempted, [path, draft])", "reason": "Checks path and live document copying and the corresponding refusal UI." } }
   },
   "tests/cover-inert.test.mjs": {
-   "status": "planned",
-   "home": "shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/cover-inert.test.mjs",
+   "note": "Mounted Stage verifies cover and overlap, focus reachability, redraw and disposal with independent inert ownership."
   },
   "tests/create-busy-honest.test.mjs": {
    "status": "moved",
@@ -4933,8 +4936,9 @@
    "home": "core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/ctl-scale.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ctl-scale.test.mjs",
+   "note": "Published control census and mounted link behavior verify size and phone row steps."
   },
   "tests/design-budget.test.mjs": {
    "status": "planned",
@@ -4945,12 +4949,14 @@
    "home": "tests/details-toggle.test.mjs"
   },
   "tests/diff-redraw-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/diff-redraw-focus.test.mjs",
+   "note": "Mounted Files viewer verifies retry focus, busy state, duplicate suppression and failure retirement."
   },
   "tests/diffview.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/diffview.test.mjs",
+   "note": "Current renderer and worker loading, pinned language inventory and generated syntax themes are tested."
   },
   "tests/disclosure-corners.test.mjs": {
    "status": "kept",
@@ -4977,8 +4983,9 @@
    "home": "tests/dots-motion.test.mjs"
   },
   "tests/drafts.test.mjs": {
-   "status": "planned",
-   "home": "core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/drafts.test.mjs",
+   "note": "Retains file draft isolation, write count, eviction, refusal and storage fallback through the Files owner."
   },
   "tests/dropdown-held.test.mjs": {
    "status": "planned",
@@ -5018,8 +5025,9 @@
    "evidence": { "modules/files/tests/file-cache.test.mjs": { "anchor": "refresh keeps the editor for the same document", "reason": "Checks the open editor identity and the version sent on successive saves." } }
   },
   "tests/files-stop-look.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/files-stop-look.test.mjs",
+   "note": "Published Stop and Send dimensions, fill, focus ring and glyph are checked together. send-calm.test.mjs covers the booted Stop glyph."
   },
   "tests/files-tree-scroll-fold.test.mjs": {
    "status": "planned",
@@ -5381,16 +5389,18 @@
    "note": "Cross-surface cascade guard verifies phone precedence and dimensions, including compound compact winners."
   },
   "tests/phone-floor.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-floor.test.mjs",
+   "note": "Published phone floors retain the icon widths, label, link and field guards."
   },
   "tests/phone-hit-area.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/phone-panel-go.test.mjs": {
-   "status": "planned",
-   "home": "shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-panel-go.test.mjs",
+   "note": "Retains real Map, Stage and Launchpad navigation adapters plus close order, Back parent and pane routing."
   },
   "tests/picker-keys.test.mjs": {
    "status": "planned",
@@ -5430,12 +5440,14 @@
    "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/rec-undo-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/rec-undo-focus.test.mjs",
+   "note": "Exercises record Undo and expiry with focus restored before redraw."
   },
   "tests/reconcile-focus.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/reconcile-focus.test.mjs",
+   "note": "Mounted reconciliation keeps or restores focus, including distinct fallback behavior in both conversations."
   },
   "tests/record.test.mjs": {
    "status": "planned",
@@ -5497,8 +5509,9 @@
    }
   },
   "tests/rich-markdown.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/rich-markdown.test.mjs",
+   "note": "Retains math, chart, diagram and escaping behavior and exercises deferred renderer outcomes."
   },
   "tests/ring-room.test.mjs": {
    "status": "planned",
@@ -5607,8 +5620,9 @@
    "home": "core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/shell-grip.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shell-grip.test.mjs",
+   "note": "Published shell CSS retains grip geometry, inset ring, composer clearance and phone visibility."
   },
   "tests/shells.test.mjs": {
    "status": "planned",
@@ -5647,8 +5661,9 @@
    "home": "tests/stage-head-back.test.mjs"
   },
   "tests/stage-inplace.test.mjs": {
-   "status": "planned",
-   "home": "shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stage-inplace.test.mjs",
+   "note": "Mounted Agents and Changes retain the existing controls and active focus as rows and counts update."
   },
   "tests/stage-list-edge.test.mjs": {
    "status": "kept",
