@@ -23,7 +23,7 @@ Layers, lowest first: `core/kernel` → `core/platform` → `core/ui` → `core/
 
 - **Kernel** (`core/kernel/`): `createKernel()` registers modules, activates them in `needs` order behind an error boundary per module, and undoes everything a module registered when it is disabled or fails. Its contract is `core/kernel/types.d.ts`.
 - **Boot** is a static module graph. `boot.js` loads the frame and `js/app.js`; if either fails, it replaces the page with a "couldn't start" alert. `js/app.js` only imports modules and calls `bootShell([...])` (`shell/boot.js`) once with them. The conformance gate rejects any other statement there.
-- **The app's kernel** is `shell/kernel.js`, with the places of `shell/places.js` defined before anything contributes. `bootShell` registers the modules, starts the kernel and emits `app:started`.
+- **Each boot** constructs its kernel through `createShellKernel` in `shell/kernel.js`. The factory defines the shell places and registers failure reporting. `bootShell` registers the feature modules, starts the kernel, emits `app:started` and returns the kernel.
 - **Places** are named slots in the UI: `single`, `list` (ordered by `order`), `keyed` (one entry per id) and `chain` (by `priority`; the first that applies wins). An entry may have `when(at)` to show only for some views. A place's entry type is declared in the kernel's `PlaceEntries` interface, or per key in `KeyedPlaceEntries` (`"panel.frame:map"`), so `ctx.contribute` and `ctx.places.get` are type-checked. [architecture/places.md](architecture/places.md) is the catalogue.
 - **Services** are named APIs one module provides and others use. The world and the shell's basics (`world`, `announce`, `projectName`, `currentView`, `placeContext`, `navigationState`) come from the `xo.app-services` module in `shell/world.js`.
 - **The bus** carries synchronous topics. `app:*` topics must be declared in the kernel's `Topics` interface.
@@ -57,9 +57,9 @@ The DOM holds no state of its own: views draw from state with `core/ui/redraw.js
 
 - `createScope()` (`core/kernel/scope.js`) owns resources: `listen`, `timeout`, `interval`, `frame`, `observe`, `effect` and `delay`, plus an abort `signal` for requests. `dispose()` undoes them newest first and aborts the signal; `size` counts what is still held.
 - A module's `ctx` has the same resource methods. Disabling the module disposes it, and `kernel.live(id)` must then be `0`.
-- The app lives as long as the kernel, which `bootShell` disposes on `pagehide`. A mount takes the scope of its owner (usually its module's `ctx`) and registers its disposer there.
+- The app lives as long as the kernel, which `bootShell` disposes on a permanent `pagehide`. A mount takes the scope of its owner (usually its module's `ctx`) and registers its disposer there.
 - Pass the scope's `signal` to every request, so a late answer after disposal is dropped rather than painted.
-- Esc, phone Back, inert and the Tab trap go through one layer stack (`ctx.pushLayer`, `core/kernel/layers.js`).
+- Each feature registers its overlay layer and dismissal gestures during activation. The shell applies Escape, phone Back, inert and Tab rules to the live layers in kernel order for each action (`shell/layers.js`).
 - A test of a mount disposes it and asserts the scope is empty (`scope.size === 0` or `kernel.live(id) === 0`).
 
 ## Failures, logging and dialogs

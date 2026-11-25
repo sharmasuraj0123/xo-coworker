@@ -9,9 +9,8 @@
 - **Changes and Files**: every file a thread changed and its diff, any file whole, asking about lines, and editing that saves only on `⌘S`.
 - **Shells**: terminals in the project or a thread's worktree, when Space enables them.
 - **Shape**: the UI fits the person (Build software, Make content and campaigns, or Everything), switched only by the person.
-- **Apps**: installed apps fill named places from sandboxed frames.
 
-The UI is HTML, CSS and vanilla ES modules with no CDN. Development serves the source as it is; production serves a bundled release. Every visual value comes from `core/ui/tokens.css`.
+The UI is HTML, CSS and vanilla ES modules with no CDN. Development serves the source as it is; production serves a bundled release. Use shared values from `core/ui/tokens.css` for new styles. The style baselines track remaining literal values and can only decrease.
 
 ## Quick start
 
@@ -40,7 +39,7 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 - answers only requests addressed to it as `localhost`, an IP on its own port, or through a proxy on the same machine; anything else gets a 421, so a DNS-rebinding page never reaches the backend;
 - answers only pages it served (403 otherwise), and serves only the application's public files, never the rest of the repository;
 - never forwards the backend routes that expose secret values, raw files or file writes under `$HOME`, and drops the browser's `Origin`, `Referer` and `Sec-Fetch-*` headers;
-- adds the UI's writer key (`X-XO-UI-Writer`) only to saving and undoing a project file; a page can never send it itself;
+- adds the server-held UI writer key (`X-XO-UI-Writer`) to requests matching `WRITER_ROUTES` in `serve.py`. These cover project file writes, thread deletion and restoration, app installation and management, and all app bridge calls;
 - relays event streams unbuffered and tunnels only a shell's terminal WebSocket.
 
 **The UI reads and writes your real XO workspace. Sending a message starts real agents.** No test may send a non-GET request to a live backend.
@@ -56,13 +55,13 @@ The app is a small kernel, layers of shared code, and modules that plug into nam
 | `core/kernel/` | Holds modules together without knowing any feature: places, activation, undo of everything a module registers, the bus, batched redraws, the layer stack. It imports nothing. |
 | `core/platform/` | Browser plumbing: requests and typed responses, streams, storage, keys, touch, time words, small helpers. |
 | `core/ui/` | What every view draws with: the tokens, icons, markdown, motion, redraw in place, accessibility helpers, shared components, the lightbox. |
-| `core/services/` | The data layer: the world the views render, Storm's stream and writes, the shape, paths, notices, runtimes. No DOM, so it is tested from Node. |
+| `core/services/` | Shared data and runtime services for world state, Storm, Shape, paths, notices and media. Services import lower layers. Media handles DOM elements and Storm observes document visibility. |
 | `shell/` | The frame around everything: boot, the rail, the right panel, the phone layout, one layer stack for Esc, Back, inert and Tab, and the catalogue of places. |
 | `modules/*/` | One feature per folder, such as Files, Map, Settings or Home. |
-| `apps-host/` | Installed apps: manifests, sandboxed frames, the bridge to their tools, Settings › Apps. |
-| `js/app.js` | The static boot list: every module, handed to the kernel once. |
+| `apps-host/` | Paused work on installed apps, including manifests, sandboxed frames, a tool bridge and Settings integration. |
+| `js/app.js` | The static list of modules enabled at boot. |
 | `css/` | Styles that have not moved to their owners yet. It may only shrink. |
 
-`index.html` loads `boot.js`, which loads the frame, then `js/app.js`, which hands every module to the kernel in one static list. Outside the app: `tests/` (unit tests not yet beside their code), `e2e/` (the fast browser lane), `tests/browser/` (older browser suites), `tools/` (the checks, baselines, ledger, generators and the release build), `vendor/` and `fonts/`.
+`index.html` loads `boot.js`, which loads the frame, then `js/app.js`, which passes the enabled feature modules to the kernel in one static list. Outside the app: `tests/` (unit tests not yet beside their code), `e2e/` (the fast browser lane), `tests/browser/` (older browser suites), `tools/` (the checks, baselines, ledger, generators and the release build), `vendor/` and `fonts/`.
 
 Folders with a `README.md` describe their own files. [architecture/places.md](architecture/places.md) lists every place a module or an app can fill, [architecture/decisions/](architecture/decisions/) records the owner's decisions, and [architecture/HANDOFF.md](architecture/HANDOFF.md) holds the current state of the modular rebuild.
