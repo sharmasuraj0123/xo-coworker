@@ -2,14 +2,16 @@
 import { client, reportReadFailure } from "./client.js";
 import { createLru } from "../../platform/cache.js";
 
-/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").StoredThread} StoredThread */
+
+/** @import { ThreadRecord } from "../../platform/chat-response-types.d.ts" */
 
 export function createThreadRecords() {
-  /** @type {Map<string, Row>} */
+  /** @type {Map<string, StoredThread>} */
   const table = new Map();
-  /** @type {ReadonlyMap<string, Row>} */
+  /** @type {ReadonlyMap<string, StoredThread>} */
   const rows = table;
-  /** @type {WeakMap<Row, { latest: number, fields: Map<string, number> }>} */
+  /** @type {WeakMap<StoredThread, { latest: number, fields: Map<string, number> }>} */
   const versions = new WeakMap();
   /** @type {Map<string, number>} */
   const removed = new Map();
@@ -19,17 +21,19 @@ export function createThreadRecords() {
 
   return {
     rows,
-    /** @param {string} id @param {Row} changes */
+    /** @param {string} id @param {Partial<StoredThread>} changes */
     write(id, changes, order = ++clock) {
       if ((removed.get(id) ?? 0) > order) return rows.get(id);
       const old = rows.get(id);
       const prev = old && versions.get(old);
       const fields = prev?.fields ?? new Map();
-      const row = { ...old };
+      const chat = changes.chat_id || old?.chat_id;
+      if (!chat) return;
+      const row = { ts: id, chat_id: chat, ...old };
       for (const [field, value] of Object.entries(changes)) {
         if ((fields.get(field) ?? 0) > order) continue;
         fields.set(field, order);
-        row[field] = value;
+        Object.assign(row, { [field]: value });
       }
       versions.set(row, { latest: Math.max(prev?.latest ?? 0, order), fields });
       table.set(id, row);
@@ -69,10 +73,10 @@ export function installThreadReads(ctx) {
   /** @param {AbortSignal} signal @param {string} chatId @param {number} order */
   const currentListing = (signal, chatId, order) => (listOrders.get(signal)?.get(chatId) ?? 0) <= order;
 
-  /** @param {string} ts @param {Row} data @param {number} order @param {import("./types").Sent} sent */
-  function mergeThread(ts, data, order, sent) {
+  /** @param {string} chat @param {string} ts @param {ThreadRecord} data @param {number} order @param {import("./types").Sent} sent */
+  function mergeThread(chat, ts, data, order, sent) {
     const now = Date.now();
-    threadRecords.write(ts, { ...data, _at: now, _readAt: now, ...ctx.sessRead(data, sent) }, order);
+    threadRecords.write(ts, { ...data, chat_id: data.chat_id || chat, _at: now, _readAt: now, ...ctx.sessRead(data, sent) }, order);
   }
 
   ctx.loadThreads = (p) => threadRecords.read(async (order) => {
@@ -86,7 +90,7 @@ export function installThreadReads(ctx) {
       listOrders.set(signal, listings);
       listings.set(p.chatId, order);
       const seen = new Set();
-      for (const r of threads || []) { seen.add(r.ts); mergeThread(r.ts, r, order, sent); }
+      for (const r of threads || []) { seen.add(r.ts); mergeThread(p.chatId, r.ts, r, order, sent); }
       for (const [ts, r] of rawThreads) {
         if (r.chat_id === p.chatId && !seen.has(ts) && threadRecords.acceptsRemoval(ts, order)) threadRecords.remove(ts, order);
       }
@@ -105,7 +109,7 @@ export function installThreadReads(ctx) {
     try {
       const x = await client.thread(chatId, ts, { signal });
       if (signal.aborted || !currentListing(signal, chatId, order)) return;
-      mergeThread(ts, x, order, sent);
+      mergeThread(chatId, ts, x, order, sent);
       ctx.soon();
     } catch (error) { reportReadFailure(error, signal, true); }
     finally { refetchBusy.delete(ts); }

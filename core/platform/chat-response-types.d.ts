@@ -72,6 +72,15 @@ export interface ThreadRecord {
   state?: string;
   busy?: boolean;
   can_delete?: boolean;
+  activity?: string | null;
+  wait_reason?: string | null;
+  continued_from?: string | null;
+  continued_in?: string | null;
+  agent_ms?: number | null;
+  card?: { title?: string; happened?: string; needs_you?: string; updated_at?: string } | null;
+  runs?: { running?: number; waiting?: number; total?: number } | null;
+  outputs?: { name?: string; path?: string; type?: string; title?: string | null; bytes?: number | null }[] | null;
+  git?: import("./record-response-types.d.ts").BranchReceipt | null;
   pin?: Pin | null;
 }
 

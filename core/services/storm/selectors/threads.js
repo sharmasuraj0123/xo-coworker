@@ -5,7 +5,7 @@ import { stopOf, stormAsks, threadState, askingState } from "../../world/threads
 import { isLimitItem, limitItem } from "../../runtimes.js";
 import { BUSY } from "../config.js";
 
-/** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Row} Row */
+/** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").StoredThread} StoredThread */
 
 const ENTITIES = /** @type {Record<string, string>} */ ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" });
 /** @param {unknown} v */
@@ -30,7 +30,7 @@ export function installThreads(ctx) {
       if (typeof from === "string" && from) fromIndex.set(row.id, { from, text: row.text || "" });
     }
   };
-  /** @param {Row} r */
+  /** @param {StoredThread} r */
   function moveOf(r) {
     // the row says it (continued_in / continued_from); else the frame, or the old thread's note
     /** @type {{to?: string, at?: string, text?: string} | null} */
@@ -67,7 +67,7 @@ export function installThreads(ctx) {
     const busy = ctx.threadBusy(r, now, runsBy);
     const turn = r.session_id && (busy || BUSY.has(sstate ?? "")) ? state.turns.running(r.session_id) : null;
     // held back by a gate (the usage limit, …): nothing runs, its message waits; what for and until when
-    const held = busy ? null : ctx.heldOfSession(now, runsBy.get(r.session_id) || []);
+    const held = busy ? null : ctx.heldOfSession(now, r.session_id && runsBy.get(r.session_id) || []);
     /** @type {import("../../world/state-types.d.ts").WorldThread} */
     const t = {
       id: r.ts, project, chatId: r.chat_id,
@@ -76,7 +76,7 @@ export function installThreads(ctx) {
       state: threadState(r.state, turn, busy, !!held, r.activity === "stalled" && youWroteLast(state.threadMsgs[r.ts])),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
-      createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
+      createdAt: Date.parse(r.created_at ?? "") || Date.now(), lastAt: Date.parse(r.updated_at ?? "") || Date.now(),
       checklist: tasksOf(r.status_md || ""),
       messages: (state.threadMsgs[r.ts] || []).map(uiMsg),
       asks: [], stop: null, live: true, loaded: !!state.threadHist[r.ts]?.loaded,

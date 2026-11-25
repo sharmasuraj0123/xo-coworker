@@ -1,5 +1,6 @@
 // @ts-check
 import { isResponseObject } from "./http.js";
+import { isBranch } from "./record-responses.js";
 import { isRouter } from "./runtime-responses.js";
 
 /** @import * as Wire from "./chat-response-types" */
@@ -58,6 +59,14 @@ export function isSession(value) {
 export const isSessions = (value) => isResponseObject(value) && hasCursor(value)
   && Array.isArray(value.sessions) && value.sessions.every(isSession);
 
+/** @param {unknown} value */
+const isThreadOutput = (value) => isResponseObject(value) && [value.name, value.path, value.type].every(optionalText)
+  && textOrNone(value.title) && numberOrNone(value.bytes);
+
+/** @param {unknown} value */
+export const isThreadCard = (value) => isResponseObject(value)
+  && [value.title, value.happened, value.needs_you, value.updated_at].every(optionalText);
+
 /** @param {unknown} value @returns {value is Wire.ThreadRecord} */
 export function isThread(value) {
   return isResponseObject(value) && typeof value.ts === "string"
@@ -65,7 +74,13 @@ export function isThread(value) {
       value.base_commit, value.status_md, value.created_at, value.updated_at, value.summary].every(textOrNone)
     && optionalText(value.chat_id) && optionalText(value.state)
     && (value.session == null || isSessionFields(value.session)) && (value.pin == null || isPin(value.pin))
-    && optionalFlag(value.busy) && optionalFlag(value.can_delete);
+    && optionalFlag(value.busy) && optionalFlag(value.can_delete)
+    && [value.activity, value.wait_reason, value.continued_from, value.continued_in].every(textOrNone)
+    && numberOrNone(value.agent_ms) && (value.card == null || isThreadCard(value.card))
+    && (value.runs == null || isResponseObject(value.runs)
+      && [value.runs.running, value.runs.waiting, value.runs.total].every(optionalNumber))
+    && (value.outputs == null || Array.isArray(value.outputs) && value.outputs.every(isThreadOutput))
+    && (value.git == null || isBranch(value.git));
 }
 
 /** @param {unknown} value @returns {value is { threads: Wire.ThreadRecord[] }} */

@@ -31,7 +31,7 @@ export interface WorldThread {
   pin: import("../../platform/chat-response-types.d.ts").Pin;
   outputs: { name?: string; path?: string; type?: string; title?: string | null; bytes?: number | null }[];
   card: { title?: string; happened?: string; needs_you?: string; updated_at?: string };
-  git: import("../git-state-types.d.ts").BranchGit & { ahead?: number } | null;
+  git: import("../../platform/record-response-types.d.ts").BranchReceipt | null;
   canDelete: boolean;
   movedTo: { to?: string; at?: string; text?: string } | null;
   movedFrom: { from: string; text?: string } | null;

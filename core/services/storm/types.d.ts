@@ -1,8 +1,15 @@
 import type { WorldState, WorldThread } from "../world/state-types.d.ts";
 import type { StoredRun } from "../run-types.d.ts";
-import type { ChatRecord, MessageRecord, SessionRecord } from "../../platform/chat-response-types.d.ts";
+import type { ChatRecord, MessageRecord, SessionRecord, ThreadRecord } from "../../platform/chat-response-types.d.ts";
 
 export type Row = import("../world/sessions.js").Row;
+export type StoredThread = ThreadRecord & {
+  chat_id: string;
+  _at?: number;
+  _sessAt?: number;
+  _seqAt?: number | null;
+  _readAt?: number;
+};
 export type MessageRow = Omit<MessageRecord, "seq"> & { seq?: number | null };
 export type HopRow = import("../world/hop-types.d.ts").Hop;
 export type Frame = { type: string; id?: string | null; envelope?: Row };
@@ -61,7 +68,7 @@ export interface Ctx {
   emit: () => void;
   event: (e: StormEvent) => void;
   chatProject: Map<string, string | null>;
-  rawThreads: ReadonlyMap<string, Row>;
+  rawThreads: ReadonlyMap<string, StoredThread>;
   threadRecords: ReturnType<typeof import("./thread-reads.js").createThreadRecords>;
   watched: Watched;
   trimmed: Set<string>;
@@ -74,18 +81,18 @@ export interface Ctx {
   isWatched: (ts: string | null | undefined) => boolean;
   coordinatorOf: (chat: string | null) => Session | null;
   sentAt: () => Sent;
-  sessRead: (x: Row | null | undefined, sent: Sent) => Row;
-  sessionNow: (sid: string | null, r?: Row | null) => Session | null;
+  sessRead: (x: Pick<ThreadRecord, "session"> | null | undefined, sent: Sent) => Pick<StoredThread, "_sessAt" | "_seqAt">;
+  sessionNow: (sid: string | null, r?: StoredThread | null) => Session | null;
   evidenceOf: (sid: string, runs?: StoredRun[] | null) => NonNullable<Parameters<typeof import("../world/sessions.js").sessionBusy>[1]>;
   onTurn: (s: Session | null) => boolean;
   heldOfSession: (s: Session | null, runs?: StoredRun[] | null) => Row | null;
   agentPool: (agent: string | null | undefined) => string | null;
-  threadBusy: (r: Row, now: Session | null, runsBy: Map<string, StoredRun[]>) => boolean;
+  threadBusy: (r: StoredThread, now: Session | null, runsBy: Map<string, StoredRun[]>) => boolean;
   noteSession: (s: Row, sent?: Sent) => void;
 
   indexMoves: () => void;
   chatPolicyOf: (chat: string | null) => Row | null;
-  uiThread: (r: Row, project: string, runsBy?: Map<string, StoredRun[]>) => WorldThread;
+  uiThread: (r: StoredThread, project: string, runsBy?: Map<string, StoredRun[]>) => WorldThread;
   runsBySession: () => Map<string, StoredRun[]>;
   commit: () => void;
   soon: () => void;

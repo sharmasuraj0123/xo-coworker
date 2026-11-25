@@ -18,7 +18,7 @@ const nullable = (value, check) => value == null || check(value);
 const arrayOf = (value, check) => Array.isArray(value) && value.every(check);
 
 /** @param {unknown} value @returns {value is Wire.BranchReceipt} */
-function isBranch(value) {
+export function isBranch(value) {
   return isResponseObject(value) && nullable(value.branch, text) && nullable(value.merged_at, text)
     && [value.ahead, value.behind, value.commits].every((n) => nullable(n, count)) && nullable(value.unpushed, count)
     && optional(value.merged, flag)

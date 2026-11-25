@@ -1,4 +1,5 @@
 // @ts-check
+import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
 
@@ -6,8 +7,8 @@
 export const threads = {
   thread(ctx, env, d) {
     const { state, rawThreads } = ctx;
+    if (!isThread(d) || !d.ts) return;
     const ts = d.ts;
-    if (!ts) return;
     const old = rawThreads.get(ts);
     if (!old && !d.chat_id) { ctx.refetchThread(env.chat_id, ts); return; }
     const now = Date.now();
@@ -33,6 +34,8 @@ export const threads = {
   },
   card(ctx, env, d) {
     const r = ctx.rawThreads.get(d.ts);
-    if (r) { ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at }); ctx.soon(); }
+    if (!r || (d.card != null && !isThreadCard(d.card))) return;
+    ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at });
+    ctx.soon();
   },
 };

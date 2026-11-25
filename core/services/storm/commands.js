@@ -9,16 +9,18 @@ import { requestFailureMessage } from "../notices/failures.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row @typedef {{ clientId?: string, attachments?: string[] }} SendOpts */
 
+/** @import { ThreadRecord } from "../../platform/chat-response-types.d.ts" */
+
 /** @template T @param {unknown} error @param {T} fallback */
 function keepLastRead(error, fallback) {
   if (!(error instanceof ApiError && error.status === 404)) requestFailureMessage(error, "Couldn't refresh the saved state.");
   return fallback;
 }
 
-/** @param {Ctx} ctx @param {(id: string) => Row | null} threadOf */
+/** @param {Ctx} ctx @param {(id: string) => import("./types").StoredThread | null} threadOf */
 function createThreadCommands(ctx, threadOf) {
   const { signal } = ctx.scope;
-  /** @param {string} threadId @param {Row | null} t @param {import("./types").Sent} sent */
+  /** @param {string} threadId @param {ThreadRecord | null} t @param {import("./types").Sent} sent */
   const keepAnswer = (threadId, t, sent) => ctx.threadRecords.write(threadId, {
     ...t, ...(t && "busy" in t ? { _readAt: Date.now() } : {}), ...ctx.sessRead(t, sent),
   });
@@ -58,7 +60,7 @@ function createThreadCommands(ctx, threadOf) {
       ctx.soon();
       return { ...res, row: r };
     },
-    /** @param {string} threadId @param {Row} row */
+    /** @param {string} threadId @param {import("./types").StoredThread} row */
     restoreThread: async (threadId, row) => {
       signal.throwIfAborted();
       const t = await client.restoreThread(row.chat_id, threadId);

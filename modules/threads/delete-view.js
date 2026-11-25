@@ -7,7 +7,7 @@ import { redraw } from "../../core/ui/redraw.js";
 
 /** @param {() => ThreadDeletePrompt | null} prompt */
 export function createThreadDeleteView(prompt) {
-  /** @param {{id: string, title: string, branch?: string | null, git?: {ahead?: number} | null} | null | undefined} thread */
+  /** @param {{id: string, title: string, branch?: string | null, git?: {ahead?: number | null} | null} | null | undefined} thread */
   return function renderDelete(thread) {
     const box = document.getElementById("tdel");
     if (!box) return;

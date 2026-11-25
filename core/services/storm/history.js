@@ -99,9 +99,10 @@ export function installHistory(ctx) {
     const th = state.threadHist[ts] || (state.threadHist[ts] = { loading: false, loaded: false, error: null });
     // its turns were pruned while it was off screen: read them again, as far back as its pages go
     if (th.loaded && r.session_id && trimmed.has(r.session_id)) {
-      trimmed.delete(r.session_id);
+      const session = r.session_id;
+      trimmed.delete(session);
       const oldest = (state.threadMsgs[ts] || [])[0];
-      ctx.loadTurns(r.session_id).then(() => loadOlderTurns(r.session_id, oldest?.seq ?? null, signal))
+      ctx.loadTurns(session).then(() => loadOlderTurns(session, oldest?.seq ?? null, signal))
         .then(() => { if (!signal.aborted) ctx.soon(); }).catch((error) => reportReadFailure(error, signal));
       return;
     }
