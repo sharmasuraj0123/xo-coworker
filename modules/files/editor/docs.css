@@ -25,18 +25,23 @@
 
 /* Markdown page typography and editing marks. */
 .vw-doc.is-page{background:var(--surface)}
-.vw-doc .cm-xo-page .cm-scroller{font-family:var(--sans);font-size:var(--fs-ui);line-height:var(--lh-ui)}
-.vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:var(--w-md-page);margin:0 auto;padding:var(--s-8) var(--s-10) var(--h-bar)}
+.vw-doc .cm-xo-page .cm-scroller{font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink-read)}
+/* A wide table or drawing scrolls inside its own box; the page keeps the panel's width. */
+.vw-doc .cm-xo-page .cm-content{
+  box-sizing:border-box;min-width:0;max-width:var(--w-md-page);margin:0 auto;padding:var(--s-8) var(--s-10) var(--h-bar)
+}
 .vw-doc .cm-xo-page .cm-activeLine{background:var(--fill-clear)}
 .vw-doc .cm-xo-page .cm-line{padding:var(--md-line-padding,0)}
 .cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--ink)}
-.cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);--md-line-padding:var(--s-4) 0 0}
-.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);--md-line-padding:var(--s-3) 0 0}
-.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);--md-line-padding:var(--s-2) 0 0}
+.cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);--md-line-padding:var(--s-2) 0 var(--s-2)}
+.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);--md-line-padding:var(--s-8) 0 var(--s-1)}
+.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);--md-line-padding:var(--s-6) 0 0}
 .cm-md-h5,.cm-md-h6{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
-.cm-md-quote{border-left:var(--stroke-md-quote) solid var(--line-strong);--md-line-padding:0 0 0 var(--s-4);color:var(--ink-2)}
+.cm-md-quote{
+  border-left:var(--stroke-md-quote) solid var(--line-strong);--md-line-padding:0 0 0 var(--s-4);color:var(--ink-2);font-style:italic
+}
 .cm-md-fence{
-  font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);--md-line-padding:0 var(--s-3)
+  font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);--md-line-padding:0 var(--s-4)
 }
 .cm-md-code{
   font-family:var(--mono);font-size:var(--fs-code);background:var(--code-bg);border-radius:var(--r-xs);padding:var(--s-md-code-y) var(--s-1)
