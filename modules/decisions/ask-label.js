@@ -1,6 +1,6 @@
 // @ts-check
 import { esc } from "../../core/platform/util.js";
-import { plainText } from "../../core/services/world/timeline.js";
+import { plainText } from "../../core/services/world/threads.js";
 import { renderInline } from "../../core/ui/markdown/markdown.js";
 import { headOf } from "./cardparts.js";
 

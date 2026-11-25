@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { dom } from "./lib/dom.mjs";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 
-const T = await import("../core/services/world/timeline.js");
+const T = await import("../core/services/world/conn.js");
 const w = (router, own = null, extra = {}) => ({ loaded: true, runtimes: [], pools: {}, router, projects: [{ id: "workspace", routing: null }, { id: "alpha", routing: own }], ...extra });
 const OFF = { mode: "off" }, AGENT = { mode: "agent" };
 let passed = 0;

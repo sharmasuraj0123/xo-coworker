@@ -6110,9 +6110,12 @@
    "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/storm.test.mjs": {
-   "status": "kept",
-   "home": "tests/storm.test.mjs",
-   "note": "Cross-layer behavior tests for the SSE parser and reconnect, World turn blocks, reviews and hop ordering."
+   "status": "split",
+   "home": [
+    "tests/storm.test.mjs",
+    "tests/storm-projections.test.mjs"
+   ],
+   "note": "Transport and turn blocks stay in storm.test.mjs. Review and hop tests live in storm-projections.test.mjs."
   },
   "tests/target-bounded.test.mjs": {
    "status": "planned",

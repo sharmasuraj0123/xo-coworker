@@ -4,7 +4,7 @@ import { dom } from "./lib/dom.mjs";
 import { createConversationMessages } from "../modules/conversation/messages.js";
 import { createMessageItems } from "../modules/conversation/message-items.js";
 const css = sheet(new URL("../css/app.css", import.meta.url));
-const { uiMsg } = await import("../core/services/world/timeline.js");
+const { uiMsg } = await import("../core/services/world/rows.js");
 const row = { id: "cmsg_2", chat_id: "chat_b", seq: 9, created_at: "2026-11-21T20:32:00Z", author_kind: "agent", author_id: "project-coordinator", text: "The workspace wants your approval", extra: { forwarded_from: { chat_id: "chat_a", message_id: "cmsg_1", via: ["xo-coworker", "workspace"] } } };
 const m = uiMsg(row);
 assert.equal(m.who, "coord");

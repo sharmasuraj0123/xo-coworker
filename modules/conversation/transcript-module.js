@@ -1,6 +1,6 @@
 // @ts-check
 import { createConversationMessages } from "./messages.js";
-import { heldWords } from "../../core/services/world/timeline.js";
+import { heldWords } from "../../core/services/world/held.js";
 import { convOfChat } from "../../shell/place-context.js";
 import { tickElapsed } from "../../shell/elapsed.js";
 import { pressEntry } from "../../shell/conversation-press.js";

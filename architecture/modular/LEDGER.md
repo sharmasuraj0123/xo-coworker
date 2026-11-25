@@ -8,8 +8,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | vendor | 379 |
 | deleted | 339 |
 | planned | 100 |
-| kept | 89 |
-| split | 40 |
+| kept | 88 |
+| split | 41 |
 | split-region | 3 |
 
 Items inside first-party files: 2488 (moved 1791, deleted 236, planned 233, kept 225, split 3), in `ledger.json` as `path::kind::name`.
@@ -342,7 +342,7 @@ Items inside first-party files: 2488 (moved 1791, deleted 236, planned 233, kept
 | `tests/state-hover.test.mjs` | 127 | kept | tests/state-hover.test.mjs |
 | `tests/step-line-face.test.mjs` | 15 | kept | tests/step-line-face.test.mjs |
 | `tests/stopped-on-purpose.test.mjs` | 145 | planned | modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/storm.test.mjs` | 401 | kept | tests/storm.test.mjs · next: Cross-layer behavior tests for the SSE parser and reconnect, World turn blocks, reviews and hop ordering. |
+| `tests/storm.test.mjs` | 401 | split | tests/storm.test.mjs, tests/storm-projections.test.mjs · next: Transport and turn blocks stay in storm.test.mjs. Review and hop tests live in storm-projections.test.mjs. |
 | `tests/target-bounded.test.mjs` | 29 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/targets-css.test.mjs` | 74 | planned | core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-filter.test.mjs` | 55 | planned | modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

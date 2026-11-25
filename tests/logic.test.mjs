@@ -8,7 +8,12 @@ import { parseChecklist, tasksOf } from "../core/services/world/checklist.js";
 import { api } from "../core/platform/api.js";
 import { requestJson } from "../core/platform/http.js";
 import { highlight, langOf } from "../core/ui/markdown/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../core/services/world/timeline.js";
+import { uiMsg, mergeRows, addReaction } from "../core/services/world/rows.js";
+import { echoes, threadAnchors, parseTarget, stripTarget, waitsForTurn, chatOrder, reactionGroups } from "../core/services/world/conversation.js";
+import { askText, stormAsks, plainText, threadState } from "../core/services/world/threads.js";
+import { sendErrorTitle, connLine, sendBlock } from "../core/services/world/conn.js";
+import { currentPools, mainRuntime } from "../core/services/world/sessions.js";
+import { sharedFileRoute, relayedInto, forwardOrigin, hopLine, hopNotes } from "../core/services/world/relay.js";
 import { mapLimit } from "../core/services/storm/load.js";
 
 let passed = 0;

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../core/services/world/timeline.js";
+import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, queuedButWorking, statusLater } from "../core/services/world/sessions.js";
+import { heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "../core/services/world/held.js";
+import { threadState } from "../core/services/world/threads.js";
 const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
 
 let passed = 0;

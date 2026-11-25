@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { publishedRules } from "./lib/css-snapshot.mjs";
-import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
+import { cliName } from "../core/services/world/conn.js";
+import { chatOrder } from "../core/services/world/conversation.js";
+import { heldShort, heldBadge } from "../core/services/world/held.js";
+import { dayGroup, rowTime } from "../core/services/world/list-time.js";
 import { dom, same } from "./lib/dom.mjs";
 import { createChats as mountChats } from "../modules/chats/chats.js";
 import { turnHtml, turnAv } from "../modules/conversation/blocks/turn.js";

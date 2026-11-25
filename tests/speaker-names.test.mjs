@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { hopNotes } from "../core/services/world/timeline.js";
+import { hopNotes } from "../core/services/world/relay.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const js = read("modules/conversation/message-items.js").replace(/^ {2}/gm, ""), rich = read("core/ui/markdown/rich.css").replace(/\/\*[\s\S]*?\*\//g, "");

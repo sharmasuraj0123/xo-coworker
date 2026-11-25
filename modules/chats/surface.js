@@ -5,7 +5,10 @@ import { pressEntry } from "../../shell/conversation-press.js";
 import { replyNotices } from "./reply-notices.js";
 import { createChats } from "./chats.js";
 import { bindChatControls } from "./controls.js";
-import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../../core/services/world/timeline.js";
+import { cliName } from "../../core/services/world/conn.js";
+import { chatOrder } from "../../core/services/world/conversation.js";
+import { heldShort, heldBadge } from "../../core/services/world/held.js";
+import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
 
 /** @import { Conversation } from "./types.d.ts" */
 

@@ -1,6 +1,6 @@
 // @ts-check
 import { $ } from "../../core/platform/dom.js";
-import { heldShort } from "../../core/services/world/timeline.js";
+import { heldShort } from "../../core/services/world/held.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./client.js";
 import { createLpWindow } from "./window.js";

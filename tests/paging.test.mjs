@@ -4,7 +4,8 @@
 //   node tests/paging.test.mjs
 import assert from "node:assert/strict";
 
-const { pageAfter, canPageOlder, pageFloor, inPage, framesShort } = await import("../core/services/world/timeline.js");
+const { pageAfter, canPageOlder, framesShort } = await import("../core/services/world/rows.js");
+const { pageFloor, inPage } = await import("../core/services/world/conversation.js");
 const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;

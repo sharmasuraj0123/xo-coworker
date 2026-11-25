@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { stopOf, stopWords } from "../core/services/world/timeline.js";
+import { stopOf } from "../core/services/world/threads.js";
+import { stopWords } from "../core/services/world/conversation.js";
 import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
