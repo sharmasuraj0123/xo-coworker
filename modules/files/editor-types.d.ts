@@ -1,6 +1,6 @@
 import type { ViewerDocument } from "./document-types";
 
-type EditorDocument = Pick<ViewerDocument, "kind" | "state" | "cmState" | "merge">;
+type EditorDocument = Pick<ViewerDocument, "kind" | "state" | "cmState" | "merge" | "project" | "rel">;
 
 interface EditorHooks {
   source?: (() => string) | null;

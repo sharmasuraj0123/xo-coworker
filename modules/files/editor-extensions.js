@@ -7,6 +7,8 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import {CodeMirror, EditorState, Extension, ViewUpdate} from "./cm-types.d.ts" */
 
+/** @import {ImageSource} from "./markdown-figures.js" */
+
 /** @typedef {{from: number, to: number}} LineRange */
 
 /** @typedef {{name: string, page: boolean, isMd: boolean, pageExt: Extension}} PageOptions */
@@ -15,10 +17,10 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 
 const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "");
 
-/** @param {CodeMirror} CM @returns {Promise<Extension>} */
-export async function loadPageExtension(CM) {
+/** @param {CodeMirror} CM @param {{images?: ImageSource | null}} [options] @returns {Promise<Extension>} */
+export async function loadPageExtension(CM, options) {
   try {
-    return (await import("./markdown-page.js")).pageView(CM);
+    return (await import("./markdown-page.js")).pageView(CM, options);
   } catch (error) {
     reportFailure(error);
     return [];

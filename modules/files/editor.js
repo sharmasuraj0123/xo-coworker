@@ -2,6 +2,7 @@
 
 import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/platform/util.js";
+import { projectImages } from "./markdown-image-source.js";
 
 /** @import { EditorMountOptions } from "./editor-types.d.ts" */
 
@@ -29,7 +30,10 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   const { EditorState, EditorView, lineNumbers, highlightActiveLineGutter, foldGutter, LanguageDescription, languages } = CM;
   const { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions } = createEditorConfiguration(CM, { onLines, onAsk });
   const isMd = /\.(md|markdown|mdx)$/i.test(name) || doc.kind === "markdown";
-  const pageExt = isMd ? await loadPageExtension(CM) : [];
+  const scope = createScope();
+  const { signal } = scope;
+  const images = isMd && doc.project && doc.rel && !doc.project.startsWith("att:") ? projectImages(doc.project, doc.rel, scope) : null;
+  const pageExt = isMd ? await loadPageExtension(CM, { images }) : [];
 
   const extensions = prepareExtensions({
     name, page, isMd, pageExt, onSave, onKey,
@@ -47,8 +51,6 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     ? doc.cmState.update({ effects: CM.StateEffect.reconfigure.of(extensions(readOnlyNow())) }).state
     : EditorState.create({ doc: docs.textOf(doc), extensions: extensions(readOnlyNow()) });
   const view = new EditorView({ state, parent: host });
-  const scope = createScope();
-  const { signal } = scope;
   doc.cmState = null;
   /** @type {EditorState | null} */
   let live = null;

@@ -4,6 +4,7 @@ import { renderMarkdown, renderInline } from "../../core/ui/markdown/markdown.js
 import { drawRichElement, ownRichElement } from "../../core/ui/markdown/rich.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/services/notices/failures.js";
+import { fieldText } from "./markdown-front-matter.js";
 
 /** @import {CodeMirror, EditorView} from "./cm-types.d.ts" */
 
@@ -97,5 +98,46 @@ export function createMarkdownWidgets(WidgetType) {
     toDOM() { const s = document.createElement("span"); s.className = "cm-md-bullet"; s.textContent = "•"; return s; }
   }
   const bullet = new Bullet();
-  return { BlockWidget, MathWidget, bullet };
+  class FrontWidget extends WidgetType {
+    /** @param {[string, string][]} fields */
+    constructor(fields) { super(); this.fields = fields; }
+    /** @override @param {FrontWidget} other */
+    eq(other) { return JSON.stringify(other.fields) === JSON.stringify(this.fields); }
+    /** @override @param {EditorView} view */
+    toDOM(view) {
+      const d = document.createElement("div");
+      const scope = own(d);
+      d.className = "cm-md-front";
+      d.setAttribute("aria-label", "Properties");
+      for (const [key, value] of this.fields) {
+        if (key === "title") continue;
+        const words = key === "tags" || key === "keywords" ? value.split(/,\s*/) : [fieldText(value)];
+        for (const word of words) {
+          const chip = document.createElement("span");
+          chip.className = `cm-md-prop${key === "status" ? " is-status" : ""}`;
+          chip.title = key;
+          chip.textContent = key === "status" ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+          d.appendChild(chip);
+        }
+      }
+      scope.listen(d, "mousedown", (event) => {
+        event.preventDefault();
+        view.dispatch({ selection: { anchor: view.state.doc.line(Math.min(2, view.state.doc.lines)).from } });
+        view.focus();
+      });
+      return d;
+    }
+    /** @override @param {HTMLElement} node */
+    destroy(node) { dispose(node); }
+    /** @override */
+    ignoreEvent() { return false; }
+  }
+  class NotesHead extends WidgetType {
+    /** @override */
+    eq() { return true; }
+    /** @override */
+    toDOM() { const d = document.createElement("div"); d.className = "cm-md-notes"; d.textContent = "Notes"; return d; }
+  }
+  const notesHead = new NotesHead();
+  return { BlockWidget, MathWidget, FrontWidget, bullet, notesHead };
 }
