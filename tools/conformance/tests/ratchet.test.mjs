@@ -55,6 +55,8 @@ const jsCases = [
   ["lineLength", "const value = '" + "a".repeat(130) + "';"],
   ["commentReference", "// See PLAN.md."],
   ["changelogComment", "// Astra C058 on 517af1c"],
+  ["changelogComment", "// Catalog refresh F25"],
+  ["changelogComment", "// xo-space 3886701 field"],
   ["commentLines", "// A\n// B"],
   ["typeSuppression", "// @ts-ignore\ndraw();"],
   ["dependencyKey", "createExample({ render });", "js/app.js"],
@@ -85,6 +87,14 @@ test("scoped resources, local bindings and reported failures stay clear", (conte
     'load().catch(error => { throw error; });',
   ].join("\n");
   const root = fixture(context, { "core/ui/example.js": HEADER + source });
+  assert.deepEqual(inventory(root), []);
+});
+
+test("comment checks leave CSS colours and formatted measurements alone", (context) => {
+  const root = fixture(context, {
+    "core/ui/example.js": HEADER + "// Color #f4e6c297 and 1,440,900 pixels.",
+    "core/ui/example.css": "/* Numeric hex #38867010. */",
+  });
   assert.deepEqual(inventory(root), []);
 });
 
