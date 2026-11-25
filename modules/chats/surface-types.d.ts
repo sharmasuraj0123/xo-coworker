@@ -2,7 +2,7 @@ import type { ChatControls } from "./controls-types.d.ts";
 
 declare module "../../core/kernel/types" {
   interface Services {
-    chats: ReturnType<typeof import("./chats.js").createChats> & { attachRecovery(recover: (text: string) => void): () => void };
+    chats: ReturnType<typeof import("./chats.js").createChats>;
     intelligence: import("./intel-surface.js").IntelligenceSurface }
   interface Topics { "app:intelligence-changed": undefined }
 }

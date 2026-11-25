@@ -18,31 +18,24 @@ import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
 export const chatModelModule = {
   manifest: { id: "xo.chat-model", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "announce", "notices", "navigation", "currentView", "conversationSession", "conversationPresentation"],
-    provides: ["chats"] },
+    optional: ["composer"], provides: ["chats"] },
   activate(ctx) {
     const session = ctx.use("conversationSession"), view = ctx.use("currentView"), { go } = ctx.use("navigation");
     const { turnHtml, turnAv } = ctx.use("conversationPresentation");
-    /** @type {((text: string) => void) | undefined} */
-    let recover;
     const chats = createChats({
       world: ctx.use("world"), announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
       schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#msgs"), transcriptOpen: session.folds.open,
       restore(text, { force = false } = {}) {
-        if (!recover) return false;
+        const composer = ctx.optional("composer");
+        if (!composer) return false;
         if (force && view() !== "chats") go("chats");
         if (view() !== "chats" || (!force && session.composer.say.value.trim())) return false;
-        recover(text);
+        composer.putBack(text);
         return true;
       },
     }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
     ctx.effect(() => chats.dispose);
-    ctx.provide("chats", Object.assign(chats, {
-      /** @param {(text: string) => void} putBack */
-      attachRecovery(putBack) {
-        recover = putBack;
-        return () => { if (recover === putBack) recover = undefined; };
-      },
-    }));
+    ctx.provide("chats", chats);
   },
 };
 

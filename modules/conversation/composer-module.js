@@ -26,7 +26,6 @@ export const composerModule = {
       VW: { open: (file, button) => ctx.optional("files")?.viewer.open(file, button) },
     });
     ctx.provide("composer", composer);
-    ctx.effect(() => chats.attachRecovery(composer.putBack));
     ctx.on("app:view-leaving", () => composer.saveDraft());
     ctx.on("app:view-restoring", () => composer.loadDraft());
     ctx.on("app:intelligence-changed", () => {

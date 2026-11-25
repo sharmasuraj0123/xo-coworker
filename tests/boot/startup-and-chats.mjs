@@ -218,6 +218,18 @@ assert.equal(promptCount, 2, "the composer also checks the ended chat before sen
 assert.equal(chatComposer.value, "Keep this unsent draft too");
 assert.match(document.querySelector("#live").textContent, /Your text is kept/);
 
+press("#nv-chats");
+flushFrames();
+chatComposer.setSelectionRange = function (start, end) { this.selectionStart = start; this.selectionEnd = end; };
+chatComposer.value = "Restore this first message";
+chatComposer.dispatchEvent(new window.Event("input", { bubbles: true }));
+chatComposer.closest("form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+await new Promise(setImmediate);
+flushFrames();
+assert.equal(chatComposer.value, "Restore this first message");
+assert.equal(chatComposer.selectionStart, chatComposer.value.length);
+assert.ok(document.activeElement === chatComposer);
+
 press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
