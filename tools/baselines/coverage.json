@@ -80,12 +80,6 @@
    ["globalListener",88,""]
   ]
  },
- "modules/settings/shape-page.js": {
-  "sha256": "1113db250a1a3cfa599257c0d4afee6e0080c4529eb4b1003cfa37845f61c783",
-  "sites": [
-   ["commentOnlyCatch",91,""]
-  ]
- },
  "modules/shells/term.js": {
   "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
   "sites": [

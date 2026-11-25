@@ -523,8 +523,7 @@
   "commentLines": 1
  },
  "modules/settings/shape-page.js": {
-  "commentLines": 13,
-  "explicitAny": 8
+  "commentLines": 10
  },
  "modules/settings/shortcuts-sheet.js": {
   "commentLines": 1

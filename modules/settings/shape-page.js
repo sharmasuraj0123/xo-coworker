@@ -1,8 +1,7 @@
 // @ts-check
 
-// Settings › Shape, the Settings rail's Advanced group, density on <html> and Home's order; core/services/shape holds the rules.
-
 import { esc, once, isPending, busyAttrs } from "../../core/platform/index.js";
+import { reportFailure } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { PRESETS, createShape, describeShape } from "../../core/services/shape/index.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -11,12 +10,10 @@ import { rovingTab } from "../../core/ui/a11y/keynav.js";
 
 export const SHAPE_IC = ICON.shape;
 
-// said when a change applied but this browser won't keep it (the shape store's kept: false)
 export const UNKEPT = "Applied for now: this browser won't keep it after a reload (its storage is full or switched off).";
 
 /** @type {Record<string, string[]>} */
 const HOME = { "xo:home/next": ["hm-next", "hm-then"], "xo:home/handled": ["hm-end"], "xo:home/recent": ["hm-made"] };
-// a preset chosen, or your JSON saved: each may read a preset file first, so one goes at a time
 const SHAPING = "shape";
 
 /** @param {Element[]} els */
@@ -35,7 +32,10 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
   const box = /** @type {HTMLElement} */ (page && page.querySelector(".shp"));
   const nav = /** @type {HTMLElement} */ (document.querySelector("#settings .set-nav"));
   const navOrder = nav ? [.../** @type {NodeListOf<HTMLElement>} */ (nav.querySelectorAll("[data-set]"))].map((b) => /** @type {string} */ (b.dataset.set)) : [];
-  const cardsOf = () => PRESETS.map((/** @type {any} */ p) => { const f = shape.presetFile(p.id) || {}; return { id: p.id, name: f.name || p.name, summary: f.summary || p.summary }; });
+  const cardsOf = () => PRESETS.map((p) => {
+    const f = shape.presetFile(p.id) || {};
+    return { id: p.id, name: f.name || p.name, summary: f.summary || p.summary };
+  });
   /** @param {string} id */
   const nameOf = (id) => (cardsOf().find((c) => c.id === id) || { name: id }).name;
 
@@ -44,10 +44,9 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     railRender();
     if (page && !page.hidden && !/** @type {HTMLElement} */ (document.querySelector("#settings")).hidden) render();
   }
-  // technical pages a shape marks advanced move under one quiet "Advanced" label at the rail's foot
   function railRender() {
     if (!nav) return;
-    const adv = new Set(shape.list("settings").filter((/** @type {any} */ s) => s.advanced).map((/** @type {any} */ s) => s.id.slice("xo:settings/".length)));
+    const adv = new Set(shape.list("settings").filter((s) => s.advanced).map((s) => s.id.slice("xo:settings/".length)));
     let head = /** @type {HTMLElement | null} */ (nav.querySelector(".shp-navh"));
     if (!head) { head = document.createElement("p"); head.className = "shp-navh"; head.setAttribute("aria-hidden", "true"); head.textContent = "Advanced"; }
     /** @param {string} id */
@@ -76,7 +75,7 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
   /** Home's parts in the shape's order, a part it doesn't keep hidden; only those parts move, never one in place. @param {HTMLElement | null} body */
   function homeOrder(body) {
     if (!body) return;
-    const list = /** @type {string[]} */ (shape.list("home").map((/** @type {any} */ s) => s.id));
+    const list = shape.list("home").map((s) => s.id);
     const on = new Set(list);
     const order = [...list, ...Object.keys(HOME).filter((id) => !on.has(id))];
     for (const [id, parts] of Object.entries(HOME)) for (const x of parts) { const el = /** @type {HTMLElement | null} */ (body.querySelector(`#${x}`)), hide = !on.has(id); if (el && el.hidden !== hide) el.hidden = hide; }
@@ -85,10 +84,9 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
 
   shape.onHeld?.(() => { if (page && !page.hidden && !/** @type {HTMLElement} */ (document.querySelector("#settings")).hidden) { render(); inSightHeld(); } });
 
-  // the page was opened: the cards are named from the presets' own files (GET, once a page)
   async function open() {
     render();
-    await Promise.all(PRESETS.filter((/** @type {any} */ p) => !p.builtin).map((/** @type {any} */ p) => shape.loadPreset(p.id).catch(() => null)));
+    await Promise.all(PRESETS.filter((p) => !p.builtin).map((p) => shape.loadPreset(p.id).catch(reportFailure)));
     if (!page.hidden) render();
   }
   const mineText = () => JSON.stringify(shape.mine || { shape: 1 }, null, 2);
@@ -117,7 +115,6 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
       `<div class="set-row"><div class="set-l"><b id="shp-dense-l">Compact</b><span>Tighter rows and controls, and 14 px reading text. Only here: your other devices keep their own.</span></div>` +
       `<button type="button" class="switch" role="switch" aria-checked="${dense}" aria-labelledby="shp-dense-l" data-shp-dense><span class="th-track" aria-hidden="true"><span class="th-knob">${ICON.list}</span></span></button></div>` + unkeptAt("device") + `</section>`;
   }
-  // Edit as JSON: built once, so typing is never redrawn under you; checked as you type
   function jsonBuild() {
     const d = document.createElement("details");
     d.className = "shp-json";
@@ -132,7 +129,10 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
   /** @param {string} text @returns {import("./types").ShapeCheck} */
   function check(text) {
     let doc;
-    try { doc = JSON.parse(text); } catch (/** @type {any} */ err) { return { error: `Not JSON yet: ${String(err.message).replace(/^JSON\.parse: /, "")}` }; }
+    try { doc = JSON.parse(text); } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return { error: `Not JSON yet: ${message.replace(/^JSON\.parse: /, "")}` };
+    }
     if (!doc || typeof doc !== "object" || Array.isArray(doc)) return { error: "Your layer must be a JSON object, { … }." };
     const id = typeof doc.preset === "string" ? doc.preset : shape.presetId;
     const file = id && shape.presetFile(id);
@@ -174,7 +174,7 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     redraw(/** @type {Element} */ (box.querySelector(".shp-top")), topHtml());
     jsonRender();
   }
-  /** @param {any} r @param {string} ok @param {string} where */
+  /** @param {{ error?: string; kept?: boolean }} r @param {string} ok @param {string} where */
   const said = (r, ok, where) => {
     if (where !== "device") V.sharedAt = where;
     V.err = r && r.error ? r.error : null;

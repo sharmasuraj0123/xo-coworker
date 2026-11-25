@@ -940,7 +940,7 @@
  },
  "modules/settings/shape-page.js": {
   "functionLines": 1,
-  "lineLength": 33
+  "lineLength": 29
  },
  "modules/settings/shortcuts-sheet.js": {
   "lineLength": 3
