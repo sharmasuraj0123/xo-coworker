@@ -2839,7 +2839,7 @@
      "reason": "Chats owns its composer recovery, message actions and control bindings."
     },
     "modules/settings/application.js": {
-     "anchor": "export function mountApplicationSettings",
+     "anchor": "export const shapeViewModule",
      "reason": "Settings binds the keyboard shortcuts sheet and applies Shape across page lifetimes."
     },
     "modules/settings/preferences.js": {

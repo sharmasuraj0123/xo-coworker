@@ -16,8 +16,7 @@ export async function openSettingsModule(page, module, services) {
   await mountSettingsPage(page);
   const { createKernel } = await import("../../core/kernel/index.js");
   const { createAppServices } = await import("../../shell/app-services.js");
-  const { createSettingsModule } = await import("../../modules/settings/module.js");
-  const settingsModule = createSettingsModule().module;
+  const { settingsModule } = await import("../../modules/settings/module.js");
   const kernel = createKernel();
   kernel.register(createAppServices({ ...services, currentView: () => "home" }, () => {}));
   kernel.register(settingsModule);

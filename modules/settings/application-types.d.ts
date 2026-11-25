@@ -1,6 +1,8 @@
-import type { ShapeApplyDeps } from "./apply-shape-types";
-import type { ShapeViewDeps, SettingsSurfaceHost } from "./types";
-export type Appearance = Omit<ShapeApplyDeps, "SHAPE" | "SV"> & Required<ShapeViewDeps>;
-export type SettingsBindings = Pick<SettingsSurfaceHost, "phone" | "beforeOpen" | "onHidden" | "focusIn" | "fallback"
-  | "preferences" | "mountRuntimes">
-  & { at(): { project?: string } };
+declare module "../../core/kernel/types" {
+  interface Services {
+    shapeView: ReturnType<typeof import("./shape-page.js").createShapeView>;
+    shortcuts: ReturnType<typeof import("./shortcuts-sheet.js").createShortcutsSheet>;
+    settingsFrame: ReturnType<typeof import("./surface.js").mountSettingsSurface>;
+  }
+}
+export {};

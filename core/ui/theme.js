@@ -4,8 +4,8 @@ import { canvasColor } from "./flavours.js";
 import { redraw } from "./redraw.js";
 import { createThemePreference } from "./theme-preference.js";
 
-/** @param {ReturnType<typeof import("../kernel/scope.js").createScope>} scope @param {(theme: "light" | "dark") => void} setDiffTheme */
-export function createTheme(scope, setDiffTheme) {
+/** @param {Pick<import("../kernel/types").ModuleContext, "listen">} scope @param {(theme: "light" | "dark") => void} onApplied */
+export function createTheme(scope, onApplied) {
   const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
   const preference = createThemePreference(LIGHT_OS);
   /** @type {Set<() => void>} */
@@ -24,7 +24,7 @@ export function createTheme(scope, setDiffTheme) {
     document.documentElement.dataset.theme = t;
     const f = THEME.flavour();
     if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
-    setDiffTheme(t);
+    onApplied(t);
     document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvasColor(t, f));
     const b = document.getElementById("theme");
@@ -39,7 +39,7 @@ export function createTheme(scope, setDiffTheme) {
   return { THEME, applyTheme };
 }
 
-/** @param {ReturnType<typeof import("../kernel/scope.js").createScope>} scope @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {(message: string) => void} announce */
+/** @param {Pick<import("../kernel/types").ModuleContext, "listen">} scope @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {(message: string) => void} announce */
 export function wireThemeToggle(scope, applyTheme, announce) {
   const button = document.getElementById("theme");
   if (button) scope.listen(button, "click", () => {
@@ -48,3 +48,13 @@ export function wireThemeToggle(scope, applyTheme, announce) {
     announce(t === "light" ? "Light mode" : "Dark mode");
   });
 }
+
+/** @type {import("../kernel/types").ModuleDef} */
+export const themeModule = {
+  manifest: { id: "xo.theme", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["announce"], provides: ["theme"] },
+  activate(ctx) {
+    const theme = createTheme(ctx, (mode) => ctx.emit("theme:applied", mode));
+    wireThemeToggle(ctx, theme.applyTheme, ctx.use("announce"));
+    ctx.provide("theme", theme);
+  },
+};

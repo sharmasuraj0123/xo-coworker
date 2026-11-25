@@ -7,13 +7,13 @@ import { createAppServices } from "../shell/app-services.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
 import { worktreesModule } from "../modules/worktrees/module.js";
-import { createSettingsModule } from "../modules/settings/module.js";
+import { mountSettingsSurface } from "../modules/settings/surface.js";
+import { settingsModule } from "../modules/settings/module.js";
 import { SETTINGS_PAGE_OPEN } from "../modules/settings/page-events.js";
 import { definePlaces } from "../shell/places.js";
 import { SETTINGS } from "../shell/overlays.js";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
-const settingsModule = createSettingsModule().module;
 
 test("Settings retires each built-in read and its keyboard controls together", async (t) => {
   const ids = ["routing", "rules", "worktrees"];
@@ -98,14 +98,17 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
       });
     },
   });
-  const settings = createSettingsModule({
+  const host = {
     el: root, side: opener, phoneButton: find("#set-phone"), closeButton: find("#set-x"),
     phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
     preferences: { THEME: createTheme(createScope(), () => {}).THEME, webPictures: "xo:conversation/webpics" },
     at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { mount: () => ({ apply() {}, open() {} }) }, beforeOpen() {}, onHidden() {},
+  };
+  const id = "test.settings-frame";
+  kernel.register(settingsModule);
+  kernel.register({ manifest: { id, version: "1.0.0", kernel: "^1.1.0", needs: ["announce", "shape", "settings"] },
+    activate(ctx) { mountSettingsSurface(ctx, host); },
   });
-  const id = settings.module.manifest.id;
-  kernel.register(settings.module);
   const opened = [];
   kernel.bus.on(SETTINGS_PAGE_OPEN, (page) => opened.push(page));
   await kernel.start();

@@ -52,3 +52,9 @@ export interface SettingsWorld {
   };
   subscribe?(listener: () => void): () => void;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    mountRuntimeSettings(host: Pick<RuntimeSettingsDeps, "root" | "scope">): ReturnType<typeof import("./settings.js").createRuntimeSettings>;
+  }
+}

@@ -29,3 +29,11 @@ export function createShortcutsSheet(scope, focusOverlay, syncInert, schedule) {
   scope.effect(() => K.onChange(() => { if (!keys.hidden) keysSheetRender(); schedule(); }));
   return { keys, openKeys, closeKeys };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const shortcutsModule = {
+  manifest: { id: "xo.shortcuts", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["overlayFocus"], provides: ["shortcuts"] },
+  activate(ctx) {
+    ctx.provide("shortcuts", createShortcutsSheet(ctx, ctx.use("overlayFocus"), () => ctx.emit("app:sync-inert"), () => ctx.invalidate("workspace")));
+  },
+};
