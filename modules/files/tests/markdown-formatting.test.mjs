@@ -101,7 +101,9 @@ function inline(doc, anchor) {
   state = state.update({ selection: { anchor } }).state;
   const { decorations: set } = createInline(CM, { widgets, blocks, notes })({ state, visibleRanges: [{ from: 0, to: state.doc.length }] });
   const out = [];
-  set.between(0, state.doc.length, (from, to, d) => { out.push({ from, to, line: state.doc.lineAt(from).number, cls: d.spec.class, widget: d.spec.widget }); });
+  set.between(0, state.doc.length, (from, to, d) => {
+    out.push({ from, to, line: state.doc.lineAt(from).number, cls: d.spec.class, attrs: d.spec.attributes, widget: d.spec.widget });
+  });
   return { out, state };
 }
 
@@ -148,6 +150,19 @@ t("a citation becomes its number linking to its note; the note line is numbered 
   assert.equal(out.find((d) => d.line === 3 && d.cls)?.cls, "cm-md-fn");
   const editing = inline(doc, doc.indexOf("[^src]") + 2).out;
   assert.ok(!editing.some((d) => d.widget?.name === "ref"), "the caret inside a citation shows its source");
+});
+
+t("list items hang their wrapped lines by depth, numbers keep their own column, and blank lines are half a line", () => {
+  const doc = "- One\n  - Two\n\n1. Three";
+  const { out } = inline(doc, doc.length);
+  const lines = out.filter((d) => d.cls?.startsWith("cm-md-li") || d.cls === "cm-md-gap");
+  assert.deepEqual(lines.map((d) => [d.line, d.cls, d.attrs?.style ?? null]), [
+    [1, "cm-md-li is-ul", null], [2, "cm-md-li is-ul", "--md-depth:1"], [3, "cm-md-gap", null], [4, "cm-md-li is-ol", null],
+  ]);
+  assert.ok(out.some((d) => d.line === 2 && d.from === doc.indexOf("  -") && d.to === d.from + 2 && !d.cls && !d.widget), "the indent hidden");
+  const number = out.find((d) => d.cls === "cm-md-olnum");
+  assert.equal(doc.slice(number.from, number.to), "1. ");
+  assert.deepEqual(out.filter((d) => d.widget?.name === "bullet").map((d) => doc.slice(d.from, d.to)), ["- ", "- "]);
 });
 
 console.log(`${passed} passed`);

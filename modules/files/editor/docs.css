@@ -34,8 +34,8 @@
 .vw-doc .cm-xo-page .cm-line{padding:var(--md-line-padding,0)}
 .cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--ink)}
 .cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);--md-line-padding:var(--s-2) 0 var(--s-2)}
-.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);--md-line-padding:var(--s-8) 0 var(--s-1)}
-.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);--md-line-padding:var(--s-6) 0 0}
+.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);--md-line-padding:var(--s-6) 0 var(--s-1)}
+.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);--md-line-padding:var(--s-4) 0 0}
 .cm-md-h5,.cm-md-h6{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 .cm-md-quote{
   border-left:var(--stroke-md-quote) solid var(--line-strong);--md-line-padding:0 0 0 var(--s-4);color:var(--ink-2);font-style:italic
@@ -50,8 +50,15 @@
   color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,var(--fill-clear));
   text-underline-offset:var(--offset-link-underline)
 }
-.cm-md-bullet{display:inline-block;width:var(--ic-xs);color:var(--ink-3)}
-.cm-md-block{margin:var(--s-2) 0;padding:var(--s-1) 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
+.cm-md-li{
+  --md-hang:var(--s-6);--md-line-padding:0 0 0 calc(var(--md-hang) * (var(--md-depth,0) + 1));text-indent:calc(var(--md-hang) * -1)
+}
+.cm-md-li.is-task{--md-hang:calc(var(--ic-base) + var(--s-2))}
+.cm-md-li :is(.cm-md-bullet,.cm-md-olnum,.cm-md-task){text-indent:0}
+.cm-md-bullet{display:inline-block;width:var(--md-hang);color:var(--ink-3)}
+.cm-md-olnum{display:inline-block;min-width:var(--md-hang);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cm-md-gap{line-height:calc(var(--lh-read) / 2)}
+.cm-md-block{margin:var(--s-2) 0;padding:0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
 .cm-md-imath{cursor:text}
 .vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,var(--fill-clear))}
 .vw-doc .cm-editor .cm-line:is(.cm-changedLine,.cm-inlineChangedLine){background:var(--code-add-bg)}

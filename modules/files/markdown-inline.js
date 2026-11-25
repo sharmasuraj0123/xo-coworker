@@ -42,10 +42,16 @@ function looks(Decoration, widgets) {
     codeMark: Decoration.mark({ class: "cm-md-code" }),
     linkMark: Decoration.mark({ class: "cm-md-link" }),
     doneMark: Decoration.mark({ class: "cm-md-done" }),
-    /** @param {string} cls */
-    lineOf(cls) {
-      let d = lineClasses.get(cls);
-      if (!d) { d = Decoration.line({ class: cls }); lineClasses.set(cls, d); }
+    numberMark: Decoration.mark({ class: "cm-md-olnum" }),
+    gapLine: Decoration.line({ class: "cm-md-gap" }),
+    /** @param {string} cls @param {number} [depth] how deep a list item sits */
+    lineOf(cls, depth = 0) {
+      const key = `${cls}:${depth}`;
+      let d = lineClasses.get(key);
+      if (!d) {
+        d = Decoration.line({ class: cls, attributes: depth ? { style: `--md-depth:${depth}` } : {} });
+        lineClasses.set(key, d);
+      }
       return d;
     },
   };
@@ -131,14 +137,28 @@ function fence(pass, node) {
   if (closed && !pass.caretIn(last.from, last.to) && last.to > last.from) pass.ranges.push(look.hide.range(last.from, last.to));
 }
 
-/** A list's bullet, or a task's checkbox with its done text struck. @param {Pass} pass @param {SyntaxNodeRef} n */
+/** How many lists a list item sits inside, beyond its own. @param {SyntaxNode} node */
+function listDepth(node) {
+  let depth = -1;
+  for (let p = node.parent; p; p = p.parent) if (p.name === "BulletList" || p.name === "OrderedList") depth++;
+  return Math.max(0, depth);
+}
+
+/** A list item hangs its wrapped lines under its text, its indent drawn by depth. @param {Pass} pass @param {SyntaxNodeRef} n */
 function listMark(pass, n) {
   const { state, look } = pass;
   const space = state.sliceDoc(n.to, n.to + 1) === " " ? 1 : 0;
   if (n.name === "ListMark") {
-    const t = state.sliceDoc(n.from, n.to);
-    if (n.node.nextSibling?.name === "Task") pass.swap(n.from, n.to + space, null);
-    else if (t === "-" || t === "*" || t === "+") pass.swap(n.from, n.to, look.widgets.bullet);
+    const line = state.doc.lineAt(n.from);
+    const task = n.node.nextSibling?.name === "Task";
+    const ordered = n.node.parent?.parent?.name === "OrderedList";
+    if (pass.lineDeco.has(line.from)) return;
+    const kind = task ? "is-task" : ordered ? "is-ol" : "is-ul";
+    pass.lineDeco.set(line.from, look.lineOf(`cm-md-li ${kind}`, listDepth(n.node)));
+    if (n.from > line.from && /^\s+$/.test(state.sliceDoc(line.from, n.from))) pass.swap(line.from, n.from, null);
+    if (task) pass.swap(n.from, n.to + space, null);
+    else if (ordered) pass.ranges.push(look.numberMark.range(n.from, n.to + space));
+    else pass.swap(n.from, n.to + space, look.widgets.bullet);
     return;
   }
   const done = /x/i.test(state.sliceDoc(n.from + 1, n.to - 1));
@@ -218,6 +238,7 @@ export function createInline({ Decoration, syntaxTree }, { widgets, blocks, note
         const l = state.doc.lineAt(p);
         p = l.to + 1;
         if (l.from <= frontTo) continue;
+        if (!l.text.trim() && !pass.lineDeco.has(l.from)) pass.lineDeco.set(l.from, look.gapLine);
         if (l.text.includes("$")) maths(pass, l);
         if (l.text.includes("[^")) footnotes(pass, l);
       }

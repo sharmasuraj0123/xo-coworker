@@ -15,6 +15,7 @@
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
 /* a reply's text lines stop at --measure; code, tables, charts, pictures and cards keep the whole column */
 .prose>:is(p,ul,ol,blockquote,.md-h){max-width:min(var(--measure),42em)}
+.prose hr{height:0;margin:var(--s-6) 0;border:0;border-top:var(--hair) solid var(--line)}
 :root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 :root:not([data-msgx]) .msgs>.ev{gap:8px}
 :root:not([data-msgx]) .msgs>.ev>.ev-ic{margin:0 var(--s-1)}
