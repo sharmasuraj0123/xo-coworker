@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
+import { declarationsFor, publishedRules, resolveValue, tokenValuesFor } from "./lib/css-snapshot.mjs";
 
 const rules = publishedRules();
 
@@ -41,9 +41,21 @@ test("a picture message draws its keyboard ring over the image", () => {
 
 test("hover styles distinguish the pinned glyph in both themes", () => {
   assert.ok(hasRule(".md-it.is-pin .md-pin", { color: "var(--accent)" }));
-  assert.ok(hasRule(".md-it.is-pin .md-pin:hover", { color: "var(--accent-hover)" }));
-  assert.ok(hasRule(".md-pin:hover", { background: "color-mix(in srgb,var(--fill-3) 92%,transparent)", color: "var(--ink)" }));
-  assert.ok(hasRule(':root[data-theme="light"] .md-pin:hover', { background: "var(--surface)" }));
-  assert.ok(hasRule(':root[data-theme="light"] .md-it.is-pin .md-pin:hover',
-    { color: "color-mix(in srgb,var(--accent) 75%,var(--ink))" }));
+  assert.ok(hasRule(".md-pin:hover", { color: "var(--ink)" }));
+  const lightRoles = tokenValuesFor(':root[data-theme="light"] :where(.md-pin)');
+  const cases = [
+    [".md-pin", "background", "color-mix(in srgb,var(--canvas) 78%,transparent)",
+      "color-mix(in srgb,var(--surface) 85%,transparent)"],
+    [".md-pin:hover", "background", "color-mix(in srgb,var(--fill-3) 92%,transparent)", "var(--surface)"],
+    [".md-it.is-pin .md-pin:hover", "color", "var(--accent-hover)", "color-mix(in srgb,var(--accent) 75%,var(--ink))"],
+  ];
+  for (const [selector, property, dark, light] of cases) {
+    const rows = declarationsFor(selector, property);
+    assert.equal(rows.length, 1, selector);
+    const paint = /^var\((--[\w-]+),(.+)\)$/.exec(rows[0].value);
+    assert.ok(paint, selector);
+    const lightPaint = lightRoles.get(paint[1]);
+    assert.ok(lightPaint && sameValue(lightPaint, light), `${selector} light ${property}`);
+    assert.ok(sameValue(paint[2], dark), `${selector} dark ${property}`);
+  }
 });
