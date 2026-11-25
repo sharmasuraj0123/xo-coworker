@@ -98,6 +98,7 @@ assert.equal(scrollPane.querySelectorAll(".region-ring").length, 0);
 scrollPane.remove();
 
 assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
+assert.ok(document.querySelector('[data-set="diagnostics"]'), "Space pages activates and contributes diagnostics");
 assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
 const expectedIcon = document.createElement("span");
 expectedIcon.innerHTML = ICON.more;

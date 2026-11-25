@@ -34,8 +34,8 @@ export const spacePages = {
   manifest: { id: "xo.space-pages", version: "1.0.0", kernel: "^1.1.0",
     contributes: ["page:scheduled", "page:shared", "page:connectors", "settings.section:secrets", "settings.section:diagnostics"] },
   activate(ctx) {
-    ctx.contribute("settings.section", { id: "secrets", label: "Secrets", render: secrets });
-    ctx.contribute("settings.section", { id: "diagnostics", label: "Server & diagnostics", render: diagnostics });
+    ctx.contribute("settings.section", { id: "secrets", label: "Secrets", icon: "lock", render: secrets });
+    ctx.contribute("settings.section", { id: "diagnostics", label: "Server & diagnostics", icon: "server", render: diagnostics });
     for (const [id, read] of Object.entries({ scheduled, shared, connectors })) {
       const title = id[0].toUpperCase() + id.slice(1);
       let last = -Infinity, pending = false;
