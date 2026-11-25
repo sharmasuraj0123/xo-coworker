@@ -174,7 +174,4 @@ export function installLoad(ctx) {
       loadSessions(signal), loadReview(signal), loadRouted(signal), ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
-
-
 }
-

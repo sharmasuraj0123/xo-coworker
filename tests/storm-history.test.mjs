@@ -53,13 +53,16 @@ t("a thread's first page lands with its turns and hops, not before; an older pag
   hopsGate.open();
   await until(() => world.state.threadHist.t1.loaded);
   assert.deepEqual(world.state.threadMsgs.t1.map((r) => r.seq), [10]);
-  world.act.loadOlderThread("t1");
+  const older = world.act.loadOlderThread("t1");
   world.act.loadOlderThread("t1");
   await until(() => be.asked.some((a) => a.path === "/chat/events" && a.query.before_seq === "50"));
   await settle();
   assert.deepEqual(world.state.threadMsgs.t1.map((r) => r.seq), [10], "the older page waits for its frames");
+  be.push("message", { seq: 11, chat_id: "chat_p", data: row(11, { thread_ts: "t1" }) });
+  await until(() => world.state.threadMsgs.t1.some((r) => r.id === "r11"));
   framesGate.open();
-  await until(() => world.state.threadMsgs.t1.length === 3);
+  await older;
+  assert.deepEqual(world.state.threadMsgs.t1.map((r) => r.seq), [5, 7, 10, 11]);
   const olderMsgs = be.asked.filter((a) => a.path === "/chat/chats/chat_p/messages" && a.query.thread === "t1" && a.query.before_seq !== String(NEWEST));
   assert.deepEqual(olderMsgs.map((a) => [a.query.before_seq, a.query.limit]), [["10", "30"]], "once");
   const frames = be.asked.filter((a) => a.path === "/chat/events" && !a.query.kinds).map((a) => a.query.before_seq);
