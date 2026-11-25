@@ -1,5 +1,7 @@
 # Modularization handoff
 
+`coworker/modular` is the canonical local branch. The deployed code is `7440249e`.
+
 The Files page returns the shared viewer to its shell position on unmount. At 400 lines, the next change to `modules/files/files.js` must first extract a coherent part, such as mounting and viewer placement.
 
 ## Standing rules for every phase
@@ -175,7 +177,7 @@ The owner moved Package E here. Compare the serve-time bundling work against the
 
 ## Where things stand
 
-- **The branch:** `coworker/modular`, local only, never pushed, at `f83414e8`.
+- **The branch at this handoff:** `coworker/modular`, local only, never pushed, at `7b94496e`.
   - It is clean, and `node tools/check.mjs` passes when run with `JOBS=1`.
   - Re-check it with `git rev-parse coworker/modular`.
 - **The live app:** `:3000` still serves `release/2026-11-19`. The rebuild never touched it.
