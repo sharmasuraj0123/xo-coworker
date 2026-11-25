@@ -4,7 +4,6 @@ import { bindingNames, literal, member, SOURCE, TEST, walk } from "./syntax.mjs"
 import { checksLifecycle, lifecycleRules } from "./lifecycle.mjs";
 import { sourceReads } from "./source-reads.mjs";
 import { domWrites } from "./dom-expando.mjs";
-import { importEffects } from "./app-wiring.mjs";
 import { checkDialogMarkup } from "./dialogs.mjs";
 
 const FUNCTION = /^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/;
@@ -25,7 +24,6 @@ export function javascriptRules(file, source, { tree, comments }, report, files,
     (item.declaration ?? item).declarations?.map((decl) => decl.init) ?? []));
   if (lifecycle) lifecycleRules(tree, file, report, comments, consumers);
   if (production) {
-    importEffects(file, tree, report);
     for (const line of domWrites(tree, comments, source)) report("domExpando", line);
     for (const comment of comments) {
       if (/^\s*@ts-(?:nocheck|ignore|expect-error)\b/.test(comment.value)) {

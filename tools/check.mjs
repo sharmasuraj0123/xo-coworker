@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { importEffects } from "./conformance/app-wiring.mjs";
+import { javascript, TEST } from "./conformance/syntax.mjs";
 import { checkConformance } from "./conformance/ratchet.mjs";
 import { sizeSignals, sizeRatchet } from "./conformance/size-ratchet.mjs";
 import { runGit } from "./git-environment.mjs";
@@ -145,6 +147,16 @@ step("layers", () => {
   return fresh.length ? `layers: a file imports upward or from another module (talk through services, places or the bus):\n${fresh.map((k) => `  ${k}`).join("\n")}` : null;
 });
 
+step("import lifetimes", () => {
+  const errors = [];
+  for (const file of sourceFiles()) {
+    if (!/^(?:core|modules|shell)\/.*\.m?js$/.test(file) || TEST.test(file)) continue;
+    const source = readFileSync(join(ROOT, file), "utf8");
+    importEffects(file, javascript(source, file).tree, (_, line) => errors.push(`${file}:${line}: move startup effects into activation`));
+  }
+  return errors.length ? errors.join("\n") : null;
+});
+
 step("conformance", () => checkConformance(ROOT, BASE_DIR, { update: UPDATE, base: flags["conformance-base"] }));
 step("places", () => {
   const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
@@ -165,7 +177,8 @@ if (!FAST) step("production build", () => {
 
 if (!FAST) step("tests", () => {
   const r = run(process.execPath, ["tests/run.mjs"], { stdio: ["ignore", "pipe", "pipe"] });
-  const tail = (r.stdout + r.stderr).trim().split("\n").slice(-60).join("\n");
+  const output = (r.stdout + r.stderr).trim().split("\n");
+  const tail = [...output.filter(line => line.startsWith("FAIL ")), ...output.slice(-60)].join("\n");
   return r.status === 0 ? null : `tests:\n${tail}`;
 });
 
