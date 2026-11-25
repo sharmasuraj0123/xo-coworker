@@ -40,6 +40,7 @@ import { createEdgeCards } from "../shell/edge-cards.js";
 import { createShellRenderer } from "../shell/render.js";
 import { createShellFoundation } from "../shell/foundation.js";
 import { bootShell } from "../shell/boot.js";
+import { failureModule } from "../shell/failures.js";
 import { createLaunchpadSurface } from "../modules/launchpad/surface.js";
 import { createFileRoute } from "../modules/files/conversation-files.js";
 import { fileScope, localIn } from "../modules/files/scope.js";
@@ -73,7 +74,7 @@ import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 /** @import { WorldThread } from "../core/services/world/state-types.d.ts" */
 /** @import { Conversation } from "../modules/conversation/draw-types.d.ts" */
 
-const { appScope, world, schedule, notices, announce, applicationShape, navigationState, place, services, PHONE, redrawFocus,
+const { appScope, world, schedule, notices, noticeModule, announce, applicationShape, navigationState, place, services, PHONE, redrawFocus,
   toastLine, focusOverlay, setDrawer } = createShellFoundation(render, () => syncInert());
 const SHAPE = applicationShape.shape;
 const noun = mountConversationMarkdown(appScope, SHAPE, (path) => fileRoute(path));
@@ -283,6 +284,7 @@ const syncInert = mountShellInteractions(appScope, kernel.layers, {
 });
 
 await bootShell(appScope, [
+  noticeModule, failureModule,
   threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
   homeModule, JUMP.module, sinceModule, artifacts.module, runs.module, settings.module,
   MAP.module, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,

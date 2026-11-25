@@ -20,6 +20,7 @@ export async function bootShell(scope, modules, startup) {
     kernel.bus.emit("app:pagehide");
     if (!("persisted" in event && event.persisted)) scope.dispose();
   });
-  await kernel.start();
+  const report = await kernel.start();
+  kernel.bus.emit("app:started", report);
   scope.effect(() => startShell(startup));
 }

@@ -26,6 +26,11 @@ export function createShellFoundation(render, syncInert) {
   const schedule = createShellScheduler(render, appScope);
   const notices = createConversationNotices(schedule);
   appScope.effect(() => notices.dispose);
+  /** @type {import("../core/kernel/types").ModuleDef} */
+  const noticeModule = {
+    manifest: { id: "xo.notices", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["notices"] },
+    activate(ctx) { ctx.provide("notices", notices); },
+  };
   const announce = createAnnouncer($("#live"), appScope);
   const applicationShape = createApplicationShape({
     scope: appScope, events: world, notice: (h) => notices.show({ kind: "calm", ...h }, 6000),
@@ -40,7 +45,7 @@ export function createShellFoundation(render, syncInert) {
   appScope.effect(regionRings);
   appScope.effect(keepFocusInView);
   return {
-    appScope, world, schedule, notices, announce, applicationShape, navigationState, place,
+    appScope, world, schedule, notices, noticeModule, announce, applicationShape, navigationState, place,
     services, PHONE, setDrawer: createDrawer({ phone: PHONE, syncInert }), redrawFocus: createRedrawFocus(),
     toastLine, focusOverlay: createOverlayFocus(appScope),
   };

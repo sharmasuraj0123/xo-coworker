@@ -15,8 +15,13 @@ export interface ConversationHeaderPaint {
 }
 
 declare module "../core/kernel/types" {
-  interface Services extends AppServices { placeContext: ReturnType<typeof import("./place-context.js").createPlaceContext> }
+  interface Services extends AppServices {
+    placeContext: ReturnType<typeof import("./place-context.js").createPlaceContext>;
+    notices: ReturnType<typeof import("../core/services/notices/line.js").createConversationNotices>;
+  }
   interface Topics {
+    "app:started": import("../core/kernel/types").StartReport;
+    "kernel:module-failed": { id: string; error: string };
     "app:render": undefined;
     "app:decision-undone": string;
     "app:pagehide": undefined;

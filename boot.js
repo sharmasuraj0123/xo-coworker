@@ -1,7 +1,14 @@
 // @ts-check
 
-// The app's entry: the kernel and its places, the frame's hidden layers, then the app.
-
-import "./shell/kernel.js";
-import "./shell/frame.js";
-import "./js/app.js";
+try {
+  await import("./shell/frame.js");
+  await import("./js/app.js");
+} catch (error) {
+  const alert = document.createElement("div");
+  alert.setAttribute("role", "alert");
+  const message = document.createElement("p");
+  message.textContent = "Coworker couldn't start. Reload the page to try again.";
+  alert.append(message);
+  document.body.replaceChildren(alert);
+  console.error("Coworker startup failed", error);
+}
