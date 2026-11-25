@@ -1,4 +1,5 @@
 // @ts-check
+import { createScope } from "../../kernel/scope.js";
 import { stormSource } from "../storm/index.js";
 import { createTurns } from "./turns.js";
 
@@ -9,6 +10,8 @@ export const WAITING = (s) => s === "needs_reply" || s === "needs_approval" || s
 
 /** The world the views render: it reads on its own (GETs and the one stream) and writes only when the person acts, through world.act. */
 export function createWorld() {
+  const scope = createScope();
+  const { signal } = scope;
   /** @type {Set<(s: State) => void>} */
   const subs = new Set();
   /** @type {Set<(e: WorldEvent, s: State) => void>} */
@@ -43,24 +46,40 @@ export function createWorld() {
     turns: createTurns(),
     lastSeq: 0,
   };
-  const emit = () => { state.now = Date.now(); for (const f of subs) f(state); };
+  const emit = () => {
+    if (signal.aborted) return;
+    state.now = Date.now();
+    for (const f of subs) f(state);
+  };
   /** @param {WorldEvent} e */
   const event = (e) => {
+    if (signal.aborted) return;
     e.at = e.at || Date.now();
     state.activity.unshift(e);
     state.activity.length = Math.min(state.activity.length, 200);
     for (const f of evs) f(e, state);
   };
 
-  const source = stormSource(state, emit, event);
+  scope.effect(() => () => { subs.clear(); evs.clear(); });
+  const act = stormSource(state, emit, event, scope);
 
   return {
     get state() { return state; },
     /** Every change; at once if already loaded. @param {(s: State) => void} fn */
-    subscribe(fn) { subs.add(fn); if (state.loaded) fn(state); return () => subs.delete(fn); },
+    subscribe(fn) {
+      if (signal.aborted) return () => false;
+      subs.add(fn);
+      if (state.loaded) fn(state);
+      return () => subs.delete(fn);
+    },
     /** Discrete events: a state change, a new ask, a message, done. @param {(e: WorldEvent, s: State) => void} fn */
-    onEvent(fn) { evs.add(fn); return () => evs.delete(fn); },
-    act: source.act,
+    onEvent(fn) {
+      if (signal.aborted) return () => false;
+      evs.add(fn);
+      return () => evs.delete(fn);
+    },
+    act,
+    dispose: scope.dispose,
     /** @param {string | null | undefined} id */
     thread: (id) => state.threads.find((t) => t.id === id),
     /** @param {string} id */

@@ -1,4 +1,5 @@
 // @ts-check
+import { createScope } from "../../../core/kernel/scope.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createCommands } from "../../../core/services/storm/commands.js";
@@ -15,7 +16,8 @@ globalThis.fetch = async (url, init) => {
   return Response.json({});
 };
 const rawThreads = new Map([["thread/key", { chat_id: "chat/key", state: "working" }]]);
-const ctx = { rawThreads, soon() {}, sentAt() { return {}; }, sessRead() { return {}; } };
+const ctx = {
+  scope: createScope(), rawThreads, soon() {}, sentAt() { return {}; }, sessRead() { return {}; } };
 const act = createCommands(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ (ctx)));
 const resolve = createThreadResolve({
   world: { act, thread: () => ({ title: "Review" }) },

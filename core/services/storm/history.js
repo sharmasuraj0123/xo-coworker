@@ -7,7 +7,8 @@ import { PAGE, OLDER_PAGE } from "./config.js";
 
 /** Conversations read backwards by seq, a page at a time, and rows looked up by id. @param {Ctx} ctx */
 export function installHistory(ctx) {
-  const { state, rawThreads, trimmed, framesBefore, emit } = ctx;
+  const { state, rawThreads, trimmed, framesBefore, emit, scope } = ctx;
+  const { signal } = scope;
 
   /** The copies of the workspace's messages in a project, for the "Routed to …" receipts. @param {string} project @param {Row[]} rows */
   function noteCopies(project, rows) {
@@ -28,16 +29,18 @@ export function installHistory(ctx) {
   };
   ctx.loadTimeline = async (project) => {
     const chat = ctx.chatIdOf(project);
-    if (!chat) return;
+    if (signal.aborted || !chat) return;
     const h = state.hist[project];
     if (h && (h.loading || h.loaded)) return;
     state.hist[project] = { loading: true, loaded: false, all: false, error: null, before: null };
     emit();
     try {
-      const d = await client.messages(chat, { before_seq: NEWEST, limit: PAGE });
+      const d = await client.messages(chat, { before_seq: NEWEST, limit: PAGE }, { signal });
+      if (signal.aborted) return;
       ctx.addRows(project, d.messages || []);
       state.hist[project] = { loading: false, loaded: true, all: !d.next_before_seq, error: null, before: d.next_before_seq || null };
     } catch (err) {
+      if (signal.aborted) return;
       state.hist[project] = { loading: false, loaded: false, all: false, error: err instanceof Error ? err.message : null, before: null };
     }
     emit();
@@ -46,23 +49,24 @@ export function installHistory(ctx) {
   ctx.loadOlder = async (project) => {
     const chat = ctx.chatIdOf(project);
     const h = state.hist[project];
-    if (!chat || !h || h.all || h.loading || !h.before) return;
+    if (signal.aborted || !chat || !h || h.all || h.loading || !h.before) return;
     h.loading = true;
     emit();
     try {
-      const d = await client.messages(chat, { before_seq: h.before, limit: OLDER_PAGE });
+      const d = await client.messages(chat, { before_seq: h.before, limit: OLDER_PAGE }, { signal });
+      if (signal.aborted) return;
       ctx.addRows(project, d.messages || []);
       h.before = d.next_before_seq || null;
       h.all = !h.before;
       h.olderError = null;
-    } catch (err) { h.olderError = err instanceof Error ? err.message : String(err); }
+    } catch (err) { if (signal.aborted) return; h.olderError = err instanceof Error ? err.message : String(err); }
     h.loading = false;
     emit();
   };
   /** An open thread: its newest page of messages and its session's recent turns, once; older pages come as you scroll up. */
   ctx.loadThread = async (ts) => {
     const r = rawThreads.get(ts);
-    if (!r) return;
+    if (signal.aborted || !r) return;
     const th = state.threadHist[ts] || (state.threadHist[ts] = { loading: false, loaded: false, error: null });
     // its turns were pruned while it was off screen: read them again, as far back as its pages go
     if (th.loaded && r.session_id && trimmed.has(r.session_id)) {
@@ -77,14 +81,15 @@ export function installHistory(ctx) {
     try {
       // its notes and the messages relayed into it (hops) land with the page: arriving after it, they moved what you were reading
       const [m] = await Promise.all([
-        client.messages(r.chat_id, { thread: ts, before_seq: NEWEST, limit: PAGE }),
+        client.messages(r.chat_id, { thread: ts, before_seq: NEWEST, limit: PAGE }, { signal }),
         r.session_id ? ctx.loadTurns(r.session_id) : null,
         ctx.hopsOnce(ts),
       ]);
+      if (signal.aborted) return;
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       state.threadMsgs[ts] = list;
       Object.assign(th, pageAfter(th, m), { error: null });
-    } catch (err) { th.error = err instanceof Error ? err.message : String(err); }
+    } catch (err) { if (signal.aborted) return; th.error = err instanceof Error ? err.message : String(err); }
     th.loading = false;
     ctx.soon();
   };
@@ -92,24 +97,27 @@ export function installHistory(ctx) {
   ctx.loadOlderThread = async (ts) => {
     const r = rawThreads.get(ts);
     const th = state.threadHist[ts];
-    if (!r || !th || !canPageOlder(th)) return;
+    if (signal.aborted || !r || !th || !canPageOlder(th)) return;
     th.older = true;
     ctx.soon();
     try {
-      const m = await client.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE });
+      const m = await client.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE }, { signal });
+      if (signal.aborted) return;
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null);
+      if (signal.aborted) return;
       state.threadMsgs[ts] = list;
       Object.assign(th, pageAfter(th, m), { olderError: null });
-    } catch (err) { th.olderError = err instanceof Error ? err.message : String(err); }
+    } catch (err) { if (signal.aborted) return; th.olderError = err instanceof Error ? err.message : String(err); }
     th.older = false;
     ctx.soon();
   };
   /** A session's older stored frames, a page at a time, until they reach `floor` (at most three pages). @param {string} session @param {number | null} floor */
   async function loadOlderTurns(session, floor) {
-    for (let i = 0; i < 3 && framesShort(framesBefore.get(session), floor); i++) {
+    for (let i = 0; i < 3 && !signal.aborted && framesShort(framesBefore.get(session), floor); i++) {
       try {
-        const d = await client.events({ session, before_seq: framesBefore.get(session), limit: 500 });
+        const d = await client.events({ session, before_seq: framesBefore.get(session), limit: 500 }, { signal });
+        if (signal.aborted) return;
         for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
         framesBefore.set(session, d.next_before_seq ?? null);
       } catch { return; /* the messages still land; their work shows when it can be read */ }
@@ -127,10 +135,12 @@ export function installHistory(ctx) {
   };
   // its frames, and the thread's control rows and move, read side by side: a thread's first page waits for both
   ctx.loadTurns = async (session) => {
+    if (signal.aborted) return;
     const [d, c] = await Promise.all([
-      client.events({ session, before_seq: NEWEST, limit: 500 }).catch(() => null), // live frames still arrive
-      client.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 }).catch(() => null),
+      client.events({ session, before_seq: NEWEST, limit: 500 }, { signal }).catch(() => null), // live frames still arrive
+      client.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 }, { signal }).catch(() => null),
     ]);
+    if (signal.aborted) return;
     if (d) {
       for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
       framesBefore.set(session, d.next_before_seq ?? null);
@@ -146,10 +156,11 @@ export function installHistory(ctx) {
   const sought = new Set();
   /** @type {Map<string, Map<string, number | null>>} */
   const wanted = new Map();
-  /** @type {ReturnType<typeof setTimeout> | 0} */
-  let findT = 0;
+  /** @type {(() => void) | null} */
+  let findT = null;
   ctx.clearSought = () => sought.clear();
   ctx.findRows = (project, ids, beforeSeq) => {
+    if (signal.aborted) return;
     let q = wanted.get(project);
     for (const id of ids) {
       if ((state.timeline[project] || []).some((/** @type {Row} */ r) => r.id === id) || state.found[project]?.has(id)) continue;
@@ -159,11 +170,11 @@ export function installHistory(ctx) {
       if (!q) wanted.set(project, (q = new Map()));
       q.set(id, beforeSeq ?? null);
     }
-    if (q && q.size && !findT) findT = setTimeout(walkFound, 0);
+    if (q && q.size && !findT) findT = scope.timeout(walkFound, 0);
   };
   // what it finds goes to state.found, never the visible timeline
   async function walkFound() {
-    findT = 0;
+    findT = null;
     const jobs = [...wanted]; wanted.clear();
     await Promise.all(jobs.map(async ([project, q]) => {
       const chat = ctx.chatIdOf(project);
@@ -174,7 +185,9 @@ export function installHistory(ctx) {
         const top = Math.max(...[...q.values()].map((s) => (s == null ? Infinity : s)));
         const from = Math.min(top === Infinity ? Infinity : top + 1, floor);
         let d;
-        try { d = await client.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }); } catch { return; }
+        try { d = await client.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }, { signal });
+      if (signal.aborted) return; } catch { return; }
+        if (signal.aborted) return;
         const rows = d.messages || [];
         for (const r of rows) { map.set(r.id, r); q.delete(r.id); }
         if (!rows.length || !d.next_before_seq) break;

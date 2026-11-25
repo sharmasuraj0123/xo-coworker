@@ -368,7 +368,7 @@ Items inside first-party files: 2488 (moved 1774, planned 270, kept 229, deleted
 | `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/flows.test.cjs` | 4372 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
+| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: the static fixture server moved to e2e/fixtures/browser-static-server.cjs; the in-page mock world retires when the last suite moves |
 | `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |

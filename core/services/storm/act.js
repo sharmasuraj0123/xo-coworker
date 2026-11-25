@@ -1,12 +1,11 @@
 // @ts-check
-import { client } from "./client.js";
+import { client, worldRead } from "./client.js";
 import { heldOf, mainRuntime, sessionBusy } from "../world/sessions.js";
 import { commsLine, commsHeader, commsText } from "../comms.js";
 import { AWAIT_CAP_MS } from "./config.js";
 import { createCommands } from "./commands.js";
 
 /** @import {Ctx, Row} from "./types" */
-
 /** @type {WeakMap<Ctx, { revision: number, rows: WeakMap<import("../run-types").StoredRun, number> }>} */
 const runOrders = new WeakMap();
 
@@ -29,14 +28,19 @@ export function publishStreamRun(ctx, record) {
 
 /** @param {Ctx} ctx */
 export function createAct(ctx) {
-  const { state, watched, trimmed } = ctx;
+  const { state, watched, trimmed, scope } = ctx;
   const order = orderFor(ctx);
   return {
     live: true,
     storm: true,
     ...createCommands(ctx),
     /** Read one thread now (a new one the stream hasn't brought yet), so the view can open it. @param {string} chatId @param {string} ts */
-    fetchThread: async (chatId, ts) => { await ctx.refetchThread(chatId, ts); ctx.commit(); ctx.emit(); return state.threads.find((t) => t.id === ts) || null; },
+    fetchThread: async (chatId, ts) => {
+      await ctx.refetchThread(chatId, ts);
+      if (scope.signal.aborted) return null;
+      ctx.commit(); ctx.emit();
+      return state.threads.find((t) => t.id === ts) || null;
+    },
     /** @param {string} project */
     loadTimeline: (project) => ctx.loadTimeline(project),
     /** The runtime policy in effect for a project (its own over the Space's), or null before it is read. @param {string} project */
@@ -50,13 +54,21 @@ export function createAct(ctx) {
     /** Read the runtimes again now (Settings › Runtimes asks every 30 s while it is open). */
     loadRuntimes: () => ctx.refreshRuntimes(),
     /** The open conversations: load their timelines once; the stream keeps them current. @param {string[]} projects */
-    watch: (projects) => { watched.projects = new Set((projects || []).filter(Boolean)); for (const p of watched.projects) ctx.loadTimeline(p); },
+    watch: (projects) => {
+      if (scope.signal.aborted) return;
+      watched.projects = new Set((projects || []).filter(Boolean));
+      for (const p of watched.projects) ctx.loadTimeline(p);
+    },
     /** @param {string | null} ts */
-    watchThread: (ts) => { watched.thread = ts || null; if (ts) ctx.loadThread(ts); },
+    watchThread: (ts) => { if (scope.signal.aborted) return; watched.thread = ts || null; if (ts) ctx.loadThread(ts); },
     /** The thread shown in the panel beside the main chat (null when none): watched as the main one is. @param {string | null} ts */
-    watchSideThread: (ts) => { watched.side = ts || null; if (ts && ts !== watched.thread) ctx.loadThread(ts); },
+    watchSideThread: (ts) => {
+      if (scope.signal.aborted) return;
+      watched.side = ts || null;
+      if (ts && ts !== watched.thread) ctx.loadThread(ts);
+    },
     /** An open plain chat: its session's turns are never pruned while it is on screen. @param {string | null} sid */
-    watchSession: (sid) => { watched.session = sid || null; },
+    watchSession: (sid) => { if (!scope.signal.aborted) watched.session = sid || null; },
     /** Were this session's older turns pruned? (then read them again; asking clears it) @param {string} sid */
     takeTrimmed: (sid) => trimmed.delete(sid),
     loadOlder: ctx.loadOlder,
@@ -77,7 +89,7 @@ export function createAct(ctx) {
     sessionHeld: (sessionId) => ctx.heldOfSession(state.sessions[sessionId] || null),
     sentAt: ctx.sentAt,
     /** A session read, taken in the stream's order: sent = sentAt() before the request. @param {Row} s @param {import("./types").Sent} [sent] */
-    noteSession: (s, sent) => { if (s && s.id) { ctx.noteSession(s, sent || ctx.sentAt()); ctx.soon(); } },
+    noteSession: (s, sent) => { if (!scope.signal.aborted && s?.id) { ctx.noteSession(s, sent || ctx.sentAt()); ctx.soon(); } },
     /** Is a session on a turn now (its status, or work seen since it said queued)? @param {string} sessionId */
     onTurn: (sessionId) => ctx.onTurn(state.sessions[sessionId] || null),
     /** Would its pool hold new work for this agent? @param {string | null} agent */
@@ -94,10 +106,11 @@ export function createAct(ctx) {
       return commsText(last.header) || (last.type === "text" ? "Writing" : null);
     },
     /** @param {string} session @param {{ signal?: AbortSignal }} [options] */
-    listRuns: async (session, { signal } = {}) => {
+    listRuns: async (session, options = {}) => {
       const readOrder = ++order.revision;
-      const d = await client.runs(session, { tree: "true", depth: 3, limit: 200 }, { signal });
-      signal?.throwIfAborted();
+      const d = await worldRead(scope.signal, options.signal,
+        (signal) => client.runs(session, { tree: "true", depth: 3, limit: 200 }, { signal }));
+      scope.signal.throwIfAborted(); options.signal?.throwIfAborted();
       /** @param {Row} run @returns {Row} */
       const publish = (run) => {
         const current = state.runs.get(run.id);

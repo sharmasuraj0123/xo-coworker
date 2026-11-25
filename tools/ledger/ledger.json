@@ -3124,6 +3124,10 @@
    ],
    "note": "every importer points at core/services/storm, so it leaves with no re-export",
    "evidence": {
+    "core/services/storm/index.js": {
+     "anchor": "export function stormSource(state, emit, event, scope)",
+     "reason": "Storm's entry installs the world-owned stream, reads, selectors and commands."
+    },
     "core/services/storm/client.js": {
      "anchor": "streamUrl: api.streamUrl",
      "reason": "The storm I/O adapter collects the former directly invoked route methods."
@@ -4800,7 +4804,7 @@
   "tests/browser/harness.cjs": {
    "status": "planned",
    "home": "e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs",
-   "note": "its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs"
+   "note": "the static fixture server moved to e2e/fixtures/browser-static-server.cjs; the in-page mock world retires when the last suite moves"
   },
   "tests/browser/held-contract.test.cjs": {
    "status": "planned",
@@ -7217,7 +7221,7 @@
    "home": "core/platform/api.js",
    "evidence": {
     "core/platform/api.js": {
-     "anchor": "status: () => get(\"/chat/status\")",
+     "anchor": "status: ({ signal } = {}) => get(\"/chat/status\", undefined, signal)",
      "reason": "The API adapter declares the chat namespace without its transport-level /api prefix."
     }
    }

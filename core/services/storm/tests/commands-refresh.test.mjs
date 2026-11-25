@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createScope } from "../../../kernel/scope.js";
 import { ApiError } from "../../../platform/http.js";
 import { createCommands } from "../commands.js";
 
@@ -20,7 +21,7 @@ test("a policy refresh keeps failed projects and reports unexpected errors once"
       default: throw new Error(`Unexpected fixture route ${route}`);
     }
   });
-  const commands = createCommands({ state, emit() {} });
+  const commands = createCommands({ state, scope: createScope(), emit() {} });
   assert.deepEqual(await commands.setPolicy(null, updated.effective), updated);
   assert.deepEqual(state.chatPolicy, { missing: retained, failed: retained, current: updated });
   assert.deepEqual(reported.map(({ code }) => code), ["refresh_failed"], "only unexpected policy refresh failures are reported");
@@ -40,7 +41,7 @@ test("decision failure keeps its receipt while refreshing the review", async (t)
       default: throw new Error(`Unexpected fixture route ${route}`);
     }
   });
-  const commands = createCommands({ state, soon() {} });
+  const commands = createCommands({ state, scope: createScope(), soon() {} });
   await assert.rejects(commands.decideItem("missing", {}), {
     code: "review_not_found", item: null, gone: "review_not_found",
   });

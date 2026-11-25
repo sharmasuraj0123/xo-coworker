@@ -6,15 +6,15 @@ interface ReadOptions { signal?: AbortSignal }
 type SignInRoute = "claude-code" | "codex" | "antigravity";
 
 export interface Api {
-  status(): Promise<import("./status-types.d.ts").EngineStatus>;
+  status(options?: ReadOptions): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Json;
   models(runtime: string, options?: ReadOptions): Json;
-  runtimePolicy(): Json;
+  runtimePolicy(options?: ReadOptions): Json;
   setRuntimePolicy(policy: object): Json;
-  chatRuntimePolicy(chat: Id): Json;
+  chatRuntimePolicy(chat: Id, options?: ReadOptions): Json;
   setChatRuntimePolicy(chat: Id, policy: object): Json;
-  advisory(): Json;
-  intents(): Json;
+  advisory(options?: ReadOptions): Json;
+  intents(options?: ReadOptions): Json;
   setPaid(body: object): Json;
   router(options?: ReadOptions): Json;
   setRouter(body: object, options?: ReadOptions): Json;
@@ -22,18 +22,18 @@ export interface Api {
   connectRouterModel(body: object, options?: ReadOptions): Json;
   disconnectRouterModel(provider: string, options?: ReadOptions): Json;
 
-  chats(): Json;
+  chats(options?: ReadOptions): Json;
   chat(id: Id): Json;
   patchChat(id: Id, body: object, options?: ReadOptions): Json;
-  messages(chat: Id, query?: Query): Json;
+  messages(chat: Id, query?: Query, options?: ReadOptions): Json;
   post(chat: Id, message: { text?: string; threadTs?: string | null; clientId?: string; attachments?: string[] }): Json;
-  threads(chat: Id): Json;
-  thread(chat: Id, ts: string): Json;
+  threads(chat: Id, options?: ReadOptions): Json;
+  thread(chat: Id, ts: string, options?: ReadOptions): Json;
   patchThread(chat: Id, ts: string, body: object): Json;
   deleteThread(chat: Id, ts: string, body: object): Json;
   restoreThread(chat: Id, ts: string): Json;
   continueThread(chat: Id, ts: string, body: object): Json;
-  hops(chat: Id, query?: Query): Json;
+  hops(chat: Id, query?: Query, options?: ReadOptions): Json;
   memory(chat: Id): Json;
   made(chat: Id, query?: Query, options?: ReadOptions): Json;
   pinMade(chat: Id, id: Id, on: boolean): Json;
@@ -46,15 +46,15 @@ export interface Api {
   sessions(query?: Query, options?: ReadOptions): Json;
   session(id: Id, options?: ReadOptions): Json;
   patchSession(id: Id, body: object): Json;
-  active(): Json;
-  events(query?: Query): Json;
+  active(options?: ReadOptions): Json;
+  events(query?: Query, options?: ReadOptions): Json;
 
   observedMessages(nativeId: string, query?: Query, options?: ReadOptions): Json;
   prompt(body: object): Json;
   abort(sessionId: Id): Json;
 
-  review(query?: Query): Json;
-  reviewItem(id: Id): Json;
+  review(query?: Query, options?: ReadOptions): Json;
+  reviewItem(id: Id, options?: ReadOptions): Json;
   decide(id: Id, body: object): Json;
   rules(query?: Query): Json;
   addRule(body: object): Json;

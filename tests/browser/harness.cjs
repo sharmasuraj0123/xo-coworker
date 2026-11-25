@@ -2,30 +2,9 @@
 // answered in the page from a mock world (a Workspace and one project, "demo"). Nothing reaches a Space.
 // Used by tests/browser/flows.test.cjs.
 "use strict";
-const http = require("http"), fs = require("fs"), path = require("path");
+const fs = require("fs"), path = require("path");
 const { install: installLaunchpad, SCENARIOS: LP } = require("../../e2e/fixtures/mockspace-harness.cjs");
-
-const ROOT = path.resolve(__dirname, "..", "..");
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
-// a stream the test writes to as it goes (Launchpad's /watch, routed here): SSE.push(event, end)
-const SSE = { clients: [], head: [], push(ev, end = false) { for (const c of this.clients) { c.write(`data: ${JSON.stringify(ev)}\n\n`); if (end) c.end(); } if (end) this.clients = []; } };
-function serve() {
-  const server = http.createServer((q, s) => {
-    let p = decodeURIComponent(new URL(q.url, "http://x").pathname);
-    if (p === "/__sse") {
-      s.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
-      for (const ev of SSE.head) s.write(`data: ${JSON.stringify(ev)}\n\n`);
-      SSE.clients.push(s); q.on("close", () => { SSE.clients = SSE.clients.filter((c) => c !== s); });
-      return;
-    }
-    if (p === "/") p = "/index.html";
-    const f = path.join(ROOT, p);
-    if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { s.writeHead(404); s.end(); return; }
-    s.writeHead(200, { "Content-Type": TYPES[path.extname(f)] || "application/octet-stream", "Cache-Control": "no-store" });
-    fs.createReadStream(f).pipe(s);
-  });
-  return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok(server)));
-}
+const { ROOT, SSE, serve } = require("../../e2e/fixtures/browser-static-server.cjs");
 
 // ── the mock world: a Workspace, one project ("demo"), no threads; files and saves per test ──
 const NOW = new Date().toISOString();
@@ -221,7 +200,14 @@ function mockApi(W) {
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
   await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ,heraldShow,CHG};" }); });
-  await page.route("**/core/services/storm/stream.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();ctx.stopTimers();clearTimeout(recoverT);}};\n  boot();") }); });
+  await page.route("**/core/services/storm/stream.js", async (r) => {
+    const response = await r.fetch();
+    const source = await response.text();
+    const anchor = "  boot().catch(";
+    if (source.split(anchor).length !== 2) throw new Error("Storm hook needs one boot anchor");
+    const hook = "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();recoverT?.();}};\n";
+    await r.fulfill({ response, body: source.replace(anchor, hook + anchor) });
+  });
 }
 
 /** The app in a new browser context, against the mock world W (files, saves, messages, hops …). */
@@ -287,7 +273,6 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
   // the lines a label wraps onto: counted within each run of words that flows as one (the text under one block, flex or
   // grid box): a control drawn as two lines on purpose (a name over its meta, each its own block, an Artifacts row on a
-  // phone) hasn't wrapped; one run taking two lines has (Files over Artifacts at 390 on fa49c3c: "a.js" over "demo · Code
   // · 6m ago", two blocks, was read as a wrap)
   const linesOf = (e) => {
     const runs = new Map(), rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
@@ -365,10 +350,7 @@ function pngPixels(buf) {
       out[y * stride + x] = (line[x] + [0, a, b, (a + b) >> 1, pr][f]) & 255; } }
   return { w, h, bpp, data: out };
 }
-// whether a state visibly differs, by grader A's bar (the coordinator, 11 Nov 05:03Z), crops of the same box: a pixel
-// has changed when |ΔR|+|ΔG|+|ΔB| > 30; a fill or an edge passes when ≥10% of the box changed; a hover of the words
-// alone passes when ≥50% of the glyph pixels (those that differ from the box's own background, its commonest colour,
-// by more than 30) changed. Held identical to hovered (0%) always fails
+// Compare equal crops by changed RGB pixels and, for text-only changes, changed glyph pixels.
 const px = (P, i) => [P.data[i], P.data[i + 1], P.data[i + 2]];
 const d3 = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
 function visible(A, B) {

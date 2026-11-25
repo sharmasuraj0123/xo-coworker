@@ -3,23 +3,26 @@ import { client, coderHeaders, SSEStream } from "./client.js";
 import { createTurns } from "../world/turns.js";
 import { LOAD_CAP, RUNS_KEEP } from "./config.js";
 import { mapLimit } from "./load.js";
+import { reportFailure } from "../notices/failures.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Frame} Frame */
 
 /** Boot: open the stream from "now", hold its frames, GET everything, apply the held frames in order; then the stream alone. @param {Ctx} ctx */
 export function startStorm(ctx) {
-  const { state, rawThreads, chatProject, watched, trimmed, framesBefore, emit } = ctx;
+  const { state, rawThreads, chatProject, watched, trimmed, framesBefore, emit, scope } = ctx;
+  const { signal } = scope;
   /** @type {Frame[]} */
   let held = [];
   /** @type {SSEStream | null} */
   let stream = null;
-  /** @type {(v?: unknown) => void} */
-  let firstFrame = () => {};
-  const subscribed = new Promise((r) => { firstFrame = r; });
+  const subscribed = Promise.withResolvers();
+  const releaseSubscription = scope.effect(() => () => subscribed.resolve(undefined));
+  scope.effect(() => () => { held.length = 0; stream?.close(); });
 
   /** @param {Frame} f */
   function onFrame(f) {
-    firstFrame();
+    if (signal.aborted) return;
+    releaseSubscription();
     // where the stream stands, even while its frames are held: a read sent now stands there (the snapshot's seq before any stored frame)
     const fe = f.envelope || {}, at = fe.seq ?? (f.type === "snapshot" && fe.data ? fe.data.seq : null);
     if (at != null && at > state.lastSeq) state.lastSeq = at;
@@ -27,32 +30,45 @@ export function startStorm(ctx) {
     ctx.apply(f);
   }
 
-  /** @type {ReturnType<typeof setTimeout> | null} */
+  /** @type {(() => void) | null} */
   let recoverT = null;
   /** The first load failed (storm restarting, the server down): try again until it works. */
   ctx.scheduleRecover = (ms = 8000) => {
-    if (recoverT) return;
-    recoverT = setTimeout(async () => { recoverT = null; await ctx.recover(); }, ms);
+    if (signal.aborted || recoverT) return;
+    recoverT = scope.timeout(() => { recoverT = null; void ctx.recover(); }, ms);
   };
   /** @type {Promise<void> | null} */
   let recovering = null;
   ctx.recover = async () => {
+    if (signal.aborted) return;
     if (recovering) return recovering;
     if (!state.error && state.projects.length) return;
     recovering = (async () => {
       ctx.holding = true;
-      /** Live updates wait at most 15 s for the reload, so a hung GET doesn't freeze the page. @type {ReturnType<typeof setTimeout> | undefined} */
-      let cutoff;
-      try { await Promise.race([ctx.loadAll(), new Promise((r) => { cutoff = setTimeout(r, 15000); })]); } finally {
-        clearTimeout(cutoff);
-        ctx.commit();
-        ctx.holding = false;
-        for (const f of held.splice(0)) ctx.apply(f);
-        ctx.commit(); emit();
-      }
+      const cutoff = Promise.withResolvers();
+      const finish = () => cutoff.resolve(undefined);
+      const cancelCutoff = scope.timeout(finish, 15000);
+      const releaseCutoff = scope.effect(() => finish);
+      await Promise.race([ctx.loadAll(), cutoff.promise]).catch((error) => {
+        if (!signal.aborted) reportFailure(error);
+      }).finally(() => { cancelCutoff(); releaseCutoff(); });
+      if (replayHeld()) emit();
     })();
     try { await recovering; } finally { recovering = null; }
   };
+
+  function replayHeld() {
+    if (signal.aborted) return false;
+    ctx.commit();
+    ctx.holding = false;
+    for (const frame of held.splice(0)) {
+      if (signal.aborted) return false;
+      ctx.apply(frame);
+    }
+    if (signal.aborted) return false;
+    ctx.commit();
+    return !signal.aborted;
+  }
 
   // a reset for retention or a replaced store: the thread list is refreshed in place (no false "new thread" lines); what's on screen loads again
   async function reload() {
@@ -60,11 +76,13 @@ export function startStorm(ctx) {
     ctx.clearSought();
     state.review.clear(); state.routed = {}; state.turns = createTurns();
     await ctx.loadAll();
+    if (signal.aborted) return;
     for (const [ts, r] of rawThreads) if (!chatProject.has(r.chat_id)) rawThreads.delete(ts);
     await Promise.all([...watched.projects].map((p) => ctx.loadTimeline(p)));
+    if (signal.aborted) return;
     if (watched.thread) await ctx.loadThread(watched.thread);
-    if (watched.side && watched.side !== watched.thread) await ctx.loadThread(watched.side);
-    ctx.commit(); emit();
+    if (!signal.aborted && watched.side && watched.side !== watched.thread) await ctx.loadThread(watched.side);
+    if (!signal.aborted) { ctx.commit(); emit(); }
   }
 
   function startStream() {
@@ -72,29 +90,28 @@ export function startStorm(ctx) {
       headers: coderHeaders,
       onFrame,
       onState: (s, info) => {
+        if (signal.aborted) return;
         state.conn = s; state.connInfo = info;
-        if (s !== "connecting") firstFrame();
+        if (s !== "connecting") releaseSubscription();
         if (s === "live" && state.loaded) { ctx.loadStatus(); if (state.error || !state.projects.length) ctx.recover(); }
         emit();
       },
       onReset: async () => { await reload(); },
-    }).start();
+    });
+    stream.start();
   }
 
   async function boot() {
     startStream();
-    await subscribed;
+    await subscribed.promise;
+    if (signal.aborted) return;
     await Promise.all([ctx.loadAll(), ctx.loadStatus(), ctx.loadActive()]);
-    ctx.commit();
-    ctx.holding = false;
-    for (const f of held.splice(0)) ctx.apply(f);
-    ctx.commit();
+    if (!replayHeld()) return;
     state.loaded = true;
     emit();
     await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId));
   }
-  boot();
-  setInterval(() => {
+  scope.interval(() => {
     const keep = new Set();
     for (const ts of [watched.thread, watched.side]) { const t = ts && rawThreads.get(ts); if (t && t.session_id) keep.add(t.session_id); }
     if (watched.session) keep.add(watched.session); // an open plain chat keeps its turns
@@ -103,13 +120,13 @@ export function startStorm(ctx) {
     const ended = [...state.runs.values()].filter((r) => !["running", "waiting"].includes(r.state) && !keep.has(r.session));
     if (ended.length > RUNS_KEEP) for (const r of ended.sort((a, b) => String(a.ended_at || "").localeCompare(String(b.ended_at || ""))).slice(0, ended.length - RUNS_KEEP)) state.runs.delete(r.id);
   }, 60000);
-  addEventListener("visibilitychange", () => {
+  const events = typeof window === "undefined" ? globalThis : window;
+  scope.listen(events, "visibilitychange", () => {
     if (document.hidden) return;
     stream && stream.nudge();
     ctx.loadStatus();
     ctx.maybeChats();
   });
-  addEventListener("online", () => stream && stream.nudge());
-
-  return { stop: () => { stream && stream.close(); ctx.stopTimers(); } };
+  scope.listen(events, "online", () => stream && stream.nudge());
+  boot().catch((error) => { if (!signal.aborted) reportFailure(error); });
 }

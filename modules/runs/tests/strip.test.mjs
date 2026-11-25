@@ -1,6 +1,7 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { mock } from "node:test";
+import { createScope } from "../../../core/kernel/scope.js";
 import { createAct } from "../../../core/services/storm/act.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createRunsStrip } from "../strip.js";
@@ -65,6 +66,7 @@ try {
 
 const pending = Promise.withResolvers();
 const request = Promise.withResolvers();
+const scope = createScope();
 const fetch = mock.method(globalThis, "fetch", (url, init) => {
   request.resolve({ url: new URL(url, "https://xo.test"), signal: init.signal });
   return pending.promise;
@@ -72,7 +74,7 @@ const fetch = mock.method(globalThis, "fetch", (url, init) => {
 try {
   const state = { runs: new Map() };
   let changes = 0;
-  const act = createAct({ state, sentAt: () => ({ at: Date.now(), seq: null }), soon: () => { changes++; } });
+  const act = createAct({ state, scope, sentAt: () => ({ at: Date.now(), seq: null }), soon: () => { changes++; } });
   const strip = createRunsStrip({ world: { state, act }, SHAPE: { on: () => true }, schedule: () => { changes++; } });
   box.innerHTML = strip.runsStrip({ sessionId: "cancelled-session", runs: { running: 1 } });
   const { url, signal } = await request.promise;
@@ -85,5 +87,6 @@ try {
   assert.equal(state.runs.has("late"), false, "a retired read cannot update the world");
   assert.equal(changes, 0);
 } finally {
+  scope.dispose();
   fetch.mock.restore();
 }

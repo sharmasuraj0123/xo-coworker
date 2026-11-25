@@ -22,6 +22,7 @@ export interface Watched {
 /** What the storm parts share: the world's state, its private records, and each part's functions. */
 export interface Ctx {
   state: WorldState;
+  scope: ReturnType<typeof import("../../kernel/scope.js").createScope>;
   emit: () => void;
   event: (e: StormEvent) => void;
   chatProject: Map<string, string | null>;
@@ -72,8 +73,6 @@ export interface Ctx {
   fillSession: (chatId: string | null | undefined, ts: string) => Promise<void>;
   scheduleRecover: (ms?: number) => void;
   recover: () => Promise<void>;
-  stopTimers: () => void;
-
   addRows: (project: string, rows: MessageRow[]) => MessageRow[];
   loadTimeline: (project: string) => Promise<void>;
   loadOlder: (project: string) => Promise<void>;

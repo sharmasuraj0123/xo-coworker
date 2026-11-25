@@ -9,11 +9,12 @@ import { WAITING_STATES } from "../config.js";
 
 /** Rebuilding the thread list and the hosts of items with no thread, and announcing the changes worth a line. @param {Ctx} ctx */
 export function installCommit(ctx) {
-  const { state, rawThreads, event } = ctx;
+  const { state, rawThreads, event, scope } = ctx;
   /** @param {Row} it */
   const askerOf = (it) => askedBy(it, it.session_id ? state.sessions[it.session_id] : null);
 
   ctx.commit = () => {
+    if (scope.signal.aborted) return;
     ctx.indexMoves();
     const prev = new Map(state.threads.map((t) => [t.id, t]));
     const known = new Set(state.projects.map((p) => p.id));
@@ -29,6 +30,7 @@ export function installCommit(ctx) {
         if (!old) event({ kind: "spawn", thread: t.id, project: t.project, text: `New thread: ${t.title}` });
         if (old && WAITING_STATES.has(old.state) && !WAITING_STATES.has(t.state)) event({ kind: "resumed", thread: t.id, project: t.project });
       }
+      if (scope.signal.aborted) return;
       next.push(t);
     }
     state.threads = next.sort((a, b) => b.lastAt - a.lastAt);
@@ -56,10 +58,10 @@ export function installCommit(ctx) {
     state.hosts = [...hosts.values()];
   };
 
-  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  /** @type {(() => void) | undefined} */
   let soonT;
-  /** @type {ReturnType<typeof setTimeout> | null} */
+  /** @type {(() => void) | null} */
   let emitT = null;
-  ctx.soon = () => { clearTimeout(soonT); soonT = setTimeout(() => { ctx.commit(); ctx.emit(); }, 30); };
-  ctx.emitSoon = () => { if (!emitT) emitT = setTimeout(() => { emitT = null; ctx.emit(); }, 40); };
+  ctx.soon = () => { soonT?.(); soonT = scope.timeout(() => { ctx.commit(); ctx.emit(); }, 30); };
+  ctx.emitSoon = () => { if (!emitT) emitT = scope.timeout(() => { emitT = null; ctx.emit(); }, 40); };
 }

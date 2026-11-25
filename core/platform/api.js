@@ -21,7 +21,10 @@ export const attachmentText = (chat, id, { signal } = {}) => text(attPath(chat, 
 export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
 
 /** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
-const get = (path, query, signal) => request(path, { query, signal });
+const get = async (path, query, signal) => {
+  signal?.throwIfAborted();
+  return request(path, { query, signal });
+};
 /** @param {string} method @param {string} path @param {unknown} [body] @param {Record<string, unknown>} [query] */
 const send = (method, path, body, query) => request(path, { method, body, query });
 
@@ -50,21 +53,21 @@ export const ruleApi = {
 
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
-  status: () => get("/chat/status"),
+  status: ({ signal } = {}) => get("/chat/status", undefined, signal),
   runtimes: ({ signal } = {}) => get("/chat/runtimes", undefined, signal),
   models: (runtime, { signal } = {}) => get(`/chat/runtimes/${enc(runtime)}/models`, undefined, signal),
   /** {space, effective}: the Space's runtime policy */
-  runtimePolicy: () => get("/chat/runtime-policy"),
+  runtimePolicy: ({ signal } = {}) => get("/chat/runtime-policy", undefined, signal),
   /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */
   setRuntimePolicy: (policy) => send("PUT", "/chat/runtime-policy", policy),
   /** {space, project, effective}: a project chat's own override (404 no_such_chat otherwise) */
-  chatRuntimePolicy: (chat) => get(`/chat/chats/${enc(chat)}/runtime-policy`),
+  chatRuntimePolicy: (chat, { signal } = {}) => get(`/chat/chats/${enc(chat)}/runtime-policy`, undefined, signal),
   /** Replaces a project's override; a null field follows the Space. */
   setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
   /** The Space advisory: each account's plan, usage windows and paid facts (facts only; every one with its source and age). */
-  advisory: () => get("/advisory"),
+  advisory: ({ signal } = {}) => get("/advisory", undefined, signal),
   /** {intents: [...]}: the founder's holds and paid modes that hold now (rows: scope, scope_id, key, value, until, cites, set_at). */
-  intents: () => get("/chat/intent"),
+  intents: ({ signal } = {}) => get("/chat/intent", undefined, signal),
   /** The founder's paid-usage mode: {scope: "space", scope_id: "", value} or {scope: "pool", scope_id: poolId, value | null (null: follow the Space)}. */
   setPaid: (body) => send("POST", "/chat/intent/paid", body),
   router: ({ signal } = {}) => get("/chat/router", undefined, signal),
@@ -73,16 +76,16 @@ export const api = {
   connectRouterModel: (body, { signal } = {}) => request("/chat/router/models", { method: "POST", body, signal }),
   disconnectRouterModel: (provider, { signal } = {}) => request(`/chat/router/models/${enc(provider)}`, { method: "DELETE", signal }),
 
-  chats: () => chatActivityApi.chats(),
+  chats: ({ signal } = {}) => chatActivityApi.chats(signal),
   chat: (id) => get(`/chat/chats/${enc(id)}`),
   patchChat: (id, body, { signal } = {}) => request(`/chat/chats/${enc(id)}`, { method: "PATCH", body, signal }),
   /** {thread?, after_seq?, before_seq?, limit?} → {messages, next_after_seq, next_before_seq?} */
-  messages: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/messages`, query),
+  messages: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/messages`, query, signal),
   /** attachments: ids uploaded to this same chat (uploadAttachment); text may be "" when there are some. */
   post: (chat, { text, threadTs, clientId: cid, attachments }) =>
     send("POST", `/chat/chats/${enc(chat)}/messages`, { text, client_id: cid, ...(threadTs ? { thread_ts: threadTs } : {}), ...(attachments && attachments.length ? { attachments } : {}) }),
-  threads: (chat) => get(`/chat/chats/${enc(chat)}/threads`),
-  thread: (chat, ts) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`),
+  threads: (chat, { signal } = {}) => get(`/chat/chats/${enc(chat)}/threads`, undefined, signal),
+  thread: (chat, ts, { signal } = {}) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`, undefined, signal),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
   /** Delete a thread (Space, when it offers it: a thread row's can_delete). {keep_branch, confirm?} → {deleted, undo_until}; 409 would_lose_work {what, confirm} when its worktree holds work kept nowhere else. Undone by restoreThread until undo_until. */
@@ -90,7 +93,7 @@ export const api = {
   restoreThread: (chat, ts) => send("POST", `/chat/chats/${enc(chat)}/threads/${enc(ts)}/restore`, {}),
   /** Continue a thread on another runtime: it stops, freezes, and a linked new thread starts from its work. */
   continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
-  hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),
+  hops: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/hops`, query, signal),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
   /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
   made: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/made`, query, signal),
@@ -107,17 +110,17 @@ export const api = {
   sessions: (query = {}, { signal } = {}) => get("/chat/sessions", query, signal),
   session: (id, { signal } = {}) => get(`/chat/sessions/${enc(id)}`, undefined, signal),
   patchSession: (id, body) => send("PATCH", `/chat/sessions/${enc(id)}`, body),
-  active: () => get("/chat/active"),
+  active: ({ signal } = {}) => get("/chat/active", undefined, signal),
   /** Stored frames, for history and resumes beyond the stream's reach. */
-  events: (query = {}) => get("/chat/events", query),
+  events: (query = {}, { signal } = {}) => get("/chat/events", query, signal),
 
   /** A plain chat's history lives in its CLI transcript, read by observation. */
   observedMessages: (nativeId, query = {}, { signal } = {}) => get(`/messages/${enc(nativeId)}`, query, signal),
   prompt: (body) => send("POST", "/chat/prompt", body),
   abort: (sessionId) => send("POST", "/chat/abort", { session_id: sessionId }),
 
-  review: (query = {}) => get("/chat/review", query),
-  reviewItem: (id) => get(`/chat/review/${enc(id)}`),
+  review: (query = {}, { signal } = {}) => get("/chat/review", query, signal),
+  reviewItem: (id, { signal } = {}) => get(`/chat/review/${enc(id)}`, undefined, signal),
   decide: (id, body) => send("POST", `/chat/review/${enc(id)}/decision`, body),
   rules: (query) => ruleApi.rules(query),
   addRule: (body) => send("POST", "/chat/rules", body),

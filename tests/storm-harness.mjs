@@ -12,11 +12,15 @@ Date.now = () => realNow() + skew;
 export const advance = (ms) => { skew += ms; };
 
 globalThis.addEventListener = (type, fn) => { (listeners.get(type) || listeners.set(type, []).get(type)).push(fn); };
-globalThis.document = /** @type {any} */ ({ hidden: false });
-globalThis.matchMedia = /** @type {any} */ (() => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
+globalThis.removeEventListener = (type, fn) => {
+  const handlers = listeners.get(type);
+  if (handlers) listeners.set(type, handlers.filter((handler) => handler !== fn));
+};
+globalThis.document = { hidden: false };
+globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const realInterval = globalThis.setInterval;
-globalThis.setInterval = /** @type {any} */ ((fn, ms) => { intervals.push({ fn, ms }); const h = realInterval(fn, ms); h.unref?.(); return h; });
-export const fire = (type) => { for (const fn of listeners.get(type) || []) fn({ type }); };
+globalThis.setInterval = (fn, ms) => { intervals.push({ fn, ms }); const h = realInterval(fn, ms); h.unref?.(); return h; };
+export const fire = (type) => { for (const fn of [...(listeners.get(type) || [])]) fn({ type }); };
 
 /** An error answer: `fail(409, {code, message})`. */
 export const fail = (status, detail) => ({ __fail: true, status, detail });
@@ -35,28 +39,29 @@ export const BASE_ROUTES = () => ({
 /** Routes: "METHOD /path" → a body, (query, body) → body, or fail(); unknown is a 404. Each stream GET is a new connection. */
 export function fakeBackend(extra = {}) {
   const routes = { ...BASE_ROUTES(), ...extra };
-  /** @type {{method: string, path: string, query: Record<string, string>, body: any}[]} */
+  /** @type {{method: string, path: string, query: Record<string, string>, body: unknown, signal?: AbortSignal}[]} */
   const asked = [];
   /** @type {{queue: string[], wake: Function|null, ended: boolean, lastId: string|null}[]} */
   const conns = [];
-  /** @type {{status: number, detail: any}[]} */
+  /** @type {{status: number, detail: unknown}[]} */
   const refusals = [];
   const enc = new TextEncoder();
   const poke = (c) => { if (c.wake) { const w = c.wake; c.wake = null; w(); } };
-  globalThis.fetch = /** @type {any} */ (async (url, opts = {}) => {
+  globalThis.fetch = async (url, opts = {}) => {
     const method = (opts.method || "GET").toUpperCase();
     const u = new URL(String(url), "http://x/");
     const path = u.pathname.replace(/^\/api/, "");
     const body = opts.body ? JSON.parse(opts.body) : null;
-    asked.push({ method, path, query: Object.fromEntries(u.searchParams), body });
+    asked.push({ method, path, query: Object.fromEntries(u.searchParams), body, signal: opts.signal });
     if (path === "/chat/stream" && refusals.length) {
-      const no = /** @type {{status: number, detail: any}} */ (refusals.shift());
+      const no = /** @type {{status: number, detail: unknown}} */ (refusals.shift());
       conns.push({ queue: [], wake: null, ended: true, lastId: (opts.headers || {})["Last-Event-ID"] || null });
       return new Response(JSON.stringify({ detail: no.detail }), { status: no.status, headers: { "Content-Type": "application/json" } });
     }
     if (path === "/chat/stream") {
       const c = { queue: [], wake: null, ended: false, lastId: (opts.headers || {})["Last-Event-ID"] || null };
       conns.push(c);
+      opts.signal?.addEventListener("abort", () => { c.ended = true; poke(c); }, { once: true });
       return { ok: true, status: 200, type: "basic", body: { getReader: () => ({ cancel() {}, read: async () => {
         while (!c.queue.length && !c.ended) await new Promise((r) => { c.wake = r; });
         if (!c.queue.length) return { value: undefined, done: true };
@@ -68,7 +73,7 @@ export function fakeBackend(extra = {}) {
     const out = typeof r === "function" ? await r(Object.fromEntries(u.searchParams), body) : r;
     if (out && out.__fail) return new Response(JSON.stringify({ detail: out.detail }), { status: out.status, headers: { "Content-Type": "application/json" } });
     return new Response(JSON.stringify(out ?? null), { status: 200, headers: { "Content-Type": "application/json" } });
-  });
+  };
   const conn = () => conns[conns.length - 1];
   return {
     routes, asked, conns,
@@ -97,7 +102,7 @@ export const settle = (ms = 80) => new Promise((r) => setTimeout(r, ms));
 export async function boot(be, { seq = 1, turns = [] } = {}) {
   const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
-  /** @type {any[]} */
+  /** @type {unknown[]} */
   const events = [];
   world.onEvent((e) => events.push(e));
   await until(() => be.conns.length > 0);

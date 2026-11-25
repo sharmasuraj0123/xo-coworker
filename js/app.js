@@ -168,6 +168,7 @@ const appScope = createScope();
 if (!viewportPhone) throw new Error("The application requires media queries.");
 const PHONE = viewportPhone;
 const world = createWorld();
+appScope.effect(() => world.dispose);
 const schedule = createShellScheduler(() => render(), appScope);
 const redrawFocus = createRedrawFocus();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
@@ -1207,17 +1208,17 @@ bindChatControls({
 drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 appScope.effect(mountMainDecoration);
-await kernel.start();
-const stopShell = startShell({ THEME, applyTheme, SIDE, soundRender, PHONE, setDrawer, render, world, schedule, follow, loadDraft });
 for (const dispose of [
   codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
   REC.dispose, () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
   runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
-  SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), stopShell, disposeConversationStops,
+  SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), disposeConversationStops,
   STAGE.disposeLayout, LPP.dispose, LW.dispose,
 ]) appScope.effect(() => dispose);
 appScope.listen(window, "pagehide", (event) => {
   if ("persisted" in event && event.persisted) return;
   appScope.dispose();
 });
+await kernel.start();
+appScope.effect(() => startShell({ THEME, applyTheme, SIDE, soundRender, PHONE, setDrawer, render, world, schedule, follow, loadDraft }));

@@ -45,6 +45,9 @@ let holdRunRead = false;
 const lateRunRead = deferred();
 /** @type {AbortSignal | undefined} */
 let runSignal;
+let stormSignal;
+const lateStatus = deferred();
+let heldStatusSignal;
 /** @type {ReadableStreamDefaultController<Uint8Array>} */
 let stream;
 const encoder = new TextEncoder();
@@ -165,7 +168,11 @@ Object.assign(globalThis, {
   fetch: async (input, init) => {
     const { pathname: path, searchParams } = new URL(String(input), location.href);
     const resource = path.split("/").at(-1);
-    if (path === "/api/chat/stream") return new Response(streamBody);
+    if (path === "/api/chat/stream") { stormSignal = init?.signal; return new Response(streamBody); }
+    if (path === "/api/chat/status" && heldStatusSignal === null) {
+      heldStatusSignal = init?.signal;
+      return lateStatus.promise;
+    }
     if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "ready" });
     if (path === "/api/deploy/demo/preflight") return Response.json({});
     if (path === "/api/terminal/status") {
@@ -1003,7 +1010,12 @@ assert.equal(mainFollowObservers.size, 1, "the main scroller owns one follow obs
 const mainDecoration = mainDecorationObservers.size;
 assert.ok(mainDecoration > 0, "the mounted main decoration watches typing and messages");
 assert.equal(keyboardLayerObservers.size, 1, "the keyboard layers observe modal visibility");
+heldStatusSignal = null;
+window.dispatchEvent(new window.Event("visibilitychange"));
+await new Promise(setImmediate);
+assert.ok(heldStatusSignal, "the mounted Storm starts a status read when visible again");
 pagehide(true);
+assert.equal(stormSignal.aborted || heldStatusSignal.aborted, false, "the page cache keeps the Storm stream and status read alive");
 assert.equal(mainLatest.isConnected, true, "the page cache keeps the main conversation decoration");
 assert.equal(mainDecorationObservers.size, mainDecoration);
 assert.equal(mainFollowObservers.size, 1);
@@ -1056,6 +1068,8 @@ assert.deepEqual(threadResolves.map(({ thread, body }) => [thread, body]), [
 ]);
 assert.ok(frames.size, "the live Resolve action has queued a render");
 pagehide(false);
+assert.equal(stormSignal.aborted && heldStatusSignal.aborted, true, "real unload retires the world and aborts its stream and held GET");
+lateStatus.resolve(Response.json({ pools: [{ id: "retired-status" }] }));
 assert.equal(mainLatest.isConnected, false, "unload destroys the booted main conversation decoration");
 assert.equal(mainDecorationObservers.size, 0, "unload disconnects the main decoration observers");
 assert.equal(mainFollowObservers.size, 0, "unload disconnects the main scroller's follower");

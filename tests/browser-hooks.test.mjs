@@ -1,22 +1,46 @@
-// The browser harness patches served modules by text: each anchor must be there (storm's once, with the names it uses in scope), and no flow reads a global nothing sets.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
+import { test } from "node:test";
+import { hooks, serve } from "./browser/harness.cjs";
+import { fakeBackend, until } from "./storm-harness.mjs";
 
-const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const harness = read("tests/browser/harness.cjs");
-const hook = harness.match(/page\.route\("\*\*\/(core\/services\/storm\/stream\.js)", [^\n]*?\.replace\(("(?:[^"\\]|\\.)*"), ("(?:[^"\\]|\\.)*")\)/);
-assert.ok(hook, "the harness hooks storm's stream module");
-const [, file, anchor, added] = hook;
-const src = read(file);
-assert.equal(src.split(JSON.parse(anchor)).length - 1, 1, `"${JSON.parse(anchor)}" once in ${file}`);
-const body = src.slice(src.indexOf("export function startStorm("));
-for (const name of ["ctx.apply", "ctx.stopTimers", "stream?.close", "recoverT"]) assert.ok(JSON.parse(added).includes(name), `the hook uses ${name}`);
-for (const name of ["ctx.apply(", "ctx.stopTimers = ", "let stream", "let recoverT"]) assert.ok(body.includes(name) || read("core/services/storm/account.js").includes(name), `${name} is in scope`);
-console.log("ok  the storm hook finds its anchor");
-const hooks = [...harness.matchAll(/page\.route\("\*\*\/([^"]+)"[^\n]*?\.replace\(("(?:[^"\\]|\\.)*")/g)].map((m) => ({ file: m[1], anchor: JSON.parse(m[2]) }));
-for (const h of hooks) assert.ok(read(h.file).includes(h.anchor), `${h.file} no longer has ${JSON.stringify(h.anchor)}, so its hook is dead`);
-console.log(`ok  every one of the harness's ${hooks.length} text hooks finds its anchor`);
-const flows = read("tests/browser/flows.test.cjs");
-const set = new Set([...(harness + flows).matchAll(/window\.(__\w+)\s*=[^=]/g)].map((m) => m[1]));
-for (const g of new Set([...flows.matchAll(/window\.(__\w+)/g)].map((m) => m[1]))) assert.ok(set.has(g), `flows read window.${g}, which neither a hook nor a flow sets`);
-console.log("ok  no flow waits on a global that nothing sets");
+test("the served Storm hook pauses transport without retiring event injection", async (t) => {
+  const routes = new Map();
+  await hooks({ route: async (pattern, handler) => routes.set(pattern, handler) });
+  const route = routes.get("**/core/services/storm/stream.js");
+  const server = await serve();
+  t.after(() => server.close());
+  const base = "http://127.0.0.1:" + server.address().port;
+  const response = await fetch(base + "/core/services/storm/stream.js");
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "text/javascript");
+  let instrumented;
+  await route({ fetch: async () => response, fulfill: ({ body }) => { instrumented = body; } });
+  await assert.rejects(
+    route({ fetch: async () => new Response("no boot here"), fulfill: assert.fail }),
+    /needs one boot anchor/,
+  );
+
+  const loader = registerHooks({
+    load(url, context, nextLoad) {
+      if (!url.endsWith("/core/services/storm/stream.js")) return nextLoad(url, context);
+      return { format: "module", source: instrumented, shortCircuit: true };
+    },
+  });
+  t.after(() => loader.deregister());
+  globalThis.window = globalThis;
+  t.after(() => { delete globalThis.window; Reflect.deleteProperty(globalThis, "__storm"); });
+  const backend = fakeBackend();
+  const { createWorld } = await import("../core/services/world/store.js");
+  const world = createWorld();
+  t.after(world.dispose);
+  backend.push("snapshot", { data: { seq: 1 } });
+  await until(() => world.state.loaded);
+  const stormHook = Reflect.get(globalThis, "__storm");
+  stormHook.stop();
+  assert.equal(backend.asked[0].signal.aborted, true);
+  const got = [];
+  world.onEvent((event) => got.push(event.kind));
+  stormHook.apply({ type: "file.version", seq: 2, data: { path: "a.txt" } });
+  assert.deepEqual(got, ["file"]);
+});

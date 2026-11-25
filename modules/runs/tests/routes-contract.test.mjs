@@ -22,10 +22,11 @@ const RS = { open: true, session: "session/key", opening: 1, gen: 0, title: "Run
   tree: [], counts: null, said: null, cmdsOpen: true, cmdsAll: false, run: null, anc: null, items: [], cursor: null,
   children: [], loading: false, error: null, gone: null };
 const state = { runs: new Map() };
+const scope = createScope();
 const act = createAct(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ ({
-  state, sentAt: () => ({ at: Date.now(), seq: null }), soon() {},
+  state, scope, sentAt: () => ({ at: Date.now(), seq: null }), soon() {},
 })));
-const reads = createRunsReads({ RS, world: { state, act }, STAGE: { repaint() {} }, runsRender() {}, scope: createScope() });
+const reads = createRunsReads({ RS, world: { state, act }, STAGE: { repaint() {} }, runsRender() {}, scope });
 assert.equal(await reads.readRunsList("session/key"), true);
 await reads.openRun(run.id);
 assert.deepEqual(calls, [
@@ -61,3 +62,4 @@ for (const [read, path] of cancelledReads) {
   assert.equal(received?.signal?.aborted, true, `caller abort reaches ${path}`);
   assert.equal((await outcome).name, "AbortError");
 }
+scope.dispose();

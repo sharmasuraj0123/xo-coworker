@@ -15,11 +15,11 @@ export { WAITING_STATES } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("../world/state-types").WorldState} WorldState */
 
-/** @param {WorldState} state @param {() => void} emit @param {(e: import("./types").StormEvent) => void} event */
-export function stormSource(state, emit, event) {
+/** @param {WorldState} state @param {Ctx["emit"]} emit @param {Ctx["event"]} event @param {Ctx["scope"]} scope */
+export function stormSource(state, emit, event, scope) {
   /** @type {Ctx} */
   const ctx = /** @type {Ctx} */ ({
-    state, emit, event,
+    state, emit, event, scope,
     chatProject: new Map(),  // chat_… → project id ("workspace" or the folder)
     rawThreads: new Map(),   // ts → the storm thread row, kept merged
     // what's on screen, to reload after a reset: the main chat's thread, and a thread page in the panel beside it
@@ -29,15 +29,20 @@ export function stormSource(state, emit, event) {
     holding: true,
     poolsSeen: false,
   });
-  installSessions(ctx);
-  installThreads(ctx);
-  installCommit(ctx);
-  installLoad(ctx);
-  installAccount(ctx);
-  installHistory(ctx);
-  installHops(ctx);
-  installSessionReads(ctx);
-  installApply(ctx);
-  const { stop } = startStorm(ctx);
-  return { act: createAct(ctx), stop };
+  try {
+    installSessions(ctx);
+    installThreads(ctx);
+    installCommit(ctx);
+    installLoad(ctx);
+    installAccount(ctx);
+    installHistory(ctx);
+    installHops(ctx);
+    installSessionReads(ctx);
+    installApply(ctx);
+    startStorm(ctx);
+    return createAct(ctx);
+  } catch (error) {
+    scope.dispose();
+    throw error;
+  }
 }
