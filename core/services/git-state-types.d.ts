@@ -1,10 +1,6 @@
-export interface BranchGit {
-  commits?: number;
-  merged?: boolean;
-  unpushed?: number | null;
-  upstream?: { pushed?: boolean; gone?: boolean } | null;
-  pr?: { number?: number; url?: string; state?: string; draft?: boolean } | null;
-}
+import type { BranchReceipt } from "../platform/record-response-types.d.ts";
+
+export type BranchGit = Pick<BranchReceipt, "commits" | "merged" | "unpushed" | "upstream" | "pr">;
 
 export interface WorktreeGit {
   exists?: boolean;

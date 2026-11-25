@@ -1,11 +1,12 @@
 // @ts-check
 
-import { request, blob, signedUrl, socketUrl, text, upload, urlOf } from "./http.js";
+import { blob, signedUrl, socketUrl, text, upload, urlOf } from "./http.js";
 import { projectApi } from "./project-api.js";
 import { scheduleApi } from "./schedule-response.js";
 import { checkedResponse, engineStatus, requestChecked } from "./response.js";
 import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
 import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
+import { isMade, isMadeItem, isMemory, isMemoryFile, isShape, isWorktreeRemoval, isWorktrees } from "./record-responses.js";
 import { isModels, isPolicies, isRouter, isRouterModels, isRuntimes } from "./runtime-responses.js";
 import { isRunDetail, isRunList, isRunTranscript, isStopRunReceipt, isStopRunsReceipt } from "./run-responses.js";
 import {
@@ -20,7 +21,7 @@ import { signInApi } from "./sign-in-response.js";
 import { launchpadActionsApi } from "./launchpad-actions-response.js";
 import { launchpadCheck, launchpadPreflight } from "./launchpad-check-response.js";
 import { launchpadDeploy, launchpadWatch } from "./launchpad-stream.js";
-export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
+export { coderHeaders, ApiError, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
 /** @param {string} chat @param {string} id */
@@ -42,11 +43,6 @@ export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => {
   return { promise: promise.then((value) => checkedResponse(value, isUploadedAttachment, `POST ${path}`)), abort };
 };
 
-/** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
-const get = (path, query, signal) => request(path, { query, signal });
-/** @param {string} method @param {string} path @param {unknown} [body] @param {Record<string, unknown>} [query] */
-const send = (method, path, body, query) => request(path, { method, body, query });
-
 /** The largest seq: "the newest page" is the page just before it. */
 export const NEWEST = 9007199254740991;
 
@@ -56,9 +52,9 @@ export const chatActivityApi = {
   /** @param {string} chat @param {AbortSignal} [signal] */
   markSeen: (chat, signal) => requestChecked(`/chat/chats/${enc(chat)}/seen`, isSeenAck, { method: "PUT", body: {}, signal }),
   /** @param {string | null} [chat] @param {AbortSignal} [signal] */
-  worktrees: (chat, signal) => request("/chat/worktrees", { query: chat ? { chat } : undefined, signal }),
+  worktrees: (chat, signal) => requestChecked("/chat/worktrees", isWorktrees, { query: chat ? { chat } : undefined, signal }),
   /** @param {string} chat @param {string} thread @param {string | null} [confirm] @param {AbortSignal} [signal] */
-  removeWorktree: (chat, thread, confirm, signal) => request(`/chat/worktrees/${enc(chat)}/${enc(thread)}`, {
+  removeWorktree: (chat, thread, confirm, signal) => requestChecked(`/chat/worktrees/${enc(chat)}/${enc(thread)}`, isWorktreeRemoval, {
     method: "DELETE", query: confirm ? { confirm } : undefined, signal,
   }),
 };
@@ -122,18 +118,19 @@ export const api = {
   continueThread: (chat, ts, body) => requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`,
     isThreadContinuation, { method: "POST", body, timeout: 60000 }),
   hops: (chat, query = {}, { signal } = {}) => requestChecked(`/chat/chats/${enc(chat)}/hops`, isHops, { query, signal }),
-  memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
+  memory: (chat) => requestChecked(`/chat/chats/${enc(chat)}/memory`, isMemory),
   /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
-  made: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/made`, query, signal),
-  pinMade: (chat, id, on) => send(on ? "PUT" : "DELETE", `/chat/chats/${enc(chat)}/made/${enc(id)}/pin`),
+  made: (chat, query = {}, { signal } = {}) => requestChecked(`/chat/chats/${enc(chat)}/made`, isMade, { query, signal }),
+  pinMade: (chat, id, on) =>
+    requestChecked(`/chat/chats/${enc(chat)}/made/${enc(id)}/pin`, isMadeItem, { method: on ? "PUT" : "DELETE" }),
   /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
   markSeen: (chat) => chatActivityApi.markSeen(chat),
-  memoryFile: (chat, path) => get(`/chat/chats/${enc(chat)}/memory/${enc(path)}`),
+  memoryFile: (chat, path) => requestChecked(`/chat/chats/${enc(chat)}/memory/${enc(path)}`, isMemoryFile),
 
   /** {shape: object|null, version: "new"|<12 hex>, updated_at}. 404 on an older backend. */
-  shape: () => get("/chat/shape"),
+  shape: () => requestChecked("/chat/shape", isShape),
   /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
-  putShape: (body) => send("PUT", "/chat/shape", body),
+  putShape: (body) => requestChecked("/chat/shape", isShape, { method: "PUT", body }),
 
   sessions: (query = {}, { signal } = {}) => requestChecked("/chat/sessions", isSessions, { query, signal }),
   session: (id, options) => requestChecked(`/chat/sessions/${enc(id)}`, isSession, options),

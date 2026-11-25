@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { api, request } from "../api.js";
+import { api } from "../api.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/project-schedule-responses.json", import.meta.url), "utf8"));
 const project = "fixture";
@@ -56,7 +56,6 @@ for (const [method, path, call, sample, alter] of routes) {
     assert.deepEqual(await call(), sample);
     value = invalid;
     await assert.rejects(call(), { code: "bad_answer" });
-    await assert.rejects(request(path + "?legacy=1", { method: method.toLowerCase() }), TypeError);
     assert.equal(fetches.mock.callCount(), 2);
   });
 }

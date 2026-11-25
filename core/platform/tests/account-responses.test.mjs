@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { api, request } from "../api.js";
+import { api } from "../api.js";
 
 const { advisory, intents } = JSON.parse(readFileSync(new URL("./fixtures/account-api.json", import.meta.url), "utf8"));
 const [account] = advisory.accounts;
@@ -29,7 +29,6 @@ for (const [path, read, sample, malformed, method = "GET"] of routes) {
     assert.deepEqual(await read(), sample);
     body = malformed;
     await assert.rejects(read, { code: "bad_answer" });
-    await assert.rejects(request(path, { method }), TypeError);
     assert.equal(mock.mock.callCount(), 2);
   });
 }

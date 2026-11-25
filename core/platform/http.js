@@ -2,27 +2,10 @@
 import { createScope } from "../kernel/scope.js";
 import { read, write, reportStorageFailure } from "./storage.js";
 import { reportFailure } from "./util.js";
-import {
-  hasCheckedProjectResponse, hasCheckedTerminalResponse, hasCheckedGithubAuthResponse, hasCheckedUploadResponse,
-  hasCheckedLaunchpadResponse, hasCheckedSignInResponse,
-} from "./checked-project-routes.js";
 // Requests to XO Space through serve.py, relative to the page; inside Coder the session token rides on every one.
 
 const BASE = "api";
 export const CHAT_STATUS_PATH = "/chat/status";
-
-const CHECKED_ROUTES = new Set([
-  CHAT_STATUS_PATH, "/chat/runtimes", "/chat/router", "/chat/router/models", "/chat/runtime-policy", "/chat/review", "/chat/rules",
-]);
-const CHECKED_DETAIL = /^\/chat\/(?:runtimes\/[^/]+\/models|chats\/[^/]+\/runtime-policy|router\/models\/[^/]+)$/;
-const CHECKED_READS = /^\/chat\/(?:sessions(?:\/[^/]+(?:\/runs)?)?|runs\/[^/]+(?:\/transcript)?|events|active|intent)$/;
-const CHECKED_CHAT_READS = /^\/chat\/chats(?:\/[^/]+(?:\/(?:messages|hops|threads(?:\/[^/]+)?))?)?$/;
-const CHECKED_SEEN = /^\/chat\/chats\/[^/]+\/seen$/;
-const CHECKED_STOP = /^\/chat\/(?:runs\/[^/]+|sessions\/[^/]+\/runs)\/stop$/;
-const CHECKED_CHAT_PATCH = /^\/chat\/(?:chats\/[^/]+(?:\/threads\/[^/]+)?|sessions\/[^/]+)$/;
-const CHECKED_CHAT_POST = /^\/chat\/(?:prompt|abort|intent\/paid|chats\/[^/]+\/(?:messages|threads\/[^/]+\/(?:restore|continue)))$/;
-const CHECKED_CHAT_DELETE = /^\/chat\/chats\/[^/]+\/threads\/[^/]+$/;
-const CHECKED_REVIEW = /^\/chat\/(?:review\/[^/]+(?:\/decision)?|rules\/[^/]+)$/;
 
 const TOKEN_PARAM = "coder_session_token";
 const TOKEN_KEY = "xo-coder-token";
@@ -95,23 +78,6 @@ export async function requestJson(path, { method = "GET", body, signal, query, t
   }
   const ms = timeout ?? (method === "GET" ? READ_MS : WRITE_MS);
   return withDeadline(signal, ms, (active) => exchange(url, method, body, active, headers));
-}
-
-/** @param {string} path @param {RequestOptions} [options] @returns {Promise<ReturnType<typeof JSON.parse>>} */
-export async function request(path, options) {
-  const [route] = path.split(/[?#]/, 1);
-  const method = (options?.method ?? "GET").toUpperCase();
-  const checked = (method === "GET" && (CHECKED_READS.test(route)
-    || CHECKED_CHAT_READS.test(route) || route === "/advisory" || /^\/messages\/[^/]+$/.test(route)))
-    || (method === "PUT" && CHECKED_SEEN.test(route)) || (method === "PATCH" && CHECKED_CHAT_PATCH.test(route))
-    || (method === "POST" && (CHECKED_STOP.test(route) || CHECKED_CHAT_POST.test(route)))
-    || (method === "DELETE" && CHECKED_CHAT_DELETE.test(route)) || hasCheckedProjectResponse(route, method)
-    || hasCheckedTerminalResponse(route, method) || hasCheckedGithubAuthResponse(route, method)
-    || hasCheckedUploadResponse(route, method) || hasCheckedLaunchpadResponse(route, method) || hasCheckedSignInResponse(route, method);
-  if (checked || CHECKED_ROUTES.has(route) || CHECKED_DETAIL.test(route) || CHECKED_REVIEW.test(route)) {
-    throw new TypeError(`Use the checked adapter for ${route}.`);
-  }
-  return requestJson(path, options);
 }
 
 /** @param {string} url @param {string} method @param {unknown} [body] @param {AbortSignal} [signal] @param {Record<string, string> | null} [extra] @returns {Promise<unknown>} */

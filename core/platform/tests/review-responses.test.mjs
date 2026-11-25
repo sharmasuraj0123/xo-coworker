@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { api, request, ruleApi } from "../api.js";
+import { api, ruleApi } from "../api.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/review-api.json", import.meta.url), "utf8"));
 const { review, defaultRule } = fixture;
@@ -30,7 +30,6 @@ for (const [path, read, sample, malformed, method = "GET"] of routes) {
     assert.deepEqual(await read(), sample);
     body = malformed;
     await assert.rejects(read, { code: "bad_answer" });
-    await assert.rejects(request(path, { method }), TypeError);
     assert.equal(mock.mock.callCount(), 2);
   });
 }

@@ -65,7 +65,7 @@
  },
  "core/platform/api.js": {
   "lineLength": 7,
-  "unusedExport": 3
+  "unusedExport": 2
  },
  "core/platform/clipboard.js": {
   "lineLength": 1

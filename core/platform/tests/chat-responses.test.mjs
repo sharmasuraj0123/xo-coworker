@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { api, chatActivityApi, request } from "../api.js";
+import { api, chatActivityApi } from "../api.js";
 
 const rows = JSON.parse(readFileSync(new URL("./fixtures/chat-reads.json", import.meta.url), "utf8"));
 const systemMessage = { ...rows.message, author_kind: "system", author_id: null, author_session_id: null };
@@ -53,7 +53,6 @@ for (const [path, read, sample, bad, method = "GET"] of routes) {
     assert.deepEqual(await read(), sample);
     body = bad;
     await assert.rejects(read, { code: "bad_answer" });
-    await assert.rejects(request(path, { method }), TypeError);
     assert.equal(mock.mock.callCount(), 2);
   });
 }

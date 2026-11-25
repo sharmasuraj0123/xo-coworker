@@ -35,7 +35,7 @@ await t("the token leaves the address bar, stays for the tab, and rides on every
 });
 await t("request: page-relative URL, query without empty values, JSON body, no-store, manual redirects", async () => {
   answer = () => res(200, '{"ok":1}');
-  assert.deepEqual(await A.request("/chat/x", { method: "POST", body: { a: 1 }, query: { q: "a b", e: "", n: null, z: 0 } }), { ok: 1 });
+  assert.deepEqual(await H.requestJson("/chat/x", { method: "POST", body: { a: 1 }, query: { q: "a b", e: "", n: null, z: 0 } }), { ok: 1 });
   const [{ url, init }] = calls;
   assert.equal(url, "api/chat/x?q=a+b&z=0");
   assert.equal(init.method, "POST");
@@ -44,25 +44,25 @@ await t("request: page-relative URL, query without empty values, JSON body, no-s
   assert.equal(init.redirect, "manual");
   assert.deepEqual(init.headers, { "Content-Type": "application/json", "Coder-Session-Token": "TOK/1" });
   answer = () => res(200, "");
-  assert.equal(await A.request("/empty", { headers: { "X-A": "1" } }), null);
+  assert.equal(await H.requestJson("/empty", { headers: { "X-A": "1" } }), null);
   assert.deepEqual(calls[1].init.headers, { "Coder-Session-Token": "TOK/1", "X-A": "1" });
 });
 await t("request: the four error shapes, with storm's extras", async () => {
   answer = () => res(409, JSON.stringify({ detail: { code: "file_changed", message: "Changed.", current: { v: 2 }, other: 1 } }));
-  let e = await rejects(A.request("/a"));
+  let e = await rejects(H.requestJson("/a"));
   assert.ok(e instanceof A.ApiError);
   assert.deepEqual([e.status, e.code, e.message, e.current, e.other], [409, "file_changed", "Changed.", { v: 2 }, undefined]);
   answer = () => res(422, JSON.stringify({ detail: [{ loc: ["body", "name"], msg: "required" }, { loc: ["q"], msg: "bad" }] }));
-  e = await rejects(A.request("/a"));
+  e = await rejects(H.requestJson("/a"));
   assert.deepEqual([e.code, e.message], ["http_422", "name: required; : bad"]);
   answer = () => res(400, JSON.stringify({ detail: "Plain words." }));
-  e = await rejects(A.request("/a"));
+  e = await rejects(H.requestJson("/a"));
   assert.deepEqual([e.code, e.message], ["http_400", "Plain words."]);
   answer = () => res(421, JSON.stringify({ error: "bad_host" }), { statusText: "Misdirected" });
-  e = await rejects(A.request("/a"));
+  e = await rejects(H.requestJson("/a"));
   assert.deepEqual([e.code, e.message], ["bad_host", "421 Misdirected"]);
   answer = () => res(500, "not json");
-  e = await rejects(A.request("/a"));
+  e = await rejects(H.requestJson("/a"));
   assert.deepEqual([e.code, e.message], ["http_500", "500 error"]);
 });
 await t("a malformed successful JSON answer reports the invalid response", async () => {
@@ -76,9 +76,6 @@ await t("the status route checks its response before returning it", async () => 
   answer = () => res(200, fixture);
   assert.deepEqual(await A.api.status(), JSON.parse(fixture));
   assert.equal(calls[0].url, "api/chat/status");
-  const dispatched = calls.length;
-  await assert.rejects(A.request("/chat/status?legacy=true"), TypeError);
-  assert.equal(calls.length, dispatched);
   for (const payload of ["null", '{"pools":{}}', '{"pools":[{"id":42}]}', '{"pools":[{"id":"pool","state":{}}]}']) {
     answer = () => res(200, payload);
     assert.equal((await rejects(A.api.status())).code, "bad_answer");
@@ -86,14 +83,14 @@ await t("the status route checks its response before returning it", async () => 
 });
 await t("request: signed out, network and timeout read as words", async () => {
   answer = () => res(0, "", { type: "opaqueredirect" });
-  assert.deepEqual(Object.values(pick(await rejects(A.request("/a")))), [401, "signed_out"]);
+  assert.deepEqual(Object.values(pick(await rejects(H.requestJson("/a")))), [401, "signed_out"]);
   answer = () => { throw new TypeError("Failed to fetch"); };
-  assert.deepEqual(Object.values(pick(await rejects(A.request("/a")))), [0, "network"]);
+  assert.deepEqual(Object.values(pick(await rejects(H.requestJson("/a")))), [0, "network"]);
   answer = (_u, init) => new Promise((_, rej) => init.signal.addEventListener("abort", () => rej(Object.assign(new Error("x"), { name: "AbortError" }))));
-  const e = await rejects(A.request("/a", { timeout: 20 }));
+  const e = await rejects(H.requestJson("/a", { timeout: 20 }));
   assert.deepEqual([e.code, e.message], ["timeout", "XO didn't answer in 0 s."]);
   const ctl = new AbortController();
-  const p = A.request("/a", { signal: ctl.signal });
+  const p = H.requestJson("/a", { signal: ctl.signal });
   ctl.abort();
   assert.equal((await rejects(p)).name, "AbortError", "the caller's own abort stays an abort");
 });
@@ -235,7 +232,6 @@ await t("an upload sends raw bytes with the token, reports progress and reads it
   const malformed = A.uploadAttachment("c", { type: "", size: 1 }, "x");
   Object.assign(sent[3], { status: 200, responseText: '{"id":"missing-name"}' }); sent[3].onload();
   assert.equal((await rejects(malformed.promise)).code, "bad_answer");
-  assert.ok(await rejects(A.request("/chat/chats/c/attachments?name=x", { method: "POST" })) instanceof TypeError);
 });
 await t("one error parser: blobs, texts and uploads read every error shape as requests do, extras and all", async () => {
   answer = () => res(421, JSON.stringify({ error: "bad_host" }), { statusText: "Misdirected" });
@@ -253,7 +249,7 @@ await t("one error parser: blobs, texts and uploads read every error shape as re
 await t("a failed answer whose body can't be read keeps its status: blobs, texts and requests alike", async () => {
   const broken = (status) => ({ ...res(status, "", { statusText: "Gone" }), text: async () => { throw new TypeError("body stream broke"); }, json: async () => { throw new TypeError("body stream broke"); } });
   answer = () => broken(410);
-  for (const p of [A.api.projectImage("p", "x.png"), A.attachmentText("c", "a"), A.request("/a")]) {
+  for (const p of [A.api.projectImage("p", "x.png"), A.attachmentText("c", "a"), H.requestJson("/a")]) {
     const e = await rejects(p);
     assert.deepEqual([e.status, e.code, e.message], [410, "http_410", "410 Gone"]);
   }

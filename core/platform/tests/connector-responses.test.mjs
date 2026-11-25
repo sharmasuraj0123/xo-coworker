@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { api, request } from "../api.js";
+import { api } from "../api.js";
 
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/connector-responses.json", import.meta.url), "utf8"));
 const connector = "/connectors/github";
@@ -47,7 +47,6 @@ for (const [method, path, call, good, bad] of routes) {
     assert.deepEqual(await call(), good);
     payload = bad;
     await assert.rejects(call(), { code: "bad_answer" });
-    await assert.rejects(request(path + "?legacy=1", { method: method.toLowerCase() }), TypeError);
     assert.equal(fetches.mock.callCount(), 2);
   });
 }
@@ -80,7 +79,6 @@ for (const method of ["GET", "POST"]) {
     assert.deepEqual(result, { ended: false });
     assert.equal(reported.mock.callCount(), 1);
     assert.equal(reported.mock.calls[0].arguments[0].code, "bad_answer");
-    await assert.rejects(request(path, { method }), TypeError);
     assert.equal(fetches.mock.callCount(), 1);
   });
 }

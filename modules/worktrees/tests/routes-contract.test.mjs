@@ -12,7 +12,8 @@ globalThis.fetch = async (input, init) => {
   const url = new URL(String(input), "https://space.invalid");
   const path = url.pathname.replace("/project%20chat/thread%20id", "/{chat_id}/{thread_ts}");
   routes.push([path, init?.method, url.searchParams.get("confirm")]);
-  return Response.json({});
+  if (init?.method === "DELETE") return Response.json({ removed: true, forced: true, lost: null, note: "Removed" });
+  return Response.json({ worktrees: [], removed: [], reported: [] });
 };
 await chatActivityApi.worktrees();
 await chatActivityApi.removeWorktree("project chat", "thread id", "confirm-token");

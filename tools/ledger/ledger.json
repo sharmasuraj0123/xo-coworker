@@ -7252,8 +7252,8 @@
    "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::request": {
-   "status": "moved",
-   "home": "core/platform/http.js"
+   "status": "deleted",
+   "reason": "Route-specific contracts replace the unchecked JSON export."
   },
   "js/api.js::exports::missingRoute": {
    "status": "moved",
@@ -7298,8 +7298,8 @@
    }
   },
   "js/api.js::functions::request": {
-   "status": "moved",
-   "home": "core/platform/http.js"
+   "status": "deleted",
+   "reason": "The remaining routes validate their own responses from the unknown JSON transport."
   },
   "js/api.js::functions::exchange": {
    "status": "moved",

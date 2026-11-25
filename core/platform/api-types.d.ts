@@ -11,8 +11,8 @@ import type { AccountIntents, Advisory, PaidReceipt } from "./account-response-t
 import type { TerminalApi } from "./terminal-response-types";
 import type { AuthApi } from "./github-auth-types";
 import type { ActionsApi } from "./launchpad-actions-types";
+import type * as RecordWire from "./record-response-types.d.ts";
 
-type Json = ReturnType<typeof import("./http.js").request>;
 type Query = Record<string, unknown>;
 type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
@@ -48,14 +48,14 @@ export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, Sign
   restoreThread(chat: Id, ts: string): Promise<ThreadRecord>;
   continueThread(chat: Id, ts: string, body: object): Promise<ThreadContinuation>;
   hops(chat: Id, query?: Query, options?: ReadOptions): Promise<CursorPage & { hops: HopRecord[] }>;
-  memory(chat: Id): Json;
-  made(chat: Id, query?: Query, options?: ReadOptions): Json;
-  pinMade(chat: Id, id: Id, on: boolean): Json;
+  memory(chat: Id): Promise<RecordWire.MemoryReply>;
+  made(chat: Id, query?: Query, options?: ReadOptions): Promise<RecordWire.MadeReply>;
+  pinMade(chat: Id, id: Id, on: boolean): Promise<RecordWire.MadeReceipt>;
   markSeen(chat: Id): Promise<{ seen: Seen }>;
-  memoryFile(chat: Id, path: string): Json;
+  memoryFile(chat: Id, path: string): Promise<RecordWire.MemoryFileReceipt>;
 
-  shape(): Json;
-  putShape(body: object): Json;
+  shape(): Promise<RecordWire.ShapeReceipt>;
+  putShape(body: object): Promise<RecordWire.ShapeReceipt>;
 
   sessions(query?: Query, options?: ReadOptions): Promise<CursorPage & { sessions: SessionRecord[] }>;
   session(id: Id, options?: ReadOptions): Promise<SessionRecord>;
@@ -80,8 +80,8 @@ export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, Sign
   stopRun(id: Id): Promise<StopRunReceipt | MissingStopReceipt>;
   stopRuns(session: Id): Promise<StopRunsReceipt | MissingStopReceipt>;
 
-  worktrees(chat?: Id | null): Json;
-  removeWorktree(chat: Id, ts: string, confirm?: string | null): Json;
+  worktrees(chat?: Id | null): Promise<RecordWire.WorktreesReply>;
+  removeWorktree(chat: Id, ts: string, confirm?: string | null): Promise<RecordWire.WorktreeRemoveReply>;
 
   projectImage(project: Id, relativePath: string, opts?: BlobOptions): Promise<Blob>;
   projectVersion(project: Id, relativePath: string, at: { commit: string; was?: string | null }, opts?: BlobOptions): Promise<Blob>;

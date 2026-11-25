@@ -28,7 +28,7 @@
 
 ## What the shell gives it
 
-`createAppsHost({ client, doc, win, redraw, projects, draft, openPanel, confirm, context })`: `client` from `createAppsClient(core/platform's request)`, `redraw` from `core/ui`. Emit `apps:refresh` on the bus when xo-space says an app changed; the host emits `apps:changed` after it re-reads.
+`createAppsHost({ client, doc, win, redraw, projects, draft, openPanel, confirm, context })`: `client` from `createAppsClient(core/platform's requestJson)`, `redraw` from `core/ui`. Emit `apps:refresh` on the bus when xo-space says an app changed; the host emits `apps:changed` after it re-reads.
 
 ## Known limits
 

@@ -33,6 +33,7 @@ for (const [method, template, path, request] of routes) {
   const requests = [];
   globalThis.fetch = async (url, options) => {
     requests.push([options?.method || "GET", new URL(String(url), origin).pathname]);
+    if (path === "/api/chat/worktrees") return Response.json({ worktrees: [], removed: [], reported: [] });
     if (path === "/api/terminal/status") return Response.json(fixture.status);
     if (path === session && method === "GET") return Response.json({ terminals: [fixture.terminal] });
     if (path === session && method === "POST") return Response.json({ terminal: fixture.terminal, ...fixture.ticket });

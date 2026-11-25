@@ -24,9 +24,6 @@
   "commentLines": 3,
   "explicitAny": 10
  },
- "apps-host/tests/client.test.mjs": {
-  "explicitAny": 3
- },
  "apps-host/tests/frame.test.mjs": {
   "commentLines": 1
  },
@@ -644,8 +641,7 @@
   "commentLines": 17
  },
  "tests/browser/settings.test.cjs": {
-  "changelogComment": 10,
-  "commentLines": 49
+  "commentLines": 3
  },
  "tests/browser/smoke.test.cjs": {
   "changelogComment": 2,

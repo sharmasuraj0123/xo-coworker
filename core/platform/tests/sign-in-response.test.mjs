@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { api, request } from "../api.js";
+import { api } from "../api.js";
 
 const session_id = "fixture-login";
 const claude = { type: "session", session_id };
@@ -30,7 +30,6 @@ for (const [route, good, malformed] of streams) {
     assert.deepEqual(seen, [good]);
     assert.equal(reports.mock.callCount(), 1);
     assert.equal(reports.mock.calls[0].arguments[0].code, "bad_answer");
-    await assert.rejects(request(`/connect/${route}`, { method: "POST" }), TypeError);
     assert.equal(fetches.mock.callCount(), 1);
   });
 }
@@ -56,7 +55,6 @@ for (const [method, path, call, good, bad] of writes) {
     assert.deepEqual(await call(), good);
     reply = bad;
     await assert.rejects(call(), { code: "bad_answer" });
-    await assert.rejects(request("/" + path, { method }), TypeError);
     assert.equal(fetches.mock.callCount(), 2);
   });
 }

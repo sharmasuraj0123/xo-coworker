@@ -24,7 +24,8 @@ test("Worktrees owns its list and confirmation while Settings still handles focu
   const methods = [];
   globalThis.fetch = async (_url, init) => {
     methods.push(init.method);
-    return Response.json(init.method === "DELETE" || methods.includes("DELETE") ? {} : { worktrees: [tree] });
+    if (init.method === "DELETE") return Response.json({ removed: true, forced: false, lost: null, note: null });
+    return Response.json({ worktrees: methods.includes("DELETE") ? [] : [tree], removed: [], reported: [] });
   };
   try {
     await page.open();

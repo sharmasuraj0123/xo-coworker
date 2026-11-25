@@ -6,7 +6,7 @@ import { ApiError } from "../../core/platform/http.js";
 import { reportFailure, requestFailureMessage } from "../../core/services/notices/failures.js";
 import { isRunning, nameFor, runningOf } from "./model.js";
 
-/** @import { DockOpenOptions, OpenIntent, ShellThread, ShellWorktree } from "./dock-open-types.d.ts" */
+/** @import { DockOpenOptions, OpenIntent, ShellThread } from "./dock-open-types.d.ts" */
 
 /** @param {import("./dock-types.d.ts").DockState} state @param {DockOpenOptions} options */
 export function createShellOpeners(state, {
@@ -68,7 +68,7 @@ export function createShellOpeners(state, {
     return requests.read((readSignal) => chatActivityApi.worktrees(chatId, readSignal), (result) => {
       let path = null;
       if (result.ok) {
-        const found = (result.value.worktrees || []).find((/** @type {ShellWorktree} */ tree) =>
+        const found = result.value.worktrees.find((tree) =>
           tree.thread_ts === ts && tree.exists !== false && !tree.error);
         path = found?.path || null;
       } else if (!(result.error instanceof ApiError && result.error.status === 404)) reportFailure(result.error);

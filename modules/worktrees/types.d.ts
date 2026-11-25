@@ -1,34 +1,8 @@
-export interface WorktreeLoss {
-  summary?: string;
-  branch?: string;
-  commits?: number;
-  changed?: { paths?: string[] } | null;
-  untracked?: { paths?: string[] } | null;
-}
+import type { ReportedTree, WorktreeLoss, WorktreeRow, WorktreesReply } from "../../core/platform/record-response-types.d.ts";
 
-export interface Worktree {
-  chat_id: string;
-  thread_ts: string;
-  path?: string;
-  branch?: string;
-  error?: string | null;
-  exists?: boolean;
-  xo?: boolean;
-  removable?: boolean;
-  would_lose?: WorktreeLoss | null;
-  session_state?: string;
-  thread_state?: string;
-}
-
-export interface ReportedTree {
-  path: string;
-  reported_at: string;
-}
-
-export interface WorktreesResponse {
-  worktrees?: Worktree[];
-  reported?: ReportedTree[];
-}
+export type { WorktreeLoss };
+export type Worktree = WorktreeRow;
+export type WorktreesResponse = WorktreesReply;
 
 export interface WorktreeRemoval {
   key: string;

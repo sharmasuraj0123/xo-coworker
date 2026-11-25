@@ -5,6 +5,7 @@ import { chatActivityApi } from "../../core/platform/api.js";
 import { ApiError } from "../../core/platform/http.js";
 import { busyAttrs, esc, isPending } from "../../core/platform/index.js";
 import { latest } from "../../core/platform/latest.js";
+import { isWorktreeLoss } from "../../core/platform/record-responses.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { holdButton } from "../../core/ui/components/hold.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -160,8 +161,7 @@ export function createWorktreesPage(host, options) {
       } catch (error) {
         if (scope.signal.aborted) return;
         if (error instanceof ApiError && error.code === "would_lose_work") {
-          const loss = "what" in error && error.what && typeof error.what === "object"
-            ? /** @type {WorktreeLoss} */ (error.what) : undefined;
+          const loss = "what" in error && isWorktreeLoss(error.what) ? error.what : undefined;
           const confirm = "confirm" in error && typeof error.confirm === "string" ? error.confirm : undefined;
           if (loss && confirm) {
             state.confirmation = { key, loss, token: confirm };

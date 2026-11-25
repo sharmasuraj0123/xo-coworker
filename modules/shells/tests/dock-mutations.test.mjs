@@ -68,7 +68,7 @@ async function mount(document, hold, target) {
 
 const thread = { id: "thread", chatId: "room", project: "review", title: "Review" };
 const stageShell = "[data-stg-shell]";
-const matchingTree = () => Response.json({ worktrees: [{ thread_ts: thread.id, path: terminal.path }] });
+const matchingTree = () => Response.json({ worktrees: [{ chat_id: thread.chatId, thread_ts: thread.id, path: terminal.path }] });
 
 async function mountStage(hold, target, view = "t:thread") {
   let panelShell;

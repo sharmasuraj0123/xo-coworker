@@ -10,13 +10,6 @@ export interface ShellThread {
   title: string;
 }
 
-export interface ShellWorktree {
-  thread_ts: string;
-  exists?: boolean;
-  error?: string;
-  path?: string;
-}
-
 export interface DockOpenOptions {
   requests: ReturnType<typeof createDockRequests>;
   wanted(): boolean;

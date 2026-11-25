@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createAppsClient } from "../client.js";
 
-/** @type {Array<[string, any]>} */
+/** @type {Array<[string, { body?: { confirm?: string }, headers?: object }]>} */
 const calls = [];
 const c = createAppsClient(async (path, opts = {}) => { calls.push([path, opts]); return { ok: true }; });
 const last = () => calls[calls.length - 1];
@@ -57,9 +57,9 @@ assert.throws(() => c.prompt("dev.example.word", at, "../x"), /prompt name/);
 assert.equal(calls.length, before, "nothing is sent for a refused call");
 assert.throws(() => c.call("dev.example.word", { project: "p/../x" }, "word_read", {}), /project id/);
 const urls = [];
-globalThis.fetch = /** @type {any} */ (async (/** @type {string} */ url, /** @type {any} */ init) => { urls.push(`${init.method} ${url}`); return { ok: true, status: 200, type: "basic", text: async () => "{}" }; });
-const { request } = await import("../../core/platform/http.js");
-const real = createAppsClient(request);
+globalThis.fetch = async (url, init) => { urls.push(`${init?.method} ${url}`); return Response.json({}); };
+const { requestJson } = await import("../../core/platform/http.js");
+const real = createAppsClient(requestJson);
 await real.list();
 await real.call("dev.example.word", { project: "p1" }, "word_read", {});
 assert.deepEqual(urls, ["GET api/apps", "POST api/coworker/apps/dev.example.word/call"], "core/platform's request puts /api in front: the client's paths never repeat it");
