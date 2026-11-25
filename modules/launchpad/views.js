@@ -212,7 +212,7 @@ export function installViews(L) {
   }
   /** @param {PrepThread} g @param {{k: string, word: string}} st */
   const askRow = (g, st) => {
-    const busy = st.k === "work", elapsed = busy && g.since != null ? `<span class="lp-tm">${since(g.since)}</span>` : "";
+    const busy = st.k === "work", elapsed = busy ? `<span class="lp-tm">${since(g.since)}</span>` : "";
     return `<ul class="lq-group lp-ag"><li><button type="button" class="lq-row lp-agr" data-lp="thread"` +
       ` data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${busy ? ARC : ""}</span>` +
       `<span class="lq-v lp-c"><b>${esc(g.title)}</b><small>${esc(st.word)}</small></span>` +

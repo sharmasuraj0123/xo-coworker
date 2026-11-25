@@ -20,7 +20,7 @@ type NoticeOwner = ReturnType<typeof createWindowNotices>;
 export interface PrepThread {
   thread?: string;
   title: string;
-  since?: number | null;
+  since: number;
   busy?: boolean;
   held?: string | null;
   done?: boolean;
