@@ -19,6 +19,7 @@ const log = [];
 let closed = false;
 let placeless = false;
 let allowClose = false;
+let closeError = null;
 const panel = createPages({
   el, S: state, places: K.places, at: () => location, view: () => location.view,
   threads: () => [{ k: "needs", rows: [{}] }], shell: (on) => log.push(["shell", on]),
@@ -31,7 +32,7 @@ const shellButton = el.querySelector("[data-stg-shell]");
 const box = (name) => el.querySelector(`[data-pg="${name}"]`);
 const mount = (host, at) => { log.push(["mount", at]); return () => log.push(["undo"]); };
 const files = {
-  title: "Files", mount, canClose: () => allowClose,
+  title: "Files", mount, async canClose() { if (closeError) throw closeError; return allowClose; },
   onShow: (key, { focus }) => log.push(["show", key, focus]),
   onHide: (key) => log.push(["hide", key]), close: (key) => log.push(["close", key]),
 };
@@ -62,6 +63,19 @@ assert.deepEqual(log.splice(0), [["shell", false], ["show", "p2", false]]);
 assert.equal(await panel.requestClose(), false);
 assert.equal(closed, false);
 assert.equal(box("files").hidden, false);
+const failures = [];
+const oldReporter = globalThis.reportError;
+globalThis.reportError = (error) => failures.push(error);
+try {
+  closeError = new Error("close guard failed");
+  assert.equal(await panel.requestClose(), false);
+  assert.equal(closed, false);
+  assert.equal(box("files").hidden, false);
+  assert.deepEqual(failures, [closeError]);
+} finally {
+  closeError = null;
+  globalThis.reportError = oldReporter;
+}
 allowClose = true;
 assert.equal(await panel.requestClose(), true);
 assert.equal(closed, true);

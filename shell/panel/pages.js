@@ -1,6 +1,6 @@
 // @ts-check
 
-import { esc } from "../../core/platform/index.js";
+import { esc, reportFailure } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { RM } from "../../core/ui/motion.js";
 
@@ -198,7 +198,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     for (const entry of [S.page, S.under]) {
       if (!entry) continue;
       try { if ((await PAGES.get(entry.name)?.canClose?.(entry.key)) === false) return false; }
-      catch { return false; }
+      catch (error) { reportFailure(error); return false; }
     }
     close();
     return true;
