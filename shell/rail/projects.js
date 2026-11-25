@@ -36,17 +36,21 @@ export function projectPicker(scope, projects, change) {
   }
   scope.listen(opener, "click", () => { input.value = ""; paint(true); });
   scope.listen(input, "input", () => paint(true));
+  /** @param {string} id */
+  function toggle(id) {
+    if (pins.has(id)) pins.delete(id); else pins.add(id);
+    write(KEY, JSON.stringify([...pins]), "local", reportStorageFailure);
+    change();
+  }
   scope.listen(panel, "click", ({ target }) => {
     if (!(target instanceof Element)) return;
     const id = target.closest("[data-pin-project]")?.getAttribute("data-pin-project");
     if (id) {
-      if (pins.has(id)) pins.delete(id); else pins.add(id);
-      write(KEY, JSON.stringify([...pins]), "local", reportStorageFailure);
-      change();
+      toggle(id);
     } else if (target.closest("[data-go],[data-new-project]")) {
       panel.hidePopover();
       if (target.closest("[data-new-project]")) requireHtml("#side-add", "button").click();
     }
   });
-  return { paint, pinned: (/** @type {string} */ id) => pins.has(id) };
+  return { paint, toggle, pinned: (/** @type {string} */ id) => pins.has(id) };
 }

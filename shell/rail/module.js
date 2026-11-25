@@ -3,6 +3,7 @@ import { requireHtml } from "../../core/platform/dom.js";
 import { createSide } from "./side.js";
 import { createSideRows } from "./rows.js";
 import { projectPicker } from "./projects.js";
+import { projectSettings } from "./project-settings.js";
 import { esc } from "../../core/platform/util.js";
 import { reconcile } from "../../core/ui/redraw.js";
 
@@ -10,7 +11,7 @@ import { reconcile } from "../../core/ui/redraw.js";
 export const railModule = {
   manifest: { id: "xo.rail", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["shape", "announce", "currentView", "world", "chats", "decisionPresentation",
-      "placeContext", "threadPresentation", "projectIcons"],
+      "placeContext", "threadPresentation", "projectIcons", "navigation"], contributes: ["header.action:project-settings"],
     optional: ["jump"], provides: ["rail"] },
   activate(ctx) {
     const jump = requireHtml("#jump");
@@ -18,6 +19,7 @@ export const railModule = {
       toggleJump() { const surface = ctx.optional("jump"); if (jump.hidden) surface?.open(); else surface?.close(); } });
     const { D, askShort } = ctx.use("decisionPresentation"), place = ctx.use("placeContext");
     const picker = projectPicker(ctx, place.projects, () => ctx.emit("app:render"));
+    projectSettings(ctx, picker);
     const rows = createSideRows(ctx, {
       view: ctx.use("currentView"), world: ctx.use("world"), CH: ctx.use("chats"), D,
       projects: place.projects, convThread: place.convThread, pinned: picker.pinned,
