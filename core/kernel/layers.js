@@ -21,7 +21,12 @@ export function createLayers(warn = console.error) {
     for (let i = candidates.length - 1; i >= 0; i--) {
       const layer = candidates[i];
       const fn = layer[what];
-      try { if (fn && fn.call(layer) === true) return true; } catch (e) { warn({ module: "layers", phase: what, subject: layer.id }, e); return true; }
+      try {
+        if (fn && fn.call(layer) === true) return true;
+      } catch (e) {
+        warn({ module: "layers", phase: what, subject: layer.id }, e);
+        return true;
+      }
     }
     return false;
   };
@@ -35,8 +40,8 @@ export function createLayers(warn = console.error) {
         if (i < 0) return;
         stack.splice(i, 1);
         changed();
-        const el = /** @type {any} */ (layer.returnFocus);
-        if (el && el.isConnected && typeof el.focus === "function") el.focus({ preventScroll: true });
+        const el = layer.returnFocus;
+        if (el?.isConnected && "focus" in el && typeof el.focus === "function") el.focus({ preventScroll: true });
       };
     },
     top: () => stack[stack.length - 1],
