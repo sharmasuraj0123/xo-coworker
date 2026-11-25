@@ -39,10 +39,11 @@
 @import url("../core/ui/tabular-labels.css");
 @import url("../shell/rail/counts.css");
 @import url("../modules/conversation/attachments.css");
-
 .m-reacts{display:flex;flex-wrap:wrap;gap:var(--s-1);margin:var(--s-1) 0 0}
 .m-you .m-reacts{justify-content:flex-end}
-.m-react{display:inline-flex;align-items:center;gap:2px;height:22px;padding:0 7px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-ui);line-height:1;cursor:default}
+.m-react{display:inline-flex;align-items:center;gap:var(--s-reaction-gap);height:var(--h-reaction);
+  padding:0 var(--s-reaction-inline);border:var(--hair) solid var(--line);border-radius:var(--r-sm);
+  background:var(--fill-2);font-size:var(--fs-ui);line-height:1;cursor:default}
 .m-react-n{font-size:var(--fs-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .m-files{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:6px 0 0;padding:0;list-style:none;max-width:min(560px,100%)}
 .m-files .tb-fb{min-width:min(220px,100%)}
@@ -56,7 +57,6 @@
 }
 a.vw-btn{text-decoration:none}
 .vw-sub>span:first-child::before{content:none;margin:0}
-
 /* ── shells (js/shells/): a dock under the main column, tabs of attached shells, and their list ── */
 .app{grid-template-rows:minmax(0,1fr) auto}
 .side{grid-column:1;grid-row:1/-1}

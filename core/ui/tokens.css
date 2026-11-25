@@ -155,7 +155,7 @@
   --font-file-meta-code:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);
   --w-stage-default:360px; --h-foundation-row:36px; --slide-panel-in:12px; --edge-panel-flush:rgba(0,0,0,.08);
   --w-panel-grip-line:2px; --w-artifact-grid-card:148px; --w-header-xo-mark:20px; --h-header-xo-mark:8px;
-  --r-sidebar-focus:6px; --offset-workspace-link-ring:1px;
+  --r-sidebar-focus:6px; --offset-workspace-link-ring:1px; --s-reaction-gap:2px; --s-reaction-inline:7px; --h-reaction:22px;
   --offset-field-ring:-1px; --r-grip-ring:3px; --spread-field-halo:3px; --offset-inset-divider:-1px;
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
