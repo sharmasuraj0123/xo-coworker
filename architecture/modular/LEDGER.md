@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 494 |
+| moved | 496 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 104 |
+| planned | 102 |
 | kept | 90 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted 219, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1790, planned 246, kept 230, deleted 219, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -364,9 +364,9 @@ Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/chat-read-order.test.cjs` | 100 | moved | e2e/specs/chat-read-order.spec.mjs · next: Four Chromium profiles passed on 2418ad3f with held real Requests and live fake Space stream updates. |
 | `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | moved | e2e/specs/coordinator-busy.spec.mjs · next: Passed in desktop dark, the original case scope, on 2418ad3f. |
 | `tests/browser/flows.test.cjs` | 4372 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: the static fixture server moved to e2e/fixtures/browser-static-server.cjs; the in-page mock world retires when the last suite moves |
 | `tests/browser/held-contract.test.cjs` | 99 | moved | e2e/specs/held-contract.spec.mjs · next: Four browser profiles passed on 2b9d2503 with the captured Space rows and stream frames. |

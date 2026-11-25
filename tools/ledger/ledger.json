@@ -4801,9 +4801,12 @@
    "home": "tests/boot.test.mjs"
   },
   "tests/browser/chat-read-order.test.cjs": {
-   "status": "planned",
+   "status": "moved",
    "home": "e2e/specs/chat-read-order.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "Four Chromium profiles passed on 2418ad3f with held real Requests and live fake Space stream updates.",
+   "evidence": {
+    "e2e/specs/chat-read-order.spec.mjs": { "anchor": "plain chat list and detail read ordering", "reason": "Verifies both list race directions, a later list read winning, and Stop remaining after a stale detail response." }
+   }
   },
   "tests/browser/conversation.test.cjs": {
    "status": "planned",
@@ -4811,9 +4814,12 @@
    "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/coordinator-busy.test.cjs": {
-   "status": "planned",
+   "status": "moved",
    "home": "e2e/specs/coordinator-busy.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "Passed in desktop dark, the original case scope, on 2418ad3f.",
+   "evidence": {
+    "e2e/specs/coordinator-busy.spec.mjs": { "anchor": "coordinator replacement, Stop and retirement", "reason": "The public app witnesses coordinator selection, late predecessor activity, current retirement and real Stop request targeting." }
+   }
   },
   "tests/browser/flows.test.cjs": {
    "status": "planned",
@@ -14180,8 +14186,11 @@
    "home": "modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/browser/chat-read-order.test.cjs::ids::send": {
-   "status": "planned",
-   "home": "e2e/specs/chat-read-order.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/chat-read-order.spec.mjs",
+   "evidence": {
+    "e2e/specs/chat-read-order.spec.mjs": { "anchor": "await page.locator('#send[title^=\"Stop the agent\"]').waitFor()", "reason": "The live session frame shows Stop before the held detail read completes and Stop remains after its stale response." }
+   }
   },
   "tests/browser/conversation.test.cjs::functions::convApi": {
    "status": "planned",
@@ -14405,16 +14414,25 @@
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/coordinator-busy.test.cjs::ids::send": {
-   "status": "planned",
-   "home": "e2e/specs/coordinator-busy.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/coordinator-busy.spec.mjs",
+   "evidence": {
+    "e2e/specs/coordinator-busy.spec.mjs": { "anchor": "Stop the coordinator", "reason": "The composer switches from Send to Stop with the running current coordinator and returns to Send after retirement." }
+   }
   },
   "tests/browser/coordinator-busy.test.cjs::ids::projects": {
-   "status": "planned",
-   "home": "e2e/specs/coordinator-busy.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/coordinator-busy.spec.mjs",
+   "evidence": {
+    "e2e/specs/coordinator-busy.spec.mjs": { "anchor": "Coordinator working", "reason": "The project rail marks only the current running coordinator and clears activity upon retirement." }
+   }
   },
   "tests/browser/coordinator-busy.test.cjs::routes::/api/chat/abort": {
-   "status": "planned",
-   "home": "e2e/specs/abort.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/coordinator-busy.spec.mjs",
+   "evidence": {
+    "e2e/specs/coordinator-busy.spec.mjs": { "anchor": "assert.deepEqual(aborts.map((write) => write.body)", "reason": "After the Undo window, the sole local POST targets the newest coordinator with the exact session ID." }
+   }
   },
   "tests/browser/flows.test.cjs::exports::line$": {
    "status": "deleted",
@@ -14898,8 +14916,11 @@
    "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/launchpad-controls.spec.mjs",
+   "evidence": {
+    "e2e/specs/launchpad-controls.spec.mjs": { "anchor": "const placed = await page.evaluate", "reason": "LP10 measures both interpolated name and port hint IDs, proves invalid focus and verifies field alignment and absence of clipping in four profiles." }
+   }
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-name": {
    "status": "planned",
@@ -14910,8 +14931,11 @@
    "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-size": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/launchpad-controls.spec.mjs",
+   "evidence": {
+    "e2e/specs/launchpad-controls.spec.mjs": { "anchor": "const hint = page.locator(\"#lp-h-size\")", "reason": "LP15 checks the Size label association, selected size in the POST, refusal text and focus, then valid hint and value surviving form redraw in both themes and viewports." }
+   }
   },
   "tests/browser/lpshell.test.cjs::ids::shd": {
    "status": "planned",
