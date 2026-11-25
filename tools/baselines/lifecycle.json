@@ -42,11 +42,6 @@
  "modules/files/files.js": {
   "observer": 1
  },
- "modules/home/skeleton.js": {
-  "commentOnlyCatch": 1,
-  "globalListener": 1,
-  "storage": 2
- },
  "modules/launchpad/actions.js": {
   "setInterval": 2,
   "setTimeout": 2

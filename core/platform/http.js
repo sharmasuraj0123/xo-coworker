@@ -1,7 +1,7 @@
 // @ts-check
 import { createScope } from "../kernel/scope.js";
 import { read, write, reportStorageFailure } from "./storage.js";
-import { reportFailure } from "./util.js";
+import { isRecord as isResponseObject, reportFailure } from "./util.js";
 // Requests to XO Space through serve.py, relative to the page; inside Coder the session token rides on every one.
 
 const BASE = "api";
@@ -127,8 +127,7 @@ export const missingRoute = (err) => {
   return err.status === 405 || (err.status === 404 && (!("code" in err) || !err.code || err.code === "http_404"));
 };
 
-/** @param {unknown} value @returns {value is Record<string, unknown>} */
-export const isResponseObject = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+export { isResponseObject };
 
 /** @param {unknown} error */
 const isAbort = (error) => isResponseObject(error) && error.name === "AbortError";

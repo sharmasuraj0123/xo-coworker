@@ -332,9 +332,6 @@
  "core/ui/icons/icon.js": {
   "lineLength": 3
  },
- "core/ui/landing.js": {
-  "domExpando": 1
- },
  "core/ui/lightbox.js": {
   "domExpando": 4,
   "functionLines": 1,
@@ -776,7 +773,6 @@
   "lineLength": 1
  },
  "modules/home/skeleton.js": {
-  "domExpando": 2,
   "lineLength": 8,
   "unusedExport": 2
  },

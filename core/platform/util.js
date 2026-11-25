@@ -5,6 +5,9 @@
 /** @type {Record<string, string>} */
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;" };
 
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+export const isRecord = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+
 /** A spacing token's px from the page (tokens.css --s-1 … --s-12), so script gaps use the stylesheets' scale; 0 in node. @param {string} token */
 export function space(token) {
   if (typeof document === "undefined") return 0;

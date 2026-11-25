@@ -1,17 +1,18 @@
 // @ts-check
 
+import { createScope } from "../../core/kernel/scope.js";
+import { read, reportStorageFailure, write } from "../../core/platform/storage.js";
+import { isRecord } from "../../core/platform/util.js";
+import { markSkeleton } from "../../core/ui/skeleton-mark.js";
+
 const SHAPE = "xo-home-shape";
+const built = new WeakSet();
 
 /** @typedef {{id: string, hidden: HTMLElement["hidden"], h: number, kind?: string, n?: number}} HomePart */
-
-/** @typedef {{w: number, parts: HomePart[]}} HomeShape */
-
-/** @typedef {HTMLElement & {_built?: boolean, _sk?: boolean}} HomeNode */
 
 export function greeting(h = new Date().getHours()) {
   return h < 5 ? "Working late" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 }
-/** "Wednesday, November 4". */
 export const today = (d = new Date()) => d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
 /** A bar where words will be: `w` its width (a CSS length), `cls` a size (sk-l: a headline's). */
@@ -25,19 +26,31 @@ export function skTile(where = true, i = 0) {
     `<span class="md-meta"><b>${bar(NAME_W[i % NAME_W.length])}</b><span>${bar("44%")}</span></span></span>${from}</li>`;
 }
 
-/** What Home looked like when you last left it: {w, parts: [{id, hidden, h, kind, n}]}, or null. */
-function recall() {
-  try {
-    const s = /** @type {HomeShape | null} */ (JSON.parse(localStorage.getItem(SHAPE) || "null"));
-    return s && Array.isArray(s.parts) ? s : null;
-  } catch { return null; }
+/** @param {unknown} value @returns {HomePart | null} */
+function partShape(value) {
+  if (!isRecord(value) || typeof value.id !== "string") return null;
+  const { id, hidden, h, kind, n } = value;
+  return { id, hidden: hidden === true, h: typeof h === "number" ? h : 0, kind: typeof kind === "string" ? kind : undefined,
+    n: typeof n === "number" && Number.isSafeInteger(n) && n >= 0 ? n : undefined };
 }
-/** How many things Home's Recently made showed last time (null: it was never seen). */
+
+/** @param {string} raw @returns {unknown} */
+function parseRecall(raw) {
+  try { return JSON.parse(raw); }
+  catch (error) { if (error instanceof SyntaxError) return null; throw error; }
+}
+
+function recall() {
+  return read(SHAPE, (raw) => {
+    const shape = parseRecall(raw);
+    if (!isRecord(shape) || !Array.isArray(shape.parts)) return null;
+    return { w: typeof shape.w === "number" ? shape.w : 0, parts: shape.parts.map(partShape).filter((part) => part !== null) };
+  }, null, "local", reportStorageFailure);
+}
 export function rememberedMade() {
   const p = recall()?.parts.find((x) => x.id === "hm-made");
   return p ? p.n : null;
 }
-/** Remember Home's blocks (order, shown, height, kind) while it's on screen and fully drawn. */
 export function rememberHome() {
   const body = document.getElementById("hm-body");
   if (!body || !body.offsetParent || document.querySelector("#home .hm-sk, #hm-head .sk")) return; // hidden, or not drawn yet
@@ -52,16 +65,16 @@ export function rememberHome() {
     }
     return p;
   });
-  try { localStorage.setItem(SHAPE, JSON.stringify({ w: body.clientWidth, parts })); } catch { /* private mode */ }
+  write(SHAPE, JSON.stringify({ w: body.clientWidth, parts }), "local", reportStorageFailure);
 }
 
-/** @param {HomeNode | null} box */
+/** @param {HTMLElement | null} box */
 export function homeShell(box = document.getElementById("home")) {
-  if (!box || box._built || box.firstElementChild) return;
+  if (!box || built.has(box) || box.firstElementChild) return;
   const s = recall();
   box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
-  box._built = true;
-  const $ = (/** @type {string} */ id) => /** @type {HomeNode} */ (document.getElementById(id));
+  built.add(box);
+  const $ = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id));
   $("hm-head").innerHTML = `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${today()}</p><h1 class="hm-h" id="home-h">${greeting()}.<span> ${bar("9.5em", "sk-l")}</span></h1></div></header>`;
   const body = $("hm-body");
   const same = s && Math.abs((s.w || 0) - body.clientWidth) < 1;
@@ -80,11 +93,15 @@ export function homeShell(box = document.getElementById("home")) {
     $("hm-made").innerHTML = `<section class="md-recent hm-sk" aria-hidden="true"><h2 class="hm-lbl"><svg aria-hidden="true"></svg>${bar("104px", "sk-lb")}&#8203;</h2><ul class="md-grid is-strip">${Array.from({ length: /** @type {number} */ (made.n) }, (_, i) => skTile(true, i)).join("")}</ul></section>`;
   }
   if (s) for (const p of s.parts) { const el = $(p.id); if (el) { el.hidden = !!p.hidden; body.appendChild(el); } }
-  for (const id of ["hm-head", "hm-next", "hm-then", "hm-end", "hm-made"]) $(id)._sk = true;
+  for (const id of ["hm-head", "hm-next", "hm-then", "hm-end", "hm-made"]) markSkeleton($(id));
 }
 
 if (typeof document !== "undefined" && typeof window !== "undefined") {
+  const scope = createScope();
   homeShell();
-  addEventListener("pagehide", rememberHome);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) rememberHome(); });
+  scope.listen(window, "pagehide", (event) => {
+    rememberHome();
+    if (!("persisted" in event && event.persisted)) scope.dispose();
+  });
+  scope.listen(document, "visibilitychange", () => { if (document.hidden) rememberHome(); });
 }

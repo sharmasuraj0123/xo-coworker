@@ -13212,7 +13212,13 @@
   },
   "js/skeleton.js::storage::xo-home-shape": {
    "status": "moved",
-   "home": "modules/home/skeleton.js"
+   "home": "modules/home/skeleton.js",
+   "evidence": {
+    "modules/home/skeleton.js": {
+     "anchor": "const SHAPE = \"xo-home-shape\";",
+     "reason": "The key is unchanged and the Home skeleton reads and writes it through shared storage."
+    }
+   }
   },
   "js/sse.js::exports::createParser": {
    "status": "moved",

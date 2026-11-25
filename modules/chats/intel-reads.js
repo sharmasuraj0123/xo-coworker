@@ -60,18 +60,17 @@ export function createIntelReads(state, source, render, onChange) {
           ]);
           return { models, router, signal };
         } catch (error) {
-          return { error, signal };
+          if (applicable(signal)) {
+            state.err = error instanceof ApiError && error.status === 503 ? "The models can't be read right now."
+              : requestFailureMessage(error, "Couldn't read the models.");
+            render();
+          }
+          return null;
         }
       }, { signal: parent, commit(result) {
-        if (!applicable(result.signal)) return;
-        if ("error" in result) {
-          const error = result.error;
-          state.err = error instanceof ApiError && error.status === 503 ? "The models can't be read right now."
-            : requestFailureMessage(error, "Couldn't read the models.");
-        } else {
-          state.models = result.models;
-          if (result.router) state.dms = result.router;
-        }
+        if (!result || !applicable(result.signal)) return;
+        state.models = result.models;
+        if (result.router) state.dms = result.router;
         render();
       } });
     } catch (error) {

@@ -19,6 +19,7 @@ const t = async (name, fn) => {
 
   const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
   const { landed } = await import("../core/ui/landing.js");
+  const { markSkeleton } = await import("../core/ui/skeleton-mark.js");
   const host = document.getElementById("host");
 
   await t("redraw keeps matching controls and focuses the replacement when a control changes tag", () => {
@@ -74,7 +75,7 @@ const t = async (name, fn) => {
     window.Element.prototype.animate = (_, options) => delays.push(options.delay);
     try {
       host.innerHTML = "<span>A</span><span>B</span>";
-      host._sk = true;
+      markSkeleton(host);
       landed(host);
       landed(host);
       assert.deepEqual(delays, [0, 40]);

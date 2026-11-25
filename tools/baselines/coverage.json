@@ -48,18 +48,6 @@
    ["commentOnlyCatch",40,""]
   ]
  },
- "modules/chats/intel-reads.js": {
-  "sha256": "ca72c60135265b58d6eb7b4a257ff17e122acf65f90204cd4423563374450c34",
-  "sites": [
-   ["commentOnlyCatch",62,""]
-  ]
- },
- "modules/chats/intel.js": {
-  "sha256": "ee4ae6f90cbf1ee2f34fdde5c0718e824c5a5ba0b8d33b4c92d92e4381564964",
-  "sites": [
-   ["commentOnlyCatch",262,""]
-  ]
- },
  "modules/decisions/kit.js": {
   "sha256": "3d81e29d7114ca24f04f45d1ae42171c5af9f438e38c73b7609455ef5d1105d0",
   "sites": [
@@ -71,13 +59,6 @@
   "sites": [
    ["commentOnlyCatch",297,""],
    ["commentOnlyCatch",301,""]
-  ]
- },
- "modules/home/skeleton.js": {
-  "sha256": "a9a4fe7a87d96d5ffcdb155bc4a14211127ce988208b429c0dda49a070150630",
-  "sites": [
-   ["commentOnlyCatch",33,""],
-   ["globalListener",88,""]
   ]
  },
  "modules/shells/term.js": {

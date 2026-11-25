@@ -5,6 +5,7 @@ import { api } from "../../core/platform/api.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { RM } from "../../core/ui/motion.js";
 import { rtName } from "../../core/services/runtimes.js";
+import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { EFFORT_WORD } from "./effort.js";
 import { sessionOrder } from "./session-order.js";
 import { createIntelCatalog } from "./intel-catalog.js";
@@ -259,12 +260,19 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     movedHere.add(t.id);
     try {
       const r = await api.continueThread(t.chatId, t.id, { agent: P.rt, model: mv.model || null, effort: mv.effort || null });
-      const next = r && r.thread_id ? await world.act.fetchThread(t.chatId, r.thread_id).catch(() => null) : null;
+      const { signal } = reads.effects;
+      if (signal.aborted) return;
+      const next = r.thread_id ? await world.act.fetchThread(t.chatId, r.thread_id).catch((error) => {
+        if (!signal.aborted) requestFailureMessage(error, "Couldn't open the continued thread.");
+        return null;
+      }) : null;
+      if (signal.aborted) return;
       mv.busy = false;
       // its result closes only the picker that started it, still open on it (another opening isn't this one's)
       if (P.open && P.session === s && P.mv === mv) close({ restore: false });
       onMoved && onMoved(next, r.agent || mv.rt || P.rt);
     } catch (err) {
+      if (reads.effects.signal.aborted) return;
       mv.busy = false;
       mv.retry = (/** @type {IntelError} */ (err)).code === "still_busy" || (/** @type {IntelError} */ (err)).code === "timeout" || (/** @type {IntelError} */ (err)).status === 0;
       mv.err = (/** @type {IntelError} */ (err)).code === "still_busy" ? "The thread didn't stop in time. Nothing moved; try again." : (/** @type {IntelError} */ (err)).message;

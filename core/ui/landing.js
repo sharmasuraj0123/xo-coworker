@@ -1,10 +1,10 @@
 // @ts-check
 
 import { arrive } from "./motion.js";
+import { consumeSkeleton } from "./skeleton-mark.js";
 
-/** @param {(Element & { _sk?: boolean }) | null} el @param {(Element | null)[]} [parts] */
+/** @param {Element | null} el @param {(Element | null)[]} [parts] */
 export function landed(el, parts = el ? [...el.children] : []) {
-  if (!el || !el._sk) return;
-  el._sk = false;
+  if (!el || !consumeSkeleton(el)) return;
   parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
 }
