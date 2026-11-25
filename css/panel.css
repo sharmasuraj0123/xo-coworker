@@ -1,16 +1,6 @@
 @import url("../shell/panel/stage-bar.css");
 @import url("../shell/panel/stage-overlay.css");
-:root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
-
-.fl-head{gap:var(--s-2);padding:var(--s-3) var(--pe) var(--s-2)}
-.fl-crumb{gap:var(--s-2);min-height:var(--h-sm);padding:0}
-.fl-crumb b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
-.fl-up svg{width:var(--ic-sm);height:var(--ic-sm)}
-.fl-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.fl-q svg{width:var(--ic);height:var(--ic)}
-.fl-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+@import url("../modules/files/stage-search.css");
 :root[data-theme="light"] .fl-q{background:var(--surface);border-color:rgba(0,0,0,.12)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a

@@ -314,6 +314,7 @@
 :where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
 :where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
 :where(.dg-tools){--shadow-map-tools:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)))}
+:root[data-theme="light"] :where(.dg-sep){--fill-map-tools-separator:var(--line-soft)}
 :root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
 :root[data-theme="light"] :where(.md-pin){
   --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);

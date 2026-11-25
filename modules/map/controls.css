@@ -3,7 +3,7 @@
   gap:var(--s-map-tools-gap);padding:var(--s-map-tools-pad);border-radius:var(--r-sm);background:var(--surface);
   border:1px solid var(--line);box-shadow:var(--shadow-map-tools);cursor:default}
 .dg-mode{display:flex;gap:var(--s-map-tools-gap)}
-.dg-sep{width:1px;height:var(--h-map-tools-sep);margin:0 var(--s-1);background:var(--fill-3)}
+.dg-sep{width:1px;height:var(--h-map-tools-sep);margin:0 var(--s-1);background:var(--fill-map-tools-separator,var(--fill-3))}
 .dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);
   transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}

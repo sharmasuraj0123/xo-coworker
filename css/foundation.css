@@ -1,19 +1,7 @@
 @import url("../shell/panel/frame-styles.css");
+@import url("../shell/panel/stage-resize.css");
 
 :root[data-theme="light"] :is(.stage,.panel,.viewer){border-color:var(--edge-panel-flush);box-shadow:none}
-.stage{width:var(--sw);z-index:var(--z-panel)}
-.panel{max-height:none;height:100%}
-body.stage-full .stage{left:0}
-body.stage-open{--mw:var(--sw)}
-/* its left edge is the handle; double-click for the default */
-.stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:calc(var(--grip-w) / -2);width:var(--grip-w);cursor:col-resize;outline:none}
-.stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:calc((var(--grip-w) - var(--w-panel-grip-line)) / 2);
-  width:var(--w-panel-grip-line);background:var(--fill-clear);transition:background var(--d-hover) var(--ease)}
-.stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}
-body.stage-sizing{cursor:col-resize;user-select:none}
-body.stage-sizing .stage,body.stage-sizing .conv,body.stage-sizing .scroller,body.stage-sizing .dock{transition:none}
-body.stage-full .stg-grip{display:none}
-@media (max-width:760px){.stg-grip{display:none}.stage{width:auto}}
 /* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
 .home{background:var(--canvas)}
 
