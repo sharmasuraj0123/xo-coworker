@@ -133,9 +133,6 @@
   "commentOnlyCatch": 3,
   "explicitAny": 24
  },
- "core/services/sound.js": {
-  "commentOnlyCatch": 1
- },
  "core/services/step-icons.js": {
   "commentLines": 1
  },

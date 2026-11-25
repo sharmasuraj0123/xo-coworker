@@ -13884,7 +13884,13 @@
   },
   "js/ui.js::storage::cv-sound": {
    "status": "moved",
-   "home": "core/services/sound.js"
+   "home": "core/services/sound.js",
+   "evidence": {
+    "core/services/sound.js": {
+     "anchor": "const STORE = \"cv-sound\"",
+     "reason": "The sound preference retains its key and verifies persistence through shared storage."
+    }
+   }
   },
   "js/ui.js::custom_events::redrawn": {
    "status": "moved",

@@ -8,16 +8,6 @@
    ["setTimeout",101,""]
   ]
  },
- "core/services/sound.js": {
-  "sha256": "5365264b7ba7bc8ad7db6a8ca22cb901e4b4664ab86fdf435a27cac17db9677e",
-  "sites": [
-   ["storage",7,""],
-   ["commentOnlyCatch",7,""],
-   ["storage",9,""],
-   ["storage",9,""],
-   ["commentOnlyCatch",9,""]
-  ]
- },
  "core/ui/components/hold.js": {
   "sha256": "3ee49e55a52c1ac913e32082de5aaac0bf91169ed89abf8fe9284587631a2607",
   "sites": [

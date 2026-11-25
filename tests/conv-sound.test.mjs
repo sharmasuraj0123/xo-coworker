@@ -8,13 +8,16 @@ const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  "
 const store = { data: {}, refuse: false };
 globalThis.localStorage = {
   getItem: (k) => (k in store.data ? store.data[k] : null),
-  setItem: (k, v) => { if (store.refuse) throw new DOMException("QuotaExceededError"); store.data[k] = String(v); },
+  setItem: (k, v) => { if (store.refuse) throw new DOMException("Storage is full", "QuotaExceededError"); store.data[k] = String(v); },
 };
 // an AudioContext the test drives: starts as it's told, resume() works or is refused, oscillators are counted
 const audio = { start: "running", resumeOk: true, refuseNew: false, made: 0, notes: 0 };
 globalThis.AudioContext = class {
-  constructor() { if (audio.refuseNew) throw new DOMException("NotAllowedError"); audio.made++; this.state = audio.start; this.currentTime = 0; this.destination = {}; }
-  async resume() { if (!audio.resumeOk) throw new DOMException("NotAllowedError"); this.state = "running"; }
+  constructor() {
+    if (audio.refuseNew) throw new DOMException("Audio is blocked", "NotAllowedError");
+    audio.made++; this.state = audio.start; this.currentTime = 0; this.destination = {};
+  }
+  async resume() { if (!audio.resumeOk) throw new DOMException("Audio is blocked", "NotAllowedError"); this.state = "running"; }
   createOscillator() { return { type: "", frequency: {}, connect: (g) => g, start() { audio.notes++; }, stop() {} }; }
   createGain() { return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect: (d) => d }; }
 };
@@ -45,6 +48,24 @@ await t("turning off works on the page even when the browser won't remember it",
   assert.equal(sound.on, false);
   sound.play("allow");
   assert.equal(audio.notes, 0, "silent now");
+});
+
+await t("a broken preference store reports the failure and keeps audio off", async () => {
+  reset();
+  const previous = globalThis.localStorage, reporter = globalThis.reportError;
+  const failure = new Error("broken sound preferences"), reported = [];
+  globalThis.reportError = (error) => reported.push(error);
+  globalThis.localStorage = { ...previous, setItem() { throw failure; } };
+  try {
+    const sound = await fresh();
+    assert.deepEqual(await sound.turn(true), { on: false, kept: false, refused: false });
+    assert.deepEqual(reported, [failure]);
+    assert.equal(audio.made, 0);
+  } finally {
+    globalThis.localStorage = previous;
+    if (reporter) globalThis.reportError = reporter;
+    else Reflect.deleteProperty(globalThis, "reportError");
+  }
 });
 
 await t("a browser that won't make audio leaves sounds off, and says it refused", async () => {
