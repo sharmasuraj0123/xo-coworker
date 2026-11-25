@@ -674,7 +674,7 @@
  },
  "modules/files/documents.js": {
   "functionLines": 1,
-  "lineLength": 10,
+  "lineLength": 9,
   "unusedExport": 6
  },
  "modules/files/drafts.js": {

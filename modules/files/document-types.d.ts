@@ -39,6 +39,7 @@ export interface ViewerDocument {
   merge: DocumentMerge | null;
   confirm: boolean;
   refs: number;
+  revision: number;
   text: string;
   base: string;
   place: string | null;

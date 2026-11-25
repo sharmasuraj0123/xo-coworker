@@ -10,9 +10,7 @@ import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
 
 // Writes require an explicit save or restore.
 export const DRAFT_MS = 800;
-// the versions held per document, with their text (older ones keep who and when; their text is read from Space)
 export const KEEP_TEXT = 20;
-// your saves this close together are one version (Space's merge window)
 export const MERGE_MS = 10000;
 
 export function refusal(/** @type {unknown} */ err) {
@@ -115,7 +113,7 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
     let d = docs.get(key);
     if (d) { d.refs++; return d; }
     d = {
-      key, project, rel, refs: 1,
+      key, project, rel, refs: 1, revision: 0,
       text: String(data.content ?? ""), base: String(data.content ?? ""), version: data.version ?? null,
       place: data.place || null, kind: data.kind || null, lineEndings: data.line_endings || null,
       state: "saved", err: null, confirm: false, confirmed: false, offline: false,
@@ -144,7 +142,6 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
     if (d.source) { d.text = d.source(); d.source = null; }
     d.apply = null;
     if (d.state === "dirty" || d.state === "error" || d.state === "deleted" || d.state === "conflict") keepDraft(d);
-    // a save still out finishes on its own; the document goes once nothing holds it
     const gone = () => { if (d.refs <= 0 && !d.inflight && docs.get(d.key) === d) docs.delete(d.key); };
     if (d.inflight) d.inflight.then(gone, gone); else gone();
   }
@@ -202,6 +199,8 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
       if (d.state !== "saved") setState(d, "saved");
       return;
     }
+    d.revision++;
+    cancelLatest(d);
     setState(d, "saving");
     const sentBase = d.deleted ? null : d.version;
     const run = (async () => {
@@ -220,7 +219,6 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
         d.inflight = null;
         const o = refusal(err);
         if (o.kind === "confirm") { d.confirm = true; setState(d, "dirty"); emit(d, "confirm"); return; }
-        // the file changed since you opened it: merged into yours, and (it was your ⌘S) saved on top when nothing clashes
         if (o.current) { mergeIn(d, o.current, { by: { kind: "agent" }, saving: true }); return; }
         if (o.kind === "deleted") { d.deleted = true; setState(d, "deleted", o.words); keepDraft(d); return; }
         if (o.kind === "readonly") { setState(d, "readonly", "read_only_place"); keepDraft(d); return; }
@@ -267,7 +265,6 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
       emit(d, "applied");
       return;
     }
-    // the same lines, changed both ways: the merge view decides; nothing saves until every place is chosen.
     const ours = merge3(d.base, mine, theirs, { pick: "ours" }).text, other = merge3(d.base, mine, theirs, { pick: "theirs" }).text;
     d.merge = { base: d.base, mine, theirs, version: current.version, text: ours, other, left: m.conflicts, saving };
     const e = minimalEdit(mine, ours);
@@ -288,7 +285,6 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
     const { version, theirs, saving } = d.merge;
     d.merge = null;
     d.base = theirs; d.version = version;
-    // what the editor holds now is the choice (each place kept or taken back); saved now only when the clash came from your ⌘S, otherwise it waits for the next one
     d.text = textOf(d);
     setState(d, "dirty");
     keepDraft(d);
@@ -300,9 +296,10 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
   async function changed(/** @type {string} */ project, /** @type {string} */ rel, /** @type {ChangeInfo} */ info = {}) {
     const key = draftKey(project, rel), d = docs.get(key);
     if (!d || scope.signal.aborted || d.refs <= 0) return null;
-    if (info.version && info.version === d.version) return d;
+    const revision = ++d.revision;
+    cancelLatest(d);
+    if (!d.inflight && info.version && info.version === d.version) return d;
     if (info.kind === "delete") {
-      cancelLatest(d);
       d.deleted = true;
       pushVersion(d, { version: null, at: info.at, by: info.by, text: null, id: info.id, kind: "delete" });
       setState(d, "deleted", "This file was deleted on disk. Your text is kept: save to make it again.");
@@ -311,13 +308,13 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock, s
     }
     try {
       await latest(d, async (signal) => {
-        const cur = await api.projectFile(project, rel, null, { signal });
-        if (d.inflight) await d.inflight;
-        return cur;
+        while (d.inflight) { await d.inflight; signal.throwIfAborted(); }
+        return api.projectFile(project, rel, null, { signal });
       }, {
         signal: scope.signal,
         commit(cur) {
-          if (docs.get(key) !== d || d.refs <= 0 || !cur || typeof cur.content !== "string" || cur.truncated) return;
+          if (d.revision !== revision || docs.get(key) !== d || d.refs <= 0 || !cur || cur.truncated) return;
+          if (typeof cur.content !== "string") return;
           if (cur.version === d.version) return;
           mergeIn(d, { version: cur.version ?? null, content: cur.content }, { by: info.by, at: info.at || cur.modified_at, id: info.id });
         },

@@ -405,6 +405,63 @@ t("retiring the owner cancels a pending refresh and its draft timer without writ
   assert.deepEqual(space.saves, []);
 });
 
+t("a refresh body captured before a Save cannot replace the accepted text", async () => {
+  const { space, docs } = setup({ "a.md": "before" });
+  const d = await openDoc(docs, space), view = fakeView(docs, d);
+  const heldRead = Promise.withResolvers(), heldSave = Promise.withResolvers();
+  let signal;
+  space.projectFile = (project, rel, at, options) => { signal = options.signal; return heldRead.promise; };
+  const refresh = docs.changed("p", "a.md");
+  await settle();
+  view.type("accepted");
+  space.hold = heldSave.promise;
+  const save = docs.flush(d);
+  heldRead.resolve({ content: "before", version: sha("before") });
+  await settle();
+  heldSave.resolve();
+  await Promise.all([refresh, save]);
+  assert.equal(space.disk.get("a.md"), "accepted");
+  assert.equal(view.text, "accepted");
+  assert.equal(d.version, sha("accepted"));
+  assert.deepEqual(view.applied, []);
+  assert.equal(signal.aborted, true);
+});
+
+t("an event for the open version retires a held read of an intermediate revision", async () => {
+  const { docs, space } = setup({ "a.md": "open" });
+  const d = await openDoc(docs, space), view = fakeView(docs, d);
+  const held = Promise.withResolvers();
+  let signal, reads = 0;
+  space.projectFile = (project, rel, at, options) => { reads++; signal = options.signal; return held.promise; };
+  const refresh = docs.changed("p", "a.md", { version: sha("intermediate") });
+  await settle();
+  await docs.changed("p", "a.md", { version: sha("open") });
+  held.resolve({ content: "intermediate", version: sha("intermediate") });
+  await refresh;
+  assert.equal(view.text, "open");
+  assert.equal(d.version, sha("open"));
+  assert.deepEqual(view.applied, []);
+  assert.equal(reads, 1);
+  assert.equal(signal.aborted, true);
+});
+
+t("a refresh that arrives during a Save reads the disk after it settles", async () => {
+  const { docs, space } = setup({ "a.md": "before" });
+  const d = await openDoc(docs, space), view = fakeView(docs, d);
+  const heldSave = Promise.withResolvers();
+  view.type("accepted");
+  space.hold = heldSave.promise;
+  const save = docs.flush(d);
+  const refresh = docs.changed("p", "a.md", { version: sha("before") });
+  await settle();
+  assert.equal(space.reads, 1);
+  heldSave.resolve();
+  await Promise.all([save, refresh]);
+  assert.equal(space.reads, 2);
+  assert.equal(view.text, "accepted");
+  assert.deepEqual(view.applied, []);
+});
+
 for (const [name, fn] of queue) {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
