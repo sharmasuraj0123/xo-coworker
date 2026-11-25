@@ -1,4 +1,5 @@
 // @ts-check
+import { captureCoderToken } from "../core/platform/http.js";
 import { trackPress } from "../core/ui/press.js";
 import { defineXoSelect } from "../core/ui/components/xo-select.js";
 import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
@@ -10,6 +11,7 @@ import { createShellKernel } from "./kernel.js";
 
 /** @param {ModuleDef[]} modules */
 export async function bootShell(modules) {
+  captureCoderToken();
   const kernel = createShellKernel();
   defineXoSelect();
   drawPlaceIcons();

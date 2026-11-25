@@ -29,6 +29,9 @@ const pick = (e) => ({ status: e.status, code: e.code });
 const rejects = async (p) => { try { await p; } catch (e) { return e; } assert.fail("did not reject"); };
 
 await t("the token leaves the address bar, stays for the tab, and rides on every request", async () => {
+  assert.deepEqual(replaced, []);
+  assert.deepEqual(A.coderHeaders(), {});
+  H.captureCoderToken();
   assert.deepEqual(replaced, [[{ s: 1 }, "https://ws.example/app/?x=1"]]);
   assert.equal(store.get("xo-coder-token"), "TOK/1");
   assert.deepEqual(A.coderHeaders(), { "Coder-Session-Token": "TOK/1" });
@@ -265,4 +268,14 @@ await t("clientId: fresh each time, ui_ prefixed", async () => {
   assert.notEqual(a, b);
 });
 await t("the stream's URL is page-relative", async () => assert.equal(A.api.streamUrl(), "api/chat/stream"));
+await t("a boot without a token in the URL reads the current tab's stored token", async () => {
+  globalThis.location.href = "https://ws.example/app/?keep=1";
+  store.set("xo-coder-token", "saved");
+  H.captureCoderToken();
+  assert.deepEqual(H.coderHeaders(), { "Coder-Session-Token": "saved" });
+  assert.equal(replaced.length, 1);
+  store.clear();
+  H.captureCoderToken();
+  assert.deepEqual(H.coderHeaders(), {});
+});
 console.log(`\n${passed} passed`);

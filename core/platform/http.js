@@ -9,8 +9,11 @@ export const CHAT_STATUS_PATH = "/chat/status";
 
 const TOKEN_PARAM = "coder_session_token";
 const TOKEN_KEY = "xo-coder-token";
+/** @type {string | null} */
+let coderToken = null;
+
 /** Coder's sign-in cookie lasts a minute, so the token is kept for this tab and taken out of the address bar. */
-const coderToken = (() => {
+export function captureCoderToken() {
   /** @type {string | null} */
   let token = null;
   if (typeof location !== "undefined") {
@@ -24,8 +27,8 @@ const coderToken = (() => {
   }
   if (token) write(TOKEN_KEY, token, "session", reportStorageFailure);
   else token = read(TOKEN_KEY, (raw) => raw, null, "session", reportStorageFailure);
-  return token;
-})();
+  coderToken = token;
+}
 
 /** Headers that keep Coder's app proxy signing requests in. @returns {Record<string, string>} */
 export const coderHeaders = () => (coderToken ? { "Coder-Session-Token": coderToken } : {});

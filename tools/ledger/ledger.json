@@ -7685,7 +7685,7 @@
    "evidence": {
     "core/platform/http.js": {
      "anchor": "const TOKEN_KEY = \"xo-coder-token\"",
-     "reason": "The Coder session token retains its tab-scoped key through shared storage."
+     "reason": "Boot calls captureCoderToken before activation. HTTP retains the tab-scoped key and uses it for requests and signed URLs."
     }
    }
   },

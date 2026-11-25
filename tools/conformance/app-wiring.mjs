@@ -46,7 +46,7 @@ export function wiringGrowth(previous, current) {
 }
 
 const firstPaint = new Set(["shell/frame.js", "modules/home/skeleton.js"]);
-const setup = new Set(["createKernel", "createShellKernel", "definePlaces", "addEventListener", "listen", "observe", "setRich", "register"]);
+const setup = new Set(["createKernel", "createShellKernel", "definePlaces", "addEventListener", "listen", "observe", "setRich", "register", "captureCoderToken"]);
 
 /** @param {string} file @param {object} tree @param {Function} report */
 export function importEffects(file, tree, report) {
@@ -56,10 +56,7 @@ export function importEffects(file, tree, report) {
     if (node.type === "ImportDeclaration") {
       for (const spec of node.specifiers) names.set(spec.local.name, spec.imported?.name ?? spec.local.name);
     } else if (node.type === "VariableDeclaration" || node.type === "ExportNamedDeclaration") {
-      for (const decl of (node.declaration ?? node).declarations ?? []) {
-        if (file === "core/platform/http.js" && decl.id.name === "coderToken") continue;
-        inspect(decl.init);
-      }
+      for (const decl of (node.declaration ?? node).declarations ?? []) inspect(decl.init);
     } else if (!["FunctionDeclaration", "ClassDeclaration", "ExportAllDeclaration"].includes(node.type)) {
       report("importEffect", node.loc.start.line);
     }

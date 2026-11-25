@@ -72,5 +72,6 @@ test("importing features leaves boot and subscriptions to activation", () => {
   assert.deepEqual(effects('import { createKernel as kernel } from "./kernel.js";\nconst app = kernel();'), [2]);
   assert.deepEqual(effects('if (document) document.addEventListener("click", handler);'), [1]);
   assert.deepEqual(effects('export const module = { activate(ctx) { ctx.listen(document, "click", handler); } };'), []);
+  assert.deepEqual(effects("const coderToken = (() => sessionStorage.getItem('token'))();", "core/platform/http.js"), [1]);
   assert.deepEqual(effects('home.append(skeleton);', "shell/frame.js"), []);
 });
