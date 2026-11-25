@@ -1,16 +1,33 @@
 // @ts-check
 
+import { isResponseObject } from "../../core/platform/http.js";
 import { VERB } from "../../core/services/review.js";
-import * as Kit from "./kit.js";
+import { answer, createCommitQueue } from "./kit.js";
 
-/** @import { DecisionQueueDeps, DecisionPart, DecisionFailure, DecisionResult } from "./queue-types.d.ts" */
+/** @import { DecisionQueueDeps, DecisionPart, DecisionFailure } from "./queue-types.d.ts" */
+
+/** @param {unknown} error @returns {DecisionFailure | undefined} */
+function decisionFailure(error) {
+  if (!isResponseObject(error)) return;
+  const decision = isResponseObject(error.item) && error.item.decision;
+  return {
+    status: typeof error.status === "number" ? error.status : 0,
+    message: typeof error.message === "string" ? error.message : undefined,
+    code: typeof error.code === "string" ? error.code : undefined,
+    gone: typeof error.gone === "string" ? error.gone : undefined,
+    item: isResponseObject(decision) ? { decision: {
+      decision: typeof decision.decision === "string" ? decision.decision : undefined,
+      idempotency_key: typeof decision.idempotency_key === "string" ? decision.idempotency_key : undefined,
+    } } : undefined,
+  };
+}
 
 /** @param {DecisionQueueDeps["world"]} world @param {DecisionPart} part */
 function sendDecision(world, { t, ask, choice, note, stopped }) {
   if (typeof choice === "object" && "body" in choice && ask.item) return world.act.decideItem(ask.item.id, choice.body);
   if (typeof choice === "object" && "resolve" in choice && choice.resolve) return world.act.resolve(t.id, true);
   if (stopped && typeof choice === "object" && "text" in choice && typeof choice.text === "string") return world.act.reply(t.id, choice.text);
-  return Kit.answer(world, t, ask, choice, note);
+  return answer(world, t, ask, choice, note);
 }
 
 /** @param {DecisionQueueDeps} options */
@@ -46,26 +63,27 @@ export function createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSe
     return `Didn't reach the agent: ${t} It's back in your list.`;
   }
 
-  return Kit.createCommitQueue({
-    exec: (/** @type {DecisionPart} */ p) => Promise.resolve(sendDecision(world, p)).then(() => {
-      if (p.t.state === "working" && p.t.asks.length) { p.t.asks = []; p.t.needsYou = ""; }
+  return createCommitQueue({
+    exec: (p, signal) => Promise.resolve(sendDecision(world, p)).then(() => {
+      if (!signal.aborted && p.t.state === "working" && p.t.asks?.length) { p.t.asks = []; p.t.needsYou = ""; }
     }),
-    onChange(type, item, results) {
+    onChange(type, item, results = []) {
       if (type === "undone") {
-        for (const p of /** @type {DecisionPart[]} */ (item.parts)) { const i = log.indexOf(p.entry); if (i >= 0) log.splice(i, 1); F.status.delete(p.key); }
+        for (const p of item.parts) { const i = log.indexOf(p.entry); if (i >= 0) log.splice(i, 1); F.status.delete(p.key); }
         announce("Undone. Nothing was sent; the ask is back.");
         if (F.open) {
-          const p = /** @type {DecisionPart} */ (item.parts[0]);
-          clearTimeout(F.autoT);
+          const p = item.parts[0];
+          F.cancelAutoClose?.();
           F.done = false; F.cur = p.key; F.items.set(p.key, p.n);
           if (!F.order.includes(p.key)) F.order.unshift(p.key);
           show(F.cur, "undo");
         }
         onUndone && onUndone(item.parts[0].key);
       }
-      if (type === "sending") for (const p of /** @type {DecisionPart[]} */ (item.parts)) p.entry.status = "sending";
+      if (type === "sending") for (const p of item.parts) p.entry.status = "sending";
       if (type === "settled") {
-        for (const { part, ok, err } of /** @type {DecisionResult[]} */ (results)) {
+        for (const { part, ok, err: failure } of results) {
+          const err = decisionFailure(failure);
           if (ok) {
             part.entry.status = "sent";
             if (part.stopped) stoppedDone.add(part.t.id); else sentKeys.set(part.key, Date.now());

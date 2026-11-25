@@ -8,13 +8,25 @@ export type NeedThread = {
   checklist: { total: number; done: number; items?: { state: string; text: string }[] };
   stop?: unknown;
   happened?: string;
-  asks?: { item?: object }[];
+  asks?: NeedAsk[];
   host?: boolean;
   live?: boolean;
   busy?: boolean;
+  frozen?: boolean;
+  needsYou?: string;
 };
 
-type NeedAsk = { item?: ReviewDescription; kind?: string; title?: string; risk?: string; detail?: string };
+export type NeedAsk = {
+  item?: ReviewDescription;
+  id?: string | null;
+  kind?: string;
+  title?: string;
+  risk?: string;
+  detail?: string;
+  synthetic?: boolean;
+  pending?: boolean;
+  replyOnly?: boolean;
+};
 
 export type NeedFields = { key: string; t: NeedThread; ask: NeedAsk; group: string; risk: string };
 

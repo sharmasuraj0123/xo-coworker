@@ -20,21 +20,8 @@
  "modules/decisions/card-events.js": {
   "setTimeout": 2
  },
- "modules/decisions/controller.js": {
-  "setTimeout": 1
- },
  "modules/decisions/dock.js": {
   "observer": 1
- },
- "modules/decisions/kit.js": {
-  "setInterval": 1,
-  "setTimeout": 3
- },
- "modules/decisions/panel-view.js": {
-  "setTimeout": 1
- },
- "modules/decisions/toast.js": {
-  "setTimeout": 1
  },
  "modules/files/documents.js": {
   "setTimeout": 1

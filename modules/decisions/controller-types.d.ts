@@ -15,7 +15,7 @@ export type { DecisionEntry, DecisionItem } from "./queue-types.d.ts";
 export type ScopeOption = ScopeParts["scopes"][number];
 export type DecideOptions = { secs?: number | null; inline?: boolean };
 export type DecisionNeed = CardNeed & RankedNeed;
-export type DecisionPanelState = PanelState & {
+export type DecisionPanelState = Omit<PanelState, "items"> & {
   parked: boolean;
   returnTo: Element | null;
   open0: Record<string, { ev?: boolean }>;

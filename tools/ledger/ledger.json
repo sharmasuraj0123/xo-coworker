@@ -10526,8 +10526,8 @@
    "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::createAnnouncer": {
-   "status": "moved",
-   "home": "modules/decisions/kit.js"
+   "status": "deleted",
+   "reason": "the old quiet announcer has no caller and the active live region uses core/ui/a11y/announce.js"
   },
   "js/kit.js::exports::titleFor": {
    "status": "moved",
@@ -10566,8 +10566,8 @@
    "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::createAnnouncer": {
-   "status": "moved",
-   "home": "modules/decisions/kit.js"
+   "status": "deleted",
+   "reason": "the old quiet announcer has no caller and the active live region uses core/ui/a11y/announce.js"
   },
   "js/kit.js::keys::Enter": {
    "status": "moved",

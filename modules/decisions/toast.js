@@ -5,9 +5,9 @@ import { xi } from "../../core/ui/icons/icon.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { $ } from "../../core/platform/dom.js";
 
-/** @typedef {{id: number, due: number, meta: {inline?: boolean, deny?: boolean, verb: string, label: string}}} Entry */
+/** @typedef {Pick<import("./queue-types.d.ts").DecisionQueueItem, "id" | "due" | "meta">} Entry */
 
-/** @param {{queued: Entry[], undo(id: number): unknown}} queue */
+/** @param {{queued: Entry[], undo(id: number): unknown, timeout: import("../../core/kernel/types.d.ts").ModuleContext["timeout"]}} queue */
 export function createDecisionToast(queue) {
   const toast = /** @type {HTMLElement} */ ($("#toast"));
   /** @type {Entry | null} */
@@ -15,7 +15,10 @@ export function createDecisionToast(queue) {
   function toastRender() {
     const it = [...queue.queued].reverse().find((x) => !x.meta.inline);
     if (!it) {
-      if (toastItem) { toast.classList.add("bye"); setTimeout(() => { if (!queue.queued.length) { toast.hidden = true; toast.classList.remove("bye"); } }, 200); }
+      if (toastItem) {
+        toast.classList.add("bye");
+        queue.timeout(() => { if (!queue.queued.length) { toast.hidden = true; toast.classList.remove("bye"); } }, 200);
+      }
       toastItem = null;
       return;
     }

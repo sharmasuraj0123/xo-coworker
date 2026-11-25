@@ -16,7 +16,9 @@ const BIG_CHECK = ICON.stampAllow;
 const BIG_BACK = ICON.stampBack;
 
 /** @param {PanelViewDeps} options */
-export function createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml, wireCard, pending, log, announce, render, onBreak, onAllClear, advance, close, allowAllRoutine }) {
+export function createDecisionPanelView(options) {
+  const { F, lifetime, P, PROJ, stage, needItems, cardHtml, wireCard, pending, log, announce, render,
+    onBreak, onAllClear, advance, close, allowAllRoutine } = options;
   /** @param {string} key @param {Transition} how */
   async function show(key, how) {
     const n = F.items.get(key);
@@ -25,7 +27,7 @@ export function createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml
     const my = ++F.swap;
     const ae = document.activeElement, cur = $("#card");
     const typing = how !== "allow" && how !== "back" && !!(cur && ae && cur.contains(ae) && ae.matches("textarea, input, [contenteditable]"));
-    clearTimeout(F.autoT);
+    F.cancelAutoClose?.();
     F.hold && F.hold.cancel();
     let frame = $("#card");
     if (!frame) {
@@ -54,8 +56,8 @@ export function createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml
     frame.setAttribute("aria-labelledby", (/** @type {HTMLElement} */ (inner.querySelector(".c-h"))).id);
     const why = inner.querySelector(".c-line");
     if (why) frame.setAttribute("aria-describedby", why.id); else frame.removeAttribute("aria-describedby");
-    if (typing) { frame._quiet = true; frame._quietWhy = "The ask you were writing to went away; this is the next one."; }
     wireCard(frame, inner, fresh, { surface: "panel", after: (h) => advance(h) });
+    if (typing) frame._quietOn?.("The ask you were writing to went away; this is the next one.");
     F.busy = false;
     frame.focus({ preventScroll: true });
     chrome();
@@ -94,14 +96,17 @@ export function createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml
 
   /** @param {Transition} how */
   async function finish(how) {
+    if (lifetime.signal.aborted) return;
     F.done = true;
     const my = ++F.swap;
     const frame = $("#card");
     const old = frame && frame.querySelector(".card-in");
     if (old && !RM.matches) {
       if (how === "allow" || how === "back") { frame.classList.add(`st-${how}`); await wait(190); }
+      if (lifetime.signal.aborted) return;
       old.classList.add(`out-${how}`);
       await wait(150);
+      if (lifetime.signal.aborted) return;
       frame.classList.remove("st-allow", "st-back");
     }
     if (my !== F.swap || !frame) return;
@@ -123,7 +128,10 @@ export function createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml
     sound.play("done");
     announce(`${F.mode === "glance" ? "Glances cleared" : "That's everything"}. ${parts.join(", ")}.`);
     onAllClear && onAllClear(parts.join(" · "), freed);
-    F.autoT = setTimeout(() => { if (F.open && F.done) close(); }, RM.matches ? 1400 : 2000);
+    F.cancelAutoClose = lifetime.timeout(() => {
+      F.cancelAutoClose = undefined;
+      if (F.open && F.done) close();
+    }, RM.matches ? 1400 : 2000);
   }
 
   function chrome() {

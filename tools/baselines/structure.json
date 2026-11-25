@@ -634,7 +634,7 @@
  },
  "modules/decisions/controller.js": {
   "functionLines": 1,
-  "lineLength": 18
+  "lineLength": 16
  },
  "modules/decisions/decisions.css": {
   "important": 2,
@@ -656,19 +656,18 @@
   "unusedExport": 2
  },
  "modules/decisions/panel-view.js": {
-  "domExpando": 2,
   "functionLines": 1,
-  "lineLength": 14
+  "lineLength": 13
  },
  "modules/decisions/queue.js": {
-  "lineLength": 8
+  "lineLength": 7
  },
  "modules/decisions/rank.js": {
   "lineLength": 2,
   "unusedExport": 2
  },
  "modules/decisions/toast.js": {
-  "lineLength": 3
+  "lineLength": 2
  },
  "modules/files/conversation-files.js": {
   "lineLength": 2

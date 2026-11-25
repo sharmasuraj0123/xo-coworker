@@ -40,7 +40,7 @@
  "modules/decisions/controller.js::eslint(no-unused-expressions)": 4,
  "modules/decisions/keyboard.js::eslint(no-underscore-dangle)": 16,
  "modules/decisions/keyboard.js::eslint(no-unused-expressions)": 1,
- "modules/decisions/panel-view.js::eslint(no-underscore-dangle)": 2,
+ "modules/decisions/panel-view.js::eslint(no-underscore-dangle)": 1,
  "modules/decisions/panel-view.js::eslint(no-unused-expressions)": 6,
  "modules/decisions/queue.js::eslint(no-unused-expressions)": 6,
  "modules/files/files.js::eslint(no-underscore-dangle)": 2,

@@ -92,14 +92,14 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
   function close({ restore = true } = {}) {
     if (!F.open) return;
     F.hold && F.hold.cancel();
-    clearTimeout(F.autoT);
+    F.cancelAutoClose?.();
     const was = !F.parked;
     F.open = false; F.parked = false;
     P.reviewStop();
     panel.classList.remove("is-in");
     panel.classList.add("is-out");
     document.body.classList.remove("panel-open");
-    setTimeout(() => { if (!F.open) { panel.hidden = true; panel.classList.remove("is-out"); stage.innerHTML = ""; } }, RM.matches ? 0 : 240);
+    queue.timeout(() => { if (!F.open) { panel.hidden = true; panel.classList.remove("is-out"); stage.innerHTML = ""; } }, RM.matches ? 0 : 240);
     const r = F.returnTo;
     F.returnTo = null;
     if (restore && was) { if (usable(r)) (/** @type {HTMLElement} */ (r)).focus({ preventScroll: true }); else back && back(/** @type {string[]} */ ([hookOf(r)].filter(Boolean))); }
@@ -118,8 +118,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     for (const n of needs) {
       F.items.set(n.key, n);
       if (!F.order.includes(n.key) && !F.done) {
-        const order = rank(/** @type {DecisionNeed[]} */ (F.order.map((k) => F.items.get(k)).filter(Boolean).concat(n))).map((x) => x.key);
-        const at = Math.max(order.indexOf(n.key), F.order.indexOf(/** @type {string} */ (F.cur)) + 1);
+        const order = rank(F.order.map((k) => F.items.get(k)).filter((item) => item !== undefined).concat(n)).map((x) => x.key);
+        const at = Math.max(order.indexOf(n.key), F.cur === null ? 0 : F.order.indexOf(F.cur) + 1);
         F.order.splice(at, 0, n.key);
         changed = true;
       }
@@ -133,7 +133,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
 
   /** @param {string | null} k */
   const pending = (k) => !F.status.has(/** @type {string} */ (k));
-  const { show, vigilance, finish, chrome, confirmAll } = createDecisionPanelView({ F, P, PROJ, stage, needItems, cardHtml, wireCard, pending, log, announce, render, onBreak, onAllClear, advance, close, allowAllRoutine });
+  const { show, vigilance, finish, chrome, confirmAll } = createDecisionPanelView({
+    F, lifetime: queue, P, PROJ, stage, needItems, cardHtml, wireCard, pending, log, announce, render,
+    onBreak, onAllClear, advance, close, allowAllRoutine,
+  });
   /** @param {string | null} from */
   function nextPending(from, dir = 1) {
     const n = F.order.length, i0 = F.order.indexOf(/** @type {string} */ (from));
@@ -221,9 +224,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
 
   /** @param {string[]} keys */
   function allowAllRoutine(keys) {
-    const batch = /** @type {DecisionNeed[]} */ (keys.filter(pending).map((k) => F.items.get(k)).filter((n) => n && n.group === "routine" && Kit.isBinary(n.ask)));
+    const batch = keys.filter(pending).map((k) => F.items.get(k))
+      .filter((n) => n !== undefined).filter((n) => n.group === "routine" && Kit.isBinary(n.ask));
     if (!batch.length) return;
-    const parts = batch.map((n) => {
+    const parts = batch.map(/** @returns {import("./queue-types.d.ts").DecisionPart} */ (n) => {
       /** @type {DecisionEntry} */
       const entry = { id: ++logN, key: n.key, verb: "Allowed", choice: "allow", label: n.ask.title, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, batch: true, lev: n.lev, doneAt: n.t.checklist.done, secs: 3 };
       log.unshift(entry);
@@ -272,7 +276,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     needItems,
     decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
     notSent: () => log.filter((d) => d.status === "gone"),
-    failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
+    failedNote: (key, mode) => failedWords(key, mode),
     isOpen: () => F.open && !F.parked,
     park, unpark,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),

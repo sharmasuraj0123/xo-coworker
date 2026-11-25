@@ -372,8 +372,7 @@
   "commentLines": 5
  },
  "modules/decisions/kit.js": {
-  "commentLines": 1,
-  "explicitAny": 20
+  "commentLines": 1
  },
  "modules/decisions/needs.js": {
   "commentLines": 3

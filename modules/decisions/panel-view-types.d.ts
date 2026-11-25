@@ -1,6 +1,7 @@
 import type { CardNeed as InteractiveNeed, CardFrame, CardSurface } from "./card-events-types.d.ts";
 import type { createPacing } from "./pacing.js";
 import type { holdButton } from "./kit.js";
+import type { createScope } from "../../core/kernel/scope.js";
 
 export type CardNeed = InteractiveNeed;
 export type Transition = "enter" | "allow" | "back" | "skip-fwd" | "skip-back" | "undo" | "later";
@@ -11,7 +12,7 @@ export type PanelState = {
   busy?: boolean;
   done: boolean;
   swap: number;
-  autoT?: ReturnType<typeof setTimeout>;
+  cancelAutoClose?: () => void;
   hold?: ReturnType<typeof holdButton> | null;
   cur: string | null;
   order: string[];
@@ -22,6 +23,7 @@ export type PanelState = {
 
 export type PanelViewDeps = {
   F: PanelState;
+  lifetime: Pick<ReturnType<typeof createScope>, "timeout" | "signal">;
   P: Pick<ReturnType<typeof createPacing>, "reviewMin" | "keepGoing" | "rested">;
   PROJ(id: string): string;
   stage: HTMLElement;

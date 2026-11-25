@@ -2,8 +2,9 @@ import type { CardChoice, CardNeed } from "./card-events-types.d.ts";
 import type { PanelState } from "./panel-view-types.d.ts";
 
 export type DecisionItem = NonNullable<CardNeed["ask"]["item"]>;
-export type DecisionBody = { decision: string; idempotency_key?: string };
-export type DecisionFailure = Error & {
+export type DecisionBody = Record<string, unknown> & { idempotency_key?: string };
+export type DecisionFailure = {
+  message?: string;
   code?: string;
   gone?: string;
   status: number;
@@ -33,25 +34,39 @@ export type DecisionEntry = {
   why?: string;
 };
 
-type DecisionThread = CardNeed["t"] & { state: string; asks: unknown[]; needsYou?: string };
-type DecisionChoice = CardChoice | { storm: true; body: DecisionBody };
+type DecisionThread = CardNeed["t"] & { state: string; asks?: unknown[]; needsYou?: string };
+export type DecisionChoice = CardChoice | { storm: true; body: DecisionBody };
 export type DecisionPart = {
   key: string;
   n: CardNeed;
   t: DecisionThread;
-  ask: CardNeed["ask"];
+  ask: CardNeed["ask"] & import("../../core/services/decision-types.d.ts").NeedAsk;
   choice: DecisionChoice;
   note: string;
   stopped?: boolean;
   entry: DecisionEntry;
 };
 
-export type DecisionResult = { part: DecisionPart; ok: boolean; err?: DecisionFailure };
+export type DecisionQueueItem = {
+  id: number;
+  parts: DecisionPart[];
+  meta: { inline?: boolean; deny?: boolean; verb?: string; label?: string };
+  startedAt: number;
+  due: number;
+  cancel?: () => void;
+};
+export type DecisionResult = { part: DecisionPart; ok: boolean; err?: unknown };
+export type DecisionQueueOptions = {
+  delay?: number;
+  exec(part: DecisionPart, signal: AbortSignal): unknown;
+  onChange(type: "queued" | "undone" | "sending" | "settled", item: DecisionQueueItem, results?: DecisionResult[]): void;
+};
 
 export type DecisionQueueDeps = {
   world: { act: {
     resolve(id: string, resolved: boolean): unknown;
     reply(id: string, text: string): unknown;
+    decide(id: string, choice: "allow" | "deny", note: string): unknown;
     decideItem(id: string, body: DecisionBody): unknown;
   } };
   F: PanelState;
