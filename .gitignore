@@ -18,3 +18,4 @@ ui-mockups/
 
 # Dev-only tools (package.json): never needed to run the app
 node_modules/
+dist/

@@ -28,7 +28,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `core/ui/tokens.css`: 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
-Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only tools (types, lint, and linkedom, the DOM some unit tests run in), installed with `npm ci`. Rules for working here: `AGENTS.md`.
+The UI uses HTML, CSS and vanilla ES modules. During development Python serves the source directly. Production serves a bundled release. Install development and build tools with `npm ci`. Contributor instructions are in `AGENTS.md`.
 
 ## Start
 
@@ -43,6 +43,9 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 | `PORT`   | `5180`                  | port to listen on             |
 | `XO_API` | `http://127.0.0.1:5002` | the XO Space API to proxy to  |
 | `HOST`   | `127.0.0.1`             | bind address                  |
+| `XO_PUBLIC_DIR` | unset | immutable release directory printed by the build |
+
+For a production installation, run `node tools/build-ui.mjs /path/to/releases` after installing build dependencies. The build prints the absolute directory of the content-addressed release. Set `XO_PUBLIC_DIR` to that directory when starting the Python server. Keep the previous release directory to allow rollback by restarting with its path. The Python runtime needs only its server files and the selected public directory.
 
 `serve.py` (standard library only) serves the files and reverse-proxies `/api/*` to `XO_API`:
 - It answers only requests addressed to it as `localhost` or an IP address on its own port, or as a hostname

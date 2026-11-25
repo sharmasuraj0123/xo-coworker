@@ -158,6 +158,11 @@ step("ledger", () => {
   return md.status === 0 ? null : (md.stdout + md.stderr).trim();
 });
 
+if (!FAST) step("production build", () => {
+  const result = run(process.execPath, ["tools/build/check.mjs"]);
+  return result.status === 0 ? null : (result.stderr || result.stdout).trim();
+});
+
 if (!FAST) step("tests", () => {
   const r = run(process.execPath, ["tests/run.mjs"], { stdio: ["ignore", "pipe", "pipe"] });
   const tail = (r.stdout + r.stderr).trim().split("\n").slice(-60).join("\n");

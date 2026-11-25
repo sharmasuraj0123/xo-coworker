@@ -7,6 +7,7 @@ import gzip
 import hashlib
 import http.client
 import ipaddress
+import json
 import mimetypes
 import os
 import posixpath
@@ -17,7 +18,8 @@ import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlsplit
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.environ.get("XO_PUBLIC_DIR")
+ROOT = os.path.realpath(PUBLIC_DIR) if PUBLIC_DIR else os.path.dirname(os.path.abspath(__file__))
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "5180"))
 XO_API = os.environ.get("XO_API", "http://127.0.0.1:5002").rstrip("/")
@@ -240,9 +242,26 @@ def max_body(method: str, path: str) -> int:
     return MAX_UPLOAD if method == "POST" and UPLOAD.match(path.split("?", 1)[0]) else MAX_BODY
 
 
+def read_build(root):
+    with open(os.path.join(root, ".build.json"), encoding="utf-8") as source:
+        manifest = json.load(source)
+    version = manifest["version"]
+    files = frozenset(manifest["files"])
+    if not re.fullmatch(r"[0-9a-f]{12}", version) or "index.html" not in files:
+        raise ValueError("Invalid public build manifest")
+    for name in files:
+        if any(not part or part.startswith(".") for part in name.split("/")):
+            raise ValueError("Invalid public asset path")
+    return version, files
+
+
+BUILD_VERSION, BUILD_FILES = read_build(ROOT) if PUBLIC_DIR else (None, frozenset())
 VERSIONED_DIRS = ("js", "css", "fonts", "presets", "assets", "core", "shell", "modules", "apps-host", "vendor")
 VERSIONED_FILES = ("boot.js", "favicon.svg")
-STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % ("|".join(VERSIONED_DIRS), "|".join(map(re.escape, VERSIONED_FILES)))
+if PUBLIC_DIR:
+    VERSIONED_DIRS = tuple(sorted({f.split("/")[0] for f in BUILD_FILES if "/" in f}))
+    VERSIONED_FILES = tuple(sorted(f for f in BUILD_FILES if "/" not in f and f != "index.html"))
+STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % ("|".join(map(re.escape, VERSIONED_DIRS)), "|".join(map(re.escape, VERSIONED_FILES)))
 VERSION_PATH = re.compile(r"^/v/([0-9a-f]{12})(/(?:%s))$" % STATIC_PATH)
 INDEX_PATH = re.compile(r'((?:href|src)=")\./(%s)(?=")' % STATIC_PATH)
 IMMUTABLE = "public, max-age=31536000, immutable"
@@ -258,6 +277,8 @@ def _stamp(st: os.stat_result) -> tuple:
 
 def public_asset(root: str, path: str) -> bool:
     relative = os.path.relpath(path, root)
+    if PUBLIC_DIR and root == ROOT and relative not in BUILD_FILES:
+        return False
     parts = relative.split(os.sep)
     if any(part.startswith(".") or part == "tests" for part in parts):
         return False
@@ -269,6 +290,12 @@ def public_asset(root: str, path: str) -> bool:
 
 
 def versioned_files(root: str):
+    if PUBLIC_DIR and root == ROOT:
+        for name in sorted(BUILD_FILES):
+            path = os.path.join(root, name)
+            if public_asset(root, path):
+                yield path
+        return
     for name in VERSIONED_FILES:
         path = os.path.join(root, name)
         if public_asset(root, path):
@@ -287,6 +314,8 @@ def versioned_files(root: str):
 
 def tree_version(root: str = ROOT) -> str:
     """12 hex characters naming the static files' contents: any changed, added or removed file changes it."""
+    if BUILD_VERSION and root == ROOT:
+        return BUILD_VERSION
     h = hashlib.sha1()
     for path in versioned_files(root):
         try:
