@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
+import { createScope } from "../core/kernel/scope.js";
 import { createViewerDiff } from "../modules/files/viewer-diff.js";
 import { bindViewerEvents } from "../modules/files/viewer-events.js";
 
-async function mount() {
+async function mount(t) {
   const { document } = await dom('<div id="viewer"><button data-vw-show="changes">Changes</button></div>');
   const el = document.querySelector("#viewer");
   const V = { file: { project: "p", rel: "notes.txt" }, split: false, open: true, show: "changes" };
@@ -27,8 +28,10 @@ async function mount() {
   });
   const host = diffBody();
   el.append(host);
+  const scope = createScope();
+  t.after(scope.dispose);
   bindViewerEvents({
-    el, V,
+    el, V, scope,
     render() { renders++; void drawDiff(change); },
   });
   const read = async () => { queue.shift().resolve("patch"); await settle(); };
@@ -42,8 +45,8 @@ async function mount() {
   };
 }
 
-test("a failed renderer keeps the focused retry busy and ignores another press during the draw", async () => {
-  const { document, host, queue, read, renders } = await mount();
+test("a failed renderer keeps the focused retry busy and ignores another press during the draw", async (t) => {
+  const { document, host, queue, read, renders } = await mount(t);
   const button = host.querySelector("[data-vw-diff-redraw]");
   assert.ok(button.matches('[data-vw-show="changes"]'));
   button.focus();
@@ -70,8 +73,8 @@ test("a failed renderer keeps the focused retry busy and ignores another press d
   assert.ok(!host.querySelector("[data-vw-diff-redraw]"));
 });
 
-test("another change shows its own read state after the previous drawing failed", async () => {
-  const { host, changeFile, read, queue } = await mount();
+test("another change shows its own read state after the previous drawing failed", async (t) => {
+  const { host, changeFile, read, queue } = await mount(t);
   changeFile();
   assert.match(host.textContent, /Reading the change/);
   assert.ok(!host.querySelector("[data-vw-diff-redraw]"));

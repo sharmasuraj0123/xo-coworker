@@ -16,7 +16,7 @@ const t = async (name, fn) => {
   catch (e) { console.error("  FAIL " + name + "\n    " + e.message); process.exitCode = 1; }
 };
 
-await t("the Changes adapter loads Pierre and starts its module worker on the first diff", async () => {
+await t("the Changes adapter loads Pierre and its worker on demand, then selects a bundled language per diff", async () => {
   const library = new URL("../vendor/pierre-diffs/diffs.js", import.meta.url).href;
   const worker = new URL("worker.js", library).href;
   const loads = [];
@@ -27,9 +27,12 @@ await t("the Changes adapter loads Pierre and starts its module worker on the fi
       loads.push(url);
       return { format: "module", shortCircuit: true, source: `
         export function registerCustomTheme() {}
-        export function parsePatchFiles() { return [{ files: [{ name: "file.js" }] }]; }
+        export function parsePatchFiles(path) { return [{ files: [{ name: path }] }]; }
         export function getOrCreateWorkerPoolSingleton({ poolOptions }) { return poolOptions.workerFactory(); }
-        export class FileDiff { render() {} }
+        export class FileDiff {
+          render({ fileDiff, containerWrapper }) { containerWrapper.language = fileDiff.lang; }
+          cleanUp() {}
+        }
       ` };
     },
   });
@@ -39,9 +42,27 @@ await t("the Changes adapter loads Pierre and starts its module worker on the fi
     globalThis.Worker = class { constructor(url, options) { workers.push([url, options.type]); } };
     const { diff } = await import("../modules/changes/diffview.js");
     assert.deepEqual(loads, []);
-    await diff({}, "patch");
+    async function language(path, options) {
+      const host = { replaceChildren() {} };
+      const drawn = await diff(host, path, options);
+      drawn.destroy();
+      return host.language;
+    }
+    assert.equal(await language("file.js"), "javascript");
     assert.deepEqual(loads, [library]);
     assert.deepEqual(workers, [[worker, "module"]]);
+    const samples = [
+      "js", "ts", "jsx", "tsx", "json", "jsonc", "py", "go", "rs", "java", "kt", "swift", "c", "cpp", "cs", "rb", "php",
+      "sh", "ps1", "sql", "yaml", "toml", "ini", "md", "css", "scss", "html", "xml", "vue", "svelte", "graphql",
+      "diff", "lua", "r", "dart", "scala", "ex", "hs", "pl", "proto", "tf", "tex",
+    ].map((extension) => `file.${extension}`).concat(["Dockerfile", "Makefile", "nginx.conf", ".env"]);
+    assert.deepEqual(new Set(await Promise.all(samples.map((name) => language(name)))), new Set(manifest.languages));
+    const cases = {
+      "js/app.js": "javascript", "a/b.tsx": "tsx", "Makefile": "make", "x/Dockerfile": "docker", ".env": "dotenv",
+      ".env.local": "dotenv", "run.sh": "shellscript", "README": "text", "notes.unknown": "text", ".gitignore": "text",
+      "css/app.css": "css", "README.md": "markdown", "a.H": "c",
+    };
+    for (const [path, expected] of Object.entries(cases)) assert.equal(await language("undetected", { path }), expected, path);
   } finally {
     hooks.deregister();
     for (const [key, value] of Object.entries(originals)) {
@@ -92,21 +113,9 @@ await t("the theme resolver follows the cascade: light overrides dark, color-mix
   for (const th of ["dark", "light"]) for (const [k, v] of Object.entries(c[th])) assert.match(v, /^#[0-9A-F]{6}$/, `${th} ${k}`);
 });
 
-await t("the adapter picks bundled highlighting languages and falls back to plain text", async () => {
-  const { langOf } = await import("../modules/changes/diffview.js");
-  const samples = [
-    "js", "ts", "jsx", "tsx", "json", "jsonc", "py", "go", "rs", "java", "kt", "swift", "c", "cpp", "cs", "rb", "php",
-    "sh", "ps1", "sql", "yaml", "toml", "ini", "md", "css", "scss", "html", "xml", "vue", "svelte", "graphql",
-    "diff", "lua", "r", "dart", "scala", "ex", "hs", "pl", "proto", "tf", "tex",
-  ].map((extension) => `file.${extension}`).concat(["Dockerfile", "Makefile", "nginx.conf", ".env"]);
-  assert.deepEqual(new Set(samples.map(langOf)), new Set(manifest.languages));
-  const cases = { "js/app.js": "javascript", "a/b.tsx": "tsx", "Makefile": "make", "x/Dockerfile": "docker", ".env": "dotenv", ".env.local": "dotenv", "run.sh": "shellscript", "README": "text", "notes.unknown": "text", ".gitignore": "text", "css/app.css": "css", "README.md": "markdown", "a.H": "c" };
-  for (const [p, l] of Object.entries(cases)) assert.equal(langOf(p), l, p);
-});
-
 await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle warm-up; no editor or merge view", async () => {
   const D = await import("../modules/changes/diffview.js");
-  assert.deepEqual(Object.keys(D).sort(), ["diff", "jump", "langOf", "prefetch", "setTheme"]);
+  assert.deepEqual(Object.keys(D).sort(), ["diff", "jump", "prefetch", "setTheme"]);
   assert.ok(!("edit.js" in manifest.files) && !manifest.patches, "Pierre's editor isn't vendored, so nothing patches it");
 });
 
