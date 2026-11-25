@@ -98,7 +98,7 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
   const settings = createSettingsModule({
     el: root, side: opener, phoneButton: find("#set-phone"), closeButton: find("#set-x"),
     phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
-    at: () => ({}), openRuntimes() {}, shape: { apply() {}, open() {} }, beforeOpen() {}, onHidden() {},
+    at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { apply() {}, open() {} }, beforeOpen() {}, onHidden() {},
   });
   const id = settings.module.manifest.id;
   kernel.register(settings.module);

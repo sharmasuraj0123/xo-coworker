@@ -14,12 +14,13 @@ import { createSettingsSections } from "./sections.js";
 
 /** @param {ModuleContext} ctx @param {SettingsSurfaceHost} host */
 export function mountSettingsSurface(ctx, host) {
-  const { el, at, shape, openRuntimes } = host;
+  const { el, at, shape } = host;
   const nav = el.querySelector(".set-nav");
   const pages = el.querySelector(".set-page")?.parentElement;
   const box = el.querySelector("#set-keys-list");
   if (!(nav instanceof HTMLElement) || !pages || !(box instanceof HTMLElement)) throw new Error("Settings pages are missing");
   const announce = ctx.use("announce");
+  const runtimes = host.mountRuntimes({ scope: ctx, root: el });
   const keys = createKeysPage({ box, announce, resetIcon: ICON.retry });
   ctx.effect(() => () => { keys.dispose(); box.replaceChildren(); });
   const accounts = createAccounts({ announce });
@@ -35,12 +36,13 @@ export function mountSettingsSurface(ctx, host) {
     ...host,
     onPage(id) {
       ctx.emit(SETTINGS_PAGE_OPEN, id);
-      if (id === "runtimes") openRuntimes();
+      if (id === "runtimes" && !el.hidden) runtimes.open();
       if (id === "accounts") accounts.open();
       if (id === "shape") shape.open();
       sections.show(id);
     },
     beforeOpen() { host.beforeOpen(); sections.resume(); },
+    onOpen(id) { if (id === "runtimes") runtimes.open(); },
     beforeClose() { keys.cancel(); sections.hide(); },
   });
   ctx.effect(() => frame.dispose);

@@ -1,10 +1,16 @@
 import type { Runtime, RuntimePolicy } from "../../core/services/runtime-types";
+import type { ModuleContext } from "../../core/kernel/types";
 import type { accountRows, heldModes } from "../../core/services/world/paid";
-import type { receipts } from "./settings";
+import type { receipts } from "./receipts";
 
 type AccountSources = Parameters<typeof accountRows>[0];
+export interface RuntimeSettingsDeps {
+  world: SettingsWorld;
+  announce(words: string): void;
+  scope: Pick<ModuleContext, "listen" | "timeout" | "effect" | "signal">;
+  root: HTMLElement;
+}
 export interface SettingsState {
-  timer: ReturnType<typeof setTimeout> | undefined;
   err: { field: string; text: string } | null;
   saved: ReturnType<typeof receipts>;
   saving: string | null;
@@ -44,5 +50,5 @@ export interface SettingsWorld {
     loadPolicies?(): Promise<unknown>;
     loadPaid?(): Promise<unknown>;
   };
-  subscribe?(listener: () => void): unknown;
+  subscribe?(listener: () => void): () => void;
 }

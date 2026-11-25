@@ -1053,7 +1053,6 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
-const RTSET = createRuntimeSettings({ world, announce, PROJ });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
 const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, hopsRender, webpicsRender, convThread, world, loadChatHops, SH, STAGE, schedule });
@@ -1063,7 +1062,7 @@ const settings = createSettingsModule({
   el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE,
   focusIn: focusOverlay, fallback: () => say,
   at: () => { const view = currentView(); return { project: view.startsWith("p:") ? view.slice(2) : convThread(view)?.project }; },
-  openRuntimes: RTSET.open, shape: SV,
+  mountRuntimes: (runtimeHost) => createRuntimeSettings({ world, announce, ...runtimeHost }), shape: SV,
   beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
   onHidden: () => syncInert(),
 });

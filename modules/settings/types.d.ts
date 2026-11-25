@@ -1,4 +1,4 @@
-import type { Places } from "../../core/kernel/types.d.ts";
+import type { ModuleContext, Places } from "../../core/kernel/types.d.ts";
 import type { createScope } from "../../core/kernel/scope.js";
 import type { createShapeStore } from "../../core/services/shape/store.js";
 
@@ -31,11 +31,12 @@ export interface SettingsFrameDeps {
   scope?: ReturnType<typeof createScope>;
   el: HTMLElement; side: HTMLElement; phoneButton: HTMLElement; closeButton: HTMLElement;
   onPage: (id: string) => void; beforeOpen: () => void; beforeClose: () => void; onHidden: () => void;
+  onOpen?: (id: string | undefined) => void;
   focusIn: (el: HTMLElement) => void; fallback: () => Element | null; phone: MediaQueryList;
 }
 export interface SettingsSurfaceHost extends Omit<SettingsFrameDeps, "scope" | "onPage" | "beforeClose"> {
   at(): { project?: string };
-  openRuntimes(): void;
+  mountRuntimes(host: { scope: ModuleContext; root: HTMLElement }): { open(): void };
   shape: { apply(): void; open(): void };
 }
 export interface SectionEntry {

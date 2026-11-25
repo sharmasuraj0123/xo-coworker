@@ -12451,12 +12451,12 @@
    "home": "modules/runtimes/settings.js"
   },
   "js/rtsettings.js::exports::sameValue": {
-   "status": "moved",
-   "home": "modules/runtimes/settings.js"
+   "status": "deleted",
+   "reason": "The Runtimes receipt owner keeps value comparison private."
   },
   "js/rtsettings.js::exports::receipts": {
    "status": "moved",
-   "home": "modules/runtimes/settings.js"
+   "home": "modules/runtimes/receipts.js"
   },
   "js/rtsettings.js::exports::createRuntimeSettings": {
    "status": "moved",
@@ -12468,7 +12468,7 @@
   },
   "js/rtsettings.js::functions::receipts": {
    "status": "moved",
-   "home": "modules/runtimes/settings.js"
+   "home": "modules/runtimes/receipts.js"
   },
   "js/rtsettings.js::functions::createRuntimeSettings": {
    "status": "moved",
@@ -12476,7 +12476,7 @@
   },
   "js/rtsettings.js::ids::settings": {
    "status": "moved",
-   "home": "modules/runtimes/settings.js"
+   "home": "shell/overlays.js"
   },
   "js/rtsettings.js::ids::rtsp-h": {
    "status": "moved",

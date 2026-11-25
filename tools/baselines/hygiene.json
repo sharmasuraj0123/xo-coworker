@@ -503,13 +503,6 @@
  "modules/runtimes/settings.js": {
   "commentLines": 1
  },
- "modules/runtimes/tests/rtsettings.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 1
- },
- "modules/runtimes/tests/saved-truth.test.mjs": {
-  "explicitAny": 4
- },
  "modules/search/jump.js": {
   "commentLines": 5
  },

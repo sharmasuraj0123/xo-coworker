@@ -2,14 +2,15 @@
 
 /** @import {Runtime, RuntimePolicy, RuntimeError} from "../../core/services/runtime-types" */
 
-/** @import {SettingsWorld, SettingsState, PaidRow} from "./settings-types" */
+/** @import {SettingsState, PaidRow} from "./settings-types" */
 
-import { esc } from "../../core/platform/util.js";
+import { esc, reportFailure } from "../../core/platform/util.js";
 import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "../../core/services/runtimes.js";
 import { once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { rovingTab } from "../../core/ui/a11y/keynav.js";
 import { MODES, MODE_NAME, MODE_SUB, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "../../core/services/world/paid.js";
+import { receipts } from "./receipts.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
@@ -26,37 +27,19 @@ export function usualOf(policy, rts) {
   return [policy && policy.default, own].find(permits) || list.find((r) => permits(r.name) && isInstalled(r))?.name || null;
 }
 
-/** @param {unknown} a @param {unknown} b */
-export const sameValue = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-/** "Saved" beside a field for ms, only while it shows exactly what the server took. @param {number} ms @param {() => void} onClear */
-export function receipts(ms, onClear) {
-  /** @type {{ field: string, value: unknown } | null} */
-  let cur = null;
-  return {
-    get field() { return cur && cur.field; },
-    /** @param {string} field @param {unknown} now */
-    says(field, now) { return !!cur && cur.field === field && sameValue(cur.value, now); },
-    /** @param {string} field @param {unknown} value */
-    set(field, value) {
-      const r = { field, value };
-      cur = r;
-      const t = /** @type {number | {unref(): void}} */ (setTimeout(() => { if (cur === r) { cur = null; onClear(); } }, ms));
-      if (typeof t === "object") t.unref();
-    },
-    clear() { cur = null; },
-  };
-}
-
-/** @param {{ world: SettingsWorld, announce: (words: string) => void, PROJ?: unknown }} deps */
-export function createRuntimeSettings({ world, announce, PROJ }) {
+/** @param {import("./settings-types").RuntimeSettingsDeps} deps */
+export function createRuntimeSettings({ world, announce, scope: lifetime, root }) {
+  const { signal } = lifetime;
   /** @type {SettingsState} */
-  const R = { timer: undefined, err: null, saved: receipts(1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
+  const R = { err: null, saved: receipts(lifetime, 1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
   /** @type {{ err: { key: string, text: string } | null, saving: string | null, saved: ReturnType<typeof receipts> }} */
-  const P = { err: null, saving: null, saved: receipts(1600, () => { if (onScreen()) draw(); }) };
+  const P = { err: null, saving: null, saved: receipts(lifetime, 1600, () => { if (onScreen()) draw(); }) };
   const paidKey = (/** @type {string} */ k) => `paid:${k}`;
-  const page = () => document.querySelector('[data-page="runtimes"]');
-  const live = () => page()?.querySelector(".set-live");
-  const onScreen = () => { const p = /** @type {HTMLElement | null} */ (page()); return !!p && !p.hidden && !/** @type {HTMLElement} */ (document.querySelector("#settings")).hidden; };
+  const page = root.querySelector('[data-page="runtimes"]'), mount = page?.querySelector(".set-live");
+  if (!(page instanceof HTMLElement) || !mount) throw new Error("Runtimes page is missing");
+  const live = mount;
+  const onScreen = () => !signal.aborted && !page.hidden && !root.hidden;
+  lifetime.effect(() => () => live.replaceChildren());
   const rts = () => world.state.runtimes || [];
   const installed = () => rts().filter(isInstalled);
 
@@ -101,13 +84,19 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     R.err = null; R.next = next; R.saving = field; R.saved.clear();
     const p = once(POLICY, async () => {
       try { await world.act.setPolicy(null, next); }
-      catch (err) { const failure = /** @type {RuntimeError} */ (err); R.err = { field: errorField(failure) === "form" ? field : errorField(failure), text: failure.message ?? "" }; return false; }
+      catch (err) {
+        const failure = /** @type {RuntimeError} */ (err), at = errorField(failure);
+        if (!signal.aborted) R.err = { field: at === "form" ? field : at, text: failure.message ?? "" };
+        return false;
+      }
       finally { R.next = null; R.saving = null; }
+      if (signal.aborted) return false;
       R.saved.set(field, next[field]); announce(words);
       return true;
     });
     draw();
     const ok = await p;
+    if (signal.aborted) return false;
     draw();
     const draft = R.pref == null ? undefined : (R.pref.trim() || null);
     if (draft !== undefined && draft !== (next.preferences ?? null) && !document.activeElement?.matches("[data-rtd-pref]")) savePref();
@@ -148,7 +137,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   const choiceNow = (scope, row) => (scope === "space" ? effectiveMode(held(), "").mode : row?.own || "same");
   function paidHtml() {
     if (!world.state.paidOk) return "";
-    const space = effectiveMode(held(), "").mode, rows = paidRows();
+    const spaceMode = effectiveMode(held(), "").mode, rows = paidRows();
     /** @param {string} k @param {unknown} now */
     const note = (k, now) => (P.err && P.err.key === k ? `<p class="rt-ferr" role="alert">${esc(P.err.text)}</p>`
       : P.saving === k ? `<span class="rt-saved is-saving" role="status">Saving…</span>`
@@ -157,8 +146,8 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     const seg = (k, labelId, scope, pool, now, choices) => `<div class="rt-seg is-paid" role="radiogroup" aria-labelledby="${labelId}">${choices.map(([v, name], i) =>
       `<button type="button" role="radio" aria-checked="${now === v}" data-paid-scope="${scope}"${pool ? ` data-paid-pool="${esc(pool)}"` : ""} data-paid-val="${v}"${rovingTab(now === v, i === 0 && !choices.some(([x]) => x === now))}${busyAttrs(paidKey(k))}>${esc(name)}</button>`).join("")}</div>`;
     const modes = MODES.map((m) => [m, MODE_NAME[m]]);
-    const spaceRow = `<div class="set-row rt-def"><div class="set-l"><b id="rtp-space">All accounts</b><span>${esc(MODE_SUB[space])}</span>${note("space", space)}</div>` +
-      seg("space", "rtp-space", "space", "", space, modes) + `</div>`;
+    const spaceRow = `<div class="set-row rt-def"><div class="set-l"><b id="rtp-space">All accounts</b><span>${esc(MODE_SUB[spaceMode])}</span>${note("space", spaceMode)}</div>` +
+      seg("space", "rtp-space", "space", "", spaceMode, modes) + `</div>`;
     const acct = rows.map((r, i) => {
       const id = `rtp-a${i}`, now = choiceNow("pool", r);
       const facts = [r.possible === false ? (r.why || "It can’t go on to paid usage.") : r.possible === null ? "XO can’t tell whether it can go on to paid usage." : "",
@@ -172,17 +161,21 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
       `<p class="set-lead">When an account’s plan runs out it may go on to paid usage. You choose here whether XO lets work go on, for every account or for one.</p>` +
       `<div class="rt-defs">${spaceRow}${acct}</div></section>`;
   }
-  /** @param {string} scope @param {string} pool @param {string} val */
-  async function choosePaid(scope, pool, val) {
-    const k = scope === "space" ? "space" : pool, key = paidKey(k);
-    const row = scope === "space" ? null : paidRows().find((r) => r.pool === pool);
-    if (isPending(key) || (scope !== "space" && !row) || val === choiceNow(scope, row)) return;
+  /** @param {string} area @param {string} pool @param {string} val */
+  async function choosePaid(area, pool, val) {
+    const k = area === "space" ? "space" : pool, key = paidKey(k);
+    const row = area === "space" ? null : paidRows().find((r) => r.pool === pool);
+    if (isPending(key) || (area !== "space" && !row) || val === choiceNow(area, row)) return;
     const value = val === "same" ? null : val;
     P.err = null; P.saving = k; P.saved.clear();
     const p = once(key, async () => {
-      try { await world.act.setPaid(scope, pool, value); }
-      catch (err) { P.err = { key: k, text: (/** @type {RuntimeError} */ (err)).message ?? "" }; return false; }
+      try { await world.act.setPaid(area, pool, value); }
+      catch (err) {
+        if (!signal.aborted) P.err = { key: k, text: (/** @type {RuntimeError} */ (err)).message ?? "" };
+        return false;
+      }
       finally { P.saving = null; }
+      if (signal.aborted) return false;
       P.saved.set(k, val);
       const who = row ? `${row.name} paid usage` : "Paid usage";
       announce(value ? `${who}: ${MODE_NAME[value]}. ${MODE_SUB[value]}` : `${who} follows all accounts.`);
@@ -194,22 +187,26 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   }
 
   function draw() {
-    const el = live();
-    if (el) redraw(el, `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + paidHtml() + defaultsHtml());
+    if (signal.aborted) return;
+    redraw(live, `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + paidHtml() + defaultsHtml());
   }
-  function drawList() { const l = live()?.querySelector(".rt-live"); if (l) redraw(l, listHtml()); else draw(); }
-
+  function drawList() { const l = live.querySelector(".rt-live"); if (l) redraw(l, listHtml()); else draw(); }
+  /** @type {(() => void) | undefined} */
+  let cancelRefresh;
+  let refreshing = false;
   async function refresh() {
-    clearTimeout(R.timer);
-    if (!onScreen()) return;
-    await world.act.loadRuntimes()?.catch(globalThis.reportError?.bind(globalThis) ?? console.error);
+    cancelRefresh?.();
+    if (!onScreen() || refreshing) return;
+    refreshing = true;
+    try { await world.act.loadRuntimes(); }
+    catch (error) { if (!signal.aborted) reportFailure(error); }
+    finally { refreshing = false; }
     if (!onScreen()) return;
     drawList();
-    R.timer = setTimeout(refresh, REFRESH_MS);
+    cancelRefresh = lifetime.timeout(refresh, REFRESH_MS);
   }
 
-  const root = /** @type {HTMLElement} */ (document.querySelector("#settings"));
-  root.addEventListener("click", (e) => {
+  lifetime.listen(live, "click", (e) => {
     const target = e.target instanceof Element ? e.target : null;
     const pd = target?.closest("[data-paid-val]");
     if (pd instanceof HTMLElement && pd.dataset.paidScope && pd.dataset.paidVal) { choosePaid(pd.dataset.paidScope, pd.dataset.paidPool || "", pd.dataset.paidVal); return; }
@@ -219,22 +216,22 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     const f = target?.closest("[data-rtd-fallback]");
     if (f && !isPending(POLICY)) { const on = !space().fallback; put({ fallback: on }, "fallback", on ? "A new thread may start on another runtime at a limit." : "A new thread waits for its runtime at a limit."); }
   });
-  root.addEventListener("change", (e) => {
+  lifetime.listen(live, "change", (e) => {
     if (!(e.target instanceof Element) || !e.target.matches("input[data-rtd-allowed]") || isPending(POLICY)) return;
     const names = installed().map((r) => r.name);
-    const picked = [.../** @type {Element} */ (live()).querySelectorAll("[data-rtd-allowed]:checked")].map((x) => /** @type {HTMLElement} */ (x).dataset.rtdAllowed).filter((name) => name !== undefined);
+    const picked = [...live.querySelectorAll("[data-rtd-allowed]:checked")].map((x) => /** @type {HTMLElement} */ (x).dataset.rtdAllowed).filter((name) => name !== undefined);
     if (!picked.length) { /** @type {HTMLInputElement} */ (e.target).checked = true; R.err = { field: "allowed", text: "Keep at least one runtime." }; draw(); return; }
     const p = space();
     const allowed = picked.length === names.length ? null : picked;
     put({ allowed, ...(p.default && !picked.includes(p.default) ? { default: null } : {}) }, "allowed", allowed ? `XO uses only ${picked.map(rtName).join(" and ")}.` : "XO may use every runtime.");
   });
-  root.addEventListener("input", (e) => {
+  lifetime.listen(live, "input", (e) => {
     const field = e.target;
     if (field instanceof Element && field.matches("textarea[data-rtd-pref]")) {
       R.pref = (/** @type {HTMLTextAreaElement} */ (field)).value;
     }
   });
-  root.addEventListener("focusout", (e) => { if (e.target instanceof Element && e.target.matches("[data-rtd-pref]")) savePref(); });
+  lifetime.listen(live, "focusout", (e) => { if (e.target instanceof Element && e.target.matches("[data-rtd-pref]")) savePref(); });
   async function savePref() {
     if (R.pref == null) return;
     if (isPending(POLICY)) return;
@@ -243,25 +240,28 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     const ok = await put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");
     if (ok && R.pref === v) { R.pref = null; draw(); }
   }
-  if (world.subscribe) {
-    let sig = "";
-    world.subscribe(() => {
-      if (!onScreen()) return;
-      const st = world.state;
-      const next = JSON.stringify([st.policy, st.paidOk, st.paid, st.paidPools, paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note])]);
-      if (next === sig) return;
-      sig = next;
-      if (!isPending(POLICY) && R.pref == null) draw();
-    });
-  }
-
+  let sig = "";
+  lifetime.effect(() => world.subscribe?.(() => {
+    if (!onScreen()) return;
+    const st = world.state;
+    const rows = paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note]);
+    const next = JSON.stringify([st.policy, st.paidOk, st.paid, st.paidPools, rows]);
+    if (next === sig) return;
+    sig = next;
+    if (!isPending(POLICY) && R.pref == null) draw();
+  }));
   return {
     open() {
+      if (signal.aborted) return;
       R.err = null;
       draw();
       refresh();
-      world.act.loadPolicies?.().then(() => { if (onScreen() && R.pref == null) draw(); });
-      world.act.loadPaid?.().then(() => { if (onScreen() && R.pref == null) draw(); });
+      const redrawOpen = () => { if (onScreen() && R.pref == null) draw(); };
+      const reportLive = (/** @type {unknown} */ error) => { if (!signal.aborted) reportFailure(error); };
+      world.act.loadPolicies?.().then(redrawOpen, reportLive);
+      world.act.loadPaid?.().then(redrawOpen, reportLive);
+      const keys = [POLICY, paidKey("space"), ...paidRows().map((row) => paidKey(row.pool))];
+      for (const key of keys) if (isPending(key)) once(key, () => {}).then(redrawOpen, reportLive);
     },
   };
 }

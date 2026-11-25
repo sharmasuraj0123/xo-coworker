@@ -61,7 +61,6 @@
  "modules/launchpad/views.js::eslint(no-shadow)": 2,
  "modules/launchpad/views.js::eslint(no-underscore-dangle)": 1,
  "modules/launchpad/window.js::eslint(no-unused-expressions)": 1,
- "modules/runtimes/settings.js::eslint(no-shadow)": 1,
  "modules/search/jump.js::eslint(no-unused-expressions)": 1,
  "modules/search/quickopen.js::eslint(no-shadow)": 1,
  "modules/search/quickopen.js::eslint(no-unused-expressions)": 2,

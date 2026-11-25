@@ -64,9 +64,6 @@
  "modules/map/map.js": {
   "observer": 1
  },
- "modules/runtimes/settings.js": {
-  "setTimeout": 2
- },
  "modules/search/quickopen.js": {
   "setTimeout": 1
  },

@@ -5,7 +5,7 @@ import { usable } from "../../core/ui/a11y/focus.js";
 
 /** @param {import("./types").SettingsFrameDeps} deps */
 export function createSettingsFrame({
-  el, side, phoneButton, closeButton, onPage, beforeOpen, beforeClose, onHidden, focusIn, fallback, phone, scope = createScope(),
+  el, side, phoneButton, closeButton, onPage, beforeOpen, beforeClose, onHidden, focusIn, fallback, phone, onOpen, scope = createScope(),
 }) {
   /** @type {Element | null} */
   let setReturn = null;
@@ -32,6 +32,7 @@ export function createSettingsFrame({
     side.setAttribute("aria-expanded", "true");
     const first = /** @type {HTMLElement | null} */ (el.querySelector('[aria-selected="true"]'));
     if (first) focusIn(first);
+    onOpen?.(first?.dataset.set);
   }
   function close({ restore = true } = {}) {
     if (el.hidden) return;

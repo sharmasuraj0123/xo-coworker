@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createScope } from "../../../core/kernel/scope.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createRuntimeSettings } from "../settings.js";
 
@@ -21,7 +22,10 @@ test("a rejected runtime poll is reported and keeps the previous cards", async (
     act: { loadRuntimes: async () => { throw failure; }, setPolicy: async () => {}, setPaid: async () => {} },
   };
 
-  createRuntimeSettings({ world, announce() {} }).open();
+  const scope = createScope();
+  context.after(scope.dispose);
+  const root = /** @type {HTMLElement} */ (document.querySelector("#settings"));
+  createRuntimeSettings({ world, announce() {}, scope, root }).open();
   const card = document.querySelector(".rt-card");
   assert.ok(card?.textContent.includes("Codex"));
   await new Promise((resolve) => setImmediate(resolve));

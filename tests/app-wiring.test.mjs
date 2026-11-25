@@ -16,6 +16,11 @@ const storage = new Map([
 const blockedStorage = new Set();
 const sinceReads = [];
 const settingsReads = new Map();
+const runtimeWrites = [];
+let heldRuntimes;
+let heldRuntimeReads = 0;
+const runtimeList = { runtimes: [{ name: "codex", cli: { logged_in: true } }, { name: "claude_code" }] };
+let runtimePolicy = { allowed: ["codex", "claude_code"], preferences: null };
 const chatTitleRead = deferred();
 const initialChats = deferred();
 const initialShape = deferred();
@@ -247,7 +252,10 @@ Object.assign(globalThis, {
       id: "first-workspace-reply", chat_id: "workspace-chat", author_kind: "owner", seq: 1,
       created_at: new Date(lastHomeVisit).toISOString(), text: "The first message in Workspace",
     }] });
-    if (path === "/api/chat/runtimes") return Response.json({ runtimes: [{ name: "codex", cli: { logged_in: true } }, { name: "claude_code" }] });
+    if (path === "/api/chat/runtimes") {
+      if (heldRuntimes) { heldRuntimeReads++; return heldRuntimes.promise; }
+      return Response.json(runtimeList);
+    }
     if (path.startsWith("/api/chat/runtimes/") && resource === "models") {
       modelReads.push(path);
       if (path === "/api/chat/runtimes/claude_code/models") {
@@ -256,7 +264,14 @@ Object.assign(globalThis, {
       }
       return Response.json({ models: [{ id: "codex-fixture", name: "Fixture Codex" }] });
     }
-    if (path === "/api/chat/runtime-policy") return Response.json({ effective: { allowed: ["codex", "claude_code"] } });
+    if (path === "/api/chat/runtime-policy") {
+      if (init?.method === "PUT") {
+        const response = deferred();
+        runtimeWrites.push({ body: JSON.parse(init.body), signal: init.signal, response });
+        runtimePolicy = await response.promise;
+      }
+      return Response.json({ space: runtimePolicy, effective: runtimePolicy });
+    }
     if (path === "/api/chat/chats/project-chat/threads") return Response.json({ threads: [
       { ts: "boot-thread", chat_id: "project-chat", title: "Thread from the panel", state: "working", session_id: "boot-session", pin: { model: "codex-fixture" }, runs: { total: 1 }, can_delete: true },
       { ts: "failed-thread", chat_id: "project-chat", title: "Review the draft", state: "failed" },
@@ -1066,6 +1081,83 @@ launchpadDialog.querySelector("[data-lq-close]").click();
 press("#nv-home");
 
 assert.ok(JSON.parse(storage.get("xo-seen")).home > lastHomeVisit, "Home records its visit in the app's Since store");
+{
+  const timers = new Map();
+  const realSet = globalThis.setTimeout, realClear = globalThis.clearTimeout;
+  const runtimeHost = settings.querySelector('[data-page="runtimes"] .set-live');
+  const remove = runtimeHost.removeEventListener;
+  const removed = [];
+  runtimeHost.removeEventListener = function (type, ...args) {
+    removed.push(type);
+    return remove.call(this, type, ...args);
+  };
+  globalThis.setTimeout = (fn, ms, ...args) => {
+    const id = realSet(fn, ms, ...args);
+    if (ms === 30_000) timers.set(id, () => { realClear(id); timers.delete(id); fn(...args); });
+    return id;
+  };
+  globalThis.clearTimeout = (id) => { timers.delete(id); realClear(id); };
+  const runtimePref = () => runtimeHost.querySelector("[data-rtd-pref]");
+  const enter = () => new Promise(setImmediate);
+  const writePref = (value) => {
+    runtimePref().value = value;
+    runtimePref().dispatchEvent(new window.Event("input", { bubbles: true }));
+    runtimePref().dispatchEvent(new window.Event("focusout", { bubbles: true }));
+  };
+  try {
+    settingsOpener.focus();
+    press("#set-phone");
+    press('#settings [data-set="runtimes"]');
+    await enter();
+    assert.equal(runtimeHost.querySelectorAll(".rt-card").length, 2, "boot mounts the real Runtimes page");
+    assert.equal(timers.size, 1, "the real Settings page schedules one 30-second refresh");
+    writePref("Use Codex for tests");
+    await enter();
+    assert.equal(runtimeWrites.length, 1);
+    assert.equal(runtimeWrites[0].body.preferences, "Use Codex for tests");
+    writePref("Retired draft");
+    runtimePref().focus();
+    await kernel.disable("xo.settings");
+    assert.equal(kernel.live("xo.settings"), 0);
+    assert.equal(runtimeHost.childElementCount, 0, "disabling Settings clears the actual Runtimes host");
+    assert.equal(timers.size, 0, "disabling Settings cancels its queued refresh");
+    assert.deepEqual(removed.filter((type) => ["click", "change", "input", "focusout"].includes(type)).sort(),
+      ["change", "click", "focusout", "input"], "the retired controller removes all four delegated handlers");
+    assert.equal(document.activeElement, settingsOpener, "disabling Runtimes returns focus to the Settings opener");
+    assert.equal(runtimeWrites[0].signal.aborted, false, "an accepted preference write survives Settings retirement");
+
+    assert.ok((await kernel.enable("xo.settings")).active.includes("xo.settings"));
+    press("#set-phone");
+    await enter();
+    assert.equal(runtimeHost.querySelectorAll(".rt-card").length, 2, "re-enabling Settings mounts one Runtimes view");
+    assert.notEqual(runtimePref().value, "Retired draft");
+    runtimeWrites[0].response.resolve(runtimeWrites[0].body);
+    await enter();
+    await enter();
+    assert.equal(runtimePref().value, "Use Codex for tests", "the new owner renders the accepted shared policy");
+    assert.equal(runtimeHost.querySelector(".rt-saved"), null, "the retired controller paints no saved receipt");
+    assert.equal(runtimeHost.querySelector('[data-rtd-fallback]').hasAttribute("aria-busy"), false);
+    assert.equal(runtimeWrites.length, 1, "a retired preference draft never produces a second write");
+
+    assert.equal(timers.size, 1);
+    heldRuntimes = deferred();
+    timers.values().next().value();
+    await enter();
+    assert.equal(heldRuntimeReads, 1, "the pending refresh reached Storm's real runtime route");
+    await kernel.disable("xo.settings");
+    const late = heldRuntimes;
+    heldRuntimes = undefined;
+    late.resolve(Response.json(runtimeList));
+    await enter();
+    assert.equal(runtimeHost.childElementCount, 0, "a refresh that settles after retirement paints nothing");
+    assert.equal(timers.size, 0, "a refresh that settles after retirement schedules nothing");
+    assert.ok((await kernel.enable("xo.settings")).active.includes("xo.settings"));
+  } finally {
+    runtimeHost.removeEventListener = remove;
+    globalThis.setTimeout = realSet;
+    globalThis.clearTimeout = realClear;
+  }
+}
 settingsStarted = true;
 press("#set-phone");
 press('#settings [data-set="rules"]');
