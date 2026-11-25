@@ -174,6 +174,7 @@
   --s-shell-note-edge:14px; --w-shell-confirm-message:220px;
   --offset-shell-list-link:3px; --s-shell-status-top:7px; --w-shell-list-name:320px; --s-shell-flag-block:1px;
   --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
+  --s-long-press-gap:2px; --s-long-press-inline:14px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;

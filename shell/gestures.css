@@ -1,0 +1,15 @@
+/* Paint the surfaces being dragged, their shadows and the next action. */
+.conv.is-swiped{background:var(--canvas);box-shadow:var(--e2)}
+.main:has(.conv.is-swiped){background:var(--sunken)}
+.lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:var(--s-long-press-gap);padding:var(--s-1);
+  border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);
+  box-shadow:var(--lift-3);animation:float-in var(--d-out) var(--ease)}
+.lp-menu button{min-height:var(--h-lg);padding:0 var(--s-long-press-inline);border-radius:var(--r-sm);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+/* Paint the action with focus, including after touch opens the menu. */
+.lp-menu button:active,.lp-menu button:focus{background:var(--menu-focus)}
+@media (pointer:coarse){
+  /* a long-press opens Copy · Select text (the browser's own selection comes back with Select text) */
+  .m-you .bubble,.m-them>.mb>.prose,.m-turn .tb-answer{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  .m-you .bubble.is-selecting,.m-them>.mb>.prose.is-selecting,.m-turn .tb-answer.is-selecting{-webkit-user-select:text;user-select:text}
+}
