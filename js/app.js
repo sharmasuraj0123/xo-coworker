@@ -36,7 +36,7 @@ import { kernel } from "../shell/kernel.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { mountShellInteractions } from "../shell/interactions.js";
 import { createNavigation } from "../shell/navigation.js";
-import { createEdgeCards } from "../shell/edge-cards.js";
+import { edgeCardsModule } from "../shell/edge-cards.js";
 import { createShellRenderer } from "../shell/render.js";
 import { createShellFoundation } from "../shell/foundation.js";
 import { bootShell } from "../shell/boot.js";
@@ -93,12 +93,10 @@ const threadActions = createThreadActions();
 const threadControls = threadActions.controls;
 const { show: heraldShow, forMsg: heraldFor } = notices;
 
-const edgeCards = createEdgeCards(() => D, () => VW);
 const { glyphOf, isBusy, isHeld, stOf, wordOf } = threadPresentation;
 const { decisions: D, pings, module: decisionModel } = createDecisionSurface({
   world, PROJ, announce, view: currentView, bus: kernel.bus, scope: appScope, showNotice: heraldShow,
   conversationOf: (project) => convOfChat(project), go,
-  onShown: edgeCards.decisionOpened, onGone: edgeCards.decisionClosed,
   render: () => schedule(),
   back: (targets) => redrawFocus.back(targets, placeRegion, schedule),
 });
@@ -117,7 +115,6 @@ const { chats: CH, module: chatControls } = createChatSurface({
   updateComposer: () => updateComposer(), toggleIntelligence: (view, chip) => toggleIq(sessionOf(view), chip),
 }, { turnHtml, turnAv });
 const files = createFilesModule({
-  opened: edgeCards.fileOpened, closed: edgeCards.fileClosed,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text),
     compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   paths: () => PATHS,
@@ -276,7 +273,7 @@ const applyInert = mountShellInteractions(appScope, kernel.layers, {
 appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
 
 await bootShell(appScope, [
-  shellServices, failureModule, navigationModule, sessionModule, stageModule, intelModule,
+  shellServices, failureModule, navigationModule, sessionModule, stageModule, intelModule, edgeCardsModule,
   threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
   homeSkeletonModule, homeModule, JUMP.module, sinceModule, artifactsModule, runs.module, settings.module,
   mapModule, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,

@@ -26,7 +26,7 @@ export function createFilesModule(options) {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
       needs: ["world", "currentView", "announce", "projectName", "changeData", "placeContext", "conversationSession", "stage",
-        "navigation", "threadPresentation"],
+        "navigation", "threadPresentation", "edgeCards"],
       contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
     },
     activate(ctx) {
@@ -37,9 +37,13 @@ export function createFilesModule(options) {
         announce, ask: options.ask, onChange: () => ctx.emit("app:render"), changes, edits: { saved: save(changes, ctx) },
         threadTitle: (ts) => world.thread(ts)?.title || null,
         away: () => { if (!page?.isOpen) return false; stage.back(); return true; },
-        opened: (_, opts) => { options.opened(); page?.show(opts); }, closed: options.closed,
+        opened: (_, opts) => { ctx.emit("app:card-opened", "files"); page?.show(opts); },
+        closed: () => ctx.emit("app:card-closed", "files"),
         home: () => [$("#say"), session.region()].find(usable) || null,
       }, { $, ...renderers });
+      ctx.effect(() => ctx.use("edgeCards").register("files", {
+        isOpen: () => mountedViewer.isOpen, park: mountedViewer.park, unpark: mountedViewer.unpark,
+      }));
       ctx.effect(() => () => {
         viewer = undefined;
         tree = undefined;

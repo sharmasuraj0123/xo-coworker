@@ -16,6 +16,7 @@ export function createDecisionSurface({ bus, view, scope, showNotice, conversati
   const waitSince = new Map();
   const decisions = createDecisions({
     ...controller,
+    onShown: () => bus.emit("app:card-opened", "decisions"), onGone: () => bus.emit("app:card-closed", "decisions"),
     ...createDecisionFeedback(showNotice, scope),
     P: pacing, waitSince, onUndone: (key) => bus.emit("app:decision-undone", key),
     onOpenThread(id) {
@@ -30,8 +31,12 @@ export function createDecisionSurface({ bus, view, scope, showNotice, conversati
   const pingOptions = { view, P: pacing, PROJ: controller.PROJ, askShort, heraldShow: showNotice };
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
-    manifest: { id: "xo.decision-model", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["decisionPresentation"] },
-    activate(ctx) { ctx.provide("decisionPresentation", { D: decisions, EFFORT, askTitle, askShort, waitSince, Kit, evidenceFor }); },
+    manifest: { id: "xo.decision-model", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["edgeCards"],
+      provides: ["decisionPresentation"] },
+    activate(ctx) {
+      ctx.effect(() => ctx.use("edgeCards").register("decisions", decisions));
+      ctx.provide("decisionPresentation", { D: decisions, EFFORT, askTitle, askShort, waitSince, Kit, evidenceFor });
+    },
   };
   return { decisions, waitSince, pings: createDecisionPings(pingOptions), module };
 }

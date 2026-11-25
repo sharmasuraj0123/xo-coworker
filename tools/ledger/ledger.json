@@ -2721,7 +2721,7 @@
      "reason": "The shell activates registered modules and retires them at permanent pagehide."
     },
     "shell/edge-cards.js": {
-     "anchor": "export function createEdgeCards",
+     "anchor": "export const edgeCardsModule",
      "reason": "The shell restores the covered Decisions or Files card."
     },
     "modules/changes/data.js": {

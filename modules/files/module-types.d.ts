@@ -16,7 +16,5 @@ export interface FilesPageDeps {
 }
 export interface FilesModuleOptions {
   ask: ViewerOptions["ask"];
-  opened(): void;
-  closed(): void;
   paths(): FilesDependencies["paths"];
 }
