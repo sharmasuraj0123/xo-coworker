@@ -26,7 +26,7 @@ const tabList = '[data-sh-tab="list"]';
 const confirmation = ".shd-confirm";
 
 /** @param {Tools} t @param {ShellState} state @param {boolean} empty */
-async function installShells(t, state, empty) {
+export async function installShells(t, state, empty) {
   const { page, store } = t;
   const fixtures = ["demo", "api", "web"].map((name, index) => ({
     id: `sh_${index + 1}`, name, scope: "workspace", project: null, status: "running", viewers: 0,
@@ -89,7 +89,7 @@ function answerShell(socket, message, terminal, mode) {
 }
 
 /** @param {Tools} t @param {boolean} phone @param {string} theme */
-async function openDock(t, phone, theme) {
+export async function openDock(t, phone, theme) {
   await t.page.addInitScript((/** @type {string} */ value) => localStorage.setItem("cv-theme", value), theme);
   await t.open();
   if (phone) await t.page.locator("#pb-menu, #top-menu").filter({ visible: true }).first().click();
@@ -98,7 +98,7 @@ async function openDock(t, phone, theme) {
 }
 
 /** @param {Tools} t @param {string} id */
-async function attach(t, id) {
+export async function attach(t, id) {
   await t.page.locator(`[data-sh-open="${id}"]`).click();
   await ready(t, id);
 }
@@ -109,12 +109,12 @@ async function ready(t, id) {
 }
 
 /** @param {Tools} t @param {string} selector */
-async function focus(t, selector) {
+export async function focus(t, selector) {
   await t.page.waitForFunction((/** @type {string} */ target) => !!document.activeElement?.matches(target), selector);
 }
 
 /** @param {Tools} t @param {RegExp} words */
-async function announced(t, words) {
+export async function announced(t, words) {
   await t.page.locator("#live").filter({ hasText: words }).waitFor({ state: "attached" });
 }
 

@@ -14515,8 +14515,14 @@
    "reason": "a helper only the flow cases on the removed Edit/Save editor used; it went with them"
   },
   "tests/browser/flows.test.cjs::functions::copyCase": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/message-copy.spec.mjs",
+   "evidence": {
+    "e2e/specs/message-copy.spec.mjs": {
+     "anchor": "async function copy(t, phone, theme, permit)",
+     "reason": "The public copy controls verify clipboard contents, refusal, the success label or icon, the live announcement and retained keyboard focus in both themes and the legacy applicable viewport."
+    }
+   }
   },
   "tests/browser/flows.test.cjs::functions::panelOpen": {
    "status": "planned",
@@ -15073,8 +15079,14 @@
    "note": "The shape store test exercises reload, replay and refusal with the production key. The mounted Shape test checks notice placement."
   },
   "tests/browser/settings.test.cjs::storage::cv-keys": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/settings-native.spec.mjs",
+   "evidence": {
+    "e2e/specs/settings-native.spec.mjs": {
+     "anchor": "async function keyboard(t)",
+     "reason": "C118, S022 and S023 bind and persist the new shortcut through native input, verify Escape and single reset focus, and require Reset all to clear cv-keys and focus the first key."
+    }
+   }
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-mine": {
    "status": "planned",
@@ -15085,24 +15097,48 @@
    "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router": {
-   "status": "planned",
-   "home": "e2e/specs/router.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/settings-native.spec.mjs",
+   "evidence": {
+    "e2e/specs/settings-native.spec.mjs": {
+     "anchor": "async function routing(t, phone, theme, mode)",
+     "reason": "C109, C110 and C111 verify all three exact router writes, single flight, keyboard focus, previous selection after refusal and recovery."
+    }
+   }
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router/models": {
-   "status": "planned",
-   "home": "e2e/specs/models.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/settings-native.spec.mjs",
+   "evidence": {
+    "e2e/specs/settings-native.spec.mjs": {
+     "anchor": "async function connectModel(t, phone, theme)",
+     "reason": "C113, S110, S111 and S112 exercise the model list, connect and disconnect from the public Settings page, with held requests, duplicate presses, retained focus and retries."
+    }
+   }
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/chats": {
    "status": "planned",
    "home": "e2e/specs/chats.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/rules": {
-   "status": "planned",
-   "home": "e2e/specs/rules.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/settings-native.spec.mjs",
+   "evidence": {
+    "e2e/specs/settings-native.spec.mjs": {
+     "anchor": "async function revokeRule(t, phone, theme)",
+     "reason": "C116, S103 and S104 render the returned rules and verify Revoke's held DELETE, refusal, exact request count and next-row focus after retry."
+    }
+   }
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/worktrees": {
-   "status": "planned",
-   "home": "e2e/specs/worktrees.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/settings-native.spec.mjs",
+   "evidence": {
+    "e2e/specs/settings-native.spec.mjs": {
+     "anchor": "async function removeWorktree(t, phone, theme)",
+     "reason": "S105, S106 and S108 render the returned worktrees and verify Remove's held DELETE, refusal, exact request count and next-row focus after retry."
+    }
+   }
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/runtimes": {
    "status": "planned",
