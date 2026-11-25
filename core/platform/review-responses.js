@@ -31,6 +31,7 @@ export const isReview = (value) => isResponseObject(value) && text(value.id) && 
   && [value.title, value.why, value.risk, value.chat_id, value.thread_ts, value.session_id, value.run_id, value.turn_id].every(nullableText)
   && maybeNumber(value.seq) && (value.epoch === null || maybeNumber(value.epoch))
   && [value.blocking, value.parked].every(maybeBoolean) && (value.detail === undefined || isResponseObject(value.detail))
+  && optionalList(value.risk_reasons, text)
   && optionalList(value.options, isResponseObject) && optionalList(value.annotations, isAnnotation)
   && optionalList(value.risk_groups, isRiskGroup) && (value.decision == null || isDecision(value.decision));
 

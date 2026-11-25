@@ -17,3 +17,7 @@
 /** @template T @typedef {T extends unknown ? OpenRow<T> : never} OpenMember */
 
 /** @typedef {Closed<OpenMember<Projection | Message | Review | Hop | WorldState["sessions"][string] | WorldState["activity"][number]>>} StateRows */
+
+/** @typedef {WorldState["threads"][number]} Thread */
+
+/** @typedef {Closed<OpenMember<Thread["asks"][number] | Thread["messages"][number] | Thread["messages"][number]["reactions"][number]>>} Projections */

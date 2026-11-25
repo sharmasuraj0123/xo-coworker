@@ -139,7 +139,7 @@ export function createIntelCatalog(P, { world, PROJ, simple }) {
       const cur = (t.session && t.session.agent) || runtimeOf(s);
       const eff = (world.act.policyFor && world.act.policyFor(t.project)) || spaceEff();
       const others = eff ? moveTargets(cur, eff, rts()).filter((x) => !x.own) : [];
-      const list = [{ id: cur, label: rtName(cur), usable: true, why: "" },
+      const list = [{ id: cur ?? "", label: rtName(cur), usable: true, why: "" },
         ...others.map((x) => ({ id: x.name, label: rtName(x.name), usable: x.usable && !t.movedTo, why: t.movedTo ? "This thread has already continued in another thread." : x.why }))];
       return { list, on: cur, multi: list.length > 1 };
     }

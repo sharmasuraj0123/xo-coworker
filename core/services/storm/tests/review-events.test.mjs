@@ -22,3 +22,9 @@ test("review timestamps accept missing, text or null values", () => {
     assert.equal(isReview({ ...row, [field]: {} }), false);
   }
 });
+
+test("review risk reasons remain text through the decision projection", () => {
+  const row = { id: "r", state: "open" };
+  assert.equal(isReview({ ...row, risk_reasons: ["Irreversible"] }), true);
+  assert.equal(isReview({ ...row, risk_reasons: [{}] }), false);
+});

@@ -66,7 +66,7 @@ export function kindOf(n) {
     if (filesOf(d).length) return "file";
     return "approval";
   }
-  return it.kind in KINDS ? /** @type {keyof typeof KINDS} */ (it.kind) : "approval";
+  return it.kind && it.kind in KINDS ? /** @type {keyof typeof KINDS} */ (it.kind) : "approval";
 }
 
 /** @param {Ask | undefined} ask */

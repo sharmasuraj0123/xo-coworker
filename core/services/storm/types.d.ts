@@ -1,4 +1,5 @@
 import type { WorldState, WorldThread } from "../world/state-types.d.ts";
+import type { StoredRun } from "../run-types.d.ts";
 import type { ChatRecord, MessageRecord, SessionRecord } from "../../platform/chat-response-types.d.ts";
 
 export type Row = import("../world/sessions.js").Row;
@@ -75,17 +76,17 @@ export interface Ctx {
   sentAt: () => Sent;
   sessRead: (x: Row | null | undefined, sent: Sent) => Row;
   sessionNow: (sid: string | null, r?: Row | null) => Session | null;
-  evidenceOf: (sid: string, runs?: Row[] | null) => Row;
+  evidenceOf: (sid: string, runs?: StoredRun[] | null) => NonNullable<Parameters<typeof import("../world/sessions.js").sessionBusy>[1]>;
   onTurn: (s: Session | null) => boolean;
-  heldOfSession: (s: Session | null, runs?: Row[] | null) => Row | null;
+  heldOfSession: (s: Session | null, runs?: StoredRun[] | null) => Row | null;
   agentPool: (agent: string | null | undefined) => string | null;
-  threadBusy: (r: Row, now: Session | null, runsBy: Map<string, Row[]>) => boolean;
+  threadBusy: (r: Row, now: Session | null, runsBy: Map<string, StoredRun[]>) => boolean;
   noteSession: (s: Row, sent?: Sent) => void;
 
   indexMoves: () => void;
   chatPolicyOf: (chat: string | null) => Row | null;
-  uiThread: (r: Row, project: string, runsBy?: Map<string, Row[]>) => WorldThread;
-  runsBySession: () => Map<string, Row[]>;
+  uiThread: (r: Row, project: string, runsBy?: Map<string, StoredRun[]>) => WorldThread;
+  runsBySession: () => Map<string, StoredRun[]>;
   commit: () => void;
   soon: () => void;
   emitSoon: () => void;

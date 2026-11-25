@@ -25,7 +25,10 @@ export function installThreads(ctx) {
   let fromIndex = new Map();
   ctx.indexMoves = () => {
     fromIndex = new Map();
-    for (const rows of Object.values(state.timeline)) for (const row of /** @type {Row[]} */ (rows) || []) { const f = row.extra && row.extra.continued_from; if (f) fromIndex.set(row.id, { from: f, text: row.text || "" }); }
+    for (const rows of Object.values(state.timeline)) for (const row of rows || []) {
+      const from = row.extra?.continued_from;
+      if (typeof from === "string" && from) fromIndex.set(row.id, { from, text: row.text || "" });
+    }
   };
   /** @param {Row} r */
   function moveOf(r) {
@@ -44,15 +47,15 @@ export function installThreads(ctx) {
     .map(([id, it]) => ({ ...limitItem(it, state.runtimes, ctx.chatPolicyOf), id }));
   /** The runs the stream named, by session (rebuilt once per commit, not per thread). */
   ctx.runsBySession = () => {
-    /** @type {Map<string, Row[]>} */
+    /** @type {Map<string, import("../../run-types.d.ts").StoredRun[]>} */
     const by = new Map();
     for (const r of state.runs.values()) if (r && r.session) (by.get(r.session) || by.set(r.session, []).get(r.session) || []).push(r);
     return by;
   };
 
-  /** @param {Row[] | undefined} rows */
+  /** @param {import("../types").MessageRow[] | undefined} rows */
   function youWroteLast(rows) {
-    /** @type {Row | null} */
+    /** @type {import("../types").MessageRow | null} */
     let last = null;
     for (const m of rows || []) if (!last || (m.seq ?? -1) > (last.seq ?? -1)) last = m;
     return !!last && last.author_kind === "owner";

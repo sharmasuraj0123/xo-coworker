@@ -16,9 +16,9 @@ export interface ReviewDetail {
 }
 
 export interface ReviewDescription {
-  kind: string;
+  kind?: string;
   detail?: ReviewDetail;
-  why?: string;
+  why?: string | null;
   risk_groups?: { kind?: string | null; text: string; count?: number }[];
   limit?: { threads?: unknown[] };
 }

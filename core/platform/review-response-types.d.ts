@@ -19,6 +19,7 @@ export interface ReviewRecord {
   detail?: Record<string, unknown>;
   options?: Record<string, unknown>[];
   annotations?: { by: string; note: string }[];
+  risk_reasons?: string[];
   risk_groups?: { kind?: string | null; text: string; count?: number }[];
   decision?: { decision?: string; idempotency_key?: string } | null;
 }

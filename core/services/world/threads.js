@@ -1,8 +1,12 @@
 // @ts-check
 
-/** @typedef {Record<string, any>} Row */
+/** @import { ReviewRecord } from "../../platform/review-response-types.d.ts" */
 
-/** @param {string | null | undefined} state @param {Row | null | undefined} turn @param {boolean} [busy] @param {boolean} [held] @param {boolean} [stalledOnYours] */
+/** @typedef {{ needs_you?: string; updated_at?: string }} AskCard */
+
+/** @typedef {{ id: string; state: string; lastAt: number; happened?: string; frozen?: boolean; paused?: unknown; card?: AskCard }} AskThread */
+
+/** @param {string | null | undefined} state @param {{status?: string; origin?: string | null} | null | undefined} turn @param {boolean} [busy] @param {boolean} [held] @param {boolean} [stalledOnYours] */
 export function threadState(state, turn, busy = false, held = false, stalledOnYours = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
   if (state === "needs_reply" && stalledOnYours) return "working";
@@ -11,7 +15,7 @@ export function threadState(state, turn, busy = false, held = false, stalledOnYo
   return state || "working";
 }
 
-/** The state a thread shows while it has open items: they wait on the person, unless it was continued elsewhere or already waits. @param {string} state @param {number} openItems @param {boolean} [frozen] */
+/** @param {string} state @param {number} openItems @param {boolean} [frozen] */
 export function askingState(state, openItems, frozen = false) {
   if (!openItems || frozen || state === "needs_reply" || state === "needs_approval" || state === "paused") return state;
   return "needs_approval";
@@ -20,7 +24,7 @@ export function askingState(state, openItems, frozen = false) {
 /** @param {string} s @param {number} n */
 const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s);
 
-/** Plain text for a title: no markdown marks, links keep their words. @param {any} md */
+/** Plain text for a title: no markdown marks, links keep their words. @param {unknown} md */
 export function plainText(md) {
   return String(md || "")
     .replace(/```[\s\S]*?```/g, " ")
@@ -30,7 +34,7 @@ export function plainText(md) {
     .trim();
 }
 
-/** A message split into a short title (its first sentence, at most `max`) and the rest. @param {any} md */
+/** A message split into a short title (its first sentence, at most `max`) and the rest. @param {unknown} md */
 export function askText(md, max = 140) {
   const s = plainText(md);
   if (!s) return { title: "", rest: "" };
@@ -43,7 +47,7 @@ export function askText(md, max = 140) {
   return { title, rest: s.slice(used).trim() };
 }
 
-/** What a thread asks of the person: its open items, one each in the queue's order; else its card's question, its loop-breaker pause, or an approval on its way. @param {Row} t @param {Row[]} [items] @returns {Row[]} */
+/** What a thread asks of the person: its open items, one each in the queue's order; else its card's question, its loop-breaker pause, or an approval on its way. @param {AskThread} t @param {ReviewRecord[]} [items] */
 export function stormAsks(t, items = []) {
   const asks = [];
   for (const it of items) {
@@ -69,7 +73,7 @@ export function stormAsks(t, items = []) {
   return asks;
 }
 
-/** Who stopped a thread on purpose, and why ({by: you, coordinator, workspace or null, reason}), or null when it isn't stopped on purpose. @param {string | null | undefined} activity @param {string | null | undefined} waitReason @param {Row[] | null | undefined} [controls] */
+/** Who stopped a thread on purpose, and why ({by: you, coordinator, workspace or null, reason}), or null when it isn't stopped on purpose. @param {string | null | undefined} activity @param {string | null | undefined} waitReason @param {{ action: string; by?: string; reason?: string }[] | null | undefined} [controls] */
 export function stopOf(activity, waitReason, controls = []) {
   if (activity !== "stopped") return null;
   const why = String(waitReason || "");

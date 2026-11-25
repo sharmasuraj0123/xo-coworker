@@ -232,7 +232,7 @@
   "lineLength": 4
  },
  "core/services/storm/selectors/threads.js": {
-  "lineLength": 4
+  "lineLength": 3
  },
  "core/services/storm/stream.js": {
   "lineLength": 2
@@ -266,7 +266,7 @@
   "lineLength": 7
  },
  "core/services/world/rows.js": {
-  "lineLength": 6,
+  "lineLength": 2,
   "unusedExport": 1
  },
  "core/services/world/sessions.js": {

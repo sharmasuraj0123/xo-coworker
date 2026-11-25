@@ -136,18 +136,13 @@
   "commentLines": 1
  },
  "core/services/world/paid.js": {
-  "changelogComment": 1,
-  "commentLines": 1,
-  "explicitAny": 6
+  "commentLines": 1
  },
  "core/services/world/relay.js": {
   "commentLines": 1
  },
  "core/services/world/sessions.js": {
   "explicitAny": 1
- },
- "core/services/world/threads.js": {
-  "explicitAny": 3
  },
  "core/services/world/turns.js": {
   "commentLines": 4

@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @param {readonly {emoji: string, by?: string}[] | null | undefined} reactions */
+/** @param {readonly {emoji: string, by?: string | null}[] | null | undefined} reactions */
 export function reactionGroups(reactions) {
   /** @type {Map<string, {emoji: string, count: number, by: string[]}>} */
   const by = new Map();
