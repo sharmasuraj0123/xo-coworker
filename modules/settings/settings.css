@@ -1,4 +1,3 @@
-/* ── settings: a page over the main area (General, Appearance, Night mode, Sounds, Keyboard) ── */
 .help.gear{padding:0;justify-content:center}
 .help.gear svg{width:var(--ic);height:var(--ic)}
 .help.is-on{color:var(--ink);border-color:var(--line-hover);background:var(--fill-2)}

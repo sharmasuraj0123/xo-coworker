@@ -25,8 +25,6 @@ import { startRich } from "../core/ui/markdown/rich.js";
 import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsModule } from "../modules/runs/module.js";
 import { createPendingRunStops } from "../core/services/run-stops.js";
-import { sound } from "../core/services/sound.js";
-import { wireSound } from "../modules/settings/sound.js";
 import { createSettingsModule } from "../modules/settings/module.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
@@ -798,7 +796,6 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
-const soundRender = wireSound({ sound, announce });
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
 const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, convThread, world, loadChatHops, SH, STAGE, schedule });
 appScope.effect(() => SHAPE.onChange(() => shapeApply()));
@@ -939,4 +936,4 @@ appScope.listen(window, "pagehide", (event) => {
   appScope.dispose();
 });
 await kernel.start();
-appScope.effect(() => startShell({ THEME, applyTheme, SIDE, soundRender, PHONE, setDrawer, render, world, schedule, follow, loadDraft }));
+appScope.effect(() => startShell({ THEME, applyTheme, SIDE, PHONE, setDrawer, render, world, schedule, follow, loadDraft }));

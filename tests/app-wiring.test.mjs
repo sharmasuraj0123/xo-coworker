@@ -12,9 +12,14 @@ const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const lastHomeVisit = Date.now() - 86_400_000;
 const storage = new Map([
+  ["cv-sound", "on"],
   ["cv-theme", "light"], ["cv-flavour", "onyx"], ["xo-seen", JSON.stringify({ home: lastHomeVisit, "p:demo": lastHomeVisit - 86_400_000 })],
 ]);
 const blockedStorage = new Set();
+const audioAccess = [];
+for (const name of ["Audio", "AudioContext", "webkitAudioContext"]) {
+  Object.defineProperty(globalThis, name, { configurable: true, get() { audioAccess.push(name); return undefined; } });
+}
 const sinceReads = [];
 const settingsReads = new Map();
 const runtimeWrites = [];
@@ -604,6 +609,7 @@ await new Promise((resolve) => setImmediate(resolve));
 
 press("#set-side");
 assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");
+assert.ok(!document.querySelector('#settings [data-set="sounds"], #settings [data-page="sounds"], #sound-tog'));
 press('#settings [data-set="appearance"]');
 assert.equal(document.querySelector('#settings [data-page="appearance"]').hidden, false, "Appearance is the visible Settings page");
 assert.deepEqual([...document.querySelectorAll('#mode-seg [role="radio"]')].map((b) => [b.dataset.mode, b.textContent]), [["dark", "Dark"], ["light", "Light"], ["system", "System"]]);
@@ -1406,3 +1412,5 @@ assert.deepEqual([rulesPage.textContent, worktreesPage.textContent], displayed, 
 storage.delete("xo-seen");
 pagehide(false);
 assert.equal(storage.has("xo-seen"), false, "Since removes its visit listener after unload");
+assert.deepEqual(audioAccess, [], "boot, conversation actions, decisions and shutdown leave audio APIs untouched");
+assert.equal(storage.get("cv-sound"), "on", "the retired preference is harmless on an existing device");

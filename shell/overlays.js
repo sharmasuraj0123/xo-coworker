@@ -40,7 +40,6 @@ export const SETTINGS = `
       <button type="button" role="tab" id="set-t-accounts" data-set="accounts" aria-selected="false" aria-controls="set-p-accounts" tabindex="-1">Accounts</button>
       <button type="button" role="tab" id="set-t-rules" data-set="rules" aria-selected="false" aria-controls="set-p-rules" tabindex="-1">Rules</button>
       <button type="button" role="tab" id="set-t-worktrees" data-set="worktrees" aria-selected="false" aria-controls="set-p-worktrees" tabindex="-1">Worktrees</button>
-      <button type="button" role="tab" id="set-t-sounds" data-set="sounds" aria-selected="false" aria-controls="set-p-sounds" tabindex="-1">Sounds</button>
       <button type="button" role="tab" id="set-t-keys" data-set="keys" aria-selected="false" aria-controls="set-p-keys" tabindex="-1">Keyboard</button>
     </nav>
     <div class="set-page" role="tabpanel" id="set-p-general" aria-labelledby="set-t-general" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
@@ -58,9 +57,6 @@ export const SETTINGS = `
     <div class="set-page" role="tabpanel" id="set-p-accounts" aria-labelledby="set-t-accounts" data-page="accounts" hidden><header class="set-ph"><h2>Accounts</h2><p class="set-intro">The accounts XO works with for you. Each signs in once, for the whole Space.</p></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-rules" aria-labelledby="set-t-rules" data-page="rules" hidden><header class="set-ph"><h2>Rules</h2></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-worktrees" aria-labelledby="set-t-worktrees" data-page="worktrees" hidden><header class="set-ph"><h2>Worktrees</h2></header><div class="set-live"></div></div>
-    <div class="set-page" role="tabpanel" id="set-p-sounds" aria-labelledby="set-t-sounds" data-page="sounds" hidden><header class="set-ph"><h2>Sounds</h2><p class="set-intro">Quiet sounds that confirm a decision.</p></header>
-      <div class="set-row"><div class="set-l"><b id="sound-l">Soft sounds</b><span>On Allow, Send back and “That's everything”. Off unless you turn them on.</span></div><button type="button" class="switch" id="sound-tog" role="switch" aria-checked="false" aria-labelledby="sound-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
-    </div>
     <div class="set-page" role="tabpanel" id="set-p-keys" aria-labelledby="set-t-keys" data-page="keys" hidden><header class="set-ph"><h2>Keyboard</h2></header><div id="set-keys-list"></div></div>
   </div>
 </section>

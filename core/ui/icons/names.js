@@ -27,7 +27,6 @@ export const ICON = {
   needs: xi("state-needs-you"),
   doing: xi("step-doing"),
   todo: xi("state-idle"),
-  sound: xi("sound"),
   plus: xi("plus"),
   home: xi("home"),
   right: xi("chevron-right"),

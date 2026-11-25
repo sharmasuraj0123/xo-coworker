@@ -1,8 +1,8 @@
 // @ts-check
+import { cardState } from "./card-state.js";
 
 import { esc } from "../../core/platform/util.js";
 import { itemParts, questionsOf, VERB } from "../../core/services/review.js";
-import { sound } from "../../core/services/sound.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { RM, morph, expand } from "../../core/ui/motion.js";
 import * as Kit from "./kit.js";
@@ -12,7 +12,7 @@ import { scopeWords } from "./card.js";
 /** @import { CardEventsDeps, CardNeed, CardFrame, CardSurface, CardChoice, NoteMode } from "./card-events-types.d.ts" */
 
 /** @param {CardEventsDeps} options */
-export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenThread, setLater, laterNow }) {
+export function createCardEvents({ timeout, F, PROJ, teach, decide, failedWords, onOpenThread, setLater, laterNow }) {
   /** @param {HTMLElement} el @param {string} text */
   function hint(el, text) {
     const h = /** @type {HTMLElement} */ (el.querySelector(".c-hint"));
@@ -29,14 +29,15 @@ export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenTh
     const dock = d.closest(".card.is-dock");
     expand(d, d.querySelector(".dis-b"), on, { onStep, frame: dock || null });
     if (which === "ev") F.open0[n.key] = { ...(F.open0[n.key] || {}), ev: on };
-    if (on && !d.closest(".is-dock")) setTimeout(() => d.scrollIntoView({ block: "nearest", behavior: RM.matches ? "auto" : "smooth" }), 340);
+    if (on && !d.closest(".is-dock")) timeout(() => d.scrollIntoView({ block: "nearest", behavior: RM.matches ? "auto" : "smooth" }), 340);
   }
 
   /** @param {CardFrame} frame @param {HTMLElement} el @param {CardNeed} n @param {CardSurface} ctx */
   function wireCard(frame, el, n, ctx) {
     /** @param {string} s */
     const q = (s) => /** @type {HTMLElement} */ (el.querySelector(s));
-    const note = q(".c-note"), noteIn = /** @type {HTMLTextAreaElement} */ (q(".c-note-in"));
+    const note = q(".c-note");
+    const noteIn = /** @type {HTMLTextAreaElement} */ (q(".c-note-in"));
     const shownAt = performance.now();
     const ready = () => performance.now() - shownAt >= Kit.READ_MS;
     const secs = () => Math.max(2, Math.round((performance.now() - shownAt) / 1000));
@@ -72,7 +73,8 @@ export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenTh
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); sendNote(); }
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeNote(); }
     });
-    frame._openNote = openNote; frame._closeNote = closeNote; frame._noting = () => !note.hidden;
+    const state = cardState(frame);
+    state.openNote = openNote; state.closeNote = closeNote; state.noting = () => !note.hidden;
 
     const tryAllow = () => {
       if (n.risk === "destructive") { hint(el, "Destructive asks are never one key: press and hold the button."); return; }
@@ -89,31 +91,29 @@ export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenTh
       el.querySelector('[data-act="allow"]')?.classList.add("pressed");
       go("allow", "allow");
     };
-    frame._allow = tryAllow;
-    frame._hint = (text) => hint(el, text);
-    const carried = !!frame._quiet;
-    frame._quiet = false;
-    frame._quietOn = (text) => {
-      frame._quiet = true;
+    state.allow = tryAllow;
+    const carried = !!state.quiet;
+    state.quiet = false;
+    state.quietOn = (text) => {
+      state.quiet = true;
       const h = /** @type {HTMLElement} */ (el.querySelector(".c-hint"));
       h.textContent = `${text} Its keys are paused while you type: press Esc or click the card to use them again.`;
       h.classList.remove("show"); h.classList.add("stay");
     };
-    frame._quietOff = () => {
-      if (!frame._quiet) return false;
-      frame._quiet = false;
+    state.quietOff = () => {
+      if (!state.quiet) return false;
+      state.quiet = false;
       const h = /** @type {HTMLElement} */ (el.querySelector(".c-hint"));
       h.classList.remove("stay"); h.textContent = "";
       return true;
     };
-    if (!frame._quietWired) {
-      frame._quietWired = true;
-      frame.addEventListener("pointerdown", () => frame._quietOff && frame._quietOff());
-      frame.addEventListener("focusout", (e) => { if (!frame.contains(/** @type {Node | null} */ (e.relatedTarget)) && frame._quietOff) frame._quietOff(); });
+    if (!state.quietWired) {
+      state.quietWired = true;
+      frame.addEventListener("pointerdown", () => state.quietOff && state.quietOff());
+      frame.addEventListener("focusout", (e) => { if (!frame.contains(/** @type {Node | null} */ (e.relatedTarget)) && state.quietOff) state.quietOff(); });
     }
-    if (carried) frame._quietOn(frame._quietWhy || "A new ask took this one's place.");
-    frame._quietWhy = null;
-    frame._n = n;
+    if (carried) state.quietOn("A new ask took this one's place.");
+    state.need = n;
 
     const qform = /** @type {HTMLFormElement} */ (el.querySelector("[data-qform]"));
     const formChoice = (quiet = false) => {
@@ -192,8 +192,8 @@ export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenTh
       if (n.ask.item) { const P = itemParts(n.ask.item); if (teach.get(n.key)) teach.delete(n.key); else teach.set(n.key, (P.scopes[0] || {}).id); paintItemScope(); return; }
       if (teach.get(n.key)) teach.delete(n.key); else teach.set(n.key, "exact"); paintTeach();
     };
-    frame._teach = toggleTeach;
-    frame._dis = (which) => toggleDis(el, which, n, step);
+    state.teach = toggleTeach;
+    state.dis = (which) => toggleDis(el, which, n, step);
 
     const hold = q('[data-act="hold"]');
     let holder = null;
@@ -203,17 +203,15 @@ export function createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenTh
         onConfirm: () => {
           hold.classList.add("locked");
           (/** @type {HTMLElement} */ (hold.querySelector(".hold-txt"))).textContent = n.ask.item ? (VERB[/** @type {keyof typeof VERB} */ ((itemParts(n.ask.item).primary || {}).decision)] || "Done") : "Allowed";
-          sound.play("lock");
           const nameIn = /** @type {HTMLInputElement | null} */ (el.querySelector("[data-name]"));
           const c = qform ? formChoice() : nameIn ? { name: nameIn.value } : "allow";
-          setTimeout(() => { if (c) go(c, "allow"); }, RM.matches ? 0 : 220);
+          timeout(() => { if (c) go(c, "allow"); }, RM.matches ? 0 : 220);
         },
         onRefuse: (why) => { hint(el, why); hold.classList.remove("nope"); void hold.offsetWidth; hold.classList.add("nope"); },
         onRelease: () => hint(el, "Released early. Nothing was sent."),
       });
     }
     if (ctx.surface === "panel") F.hold = holder;
-    frame._hold = holder;
   }
 
   return wireCard;

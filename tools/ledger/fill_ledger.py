@@ -14,7 +14,7 @@ JS = {
  "js/app.js": ("split", "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)"),
  "js/stage.js": ("split", ["shell/panel", "core/kernel (panel.page/panel.frame places)", "modules/threads (Threads frame)", "modules/changes (frame wiring)", "modules/map (frame wiring)", "modules/launchpad (cover)", "modules/shells (shell page)"]),
  "js/shells/dock.js": ("planned", "modules/shells/dock.js"), "js/shells/term.js": ("planned", "modules/shells/term.js"), "js/shells/model.js": ("planned", "modules/shells/model.js"),
- "js/ui.js": ("split", ["core/ui/icons", "core/ui/motion", "core/ui/redraw (reconcile)", "core/platform/dom", "core/platform/time", "core/services/sound"]),
+ "js/ui.js": ("split", ["core/ui/icons", "core/ui/motion", "core/ui/redraw (reconcile)", "core/platform/dom", "core/platform/time"]),
  "js/kit.js": ("split", ["modules/decisions/kit.js", "core/ui/components/hold.js"]),
  "js/dropdown.js": ("planned", "core/ui/components/xo-select.js"), "js/gestures.js": ("planned", "core/platform/gestures.js"),
  "js/keys.js": ("split", ["core/platform/keys.js", "core/kernel (shortcut place)", "modules/settings/keyboard.js"]),

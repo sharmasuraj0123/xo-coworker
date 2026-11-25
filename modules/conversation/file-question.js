@@ -3,7 +3,6 @@
 import { esc } from "../../core/platform/util.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { noticeFor } from "../../core/services/notices.js";
-import { sound } from "../../core/services/sound.js";
 import { createFileReferenceLine } from "./file-reference-line.js";
 
 /** @import { FileQuestionDeps, QuestionFile } from "./file-question-types.d.ts" */
@@ -71,7 +70,6 @@ export function createFileQuestion({
     const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
     if (block) { refuse(block); return false; }
     const m = localMessages.send({ conv: at.conv, text, target: at.thread ? null : at.chat, to: at.name });
-    sound.play("send");
     heraldShow(noticeFor(m, "out"), 9000);
     if (at.thread) STAGE.resumeFollow(at.conv);
     deliverLive(m, at.thread);

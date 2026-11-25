@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 497 |
+| moved | 496 |
 | vendor | 379 |
-| deleted | 337 |
-| planned | 101 |
+| deleted | 339 |
+| planned | 100 |
 | kept | 89 |
 | split | 40 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1797, planned 235, deleted 227, kept 226, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1790, deleted 236, planned 233, kept 226, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -110,7 +110,7 @@ Items inside first-party files: 2488 (moved 1797, planned 235, deleted 227, kept
 | `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/thread-reads.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/index.js, core/services/storm/reducers/messages.js, core/services/storm/reducers/review.js, core/services/storm/reducers/runs.js, core/services/storm/reducers/sessions.js, core/services/storm/reducers/space.js, core/services/storm/reducers/threads.js, core/services/storm/selectors/commit.js, core/services/storm/selectors/sessions.js, core/services/storm/selectors/threads.js, core/services/storm/commands.js, core/services/storm/act.js · next: every importer points at core/services/storm, so it leaves with no re-export |
 | `js/timeline.js` | 840 | split | core/services/storm/load.js, core/services/world/conn.js, core/services/world/conversation.js, core/services/world/held.js, core/services/world/list-time.js, core/services/world/relay.js, core/services/world/rows.js, core/services/world/sessions.js, core/services/world/threads.js · next: Timeline functions live in their owning files. The timeline entry re-exports them. |
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 412 | split | core/ui/icons/names.js, core/ui/motion.js, core/ui/redraw.js, core/ui/reconcile.js, core/platform/dom.js, core/platform/time.js, core/services/sound.js · next: Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly. |
+| `js/ui.js` | 412 | split | core/ui/icons/names.js, core/ui/motion.js, core/ui/redraw.js, core/ui/reconcile.js, core/platform/dom.js, core/platform/time.js · next: Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly. |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
 | `js/viewer.js` | 1158 | split | modules/files/viewer.js, js/app.js · next: The app supplies the existing Changes renderers directly to Files. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
@@ -171,7 +171,7 @@ Items inside first-party files: 2488 (moved 1797, planned 235, deleted 227, kept
 | `tests/conv-ctl-scale.test.mjs` | 77 | planned | core/ui (css guard)/tests/conv-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/conv-find-ring.test.mjs` | 14 | planned | core/ui (css guard)/tests/conv-find-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/conv-herald-resolve.test.mjs` | 73 | planned | modules/threads/tests/conv-herald-resolve.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-sound.test.mjs` | 110 | planned | core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/conv-sound.test.mjs` | 110 | deleted | The owner removed application sound effects and their controls. |
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/copied-speaker.test.mjs` | 21 | kept | tests/copied-speaker.test.mjs |
 | `tests/copy-path-fail.test.mjs` | 57 | moved | modules/files/tests/copy-path-fail.test.mjs |
@@ -873,7 +873,7 @@ Items inside first-party files: 2488 (moved 1797, planned 235, deleted 227, kept
 | `assets/icons/xo/d-things-and-kinds/server.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/server.svg |
 | `assets/icons/xo/d-things-and-kinds/settings-general.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/settings-general.svg |
 | `assets/icons/xo/d-things-and-kinds/shape.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/shape.svg |
-| `assets/icons/xo/d-things-and-kinds/sound.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/sound.svg |
+| `assets/icons/xo/d-things-and-kinds/sound.svg` | 1 | deleted | The owner removed application sound effects and their controls. |
 | `assets/icons/xo/d-things-and-kinds/step-dot.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/step-dot.svg |
 | `assets/icons/xo/d-things-and-kinds/suggestion.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/suggestion.svg |
 | `assets/icons/xo/d-things-and-kinds/thread.svg` | 1 | moved | core/ui/icons/source/xo/d-things-and-kinds/thread.svg |

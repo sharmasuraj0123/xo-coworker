@@ -332,8 +332,8 @@
    "home": "core/ui/icons/source/xo/d-things-and-kinds/shape.svg"
   },
   "assets/icons/xo/d-things-and-kinds/sound.svg": {
-   "status": "moved",
-   "home": "core/ui/icons/source/xo/d-things-and-kinds/sound.svg"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "assets/icons/xo/d-things-and-kinds/step-dot.svg": {
    "status": "moved",
@@ -3334,8 +3334,7 @@
     "core/ui/redraw.js",
     "core/ui/reconcile.js",
     "core/platform/dom.js",
-    "core/platform/time.js",
-    "core/services/sound.js"
+    "core/platform/time.js"
    ],
    "note": "Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly.",
    "evidence": {
@@ -5082,8 +5081,8 @@
    "home": "modules/threads/tests/conv-herald-resolve.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/conv-sound.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "tests/coord-colour.test.mjs": {
    "status": "planned",
@@ -7011,9 +7010,8 @@
    "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-t-sounds": {
-   "status": "moved",
-   "home": "shell/overlays.js",
-   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "index.html::ids::set-t-keys": {
    "status": "moved",
@@ -7081,19 +7079,16 @@
    "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::set-p-sounds": {
-   "status": "moved",
-   "home": "shell/overlays.js",
-   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "index.html::ids::sound-l": {
-   "status": "moved",
-   "home": "shell/overlays.js",
-   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "index.html::ids::sound-tog": {
-   "status": "moved",
-   "home": "shell/overlays.js",
-   "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "index.html::ids::set-p-keys": {
    "status": "moved",
@@ -8476,8 +8471,8 @@
    }
   },
   "js/app.js::functions::soundRender": {
-   "status": "moved",
-   "home": "modules/settings/sound.js"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "js/app.js::functions::hopsRender": {
    "status": "moved",
@@ -14037,8 +14032,8 @@
    "home": "core/ui/redraw.js"
   },
   "js/ui.js::exports::sound": {
-   "status": "moved",
-   "home": "core/services/sound.js"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "js/ui.js::exports::esc": {
    "status": "moved",
@@ -14094,14 +14089,8 @@
    "home": "core/ui/motion.js"
   },
   "js/ui.js::storage::cv-sound": {
-   "status": "moved",
-   "home": "core/services/sound.js",
-   "evidence": {
-    "core/services/sound.js": {
-     "anchor": "const STORE = \"cv-sound\"",
-     "reason": "The sound preference retains its key and verifies persistence through shared storage."
-    }
-   }
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "js/ui.js::custom_events::redrawn": {
    "status": "moved",
@@ -15369,15 +15358,15 @@
   },
   "tests/conv-sound.test.mjs::globals::matchMedia": {
    "status": "deleted",
-   "reason": "The direct sound test needs localStorage and AudioContext, so its former UI import's media query stub was removed."
+   "reason": "The owner removed application sound effects and their controls."
   },
   "tests/conv-sound.test.mjs::globals::localStorage": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "tests/conv-sound.test.mjs::globals::AudioContext": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The owner removed application sound effects and their controls."
   },
   "tests/create.test.mjs::globals::matchMedia": {
    "status": "deleted",

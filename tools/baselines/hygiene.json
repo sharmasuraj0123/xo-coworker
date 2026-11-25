@@ -168,9 +168,6 @@
  "core/ui/icons/icon.js": {
   "changelogComment": 1
  },
- "core/ui/icons/xoicons.js": {
-  "changelogComment": 1
- },
  "core/ui/lightbox.js": {
   "commentLines": 3
  },
@@ -779,9 +776,5 @@
  },
  "tools/ledger/ledger_md.py": {
   "commentReference": 1
- },
- "tools/xoicons/build.mjs": {
-  "changelogComment": 2,
-  "commentLines": 13
  }
 }

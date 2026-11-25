@@ -475,10 +475,6 @@
    "key": "button[data-rule-off]",
    "aliases": []
   },
-  "C117": {
-   "key": "#sound-tog",
-   "aliases": []
-  },
   "C118": {
    "key": "button[data-rebind]",
    "aliases": []
@@ -2093,10 +2089,6 @@
   "C116": {
    "kind": "C",
    "key": "button[data-rule-off]"
-  },
-  "C117": {
-   "kind": "C",
-   "key": "#sound-tog"
   },
   "C118": {
    "kind": "C",

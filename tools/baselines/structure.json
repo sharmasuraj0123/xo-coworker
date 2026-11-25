@@ -177,9 +177,6 @@
   "lineLength": 5,
   "unusedExport": 1
  },
- "core/services/sound.js": {
-  "lineLength": 1
- },
  "core/services/step-icons.js": {
   "lineLength": 8,
   "unusedExport": 1
@@ -614,9 +611,8 @@
   "lineLength": 18
  },
  "modules/decisions/card-events.js": {
-  "domExpando": 16,
   "functionLines": 1,
-  "lineLength": 19
+  "lineLength": 18
  },
  "modules/decisions/card.js": {
   "lineLength": 33
@@ -643,8 +639,7 @@
   "lineLength": 12
  },
  "modules/decisions/keyboard.js": {
-  "lineLength": 6,
-  "sourceReadTarget": 1
+  "lineLength": 5
  },
  "modules/decisions/needs.js": {
   "lineLength": 3,
@@ -939,9 +934,6 @@
  "modules/settings/shortcuts-sheet.js": {
   "lineLength": 3
  },
- "modules/settings/sound.js": {
-  "lineLength": 1
- },
  "modules/settings/types.d.ts": {
   "lineLength": 1
  },
@@ -1034,7 +1026,7 @@
   "lineLength": 1
  },
  "shell/overlays.js": {
-  "lineLength": 32
+  "lineLength": 29
  },
  "shell/panel/frames.js": {
   "lineLength": 4,
@@ -1090,9 +1082,6 @@
  },
  "shell/workspace-header.js": {
   "lineLength": 1
- },
- "tests/cardparts.test.mjs": {
-  "sourceRead": 1
  },
  "tests/coord-colour.test.mjs": {
   "sourceRead": 1

@@ -14,9 +14,6 @@
  "modules/conversation/typing.js": {
   "setTimeout": 2
  },
- "modules/decisions/card-events.js": {
-  "setTimeout": 2
- },
  "modules/decisions/dock.js": {
   "observer": 1
  },

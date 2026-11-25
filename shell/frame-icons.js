@@ -25,11 +25,10 @@ export function drawFrameIcons(SHAPE_IC) {
   $("#set-x").innerHTML = ICON.close;
   $("#set-side-ic").innerHTML = ICON.gear;
   {
-    const IC = /** @type {Record<string, string>} */ ( { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key });
+    const IC = /** @type {Record<string, string>} */ ( { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, keys: ICON.key });
     for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
   }
   $("#set-phone").innerHTML = ICON.gear;
-  $("#sound-tog .th-knob").innerHTML = ICON.sound;
   for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
   $("#jump-ic").innerHTML = ICON.search;
 }

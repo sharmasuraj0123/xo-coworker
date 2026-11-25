@@ -10,7 +10,6 @@
     - tab "Accounts"
     - tab "Rules"
     - tab "Worktrees"
-    - tab "Sounds"
     - tab "Keyboard"
   - tabpanel "General":
     - heading "General" [level=2]

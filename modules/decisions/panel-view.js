@@ -1,9 +1,9 @@
 // @ts-check
+import { cardState } from "./card-state.js";
 
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import * as K from "../../core/platform/keys.js";
-import { sound } from "../../core/services/sound.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { RM, wait, morph } from "../../core/ui/motion.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -57,7 +57,7 @@ export function createDecisionPanelView(options) {
     const why = inner.querySelector(".c-line");
     if (why) frame.setAttribute("aria-describedby", why.id); else frame.removeAttribute("aria-describedby");
     wireCard(frame, inner, fresh, { surface: "panel", after: (h) => advance(h) });
-    if (typing) frame._quietOn?.("The ask you were writing to went away; this is the next one.");
+    if (typing) cardState(frame).quietOn?.("The ask you were writing to went away; this is the next one.");
     F.busy = false;
     frame.focus({ preventScroll: true });
     chrome();
@@ -125,7 +125,6 @@ export function createDecisionPanelView(options) {
     morph(frame, () => { old && old.remove(); frame.className = "card r-done"; frame.appendChild(inner); }, { duration: 300 });
     frame.focus({ preventScroll: true });
     chrome();
-    sound.play("done");
     announce(`${F.mode === "glance" ? "Glances cleared" : "That's everything"}. ${parts.join(", ")}.`);
     onAllClear && onAllClear(parts.join(" · "), freed);
     F.cancelAutoClose = lifetime.timeout(() => {

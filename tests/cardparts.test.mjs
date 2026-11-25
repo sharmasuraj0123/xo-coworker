@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { cardState } from "../modules/decisions/card-state.js";
 import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress, cap, goneLine } from "../modules/decisions/cardparts.js";
 
+const { document } = await dom("<section><article><button data-iopt=0></button><button data-pick=1></button></article></section>");
+const { wireDecisionKeyboard } = await import("../modules/decisions/keyboard.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -93,10 +96,13 @@ t("number keys follow the order shown and skip the recommended answer; the card 
   const o = optionsOf({ options: [{ label: "A" }, { label: "B", description: "why", recommended: true }, { label: "C" }] });
   assert.deepEqual(pickKeys(o), [0, 1, 2], "B leads with no key; A is 1, C is 2");
   assert.deepEqual(pickKeys(optionsOf({ options: Array.from({ length: 11 }, (_, i) => ({ label: String(i) })) })).slice(8), [9, 0, 0]);
-  const src = readFileSync(new URL("../modules/decisions/keyboard.js", import.meta.url), "utf8");
-  assert.match(src, /querySelector\(`button\[data-pick="\$\{k\}"\]`\)/);
-  assert.doesNotMatch(src, /querySelector\(`\[data-iopt="\$\{\+k - 1\}"\]`\)/, "a key never takes an answer by its index");
-  assert.doesNotMatch(src, /c-sug|suggestFor/, "the old suggestion line is gone");
+  const panel = document.querySelector("section"), card = panel.querySelector("article");
+  cardState(card).need = node(item({ kind: "question" }));
+  let picked;
+  panel.addEventListener("click", (event) => { picked = event.target; });
+  const keys = wireDecisionKeyboard({ panel, stage: panel, F: {} });
+  keys({ key: "1", target: card, preventDefault() {}, stopPropagation() {} }, card, {});
+  assert.ok(picked === card.querySelector("[data-pick]"));
 });
 t("every kind has a strip and buttons, and every ask maps to a kind", () => {
   const STRIPS = new Set(["command", "url", "tool", "diff", "plan", "paths", "files", "error", "none"]), ACTS = new Set(["binary", "answer", "words", "stopped"]);

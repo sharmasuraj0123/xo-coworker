@@ -2,7 +2,6 @@
 
 import { once } from "../../core/platform/pending.js";
 import { arrive } from "../../core/ui/motion.js";
-import { sound } from "../../core/services/sound.js";
 import { sendBlock, sendErrorTitle } from "../../core/services/world/conn.js";
 import { parseTarget as targetOf, stripTarget } from "../../core/services/world/conversation.js";
 import { noticeFor, refusedNotice } from "../../core/services/notices.js";
@@ -65,7 +64,6 @@ export function createDelivery({
     const m = localMessages.send({ conv, text, target: thread ? null : chat, to, files: chips });
     K.say.value = ""; saveDraft(K); updateComposer(K);
     const btn = K.send; btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
-    sound.play("send");
     if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
     else if (!here) heraldShow(noticeFor(m, "out"), 9000);
     else { render(); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
@@ -129,7 +127,6 @@ export function createDelivery({
       const block = liveBlock(K.view, K.say.value);
       if (block) { refuse(block, "your text is kept"); return; }
       K.say.value = ""; saveDraft(K); updateComposer(K);
-      sound.play("send");
       CH.send(K.view, text);
     } else sendLive(raw, K);
     if (fromSend && document.activeElement !== K.say && !K.say.value) K.say.focus({ preventScroll: true });

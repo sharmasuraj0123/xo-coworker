@@ -1,6 +1,5 @@
 // @ts-check
 
-import { sound } from "../../core/services/sound.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { createStopReceipt } from "./stop-receipt.js";
 
@@ -25,7 +24,6 @@ export function createConversationStops({ world, Kit, PROJ, announce, schedule, 
     stopsHerald();
     const also = runs ? ` and its ${runs} sub-agent${runs === 1 ? "" : "s"}` : "";
     announce(interrupt ? `Interrupting ${what}${also} in 3 seconds, so it reads your message next. Undo to let it finish.` : `Stopping ${what} in 3 seconds. Undo to keep it working.`);
-    sound.play("back");
     schedule();
     scope.timeout(async () => {
       if (token.cancelled) return;

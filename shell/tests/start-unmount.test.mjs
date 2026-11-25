@@ -17,7 +17,7 @@ test("shell startup owns its viewport listener, subscription and animation sync"
   const subscriptions = new Set();
   const calls = [];
   const options = {
-    THEME: { get: () => "light" }, applyTheme() {}, SIDE: { folded: false, fold() {} }, soundRender() {},
+    THEME: { get: () => "light" }, applyTheme() {}, SIDE: { folded: false, fold() {} },
     PHONE: viewport, setDrawer: (open) => calls.push(open), render: () => calls.push("render"),
     schedule: () => calls.push("schedule"), follow() {}, loadDraft() {},
     world: { subscribe(callback) { subscriptions.add(callback); return () => { subscriptions.delete(callback); }; } },

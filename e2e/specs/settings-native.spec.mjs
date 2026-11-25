@@ -53,7 +53,7 @@ async function tabsAndKeyboard(t, phone, theme) {
       labelled: panel?.getAttribute("aria-labelledby") === tab.id && panel?.dataset.page === tab.dataset.set,
       role: panel?.getAttribute("role") };
   }));
-  const order = ["general", "appearance", "shape", "routing", "runtimes", "accounts", "rules", "worktrees", "sounds", "keys"];
+  const order = ["general", "appearance", "shape", "routing", "runtimes", "accounts", "rules", "worktrees", "keys"];
   assert.deepEqual(links.map((/** @type {{page: string}} */ tab) => tab.page), order);
 
   assert.deepEqual(links.map((/** @type {{stop: number}} */ tab) => tab.stop), order.map((id) => id === "general" ? 0 : -1));

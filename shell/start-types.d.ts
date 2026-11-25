@@ -2,7 +2,6 @@ export interface ShellStartup {
   THEME: { get: () => "light" | "dark" };
   applyTheme: (mode: "light" | "dark") => void;
   SIDE: { folded: boolean, fold: (folded: boolean, options: { quiet: boolean }) => void };
-  soundRender: () => void;
   PHONE: EventTarget;
   setDrawer: (open: boolean) => void;
   render: () => void;

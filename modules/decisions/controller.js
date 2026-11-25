@@ -1,4 +1,5 @@
 // @ts-check
+import { cardState } from "./card-state.js";
 
 import * as Kit from "./kit.js";
 import { createDecisionQueue } from "./queue.js";
@@ -6,7 +7,6 @@ import { createNeedItems } from "./needs.js";
 import { rank } from "./rank.js";
 import { $ } from "../../core/platform/dom.js";
 import { RM } from "../../core/ui/motion.js";
-import { sound } from "../../core/services/sound.js";
 import { usable, hookOf } from "../../core/ui/a11y/focus.js";
 import { itemParts, itemBody, isNo, VERB } from "../../core/services/review.js";
 import { clientId as newKey } from "../../core/platform/http.js";
@@ -43,7 +43,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     if (!e || e.status !== "failed") return "";
     return mode === "reply" ? (e.typed ? (/** @type {string} */ (e.said)) || "" : "") : e.note || "";
   }
-  const wireCard = createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenThread, setLater, laterNow });
+  const wireCard = createCardEvents({ timeout: queue.timeout, F, PROJ, teach, decide, failedWords, onOpenThread, setLater, laterNow });
 
   /** @param {string | null} [startKey] @param {OpenOptions} [options] */
   function open(startKey, { only = null, teach: teachScope = null } = {}) {
@@ -178,7 +178,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, choice === "deny" ? "back" : "allow");
     queue.push([{ key: n.key, n, t: n.t, ask: n.ask, choice, note, stopped, entry }], { verb, label: done ? n.t.title : said ? `${said}` : n.ask.title, deny: choice === "deny", inline });
-    sound.play(choice === "deny" ? "back" : "allow");
     announce(done ? `Done: ${n.t.title} will be resolved. Undo for 3 seconds.` : `${verb}${said ? `: ${said}` : ""}. Undo for 3 seconds.`);
     toastRender();
     render();
@@ -203,7 +202,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, no ? "back" : "allow");
     queue.push([{ key: n.key, n, t: n.t, ask: n.ask, choice: { storm: true, body }, note: "", stopped: false, entry }], { verb, label: said || it.title, deny: no, inline });
-    sound.play(no ? "back" : "allow");
     announce(`${verb}${said ? `: ${said}` : ""}. Undo for 3 seconds.`);
     toastRender();
     render();
@@ -235,7 +233,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
       return { key: n.key, n, t: n.t, ask: n.ask, choice: "allow", note: "", entry };
     });
     queue.push(parts, { verb: "Allowed", label: `${batch.length} routine asks` });
-    sound.play("allow");
     announce(`Allowed ${batch.length} routine asks. Undo for 3 seconds.`);
     toastRender(); render();
     if (!pending(F.cur)) advance("allow"); else show(/** @type {string} */ (F.cur), "enter");
@@ -258,7 +255,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     const nx = nextPending(F.cur, dir);
     if (!nx) return;
     const fr = $("#card");
-    if (fr && fr._quietOff) fr._quietOff();
+    if (fr) cardState(fr).quietOff?.();
     F.cur = nx; show(nx, dir > 0 ? "skip-fwd" : "skip-back");
   }
 

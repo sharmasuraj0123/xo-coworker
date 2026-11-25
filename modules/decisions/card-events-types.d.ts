@@ -19,24 +19,23 @@ export type CardSurface = {
   onStep?: () => void;
 };
 
-export type CardFrame = HTMLElement & {
-  _openNote?: (mode: NoteMode) => void;
-  _closeNote?: () => void;
-  _noting?: () => boolean;
-  _allow?: () => void;
-  _hint?: (text: string) => void;
-  _quiet?: boolean;
-  _quietOn?: (text: string) => void;
-  _quietOff?: () => boolean;
-  _quietWired?: boolean;
-  _quietWhy?: string | null;
-  _n?: CardNeed;
-  _teach?: () => void;
-  _dis?: (which: string) => void;
-  _hold?: Hold | null;
-};
+export type CardFrame = HTMLElement;
+export interface CardState {
+  openNote?: (mode: NoteMode) => void;
+  closeNote?: () => void;
+  noting?: () => boolean;
+  allow?: () => void;
+  quiet?: boolean;
+  quietOn?: (text: string) => void;
+  quietOff?: () => boolean;
+  quietWired?: boolean;
+  need?: CardNeed;
+  teach?: () => void;
+  dis?: (which: string) => void;
+}
 
 export type CardEventsDeps = {
+  timeout: import("../../core/kernel/types.d.ts").ModuleContext["timeout"];
   F: { hold?: Hold | null; open0: Record<string, { ev?: boolean }> };
   teach: Map<string, string>;
   PROJ(project: string): string;
