@@ -9309,8 +9309,8 @@
    "home": "modules/changes/diffthemes.js"
   },
   "js/diffview.js::exports::langOf": {
-   "status": "moved",
-   "home": "modules/changes/diffview.js"
+   "status": "deleted",
+   "reason": "Only the Changes diff renderer uses the language lookup"
   },
   "js/diffview.js::exports::loaded": {
    "status": "deleted",

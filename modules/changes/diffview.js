@@ -1,6 +1,7 @@
 // @ts-check
 
-// Pierre loads on the first diff and uses a shared highlighting worker.
+import { createScope } from "../../core/kernel/scope.js";
+import { reportFailure } from "../../core/platform/util.js";
 
 /** @import { DiffOptions } from "./types.d.ts" */
 
@@ -29,7 +30,7 @@ const NAME = {
   ".bashrc": "shellscript", ".zshrc": "shellscript", ".profile": "shellscript", "nginx.conf": "nginx",
 };
 /** The highlighting language for a path, or "text". @param {string | null | undefined} path */
-export function langOf(path) {
+function langOf(path) {
   const name = (String(path || "").split("/").pop() || "").toLowerCase();
   if (NAME[name]) return NAME[name];
   if (name.startsWith(".env.")) return "dotenv";
@@ -62,17 +63,25 @@ function workers(P) {
   return pool;
 }
 
-/** Warm up after 1.2 s without input and an idle callback: the library, the worker and each language's grammar, compiled in the worker. Safe to call often. */
 const loadedLangs = new Set();
 const INPUT = ["wheel", "scroll", "pointerdown", "keydown", "touchstart"];
-const quiet = () => new Promise(/** @param {(v?: void) => void} r */ (r) => {
-  if (typeof addEventListener !== "function") { r(); return; }
+const quiet = () => new Promise(/** @param {(ready: boolean) => void} resolve */ (resolve) => {
+  if (typeof addEventListener !== "function") { resolve(true); return; }
+  const scope = createScope();
   let last = performance.now();
-  const seen = () => { last = performance.now(); };
-  for (const ev of INPUT) addEventListener(ev, seen, { capture: true, passive: true });
-  const done = () => { for (const ev of INPUT) removeEventListener(ev, seen, { capture: true }); r(); };
-  const check = () => (performance.now() - last >= 1200 ? (typeof requestIdleCallback === "function" ? requestIdleCallback(done, { timeout: 1000 }) : done()) : setTimeout(check, 1200 - (performance.now() - last)));
-  setTimeout(check, 1200);
+  const ready = () => { resolve(true); scope.dispose(); };
+  scope.listen(globalThis, "pagehide", () => { resolve(false); scope.dispose(); });
+  for (const event of INPUT) scope.listen(globalThis, event, () => { last = performance.now(); }, { capture: true, passive: true });
+  function check() {
+    const delay = 1200 - (performance.now() - last);
+    if (delay > 0) { scope.timeout(check, delay); return; }
+    if (typeof requestIdleCallback !== "function") { ready(); return; }
+    scope.effect(() => {
+      const idle = requestIdleCallback(ready, { timeout: 1000 });
+      return () => cancelIdleCallback(idle);
+    });
+  }
+  scope.timeout(check, 1200);
 });
 /** @param {string[]} [paths] */
 export function prefetch(paths = []) {
@@ -80,7 +89,11 @@ export function prefetch(paths = []) {
   const langs = [...new Set(paths.map(langOf))].filter((l) => l !== "text" && !loadedLangs.has(l));
   if (lib && !langs.length) return;
   for (const l of langs) loadedLangs.add(l);
-  (async () => { await quiet(); await workers(await load()).initialize(langs); })().catch(() => { for (const l of langs) loadedLangs.delete(l); });
+  const retry = () => { for (const l of langs) loadedLangs.delete(l); };
+  void quiet().then(async (ready) => {
+    if (ready) await workers(await load()).initialize(langs);
+    else retry();
+  }).catch((error) => { retry(); reportFailure(error); });
 }
 
 /** @type {Set<RenderedDiff>} */
@@ -106,6 +119,7 @@ function parse(P, patch, path, key) {
 /** A diff into host, from git's patch. @param {HTMLElement} host @param {string} patch @param {DiffOptions} [o]  */
 export async function diff(host, patch, o = {}) {
   const P = await load();
+  o.signal?.throwIfAborted();
   const v = new P.FileDiff({
     ...common(o), diffStyle: o.split ? "split" : "unified", diffIndicators: "bars", lineDiffType: "word",
     hunkSeparators: "line-info", expansionLineCount: 20,

@@ -3,7 +3,7 @@ import test from "node:test";
 import { dom, same } from "../../../tests/lib/dom.mjs";
 import { createChangesFrame } from "../frame.js";
 
-async function mount() {
+async function mount(patch = async () => null) {
   const { document } = await dom('<button id="outside">Outside</button><div id="changes"></div>');
   const host = document.querySelector("#changes");
   const outside = document.querySelector("#outside");
@@ -15,7 +15,7 @@ async function mount() {
     scope: () => ({ key: "repo|", project: "repo" }),
     of: () => ({ state: "ok", files }),
     activity: () => ({ sig: "0", live: new Set(), last: null }),
-    patch: async () => null,
+    patch,
   };
   let afterClick = () => {};
   const frame = createChangesFrame({
@@ -54,4 +54,20 @@ test("Show them leaves focus alone when it has already moved outside Changes", a
   host.querySelector("[data-cx-all]").click();
   assert.ok(host.querySelector('[data-cx="file-100.txt"]'));
   same(document.activeElement, outside);
+});
+
+test("retiring Changes removes its event handlers and suppresses a late patch", async () => {
+  const pending = Promise.withResolvers();
+  const { host, frame, beforePaint } = await mount(() => pending.promise);
+  const note = host.querySelector(".cx-note");
+  let events = 0;
+  beforePaint(() => { events++; });
+  assert.equal(note.textContent, "Reading its change…");
+  frame.dispose();
+  host.querySelector("[data-cx-all]").click();
+  assert.equal(events, 0);
+  assert.equal(frame.paint(), false);
+  pending.resolve(null);
+  await pending.promise;
+  assert.equal(note.textContent, "Reading its change…");
 });

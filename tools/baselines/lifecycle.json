@@ -5,12 +5,6 @@
  "modules/artifacts/page.js": {
   "observer": 2
  },
- "modules/changes/diffview.js": {
-  "setTimeout": 2
- },
- "modules/changes/frame.js": {
-  "requestAnimationFrame": 1
- },
  "modules/changes/saved.js": {
   "setTimeout": 1
  },

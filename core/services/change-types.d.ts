@@ -2,7 +2,7 @@ import type { ScopeThread } from "./file-scope-types.d.ts";
 import type { Turns } from "./types.d.ts";
 
 export interface DiffOptions {
-  path?: string; wrap?: boolean; split?: boolean; key?: string;
+  path?: string; wrap?: boolean; split?: boolean; key?: string; signal?: AbortSignal;
   loadFiles?: (fileDiff: { name: string; prevName?: string }) => Promise<DiffFiles> | DiffFiles;
   onSelect?: (range: unknown) => void;
 }

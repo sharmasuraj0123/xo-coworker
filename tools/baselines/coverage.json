@@ -48,13 +48,6 @@
    ["commentOnlyCatch",40,""]
   ]
  },
- "modules/changes/diffview.js": {
-  "sha256": "de596a5583fc5e2e256ce36579710caee8c6ed1eaa4134b601cf1847558cac12",
-  "sites": [
-   ["globalListener",72,""],
-   ["unusedExport",32,"langOf"]
-  ]
- },
  "modules/chats/intel-reads.js": {
   "sha256": "ca72c60135265b58d6eb7b4a257ff17e122acf65f90204cd4423563374450c34",
   "sites": [

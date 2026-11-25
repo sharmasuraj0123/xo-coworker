@@ -429,11 +429,11 @@
   "lineLength": 2
  },
  "modules/changes/diffview.js": {
-  "lineLength": 4
+  "lineLength": 1
  },
  "modules/changes/frame.js": {
   "functionLines": 1,
-  "lineLength": 30,
+  "lineLength": 29,
   "unusedExport": 2
  },
  "modules/changes/imagechange.js": {

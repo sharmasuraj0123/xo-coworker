@@ -1,7 +1,6 @@
 // @ts-check
 
-// The panel's Changes: every file the place changed, one row each with its +/− counts, and the chosen file's diff below.
-
+import { createScope } from "../../core/kernel/scope.js";
 import { esc } from "../../core/platform/index.js";
 import { xi, ARC } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -57,6 +56,7 @@ function noPatchWords(f) {
 
 /** @param {FrameDeps} deps */
 export function createChangesFrame({ host, changes, view, openFile, onChange }) {
+  const scope = createScope();
   host.innerHTML = `<div class="cx"><ul class="cx-list" role="listbox" aria-label="Changed files"></ul>` +
     `<section class="cx-pane" hidden><header class="cx-ph"></header><div class="cx-pd" tabindex="0" aria-label="The diff"></div><div class="cx-im" hidden></div><p class="cx-note" hidden></p>` +
     `<button type="button" class="cx-pill" data-cx-show hidden></button></section><p class="cx-none" hidden></p></div>`;
@@ -75,10 +75,10 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     else if (f && !D.failed) { pd.hidden = true; note.hidden = false; note.textContent = noPatchWords(f); } // binary, too large…
   };
   const dropImg = () => { if (D.img) { D.img.drop(); D.img = null; } im.hidden = true; im.replaceChildren(); };
+  scope.effect(() => () => { D.gen++; D.handle?.destroy(); D.handle = null; dropImg(); ST.clear(); });
   /** @type {Record<string, string>} */
   let H = { list: "", ph: "", pill: "", none: "" };
 
-  // drawn in place (js/redraw.js): the row or button you're on stays itself as the list moves live
   const set = (/** @type {string} */ k, /** @type {HTMLElement} */ node, /** @type {string} */ html) => { if (H[k] !== html) { redraw(node, html); H[k] = html; } };
   /** The picked row marked, the one before unmarked: after a redraw of the list too (its rows come unmarked). @param {string | null} path */
   function markPick(path) {
@@ -129,7 +129,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
       if (same && D.handle) D.handle.update(patch);
       else {
         if (D.handle) { D.handle.destroy(); D.handle = null; }
-        const h = await DV.diff(pd, patch, { path: f.path, wrap: true });
+        const h = await DV.diff(pd, patch, { path: f.path, wrap: true, signal: scope.signal });
         if (my !== D.gen) { h.destroy(); return; }
         D.handle = h;
         pd.scrollTop = 0;
@@ -145,16 +145,17 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     }
   }
   /** Bring a line of the new file into view, once Pierre has drawn its rows (a frame or two). @param {number} line @param {number} my */
-  async function reveal(line, my) {
-    for (let i = 0; i < 30 && my === D.gen; i++) {
-      const root = pd.querySelector("diffs-container")?.shadowRoot;
-      const row = root && (root.querySelector(`[data-line="${line}"]:not([data-line-type="change-deletion"])`) || root.querySelector(`[data-line="${line}"]`));
-      if (row) { pd.scrollTop += row.getBoundingClientRect().top - pd.getBoundingClientRect().top - 40; return; }
-      await new Promise((r) => requestAnimationFrame(() => r(undefined)));
-    }
+  function reveal(line, my, attempts = 30) {
+    if (!attempts || my !== D.gen) return;
+    const root = pd.querySelector("diffs-container")?.shadowRoot;
+    const row = root?.querySelector(`[data-line="${line}"]:not([data-line-type="change-deletion"])`)
+      ?? root?.querySelector(`[data-line="${line}"]`);
+    if (row) pd.scrollTop += row.getBoundingClientRect().top - pd.getBoundingClientRect().top - 40;
+    else scope.frame(() => reveal(line, my, attempts - 1));
   }
 
   function paint() {
+    if (scope.signal.aborted) return false;
     const v = view();
     const s = changes.scope(v), c = changes.of(v);
     if (!s || !c || c.state === "unsupported") return false; // stage.js keeps today's list
@@ -216,12 +217,12 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const coming = D.pend && D.pend.key === s.key && D.pend.path === f.path;
     if (!shown && !coming) { pd.hidden = true; im.hidden = true; note.hidden = false; note.textContent = "Reading its change…"; }
     changes.patch(v, f.path).then((/** @type {string | null} */ patch) => {
-      if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
+      if (scope.signal.aborted || stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       const line = shown && st.follow && D.patch && patch !== D.patch ? newestHunkLine(D.patch, patch) : null;
       draw(s.key, f, patch, { scrollTo: line });
     }).catch(() => {
       // a failure for a file that isn't the pick any more says nothing (a late B failing hid a newer C)
-      if (stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
+      if (scope.signal.aborted || stOf(s.key).sel !== f.path || changes.scope(view())?.key !== s.key) return;
       note.hidden = false; pd.hidden = true; im.hidden = true; note.textContent = "Couldn't read this file's change.";
     });
     return true;
@@ -237,7 +238,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   }
 
   // ── you, in the panel ────────────────────────────────────────────────────────
-  host.addEventListener("click", (e) => {
+  scope.listen(host, "click", (e) => {
     const t = /** @type {HTMLElement} */ (e.target);
     if (t.closest("[data-cx-all]")) {
       const s = changes.scope(view());
@@ -256,9 +257,10 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     if (t.closest("[data-cx-open]")) { const s = changes.scope(view()); const p = s && (stOf(s.key).sel || D.path); if (s && p) openFile(s, p, /** @type {HTMLElement | null} */ (t.closest("[data-cx-open]"))); }
   });
   // touching the diff (a scroll, a press, a key) is reading it: following pauses there
-  for (const ev of ["wheel", "pointerdown", "keydown"]) pd.addEventListener(ev, pause, { passive: true });
+  for (const ev of ["wheel", "pointerdown", "keydown"]) scope.listen(pd, ev, pause, { passive: true });
   // J / K: the next or previous change in the diff (reading it: following pauses)
-  host.addEventListener("keydown", (e) => {
+  scope.listen(host, "keydown", (event) => {
+    const e = /** @type {KeyboardEvent} */ (event);
     if (/** @type {HTMLElement} */ (e.target).closest("input, textarea, [contenteditable]") || pd.hidden) return;
     const dir = K.is(e, "nextChange") ? 1 : K.is(e, "prevChange") ? -1 : 0;
     if (!dir) return;
@@ -266,7 +268,8 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     pause();
     DV.jump(pd, dir);
   });
-  list.addEventListener("keydown", (e) => {
+  scope.listen(list, "keydown", (event) => {
+    const e = /** @type {KeyboardEvent} */ (event);
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
     const rows = /** @type {HTMLElement[]} */ ([...list.querySelectorAll(".cx-r")]), i = rows.indexOf(/** @type {HTMLElement} */ (document.activeElement));
     if (i < 0) return;
@@ -276,6 +279,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
   });
 
   return {
+    dispose: scope.dispose,
     /** Every render while the panel is open; false when the place has no /changes (stage.js keeps the old list). */
     paint,
     /** The frame head's words: {count, total, follow, busy}, or null when unsupported. */
