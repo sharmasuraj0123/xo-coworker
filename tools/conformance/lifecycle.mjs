@@ -1,6 +1,7 @@
 // @ts-check
 
 import { isReference, lexicalBindings } from "./bindings.mjs";
+import { ownership } from "./lifecycle-ownership.mjs";
 import { javascript, member, walk } from "./syntax.mjs";
 
 const globals = new Set(["document", "window", "globalThis", "self"]);
@@ -39,16 +40,24 @@ function swallows(body) {
   return body.body.every(stmt => stmt.type === "EmptyStatement" || stmt.type === "ReturnStatement" && passiveValue(stmt.argument));
 }
 
-/** @param {object} tree @param {string} file @param {(kind: string, line: number) => void} report */
-export function lifecycleRules(tree, file, report) {
-  const { binding } = lexicalBindings(tree);
+/** @param {object} tree @param {string} file @param {(kind: string, line: number) => void} report @param {object[]} [comments] @param {Function} [consumers] */
+export function lifecycleRules(tree, file, report, comments = [], consumers = () => false) {
+  const { binding, parents } = lexicalBindings(tree);
+  const consumed = (fn) => {
+    let localRead = false;
+    walk(tree, (node, parent) => {
+      if (isReference(node, parent) && node !== fn.id && binding(node) === fn) localRead = true;
+    });
+    return !localRead && consumers(file, fn.id.name);
+  };
+  const { ownsObserver, ownsListener, ownsTimer } = ownership(file, binding, parents, comments, consumed);
   walk(tree, (node, parent) => {
     const count = (kind) => report(kind, node.loc.start.line);
-    if (node.type === "NewExpression" && observers.has(globalName(node.callee, binding))) count("observer");
+    if (node.type === "NewExpression" && observers.has(globalName(node.callee, binding)) && !ownsObserver(node)) count("observer");
     if (node.type === "CallExpression") {
       const target = globalName(node.callee, binding);
-      if (target === "addEventListener") count("globalListener");
-      if (timers.has(target) && !(file === "core/kernel/scope.js" && target === "requestAnimationFrame")) count(target);
+      if (target === "addEventListener" && !ownsListener(node)) count("globalListener");
+      if (timers.has(target) && !ownsTimer(node, target, globalName)) count(target);
       const [handler] = node.arguments;
       if (member(node.callee) === "catch" && (handler?.type === "ArrowFunctionExpression" || handler?.type === "FunctionExpression")
           && swallows(handler.body)) count("commentOnlyCatch");

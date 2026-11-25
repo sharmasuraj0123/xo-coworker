@@ -10,10 +10,12 @@ const CLASS = /^(?:ClassDeclaration|ClassExpression)$/;
 export function lexicalBindings(tree) {
   const root = { bindings: new Map(), outer: null, functionScope: true };
   const scopes = new WeakMap();
+  const parents = new WeakMap();
   const bind = (scope, pattern, declaration) => {
     for (const name of bindingNames(pattern)) scope.bindings.set(name, declaration);
   };
   walk(tree, (node, parent) => {
+    if (parent) parents.set(node, parent);
     let scope = scopes.get(parent) ?? root;
     if (node.type === "FunctionDeclaration" || node.type === "ClassDeclaration") bind(scope, node.id, node);
     if (FUNCTION.test(node.type) || BLOCK.test(node.type) || CLASS.test(node.type)) {
@@ -43,7 +45,7 @@ export function lexicalBindings(tree) {
     }
     return null;
   };
-  return { binding };
+  return { binding, parents };
 }
 
 /** @param {object} node @param {object} parent */

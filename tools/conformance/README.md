@@ -15,6 +15,8 @@ subject to the per-file ratchet as their owning packages remove them.
 The lifecycle check follows lexical bindings in application and core code. It
 recognizes bare and qualified browser globals and catches that silently return a
 fallback. Shared scope and storage primitives own the underlying platform calls.
+Native resources pass when a proven scope owns their cancellation, and an
+exported observer setup must pass its disposer to a scope in every consumer.
 
 Source-read attribution traces static paths and recognizable templates. Dynamic
 reads still count against their test file. The expando rule detects underscore

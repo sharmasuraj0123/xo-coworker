@@ -9,6 +9,7 @@ import { cssRules } from "./css.mjs";
 import { cssSyntax } from "./css-syntax.mjs";
 import { moduleEdges, unusedExports } from "./exports.mjs";
 import { javascriptRules } from "./javascript.mjs";
+import { scopeConsumers } from "./scope-consumers.mjs";
 import { declarationSyntax, javascript, JS, SOURCE, TEST } from "./syntax.mjs";
 
 const ROOT_FILES = ["boot.js", "index.html", "serve.py"];
@@ -51,6 +52,7 @@ function pythonComments(root, files) {
 /** @param {string} root @param {string[]} [files] */
 export function inventory(root, files = conformanceFiles(root)) {
   const sourceFiles = new Set(files);
+  const consumers = scopeConsumers(root, files);
   const python = pythonComments(root, files.filter((file) => file.endsWith(".py")));
   const graph = new Map();
   const findings = [];
@@ -73,7 +75,7 @@ export function inventory(root, files = conformanceFiles(root)) {
       if (JS.test(file)) {
         const syntax = javascript(source, file);
         graph.set(file, moduleEdges(file, syntax.tree));
-        javascriptRules(file, source, syntax, report, sourceFiles);
+        javascriptRules(file, source, syntax, report, sourceFiles, consumers);
         commentRules(syntax.comments.map(acornComment), report, true);
       } else if (file.endsWith(".d.ts")) {
         const { tokens, comments } = declarationSyntax(source);

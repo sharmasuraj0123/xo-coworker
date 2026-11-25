@@ -90,6 +90,88 @@ test("scoped resources, local bindings and reported failures stay clear", (conte
   assert.deepEqual(inventory(root), []);
 });
 
+const scopeImport = 'import { createScope as scopeFor } from "../kernel/scope.js";\n';
+const observerOwners = [
+  [scopeImport + "const scope = scopeFor();\nconst observer = new IntersectionObserver(read);\n", "scope.observe(observer);"],
+  [scopeImport + "let tracking;\ntracking = scopeFor();\nconst watch = new MutationObserver(read);\n", "tracking.observe(watch);"],
+  [scopeImport + "const scope = scopeFor();\nconst watcher = { observer: new IntersectionObserver(read) };\n", "scope.observe(watcher.observer);"],
+  [
+    '/** @param {ReturnType<typeof import("../kernel/scope.js").createScope>} scope */\nexport function observe(scope) {\n' +
+    "const observer = new IntersectionObserver(read);\n",
+    "scope.observe(observer);",
+  ],
+];
+for (const [index, [source, register]] of observerOwners.entries()) {
+  for (const owned of [false, true]) {
+    test(`observer ownership at constructor form ${index + 1}: ${owned}`, (context) => {
+      const body = source + (owned ? register : "") + (source.includes("function observe") ? "\n}" : "");
+      const root = fixture(context, {
+        "core/ui/example.js": HEADER + body,
+        "core/kernel/scope.js": HEADER + "export function createScope() {}",
+      });
+      assert.equal(kind(inventory(root)).filter(rule => rule === "observer").length, owned ? 0 : 1);
+    });
+  }
+}
+
+test("a branch, opaque receiver or different binding does not prove observer ownership", (context) => {
+  const root = fixture(context, {
+    "core/ui/example.js": HEADER + scopeImport + [
+      "const scope = scopeFor();",
+      "const conditional = new IntersectionObserver(read);",
+      "if (shouldRegister) scope.observe(conditional);",
+      "const opaque = new IntersectionObserver(read);",
+      "fake.observe(opaque);",
+      "const mismatched = new IntersectionObserver(read);",
+      "scope.observe(opaque);",
+    ].join("\n"),
+    "core/kernel/scope.js": HEADER + "export function createScope() {}",
+  });
+  assert.deepEqual(kind(inventory(root)), ["observer", "observer", "observer"]);
+});
+
+test("global listeners require a proven scope signal", (context) => {
+  const root = fixture(context, {
+    "core/ui/example.js": HEADER + scopeImport + [
+      "const scope = scopeFor();",
+      'window.addEventListener("click", update, { signal: scope.signal });',
+      'window.addEventListener("click", update, { signal: unrelated.signal });',
+      'window.addEventListener("click", update, { signal: scope.signal, ...options });',
+      'window.addEventListener("click", update);',
+    ].join("\n"),
+  });
+  assert.deepEqual(kind(inventory(root)), ["globalListener", "globalListener", "globalListener"]);
+});
+
+test("an owned native timer returns cleanup for the same timer handle", (context) => {
+  const root = fixture(context, {
+    "core/ui/example.js": HEADER + scopeImport + [
+      "const scope = scopeFor();",
+      "scope.effect(() => { const id = setTimeout(run); return () => clearTimeout(id); });",
+      "scope.effect(() => { const id = setTimeout(run); return () => clearTimeout(other); });",
+      "scope.effect(() => { const id = setTimeout(run); return () => {}; });",
+      "scope.effect(async () => { const id = setTimeout(run); return () => clearTimeout(id); });",
+    ].join("\n"),
+  });
+  assert.deepEqual(kind(inventory(root)), ["setTimeout", "setTimeout", "setTimeout"]);
+});
+
+for (const use of ["scope.effect(start);", "start();", "scope.effect(() => {});"]) {
+  test(`observer disposer used by its importer: ${use}`, (context) => {
+    const root = fixture(context, {
+      "core/ui/observe.js": HEADER + [
+        "export function start() {",
+        "  const observer = new MutationObserver(read);",
+        "  observer.observe(document);",
+        "  return () => observer.disconnect();",
+        "}",
+      ].join("\n"),
+      "core/ui/mount.js": HEADER + scopeImport + 'import { start } from "./observe.js";\nconst scope = scopeFor();\n' + use,
+    });
+    assert.deepEqual(kind(inventory(root)), use === "scope.effect(start);" ? [] : ["observer"]);
+  });
+}
+
 test("comment checks leave CSS colours and formatted measurements alone", (context) => {
   const root = fixture(context, {
     "core/ui/example.js": HEADER + "// Color #f4e6c297 and 1,440,900 pixels.",

@@ -15,13 +15,13 @@ function topLevelFunction(node, parent) {
   return FUNCTION.test(node.type) && ["Program", "ExportNamedDeclaration", "ExportDefaultDeclaration"].includes(parent?.type);
 }
 
-/** @param {string} file @param {string} source @param {object} syntax @param {Function} report @param {Set<string>} files */
-export function javascriptRules(file, source, { tree, comments }, report, files) {
+/** @param {string} file @param {string} source @param {object} syntax @param {Function} report @param {Set<string>} files @param {Function} consumers */
+export function javascriptRules(file, source, { tree, comments }, report, files, consumers) {
   const production = SOURCE.test(file) && !TEST.test(file);
   const lifecycle = checksLifecycle(file);
   const topLevelValues = new Set(tree.body.flatMap((item) =>
     (item.declaration ?? item).declarations?.map((decl) => decl.init) ?? []));
-  if (lifecycle) lifecycleRules(tree, file, report);
+  if (lifecycle) lifecycleRules(tree, file, report, comments, consumers);
   if (production) {
     for (const line of domWrites(tree, comments, source)) report("domExpando", line);
     for (const comment of comments) {
