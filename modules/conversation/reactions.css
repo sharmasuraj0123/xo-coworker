@@ -1,0 +1,6 @@
+.m-reacts{display:flex;flex-wrap:wrap;gap:var(--s-1);margin:var(--s-1) 0 0}
+.m-you .m-reacts{justify-content:flex-end}
+.m-react{display:inline-flex;align-items:center;gap:var(--s-reaction-gap);height:var(--h-reaction);
+  padding:0 var(--s-reaction-inline);border:var(--hair) solid var(--line);border-radius:var(--r-sm);
+  background:var(--fill-2);font-size:var(--fs-ui);line-height:1;cursor:default}
+.m-react-n{font-size:var(--fs-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
