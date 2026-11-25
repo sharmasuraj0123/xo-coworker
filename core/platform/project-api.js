@@ -7,9 +7,9 @@ const enc = encodeURIComponent;
 
 /** @type {import("./project-response-types").ProjectApi} */
 export const projectApi = {
-  projectFile: (project, relativePath, at, { purpose, version } = {}) => requestChecked(
+  projectFile: (project, relativePath, at, { purpose, version, signal } = {}) => requestChecked(
     `/xo-projects/${enc(project)}/file`, shapes.isProjectFile,
-    { query: { relative_path: relativePath, commit: at?.commit, commit_path: at?.path, purpose, version } },
+    { signal, query: { relative_path: relativePath, commit: at?.commit, commit_path: at?.path, purpose, version } },
   ),
   saveProjectFile: (project, relativePath, content, baseVersion, confirm, { restoreOf = null } = {}) =>
     requestChecked(`/xo-projects/${enc(project)}/file`, shapes.isSavedProjectFile, {

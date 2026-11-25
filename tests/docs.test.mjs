@@ -4,6 +4,7 @@
 //   node tests/docs.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { createScope } from "../core/kernel/scope.js";
 import { createDocs, refusal, changedLines, minimalEdit, byWords, MERGE_MS } from "../modules/files/documents.js";
 import { draftKey, getDraft, putDraft } from "../modules/files/drafts.js";
 
@@ -63,8 +64,9 @@ function fakeView(docs, d) {
 }
 const setup = (files = { "a.md": "one\ntwo\nthree\n" }) => {
   const clock = fakeClock(), space = fakeSpace(files), store = mem(), events = [];
-  const docs = createDocs({ api: space, store, clock, onChange: (d, what) => events.push(what) });
-  return { clock, space, store, docs, events };
+  const scope = createScope();
+  const docs = createDocs({ api: space, store, clock, scope, onChange: (d, what) => events.push(what) });
+  return { clock, space, store, docs, events, scope };
 };
 const openDoc = async (docs, space, rel = "a.md") => docs.open("p", rel, await space.projectFile("p", rel));
 
@@ -339,6 +341,68 @@ t("undoing back to the saved text: saved again (no Unsaved, no draft, no questio
   v.type("one\ntwo\nthreE\n");
   assert.equal(d.state, "dirty");
   assert.equal(space.saves.length, 0);
+});
+
+t("refresh reports unexpected errors and preserves text for a missing file until a delete event", async () => {
+  const { space, docs } = setup();
+  const d = await openDoc(docs, space);
+  const errors = [], original = globalThis.reportError;
+  globalThis.reportError = (error) => errors.push(error);
+  try {
+    const failure = new Error("decoder failed");
+    space.projectFile = async () => { throw failure; };
+    await docs.changed("p", "a.md");
+    space.projectFile = async () => { throw Object.assign(new Error("gone"), { status: 404 }); };
+    await docs.changed("p", "a.md");
+    assert.deepEqual(errors, [failure]);
+    assert.equal(d.state, "saved");
+  } finally {
+    if (original) globalThis.reportError = original;
+    else delete globalThis.reportError;
+  }
+});
+
+t("a superseded refresh cannot repaint or apply an old version", async () => {
+  const { space, docs } = setup();
+  const d = await openDoc(docs, space);
+  const view = fakeView(docs, d);
+  const pending = [];
+  space.projectFile = (project, rel, at, { signal }) => new Promise((resolve) => pending.push({ signal, resolve }));
+  const first = docs.changed("p", "a.md");
+  await settle();
+  const second = docs.changed("p", "a.md");
+  await settle();
+  assert.equal(pending[0].signal.aborted, true);
+  pending[1].resolve({ content: "new", version: "new" });
+  await second;
+  pending[0].resolve({ content: "old", version: "old" });
+  await first;
+  assert.equal(view.text, "new");
+  assert.equal(view.applied.length, 1);
+});
+
+t("retiring the owner cancels a pending refresh and its draft timer without writing the file", async () => {
+  const { clock, space, docs, events, scope } = setup();
+  const d = await openDoc(docs, space);
+  const view = fakeView(docs, d);
+  view.type("draft");
+  assert.equal(clock.pending(), 1);
+  let complete, signal;
+  space.projectFile = (project, rel, at, options) => new Promise((resolve) => { complete = resolve; signal = options.signal; });
+  const refresh = docs.changed("p", "a.md");
+  await settle();
+  const beforeRetirement = [...events];
+  scope.dispose();
+  assert.equal(scope.size, 0);
+  assert.equal(clock.pending(), 0);
+  assert.equal(signal.aborted, true);
+  complete({ content: "late", version: "late" });
+  await refresh;
+  await clock.tick(1000);
+  assert.equal(view.text, "draft");
+  assert.equal(view.applied.length, 0);
+  assert.deepEqual(events, beforeRetirement);
+  assert.deepEqual(space.saves, []);
 });
 
 for (const [name, fn] of queue) {

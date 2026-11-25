@@ -20,9 +20,6 @@
  "modules/decisions/dock.js": {
   "observer": 1
  },
- "modules/files/documents.js": {
-  "setTimeout": 1
- },
  "modules/files/files.js": {
   "observer": 1
  },

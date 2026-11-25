@@ -160,7 +160,7 @@ export interface ProjectClone {
 
 export interface ProjectApi {
   projectFile(project: string, path: string, at?: { commit: string | null; path?: string } | null,
-    options?: { purpose?: string; version?: string }): Promise<ProjectFile>;
+    options?: { purpose?: string; version?: string; signal?: AbortSignal }): Promise<ProjectFile>;
   saveProjectFile(project: string, path: string, content: string, baseVersion: string | null,
     confirm?: string | null, options?: { restoreOf?: string | null }): Promise<SavedProjectFile>;
   projectVersions(project: string, path: string, options?: { limit?: number; before?: string | null }): Promise<ProjectVersions>;

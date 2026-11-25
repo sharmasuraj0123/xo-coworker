@@ -50,7 +50,7 @@ export function createViewerReads({ V, docs, doc, changes, dropImage, render, an
       } else {
         const d = await readText(/** @type {Required<Pick<ViewerFile, "project" | "rel">>} */ (file));
         if (my !== V.gen) return;
-        const opened = typeof d.content === "string" ? docs.open(file.project, file.rel, d) : null;
+        const opened = typeof d.content === "string" && file.project && file.rel ? docs.open(file.project, file.rel, d) : null;
         if (!opened) V.error = "XO sent this file without its text.";
         V.data = opened ? { ...d, doc: opened } : d;
         if (opened) loadVersions(opened);

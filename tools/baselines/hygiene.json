@@ -384,9 +384,7 @@
   "commentLines": 1
  },
  "modules/files/documents.js": {
-  "changelogComment": 2,
-  "commentLines": 26,
-  "explicitAny": 49
+  "commentLines": 13
  },
  "modules/files/drafts.js": {
   "commentLines": 1

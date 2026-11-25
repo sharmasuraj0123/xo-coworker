@@ -48,13 +48,6 @@
    ["commentOnlyCatch",40,""]
   ]
  },
- "modules/files/documents.js": {
-  "sha256": "a9c91aa9bb85c76757cfde23014d146929ec1719c39e6e6c2e2538578e8f8e68",
-  "sites": [
-   ["commentOnlyCatch",297,""],
-   ["commentOnlyCatch",301,""]
-  ]
- },
  "modules/shells/term.js": {
   "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
   "sites": [

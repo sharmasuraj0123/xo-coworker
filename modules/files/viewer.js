@@ -35,7 +35,7 @@ export function createFileViewer({
   const showsDiff = () => V.show === "changes" && !!chg();
   /** @type {ViewerTextState} */
   const TX = { el: null, h: null, key: null, gen: 0, sel: null, asking: false, q: null };
-  const docs = createDocs({ api, store: localStore(reportStorageFailure), onChange: (d, what) => docChanged(d, what) });
+  const docs = createDocs({ api, scope, store: localStore(reportStorageFailure), onChange: (d, what) => docChanged(d, what) });
   const doc = () => (V.data && V.data.doc) || null;
   const showsText = () => {
     const d = V.data;
