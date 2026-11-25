@@ -12,6 +12,7 @@ import { notesOf } from "./markdown-notes.js";
 import { setLineStyle, toggleMark } from "./markdown-commands.js";
 import { formatBar } from "./markdown-format-bar.js";
 import { insertBar } from "./markdown-insert-bar.js";
+import { restingCaret } from "./markdown-caret.js";
 import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import {CodeMirror, EditorView, Extension, TransactionSpec, ViewUpdate} from "./cm-types.d.ts" */
@@ -73,7 +74,7 @@ export function pageView(CM, { images = null, askAbout = null } = {}) {
   ]));
 
   return [
-    blocks, notes, inlinePlugin, keys, formatBar(CM, askAbout), insertBar(CM), EditorView.exceptionSink.of(reportFailure),
+    blocks, notes, inlinePlugin, keys, formatBar(CM, askAbout), insertBar(CM), restingCaret(CM), EditorView.exceptionSink.of(reportFailure),
     EditorView.editorAttributes.of({ class: "cm-xo-page" }),
   ];
 }

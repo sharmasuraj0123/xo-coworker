@@ -5,6 +5,7 @@
 .vw-doc>.cm-editor.cm-focused{outline:none}
 /* The caret marks focus while editing. */
 .vw-body.vw-doc:focus-visible{outline:none}
+.vw-doc .cm-md-resting .cm-cursorLayer{visibility:hidden}
 .vw-doc .cm-gutters{padding-left:var(--cell-in)}
 .vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 var(--s-3) 0 var(--s-2);font:var(--font-file-meta-code)}
 .vw-doc .cm-content{padding-bottom:var(--h-bar)}
