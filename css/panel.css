@@ -1,8 +1,5 @@
 @import url("../shell/panel/stage-bar.css");
-
-/* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
-body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
-body.stage-over .stage{box-shadow:var(--e2)}
+@import url("../shell/panel/stage-overlay.css");
 :root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
 
 .fl-head{gap:8px;padding:12px var(--pe) 8px}

@@ -1642,10 +1642,11 @@
    "status": "split-region",
    "home": [
     "shell/panel/stage-bar.css",
+    "shell/panel/stage-overlay.css",
     "core/ui/tokens.css",
     "css/panel.css"
    ],
-   "note": "The shell owns the Stage header and core UI owns the shared Stage roles. Remaining Files, Map, Changes, Threads, GitHub and shared Stage rules publish from the original entry."
+   "note": "The shell owns the Stage header and shared overlay rules. Core UI owns the shared Stage roles. The light overlay override and remaining Stage region rules publish from the original entry."
   },
   "css/phone.css": {
    "status": "split",

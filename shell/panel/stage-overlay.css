@@ -1,0 +1,3 @@
+/* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
+body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
+body.stage-over .stage{box-shadow:var(--e2)}
