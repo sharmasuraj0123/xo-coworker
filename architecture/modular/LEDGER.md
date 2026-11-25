@@ -5,9 +5,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | Status | Files |
 |---|---:|
 | moved | 488 |
-| vendor | 376 |
+| vendor | 379 |
 | deleted | 337 |
-| planned | 129 |
+| planned | 126 |
 | kept | 74 |
 | split | 39 |
 | split-region | 3 |
@@ -21,7 +21,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
 | `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
 | `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
-| `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
+| `favicon.svg` | 6 | planned | favicon.svg · next: Published at the existing root URL. The icon pack source has the same path geometry and paint. Generating the published asset from the pack is pending. |
 | `index.html` | 299 | split | index.html, shell/overlays.js · next: The visible frame stays in the HTML for first paint; the existing shell mount inserts hidden regions before app startup. |
 | `serve.py` | 714 | kept | serve.py |
 | `start.sh` | 29 | kept | start.sh · next: unchanged |
@@ -128,13 +128,13 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `css/docs.css` | 143 | split | modules/files/editor/docs.css, modules/search/quick-open.css, modules/files/editor/document-states.css, css/docs.css · next: The entry preserves the Files and Quick Open cascade order. Its 600 px compatibility rule remains pending breakpoint consolidation. |
 | `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
 | `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
-| `css/foundation.css` | 246 | split-region | shell/panel/frame-styles.css, css/foundation.css · next: The panel frame defaults and entrance live in the shell. The original entry still owns the remaining shared controls and component overrides. |
+| `css/foundation.css` | 246 | split-region | shell/panel/frame-styles.css, core/ui/tokens.css, css/foundation.css · next: The shell owns the panel frame defaults and entrance. Shared role and dimension tokens live in core UI. Remaining frame, control and component rules publish from the original entry. |
 | `css/launchpad.css` | 291 | split | css/launchpad.css, modules/launchpad/window.css, modules/launchpad/launchpad.css, modules/launchpad/page.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
-| `css/light.css` | 67 | split-region | core/ui/tokens.css (light roles), modules/* (light blocks) |
+| `css/light.css` | 67 | split-region | core/ui/tokens.css, css/light.css · next: Shared light roles live in core UI. Remaining Rail, Artifacts, working mark, Conversation, sheet and Map overrides publish from the original Light entry. |
 | `css/links.css` | 97 | split | modules/conversation/links.css, css/links.css · next: The entry stylesheet imports the conversation links in their original cascade position. |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
-| `css/panel.css` | 681 | split-region | shell/panel/stage-bar.css, css/panel.css |
+| `css/panel.css` | 681 | split-region | shell/panel/stage-bar.css, core/ui/tokens.css, css/panel.css · next: The shell owns the Stage header and core UI owns the shared Stage roles. Remaining Files, Map, Changes, Threads, GitHub and shared Stage rules publish from the original entry. |
 | `css/phone.css` | 286 | split | shell/phone.css, core/ui/touch-targets.css, shell/phone-panel.css, modules/conversation/composer-phone.css, modules/files/viewer-phone.css, shell/phone-stage-bar.css, modules/launchpad/phone.css, modules/files/version-segment-phone.css, modules/conversation/turns-phone.css, core/ui/phone-control-floor.css, css/phone.css · next: The entry preserves the order of the header, shared controls and component styles. The 340 px and 400 px rules remain pending breakpoint consolidation. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui/density.css, modules/conversation/shape.css, css/shape.css · next: The entry stylesheet imports Settings, density and the conversation preferences in their original cascade order. |
@@ -405,9 +405,9 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2 |
 | `fonts/dm-sans/dm-sans-latin-wght-italic.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-italic.woff2 |
 | `fonts/dm-sans/dm-sans-latin-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-normal.woff2 |
-| `fonts/geist/Geist-Variable.woff2` |  | planned | core/ui/fonts/geist/Geist-Variable.woff2 |
-| `fonts/geist/GeistMono-Variable.woff2` |  | planned | core/ui/fonts/geist/GeistMono-Variable.woff2 |
-| `fonts/geist/LICENSE.txt` | 92 | planned | core/ui/fonts/geist/LICENSE.txt |
+| `fonts/geist/Geist-Variable.woff2` |  | vendor | fonts/geist/Geist-Variable.woff2 · next: Geist Sans is published at its existing URL, preloaded in index.html and referenced by core/ui/tokens.css. |
+| `fonts/geist/GeistMono-Variable.woff2` |  | vendor | fonts/geist/GeistMono-Variable.woff2 · next: The vendored Geist Mono file remains at its existing URL. No app stylesheet or preload requests it. |
+| `fonts/geist/LICENSE.txt` | 92 | vendor | fonts/geist/LICENSE.txt · next: The original SIL Open Font License 1.1 remains beside both Geist files. |
 | `fonts/jetbrains-mono/OFL.txt` | 93 | vendor | fonts/jetbrains-mono/OFL.txt |
 | `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2 |
 | `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2 |

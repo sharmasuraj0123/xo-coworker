@@ -1602,9 +1602,10 @@
    "status": "split-region",
    "home": [
     "shell/panel/frame-styles.css",
+    "core/ui/tokens.css",
     "css/foundation.css"
    ],
-   "note": "The panel frame defaults and entrance live in the shell. The original entry still owns the remaining shared controls and component overrides."
+   "note": "The shell owns the panel frame defaults and entrance. Shared role and dimension tokens live in core UI. Remaining frame, control and component rules publish from the original entry."
   },
   "css/launchpad.css": {
    "status": "split",
@@ -1619,9 +1620,10 @@
   "css/light.css": {
    "status": "split-region",
    "home": [
-    "core/ui/tokens.css (light roles)",
-    "modules/* (light blocks)"
-   ]
+    "core/ui/tokens.css",
+    "css/light.css"
+   ],
+   "note": "Shared light roles live in core UI. Remaining Rail, Artifacts, working mark, Conversation, sheet and Map overrides publish from the original Light entry."
   },
   "css/links.css": {
    "status": "split",
@@ -1640,9 +1642,10 @@
    "status": "split-region",
    "home": [
     "shell/panel/stage-bar.css",
+    "core/ui/tokens.css",
     "css/panel.css"
    ],
-   "next": "The shell owns the stage container and header. The entry still owns the Files, Map, Changes and Threads regions and shared panel styles."
+   "note": "The shell owns the Stage header and core UI owns the shared Stage roles. Remaining Files, Map, Changes, Threads, GitHub and shared Stage rules publish from the original entry."
   },
   "css/phone.css": {
    "status": "split",
@@ -2429,7 +2432,8 @@
   },
   "favicon.svg": {
    "status": "planned",
-   "home": "core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs)"
+   "home": "favicon.svg",
+   "note": "Published at the existing root URL. The icon pack source has the same path geometry and paint. Generating the published asset from the pack is pending."
   },
   "fonts/dm-sans/OFL.txt": {
    "status": "vendor",
@@ -2452,16 +2456,19 @@
    "home": "fonts/dm-sans/dm-sans-latin-wght-normal.woff2"
   },
   "fonts/geist/Geist-Variable.woff2": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/Geist-Variable.woff2"
+   "status": "vendor",
+   "home": "fonts/geist/Geist-Variable.woff2",
+   "note": "Geist Sans is published at its existing URL, preloaded in index.html and referenced by core/ui/tokens.css."
   },
   "fonts/geist/GeistMono-Variable.woff2": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/GeistMono-Variable.woff2"
+   "status": "vendor",
+   "home": "fonts/geist/GeistMono-Variable.woff2",
+   "note": "The vendored Geist Mono file remains at its existing URL. No app stylesheet or preload requests it."
   },
   "fonts/geist/LICENSE.txt": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/LICENSE.txt"
+   "status": "vendor",
+   "home": "fonts/geist/LICENSE.txt",
+   "note": "The original SIL Open Font License 1.1 remains beside both Geist files."
   },
   "fonts/jetbrains-mono/OFL.txt": {
    "status": "vendor",
