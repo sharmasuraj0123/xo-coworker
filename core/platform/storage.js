@@ -1,9 +1,16 @@
 // @ts-check
+import { reportFailure } from "./util.js";
 
 /** @typedef {"local" | "session" | Pick<Storage, "getItem" | "setItem">} StorageAccess @typedef {(error: unknown) => void} Report */
 
 /** @param {StorageAccess} kind */
 const backend = (kind) => kind === "session" ? globalThis.sessionStorage : kind === "local" ? globalThis.localStorage : kind;
+
+/** @param {unknown} error */
+export function reportStorageFailure(error) {
+  if (error instanceof DOMException && ["SecurityError", "QuotaExceededError"].includes(error.name)) return;
+  reportFailure(error);
+}
 
 /** @template T @param {string} key @param {(s:string)=>T} parse @param {T} backup @param {StorageAccess} [kind] @param {Report} [report] */
 export function read(key, parse, backup, kind = "local", report) {
@@ -33,9 +40,11 @@ export function write(key, value, kind = "local", report) {
 export function erase(key, kind = "local") {
   try {
     const store = kind === "session" ? globalThis.sessionStorage : globalThis.localStorage;
+    if (!store) return { kept: false };
     store.removeItem(key);
     return { kept: true };
-  } catch {
+  } catch (error) {
+    reportStorageFailure(error);
     return { kept: false };
   }
 }

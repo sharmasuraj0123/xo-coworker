@@ -49,25 +49,11 @@
    ["commentOnlyCatch",136,""]
   ]
  },
- "core/platform/keys.js": {
-  "sha256": "fea6585b35a1d22293bd676b08aa3a691655518d3bb11349c21b15d85555b244",
-  "sites": [
-   ["storage",64,""],
-   ["commentOnlyCatch",64,""],
-   ["storage",66,""]
-  ]
- },
  "core/platform/sse.js": {
   "sha256": "969f7d593eea5d50c8656568befab3a5f5a02bf13570b90bb4e86071da56f572",
   "sites": [
    ["setTimeout",113,""],
    ["setTimeout",185,""]
-  ]
- },
- "core/platform/storage.js": {
-  "sha256": "da2a8a71767226e6e6ae3e2b77080bb82d5d458a11b1259e13694f93dc90fd71",
-  "sites": [
-   ["commentOnlyCatch",38,""]
   ]
  },
  "core/services/comms.js": {

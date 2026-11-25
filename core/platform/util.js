@@ -20,3 +20,9 @@ export function esc(value) {
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|bmp|ico|svg)$/i;
 /** @param {string | null | undefined} path */
 export const isImagePath = (path) => IMAGE_EXT.test(String(path || ""));
+
+/** @param {unknown} error */
+export function reportFailure(error) {
+  if (typeof globalThis.reportError === "function") globalThis.reportError(error);
+  else console.error(error);
+}

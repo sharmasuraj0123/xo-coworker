@@ -10298,7 +10298,13 @@
   },
   "js/keys.js::storage::cv-keys": {
    "status": "moved",
-   "home": "core/platform/keys.js"
+   "home": "core/platform/keys.js",
+   "evidence": {
+    "core/platform/keys.js": {
+     "anchor": "const STORE = \"cv-keys\"",
+     "reason": "The shortcut settings retain the original preference key and use shared storage."
+    }
+   }
   },
   "js/keys.js::keys:: ": {
    "status": "moved",

@@ -1,10 +1,12 @@
 // @ts-check
+import { read, write, reportStorageFailure } from "./storage.js";
 
 // The one list of keyboard shortcuts: handlers ask it, tooltips and the keys sheet read it, Settings › Keyboard edits it (localStorage cv-keys).
 
 /** @typedef {{ id: string, scope: string, label: string, def?: string, fixed?: string }} Action */
 const STORE = "cv-keys";
-const IS_MAC = /Mac|iPhone|iPad/.test(/** @type {any} */ (navigator).userAgentData?.platform || navigator.platform || "");
+const agent = /** @type {Navigator & {userAgentData?: {platform?: string}}} */ (navigator);
+const IS_MAC = /Mac|iPhone|iPad/.test(agent.userAgentData?.platform || navigator.platform || "");
 
 /** Groups in the order they're shown. `scope` decides where a key fires (and so what can clash). */
 export const GROUPS = [
@@ -61,9 +63,13 @@ const RESERVED_MOD = new Set(["w", "t", "n", "q", "r", "l", "tab", "h", "m", "p"
 const NAMED = new Set(["escape", "enter", "tab", " ", "arrowup", "arrowdown", "arrowleft", "arrowright", "backspace", "delete"]);
 
 /** @returns {Record<string, string>} */
-function load() { try { return JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch { return {}; } }
+function load() {
+  return read(STORE, (raw) => JSON.parse(raw || "{}") || {}, {}, "local", (error) => {
+    if (!(error instanceof SyntaxError)) reportStorageFailure(error);
+  });
+}
 /** @param {Record<string, string>} v */
-function save(v) { try { localStorage.setItem(STORE, JSON.stringify(v)); } catch { /* private mode */ } }
+function save(v) { write(STORE, JSON.stringify(v), "local", reportStorageFailure); }
 
 let custom = load();
 /** @type {Set<() => void>} */
@@ -97,7 +103,8 @@ export const binding = (id) => custom[id] ?? BY.get(id)?.def ?? null;
 export const changed = (id) => custom[id] != null && custom[id] !== BY.get(id)?.def;
 
 /** Typing into a field? Asked of the event's whole path: in a shadow root (Pierre's editor) the target is only the host. @param {Event} e */
-export const typing = (e) => (e.composedPath ? e.composedPath() : [e.target]).some((/** @type {any} */ n) => !!(n && n.matches && n.matches("input, textarea, [contenteditable]:not([contenteditable=\"false\"])")));
+export const typing = (e) => (e.composedPath ? e.composedPath() : [e.target]).some((n) =>
+  n && "matches" in n && typeof n.matches === "function" && n.matches('input, textarea, [contenteditable]:not([contenteditable="false"])'));
 
 /** Does this keydown trigger the action? @param {KeyboardEvent} e @param {string} id */
 export function is(e, id) {

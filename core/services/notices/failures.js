@@ -1,12 +1,9 @@
 // @ts-check
 
 import { ApiError } from "../../platform/http.js";
+import { reportFailure } from "../../platform/util.js";
 
-/** @param {unknown} error */
-export function reportFailure(error) {
-  if (typeof globalThis.reportError === "function") globalThis.reportError(error);
-  else console.error(error);
-}
+export { reportFailure };
 
 const REQUEST_INTERRUPTED = new Set(["network", "timeout", "signed_out"]);
 

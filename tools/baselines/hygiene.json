@@ -88,9 +88,7 @@
   "explicitAny": 4
  },
  "core/platform/keys.js": {
-  "commentLines": 3,
-  "commentOnlyCatch": 1,
-  "explicitAny": 2
+  "commentLines": 1
  },
  "core/platform/pending.js": {
   "explicitAny": 1
