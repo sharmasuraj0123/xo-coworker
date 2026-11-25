@@ -68,7 +68,8 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
     clearTimeout(id) { timers.delete(id); },
     setInterval, clearInterval,
   } });
-  const sideRender = createSideRows(scope, { view: () => "home",
+  let view = "home";
+  const sideRender = createSideRows(scope, { view: () => view,
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
     CH: { isChats: () => false }, places: { get: () => undefined }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
@@ -90,6 +91,10 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   assert.ok(box.firstElementChild === alpha);
   assert.equal(alpha.getAttribute("aria-label"), "Alpha. 1 needs you: Needs review");
   assert.equal(document.getElementById("nv-home").getAttribute("aria-current"), "page");
+  view = "ws";
+  sideRender(needs);
+  assert.equal(document.getElementById("nv-home").hasAttribute("aria-current"), false);
+  assert.equal(document.getElementById("nv-ws").getAttribute("aria-current"), "page");
   side.dispatchEvent(new window.Event("pointerenter"));
   needs.length = 0;
   sideRender(needs);

@@ -37,6 +37,8 @@ export function javascriptRules(file, source, { tree, comments }, report, files,
       count("commentOnlyCatch");
     }
     if (!production) return;
+    if (node.type === "CallExpression" && member(node.callee) === "toggleAttribute"
+        && /^aria-/.test(literal(node.arguments[0]) ?? "")) count("bareAriaState");
     if ((topLevelFunction(node, parent) || (FUNCTION.test(node.type) && topLevelValues.has(node)))
         && node.loc.end.line - node.loc.start.line + 1 > MAX_FUNCTION_LINES) count("functionLines");
     if (FUNCTION.test(node.type) && file.startsWith("modules/")) {

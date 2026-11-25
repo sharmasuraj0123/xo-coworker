@@ -107,10 +107,9 @@ await t("storm: activity and wait_reason are kept; t.stop only for a stop someon
 });
 
 // ── Decide: the red Try again card only for a real failure ─────────────────
-const el = () => new Proxy(function () {}, { get: (_t, k) => (k === "classList" ? { add() {}, remove() {}, toggle() {}, contains: () => false } : k === "dataset" || k === "style" ? {} : k === Symbol.toPrimitive ? () => "" : el()), apply: () => el(), set: () => true });
-globalThis.document = { querySelector: () => el(), querySelectorAll: () => [], getElementById: () => el(), addEventListener() {}, createElement: () => el(), body: el(), documentElement: el() };
 globalThis.localStorage = { getItem: () => null, setItem() {} };
 await t("Decide: a stop someone meant asks nothing; a crash and an older backend's \"failed\" keep Try again; its open review items still ask", async () => {
+  await dom('<section id="panel"><main id="pn-stage"></main><footer id="pn-foot"></footer><button id="pn-x"></button></section>');
   const { createDecisions } = await import("../modules/decisions/controller.js");
   const Kit = await import("../modules/decisions/kit.js");
   const mk = (id, extra) => ({ id, title: id, project: "demo", state: "failed", checklist: { items: [], done: 0, total: 0 }, asks: [], lastAt: 1, happened: "", stop: null, ...extra });

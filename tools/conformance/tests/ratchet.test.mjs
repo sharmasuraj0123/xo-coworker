@@ -32,6 +32,7 @@ function fixture(context, files) {
 const kind = (findings) => findings.map(({ rule }) => rule).sort();
 
 const jsCases = [
+  ["bareAriaState", 'control.toggleAttribute("aria-busy", working);'],
   ["observer", "new ResizeObserver(callback);"],
   ["globalListener", 'window.document["addEventListener"]("click", callback);'],
   ["globalListener", 'addEventListener("click", callback);', "core/ui/example.js"],

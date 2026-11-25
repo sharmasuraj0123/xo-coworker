@@ -1,6 +1,5 @@
 // While a project is being created, what the dialog offers is what it does: Close, not Cancel, and ARIA states written as values.
 import assert from "node:assert/strict";
-import { sourcePaths, readSource } from "../../../tests/lib/sources.mjs";
 import { createDialog } from "./create-fixture.mjs";
 
 let passed = 0;
@@ -34,12 +33,5 @@ await t("a clone on its way says Close too, and Cancel once it has ended", async
   assert.equal(D.$("#cp-err").textContent, "The clone stalled, so it stopped. Try again.");
 });
 
-await t("no ARIA state is written as a bare attribute anywhere", () => {
-  const bare = sourcePaths(".js").flatMap((f) => [...readSource(f).matchAll(/toggleAttribute\(\s*["']aria-[\w-]+["']/g)].map((m) => `${f}: ${m[0]}`));
-  assert.deepEqual(bare, [], "toggleAttribute leaves an ARIA state empty");
-});
-await t("the sidebar's current place says aria-current=\"page\"", () => {
-  assert.match(readSource("shell/rail/rows.js"), /if \(b\.classList\.contains\("is-on"\)\) b\.setAttribute\("aria-current", "page"\); else b\.removeAttribute\("aria-current"\);/);
-});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();
