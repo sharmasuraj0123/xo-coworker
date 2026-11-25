@@ -46,7 +46,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     VW.open({ path: m.path, name: m.name, type: m.type, bytes: m.bytes, ...route }, from);
   }
 
-  const AP = createArtifactsPage({ MS, PV, syncCards, PROJ, sk: { tile: skTile, bar: skBar } });
+  const AP = createArtifactsPage({ MS, PV, syncCards, PROJ, sk: { tile: skTile, bar: skBar }, scope });
 
   /** @param {string} q */
   function jumpItems(q) {
@@ -84,6 +84,6 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     homeMade, jumpItems, dispose: scope.dispose,
     /** @param {string} tid @param {string | null} project */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
-    artifacts: { render: AP.render, count: () => (madePending(null) ? 0 : madeOf(null).length) },
+    artifacts: { mount: AP.mount, render: AP.render, count: () => (madePending(null) ? 0 : madeOf(null).length) },
   };
 }

@@ -17,7 +17,7 @@ export interface GalleryState {
   box?: HTMLElement | null;
   built?: boolean;
   M?: { cols: number; gap: number; headH: number; cardH: number };
-  placeT?: number;
+  placeQueued?: boolean;
   arrive?: boolean;
   tio?: IntersectionObserver;
   filter?: string;
@@ -25,6 +25,7 @@ export interface GalleryState {
 }
 
 export interface GalleryDeps {
+  scope?: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
   MS: ReturnType<typeof createMadeStore>;
   PV: ReturnType<typeof createPreviews>;
   syncCards: ReturnType<typeof createCards>["syncCards"];

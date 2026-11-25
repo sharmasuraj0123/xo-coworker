@@ -402,11 +402,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 665,
-  "lineLength": 66
- },
- "js/recordview.js": {
-  "lineLength": 1
+  "dependencyKey": 655,
+  "lineLength": 65
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -423,13 +420,10 @@
   "lineLength": 12
  },
  "modules/artifacts/page.js": {
-  "lineLength": 19
+  "lineLength": 14
  },
  "modules/artifacts/previews.js": {
   "lineLength": 8
- },
- "modules/artifacts/section.js": {
-  "lineLength": 1
  },
  "modules/changes/diffthemes.js": {
   "lineLength": 2

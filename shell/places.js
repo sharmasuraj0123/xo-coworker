@@ -60,6 +60,18 @@ const DEFS = SPECS.map(([id, kind, scope, description, openToApps, strings, fns]
 
 export const PLACES = Object.freeze(DEFS);
 
+/** @typedef {{ name: string, sub: string, icon: string, run: () => void }} SearchMatch */
+
+/** @typedef {{ id: string, items: (query: string) => SearchMatch[], pick: (match: SearchMatch) => void }} SearchProvider */
+
+/** @param {Kernel["places"]} places @param {string} query */
+export function contributedSearch(places, query) {
+  if (!places.has("search.provider")) return [];
+  /** @type {import("../core/kernel/types.d.ts").Contributed<SearchProvider>[]} */
+  const providers = places.entries("search.provider");
+  return providers.flatMap((provider) => provider.items(query).map((match) => ({ ...match, run: () => provider.pick(match) })));
+}
+
 /** @param {Kernel} kernel @returns {Undo} */
 export function definePlaces(kernel) {
   const undos = PLACES.map(({ requires, ...def }) => kernel.places.define(def, "xo.shell"));

@@ -3,8 +3,7 @@
   "observer": 1
  },
  "modules/artifacts/page.js": {
-  "observer": 2,
-  "requestAnimationFrame": 1
+  "observer": 2
  },
  "modules/changes/diffview.js": {
   "setTimeout": 2
@@ -111,9 +110,6 @@
   "commentOnlyCatch": 3,
   "globalListener": 1,
   "storage": 10
- },
- "shell/render.js": {
-  "requestAnimationFrame": 1
  },
  "shell/return-pill.js": {
   "requestAnimationFrame": 1,

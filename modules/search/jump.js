@@ -3,9 +3,10 @@
 // Jump (⌘K): one field over the places, threads and actions; arrows or the pointer choose, Enter or a click goes.
 
 import { esc } from "../../core/platform/util.js";
+import { createScope } from "../../core/kernel/scope.js";
 
-/** @param {import("./types").JumpDeps} deps */
-export function createJump({ host, field, list, places, actions, more, go, announce, focusIn, onHidden }) {
+/** @param {import("./types").JumpDeps} deps @param {ReturnType<typeof createScope>} scope */
+export function createJump({ host, field, list, places, actions, more, go, announce, focusIn, onHidden }, scope = createScope()) {
   let jsel = 0;
   /** @type {import("./types").JumpItem[]} */
   let jitems = [];
@@ -27,10 +28,10 @@ export function createJump({ host, field, list, places, actions, more, go, annou
   function close({ restore = true } = {}) { if (host.hidden) return; host.hidden = true; onHidden(); const r = /** @type {HTMLElement | null} */ (jumpReturn); if (restore && r && r.isConnected && r.offsetParent) r.focus({ preventScroll: true }); }
   /** @param {import("./types").JumpItem} x */
   const pick = (x) => { close({ restore: !!x.run }); if (x.run) x.run(); else go(/** @type {string} */ (x.v)); };
-  field.addEventListener("input", () => { jsel = 0; render(); });
-  field.addEventListener("keydown", (e) => {
+  scope.listen(field, "input", () => { jsel = 0; render(); });
+  scope.listen(field, "keydown", (e) => {
     // an IME's keys are the word's: none of them moves the selection or closes Jump
-    if (e.isComposing || e.keyCode === 229) return;
+    if (!("key" in e) || ("isComposing" in e && e.isComposing) || ("keyCode" in e && e.keyCode === 229)) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); render(); }
     // with nothing found, Jump stays open on what you typed
     if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } close({ restore: !!x.run }); x.run ? x.run() : go(/** @type {string} */ (x.v)); }
@@ -39,15 +40,15 @@ export function createJump({ host, field, list, places, actions, more, go, annou
   /** @param {Event} e */
   const row = (e) => /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-i]"));
   // the row under a moving pointer becomes the selection; a list scrolling under a still pointer never does
-  list.addEventListener("pointermove", (e) => {
+  scope.listen(list, "pointermove", (e) => {
     const li = row(e);
     if (!li || +(li.dataset.i ?? "") === jsel) return;
     list.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
     jsel = +(li.dataset.i ?? ""); li.setAttribute("aria-selected", "true");
     field.setAttribute("aria-activedescendant", li.id);
   });
-  list.addEventListener("click", (e) => { const li = row(e); if (li) pick(jitems[+(li.dataset.i ?? "")]); });
-  host.addEventListener("mousedown", (e) => { if (e.target === host) close(); });
+  scope.listen(list, "click", (e) => { const li = row(e); if (li) pick(jitems[+(li.dataset.i ?? "")]); });
+  scope.listen(host, "mousedown", (e) => { if (e.target === host) close(); });
 
-  return { open, close, get isOpen() { return !host.hidden; } };
+  return { open, close, refresh: () => { if (!host.hidden) render(); }, get isOpen() { return !host.hidden; } };
 }

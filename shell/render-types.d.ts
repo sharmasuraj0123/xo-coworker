@@ -16,7 +16,7 @@ export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C exte
   convThread(view: string): T | null | undefined;
   sideRender(needs: N[]): void;
   homeRender(needs: N[]): void;
-  REC: { artifacts: { render(): void } };
+  places: import("../core/kernel/types.d.ts").Places;
   LPP: { render(): void };
   topRender(needs: N[]): void;
   wsHeadRender(needs: N[]): void;

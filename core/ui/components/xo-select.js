@@ -3,7 +3,7 @@
 // <xo-select>: the app's one dropdown in place of <select>, written and read like one, a WAI-ARIA select-only combobox with a fixed list.
 
 import { ICON } from "../icons/names.js";
-import { RM } from "../motion.js";
+import { RM, setText } from "../motion.js";
 import { createScope } from "../../kernel/scope.js";
 
 const CHEV = ICON.chevron;
@@ -135,7 +135,7 @@ class XoSelect extends HTMLElement {
   _paint() {
     if (!this._built) return;
     const o = this.options.find((x) => x.value === this.value);
-    /** @type {Element} */ (this._btn.querySelector(".dd-v")).textContent = o ? (o.textContent || "").trim() : "";
+    setText(this._btn.querySelector(".dd-v"), o ? (o.textContent || "").trim() : "");
     const l = this._label();
     if (l.name) { this._btn.setAttribute("aria-label", l.name); this._btn.removeAttribute("aria-labelledby"); this._menu.setAttribute("aria-label", l.name); }
     if (l.by) { this._btn.setAttribute("aria-labelledby", l.by); this._btn.removeAttribute("aria-label"); this._menu.setAttribute("aria-labelledby", l.by); }

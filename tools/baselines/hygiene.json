@@ -251,13 +251,10 @@
   "commentLines": 3
  },
  "modules/artifacts/page.js": {
-  "commentLines": 4
+  "commentLines": 2
  },
  "modules/artifacts/previews.js": {
   "commentLines": 6
- },
- "modules/artifacts/section.js": {
-  "explicitAny": 1
  },
  "modules/artifacts/store.js": {
   "commentLines": 1

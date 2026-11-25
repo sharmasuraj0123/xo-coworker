@@ -105,8 +105,7 @@ import { fileScope, localIn } from "../modules/files/scope.js";
 import { filePlace } from "../modules/files/search-place.js";
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
-import { createJump } from "../modules/search/jump.js";
-import { createJumpItems } from "../modules/search/jump-items.js";
+import { createWorkspaceJump } from "../modules/search/jump-items.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
@@ -130,7 +129,7 @@ import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
 import { createShellPanel } from "../modules/shells/panel.js";
-import { createRecord } from "./recordview.js";
+import { createArtifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
 import { createRecordLines } from "../modules/chats/record-lines.js";
 import { createHomeParts } from "../modules/home/parts.js";
@@ -139,7 +138,7 @@ import { createOpenNext } from "../modules/home/open-next.js";
 import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
-import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
+import { greeting, today, skTile, bar as skBar, rememberedMade } from "../modules/home/skeleton.js";
 import { wireGestures, dockGestures } from "../shell/gestures.js";
 import { wordsOf } from "../modules/conversation/words.js";
 import { rtName } from "../core/services/runtimes.js";
@@ -325,7 +324,7 @@ wireDragOut($("#msgs"));
 // shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule(), wanted: () => SHAPE.on("xo:dock/shells") });
 CAP.terminal = () => SH.available;
-const REC = createRecord({ world, go, VW, PROJ, schedule, announce, places: kernel.places });
+const artifacts = createArtifactsModule({ go, VW, skTile, skBar, rememberedMade });
 
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
 const wsHeadRender = createWorkspaceHeader(currentView, projects);
@@ -454,7 +453,9 @@ const short1 = (/** @type {string | null | undefined} */ text) => { const s = St
 const pingOptions = { view: currentView, P, PROJ, askShort, heraldShow };
 const pings = createDecisionPings(pingOptions);
 
-const sideRender = createSideRows({ view: currentView, world, CH, REC, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded });
+const sideRender = createSideRows({
+  view: currentView, world, CH, REC: { artifacts }, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
+});
 
 const homeParts = createHomeParts(homeSelection, D.needItems, Kit.isBinary);
 const { endRender, toggleHandled } = createHandled({ world, homeParts, isBusy, num, PROJ, threadMark, askTitle });
@@ -674,7 +675,7 @@ appScope.effect(initFollow);
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ view: currentView, world, CH, convThread, chatOf });
 const messageDetails = createMessageDetails({
-  aliases: localMessages.aliases, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
+  aliases: localMessages.aliases, world, REC: artifacts, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
   askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf, isStopping,
 });
 const { msgItems, drawingView } = createMessageItems({
@@ -1044,21 +1045,16 @@ appScope.listen($("#side-add"), "click", CREATE.open);
 
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
 const jump = $("#jump");
-const jumpPlaces = createJumpItems({ D, projects, threadsOf, projectIcon, glyphOf, wordOf });
-function jumpActions() {
-  const light = document.documentElement.dataset.theme === "light";
-  return [
-    { name: "New project…", sub: "Action", icon: ICON.plus, run: () => CREATE.open() },
-    { name: "Settings", sub: "Action", icon: ICON.sliders, run: () => openSettings() },
-    { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
-    { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
-    ...(IQ.kindOf(sessionOf(currentView())) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(currentView()), $("#iq")) }] : []),
-    ...(!pageEl(currentView()) ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
-  ];
-}
 const focusOverlay = createOverlayFocus(appScope);
-const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
-
+const JUMP = createWorkspaceJump({
+  host: jump, sources: kernel.places, items: { D, projects, threadsOf, projectIcon, glyphOf, wordOf },
+  actions: {
+    create: () => CREATE.open(), settings: openSettings, keys: () => openKeys(), theme: () => $("#theme").click(),
+    intelligence: () => !!IQ.kindOf(sessionOf(currentView())), openIntelligence: () => IQ.open(sessionOf(currentView()), $("#iq")),
+    stage: () => !pageEl(currentView()), toggleStage: () => STAGE.toggle(),
+  },
+  go, announce, focusIn: focusOverlay, onHidden: () => syncInert(),
+}, appScope);
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
@@ -1073,7 +1069,7 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
-for (const module of [sinceModule, settingsModule, routingModule, rulesModule, worktreesModule]) kernel.register(module);
+for (const module of [sinceModule, artifacts.module, settingsModule, routingModule, rulesModule, worktreesModule]) kernel.register(module);
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
@@ -1103,12 +1099,12 @@ wireThemeToggle(applyTheme, lookSync, announce);
 /** @type {Parameters<typeof createShellRenderer<DecisionNeed, WorldThread, Conversation>>[0]} */
 const rendererOptions = {
   world, D, view: currentView, restoreFocus: redrawFocus.restore, PAGE_OF, MAIN,
-  pings, dockAtTop, convThread, sideRender, homeRender, REC, LPP,
+  pings, dockAtTop, convThread, sideRender, homeRender, places: kernel.places, LPP,
   topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
   MAP, VW, LW, FP, titleFor: Kit.titleFor, isBusy,
 };
-const renderShell = createShellRenderer(rendererOptions);
+const renderShell = createShellRenderer(rendererOptions, appScope, schedule);
 function render() {
   renderShell();
   if (world.state.loaded) IQ.activate(composers().filter((composer) => usable(composer.iq)).map((composer) => sessionOf(composer.view)));
@@ -1206,8 +1202,8 @@ $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 appScope.effect(mountMainDecoration);
 for (const dispose of [
   codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
-  REC.dispose, () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
-  () => { void kernel.disable(sinceModule.manifest.id); },
+  () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
+  () => { void kernel.disable(sinceModule.manifest.id); void kernel.disable(artifacts.module.manifest.id); },
   runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
   SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), disposeConversationStops,

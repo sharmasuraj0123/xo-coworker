@@ -2998,16 +2998,20 @@
   "js/recordview.js": {
    "status": "split",
    "home": [
-    "js/recordview.js",
+    "modules/artifacts/module.js",
     "modules/since/module.js"
    ],
    "evidence": {
+    "modules/artifacts/module.js": {
+     "anchor": "export function createArtifactsModule",
+     "reason": "Artifacts owns the gallery, Home section, search provider, and their lifetime."
+    },
     "modules/since/module.js": {
      "anchor": "export const sinceModule",
      "reason": "Since now registers its Home contribution and visit lifetime through the kernel."
     }
    },
-   "note": "The record adapter still owns the Artifacts Home section and supplies its existing skeleton helpers."
+   "note": "Since and Artifacts now register separately. The app still supplies the Home skeleton helpers."
   },
   "js/redraw.js": {
    "status": "moved",
@@ -12114,18 +12118,16 @@
    "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::exports::createRecord": {
-   "status": "kept",
-   "home": "js/recordview.js",
-   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
+   "status": "deleted",
+   "reason": "Since and Artifacts register separately through the kernel."
   },
   "js/recordview.js::functions::madeNaming": {
    "status": "moved",
    "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::functions::createRecord": {
-   "status": "kept",
-   "home": "js/recordview.js",
-   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
+   "status": "deleted",
+   "reason": "Since and Artifacts register separately through the kernel."
   },
   "js/recordview.js::ids::made-h": {
    "status": "deleted",
@@ -12157,7 +12159,7 @@
   },
   "js/recordview.js::ids::arts": {
    "status": "moved",
-   "home": "modules/artifacts/page.js"
+   "home": "shell/overlays.js"
   },
   "js/recordview.js::ids::arts-h": {
    "status": "moved",
@@ -12194,7 +12196,7 @@
    "home": "modules/artifacts/page.js",
    "evidence": {
     "modules/artifacts/page.js": {
-     "anchor": "e.key === \"Escape\" && t.id === \"arts-q\"",
+     "anchor": "e.key !== \"Escape\"",
      "reason": "Escape still resets the live Artifacts search."
     }
    }

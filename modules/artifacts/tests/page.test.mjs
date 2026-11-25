@@ -3,9 +3,13 @@ import assert from "node:assert/strict";
 import { deferred, dom, same, settle } from "../../../tests/lib/dom.mjs";
 
 const { document } = await dom(`<section id="arts"></section>`);
-globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
-globalThis.ResizeObserver = class { observe() {} disconnect() {} };
+globalThis.HTMLInputElement = window.HTMLInputElement;
+const disconnected = [];
+const observer = (kind) => class { observe() {} unobserve() {} disconnect() { disconnected.push(kind); } };
+globalThis.IntersectionObserver = observer("intersection");
+globalThis.ResizeObserver = observer("resize");
 const { createArtifactsPage } = await import("../page.js");
+const { createScope } = await import("../../../core/kernel/scope.js");
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -24,8 +28,10 @@ const MS = {
   olderLeft: () => false, olderFailed: () => false,
 };
 const PV = { nearY: new Map(), thumbs: new Map(), wantsText: () => false, loadThumbs() {}, loadTexts() {} };
-const page = createArtifactsPage({ MS, PV, syncCards: (ul, items) => { ul.innerHTML = items.map((m) => `<li class="md-it" data-k="${m.key}"></li>`).join(""); }, PROJ: (p) => p, sk: { tile: () => `<li class="md-it is-sk"></li>`, bar: () => `<i class="sk"></i>` } });
+const scope = createScope();
+const page = createArtifactsPage({ scope, MS, PV, syncCards: (ul, items) => { ul.innerHTML = items.map((m) => `<li class="md-it" data-k="${m.key}"></li>`).join(""); }, PROJ: (p) => p, sk: { tile: () => `<li class="md-it is-sk"></li>`, bar: () => `<i class="sk"></i>` } });
 const box = document.getElementById("arts");
+page.mount(box);
 const kinds = () => [...box.querySelectorAll("[data-arts-kind]")].map((b) => [b.dataset.artsKind, b.getAttribute("aria-checked")]);
 
 t("while what was made is read: stand-ins in the gallery's shape, and nothing older is asked for", () => {
@@ -58,6 +64,32 @@ t("a search with no match says so; Esc in the field clears it", () => {
   esc.key = "Escape";
   q.dispatchEvent(esc);
   assert.equal(q.value, "");
+});
+t("disposal removes gallery resources and leaves retained controls inert", () => {
+  const q = box.querySelector("#arts-q");
+  const kind = box.querySelector('[data-arts-kind="all"]');
+  const before = disconnected.length;
+  const originalCancel = globalThis.cancelAnimationFrame;
+  let cancelled = false;
+  globalThis.cancelAnimationFrame = (id) => { clearTimeout(id); cancelled = true; };
+  try {
+    box.dispatchEvent(new window.Event("scroll"));
+    scope.dispose();
+    assert.equal(scope.size, 0);
+    assert.equal(cancelled, true);
+    assert.deepEqual(disconnected.slice(before).sort(), ["intersection", "resize"]);
+    q.value = "retained";
+    const escape = new window.Event("keydown", { bubbles: true, cancelable: true });
+    escape.key = "Escape";
+    q.dispatchEvent(escape);
+    assert.equal(q.value, "retained");
+    const arrow = new window.Event("keydown", { bubbles: true, cancelable: true });
+    arrow.key = "ArrowRight";
+    kind.dispatchEvent(arrow);
+    assert.equal(arrow.defaultPrevented, false);
+  } finally {
+    globalThis.cancelAnimationFrame = originalCancel;
+  }
 });
 const recovery = await dom('<section id="arts"></section>');
 const gallery = recovery.document.getElementById("arts");
@@ -94,6 +126,7 @@ const mounted = createArtifactsPage({
   syncCards: (list, items) => { list.innerHTML = items.map((item) => `<li data-k="${item.key}">${item.name}</li>`).join(""); },
 });
 try {
+  mounted.mount(gallery);
   mounted.render();
   await settle();
   t("Artifacts shows a reading indicator while the older cursor is pending", () => {

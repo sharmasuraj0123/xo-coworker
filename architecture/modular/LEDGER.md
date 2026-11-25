@@ -12,7 +12,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 40 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1801, planned 235, kept 230, deleted 219, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1801, planned 235, kept 228, deleted 221, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -89,7 +89,7 @@ Items inside first-party files: 2488 (moved 1801, planned 235, kept 230, deleted
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 342 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
-| `js/recordview.js` | 857 | split | js/recordview.js, modules/since/module.js · next: The record adapter still owns the Artifacts Home section and supplies its existing skeleton helpers. |
+| `js/recordview.js` | 857 | split | modules/artifacts/module.js, modules/since/module.js · next: Since and Artifacts now register separately. The app still supplies the Home skeleton helpers. |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js |
 | `js/review.js` | 153 | moved | core/services/review.js |
 | `js/rich.js` | 282 | split | core/ui/markdown/rich.js, core/ui/markdown/rich-elements.js |

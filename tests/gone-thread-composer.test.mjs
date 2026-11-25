@@ -5,6 +5,8 @@ import { createShellRenderer } from "../shell/render.js";
 import { createRedrawFocus } from "../shell/redraw-focus.js";
 import { dom, same } from "./lib/dom.mjs";
 import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
+import { createPlaces } from "../core/kernel/places.js";
+import { createScope } from "../core/kernel/scope.js";
 
 const { document } = await dom('<div id="app"><button id="pb-t"></button><main id="home"></main>'
   + '<section id="conv" tabindex="-1"><div id="msgs"><div class="calm-act"><button data-go="home">Go to Home</button></div></div>'
@@ -19,6 +21,8 @@ const app = document.getElementById("app");
 const state = { view: "t:first" };
 const redrawFocus = createRedrawFocus();
 const noop = () => {};
+const places = createPlaces();
+places.define({ id: "page", kind: "keyed", scope: "app", description: "Main pages" });
 const sync = { sync: noop };
 const thread = { lastAt: 0 };
 const threads = new Map([["t:first", { lastAt: 0 }], ["t:gone", thread]]);
@@ -32,12 +36,12 @@ const render = createShellRenderer({
   world, D: { ...sync, needItems: () => [] }, view: () => state.view, restoreFocus: redrawFocus.restore,
   PAGE_OF: { home: "#home" }, MAIN: { rendered: null },
   pings: noop, dockAtTop: noop, convThread, sideRender: noop, homeRender: noop,
-  REC: { artifacts: { render: noop } }, LPP: { render: noop }, topRender: noop, wsHeadRender: noop, drawConv: noop,
+  places, LPP: { render: noop }, topRender: noop, wsHeadRender: noop, drawConv: noop,
   say, msgsEl, placeRegion: () => region, loadAhead: noop, TP: { C: null, tid: null }, STAGE: sync,
   drawThreadPage: noop, dockRender: noop, heraldRender: noop, chatTargetRender: () => true, targetLineRender: noop,
   syncPlaceholder, sendRender: noop, chipRender: noop, MAP: { render: noop }, VW: { notice: noop }, LW: sync, FP: sync,
   titleFor: (_, title) => title, isBusy: () => false,
-});
+}, createScope(), noop);
 
 render();
 assert.equal(app.hasAttribute("data-gone"), false);

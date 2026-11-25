@@ -143,6 +143,11 @@ test("a select moves one active choice under the pointer and skips disabled choi
   Object.defineProperty(select.querySelector("[disabled]"), "disabled", { value: true });
   document.querySelector("main").append(select);
   const button = select.querySelector("button");
+  const label = button.querySelector(".dd-v");
+  const labelText = label.firstChild;
+  select.value = "a";
+  assert.ok(labelText, "the selected option supplies the label");
+  assert.ok(label.firstChild === labelText, "repainting the same choice leaves the observed label text alone");
   button.focus();
   button.click();
   const rows = [...select.querySelectorAll(".dd-row")];
