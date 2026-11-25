@@ -2,8 +2,8 @@
 @import url("../shell/panel/stage-overlay.css");
 :root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
 
-.fl-head{gap:8px;padding:12px var(--pe) 8px}
-.fl-crumb{gap:8px;min-height:var(--h-sm);padding:0}
+.fl-head{gap:var(--s-2);padding:var(--s-3) var(--pe) var(--s-2)}
+.fl-crumb{gap:var(--s-2);min-height:var(--h-sm);padding:0}
 .fl-crumb b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
@@ -35,7 +35,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-r.is-open .fl-c svg{transform:rotate(90deg)}
 .fl-n{line-height:var(--lh-ui)}
 .fl-r.is-touch .fl-n{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.fl-who{margin-left:4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+.fl-who{margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .fl-sz{display:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 @container stage (min-width:480px){.fl-sz{display:inline}}
 .fl-note{min-height:28px;padding-left:calc(var(--pn) - 6px + var(--d,0) * 16px);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
@@ -48,14 +48,14 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 /* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the
    tree, on the folder under the pointer or with focus; the new file's name takes a row at the top of its
    folder's rows, and what that name would do is said in the row under it (both 28 px: whole rows still) */
-.fl-find{display:flex;gap:4px;min-width:0}
+.fl-find{display:flex;gap:var(--s-1);min-width:0}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-add:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink);transition-duration:var(--d-hover-in)}
 .fl-list{position:relative}
 .fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
-.fl-r.has-more{padding-right:36px}
+.fl-r.has-more{padding-right:var(--s-9)}
 .fl-menu{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;min-width:168px;padding:var(--menu-pad);border-radius:var(--r-menu);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
 .fl-menu[hidden]{display:none}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
