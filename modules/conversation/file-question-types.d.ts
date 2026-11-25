@@ -14,6 +14,7 @@ type LineMatch = FileMatch & { a: number; b: number };
 
 export type FileQuestionDeps = Pick<Delivery, "blockFor" | "refuse" | "deliverLive"> & {
   view(): string;
+  lrefRender(): void;
   localMessages: Pick<ReturnType<typeof createLocalMessages>, "send">;
   fileReferences: ReturnType<typeof createFileReferences>;
   world: { state: { threads: ScopeContext["threads"] }; thread(key: string): Thread | null | undefined };

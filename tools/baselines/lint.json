@@ -3,7 +3,6 @@
  "apps-host/manifest.js::eslint(no-control-regex)": 1,
  "apps-host/settings-view.js::eslint(no-shadow)": 1,
  "apps-host/tests/host.test.mjs::eslint(no-shadow)": 2,
- "boot.js::import(no-unassigned-import)": 3,
  "core/platform/api.js::eslint(no-shadow)": 2,
  "core/platform/fuzzy.js::eslint(no-underscore-dangle)": 1,
  "core/platform/tests/exports-used.test.mjs::eslint(no-shadow)": 1,

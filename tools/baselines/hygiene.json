@@ -229,7 +229,7 @@
   "commentLines": 2
  },
  "js/app.js": {
-  "commentLines": 3
+  "commentLines": 2
  },
  "modules/artifacts/cards.js": {
   "commentLines": 3
@@ -545,9 +545,6 @@
  "shell/panel/width.js": {
   "commentLines": 3
  },
- "shell/phone.js": {
-  "explicitAny": 2
- },
  "shell/rail/side.js": {
   "commentLines": 1
  },
@@ -563,9 +560,6 @@
  "tests/app-ctl-scale.test.mjs": {
   "changelogComment": 4,
   "commentLines": 5
- },
- "tests/app-wiring.test.mjs": {
-  "commentLines": 3
  },
  "tests/attach.test.mjs": {
   "commentLines": 2

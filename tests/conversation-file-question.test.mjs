@@ -1,6 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
+import { createFileReferenceLine } from "../modules/conversation/file-reference-line.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
 import { createFileReferences } from "../modules/conversation/file-references.js";
 import { createLocalMessages } from "../modules/conversation/local-messages.js";
@@ -20,8 +21,10 @@ const followed = [];
 let block = "";
 let view = "t:thread-1";
 
+const fileReferences = createFileReferences();
+const lrefRender = createFileReferenceLine({ view: () => view, fileReferences });
 const question = createFileQuestion({
-  localMessages: createLocalMessages(), view: () => view, fileReferences: createFileReferences(), say, fileScope, localIn, lineRef, fileRef,
+  localMessages: createLocalMessages(), view: () => view, fileReferences, lrefRender, say, fileScope, localIn, lineRef, fileRef,
   world: { state: { threads: [thread] }, thread: (key) => key === thread.id ? thread : null },
   PROJ: (id) => id,
   convOfChat: (id) => "p:" + id,
@@ -45,11 +48,11 @@ assert.equal(capsule?.getAttribute("data-ref-a"), "8");
 assert.equal(capsule?.getAttribute("data-ref-b"), "11");
 const removal = document.querySelector("#cref [data-lref-x]");
 assert.equal(removal?.getAttribute("aria-label"), "Take the lines out of this message");
-question.lrefRender();
+lrefRender();
 assert.ok(document.querySelector("#cref [data-lref-x]") === removal, "redrawing preserves the line reference control");
 assert.deepEqual(deliveries, []);
 view = "p:elsewhere";
-question.lrefRender();
+lrefRender();
 assert.ok(document.querySelector("#cref")?.hidden, "the file reference stays in its originating conversation");
 assert.equal(question.composeAbout(file, 8, 11), false, "another place's composer cannot claim the file");
 assert.ok(question.askAboutFile(file));

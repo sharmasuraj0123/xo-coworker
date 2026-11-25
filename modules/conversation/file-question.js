@@ -3,7 +3,6 @@
 import { esc } from "../../core/platform/util.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { noticeFor } from "../../core/services/notices.js";
-import { createFileReferenceLine } from "./file-reference-line.js";
 
 /** @import { FileQuestionDeps, QuestionFile } from "./file-question-types.d.ts" */
 
@@ -12,9 +11,8 @@ import { createFileReferenceLine } from "./file-reference-line.js";
 /** @param {FileQuestionDeps} deps */
 export function createFileQuestion({
   view, localMessages, fileReferences, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
-  fileScope, localIn, lineRef, fileRef,
+  fileScope, localIn, lineRef, fileRef, lrefRender,
 }) {
-  const lrefRender = createFileReferenceLine({ view, fileReferences });
   /** @param {string} text */
   function youText(text) {
     const r = lineRef(text);
@@ -77,5 +75,5 @@ export function createFileQuestion({
     return true;
   }
 
-  return { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender };
+  return { youText, askPlace, askAboutLines, composeAbout, askAboutFile };
 }

@@ -388,8 +388,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 295,
-  "lineLength": 15
+  "dependencyKey": 253,
+  "lineLength": 13
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -1030,13 +1030,13 @@
   "lineLength": 7
  },
  "shell/phone.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "shell/places.js": {
   "lineLength": 8
  },
  "shell/rail/rows.js": {
-  "lineLength": 10
+  "lineLength": 8
  },
  "shell/rail/side.js": {
   "functionLines": 1,

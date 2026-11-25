@@ -1,17 +1,11 @@
 // @ts-check
 import { $ } from "../../core/platform/dom.js";
+import { PHONE } from "../../core/platform/viewport.js";
 import { RM } from "../../core/ui/motion.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { initCreate } from "./create.js";
 
-/** @import { CreateCtx } from "./types" */
-
-/** @typedef {Pick<CreateCtx, "go" | "heraldShow" | "setDrawer">} ProjectActions */
-
-/** @typedef {ProjectActions & { phone: MediaQueryList, welcome(view: string, text: string): void }} Host */
-
-/** @param {Host} host */
-export function createProjectModule(host) {
+export function createProjectModule() {
   /** @type {Map<string, string>} */
   const descriptions = new Map();
   /** @type {ReturnType<typeof initCreate> | undefined} */
@@ -19,16 +13,18 @@ export function createProjectModule(host) {
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.create-project", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "announce"], contributes: ["conversation.press:create"] },
+      needs: ["world", "announce", "navigation", "conversationSession", "notices", "drawer"], contributes: ["conversation.press:create"] },
     activate(ctx) {
+      const { localMessages } = ctx.use("conversationSession");
       dialog = initCreate({
-        ...host, world: ctx.use("world"), announce: ctx.use("announce"),
+        go: ctx.use("navigation").go, setDrawer: ctx.use("drawer").set, heraldShow: ctx.use("notices").show,
+        world: ctx.use("world"), announce: ctx.use("announce"),
         welcome(id, description, text) {
           if (description) descriptions.set(id, description);
-          host.welcome("p:" + id, text);
+          localMessages.welcome("p:" + id, text);
         },
         onPhoneClose() {
-          if (host.phone.matches) ctx.timeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170);
+          if (PHONE?.matches) ctx.timeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170);
         },
       }, ctx);
       ctx.effect(() => () => {

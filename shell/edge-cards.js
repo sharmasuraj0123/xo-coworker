@@ -1,4 +1,5 @@
 // @ts-check
+
 /** @import { EdgeCard, EdgeName } from "./edge-card-types" */
 
 /** @type {import("../core/kernel/types").ModuleDef} */

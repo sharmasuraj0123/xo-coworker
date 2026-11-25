@@ -114,7 +114,7 @@ window.HTMLElement.prototype.getClientRects = function () {
   if (this.id === "iq") return [{ width: 40, height: 20 }];
   return chipRects.call(this);
 };
-window.Element.prototype.matches = function (/** @type {string} */ selector) {
+window.Element.prototype.matches = function (selector) {
   if (selector === ":focus-within") return this.contains(document.activeElement);
   if (selector === ":focus-visible") return this === document.activeElement;
   return matches.call(this, selector);
@@ -131,8 +131,8 @@ Object.assign(globalThis, {
   },
   sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
   localStorage: {
-    getItem: (/** @type {string} */ key) => storage.get(key) ?? null,
-    setItem: (/** @type {string} */ key, /** @type {string} */ value) => {
+    getItem: (key) => storage.get(key) ?? null,
+    setItem: (key, value) => {
       if (blockedStorage.has(key)) throw new DOMException("QuotaExceededError");
       storage.set(key, value);
     },
@@ -176,18 +176,18 @@ Object.assign(globalThis, {
   },
   customElements: window.customElements,
   isSecureContext: true,
-  matchMedia: (/** @type {string} */ query) => ({
+  matchMedia: (query) => ({
     get matches() { return query === "(prefers-reduced-motion: reduce)" || (query === "(max-width: 760px)" && phone); },
     addEventListener() {}, removeEventListener() {},
   }),
   getComputedStyle: window.getComputedStyle,
-  requestAnimationFrame: (/** @type {FrameRequestCallback} */ fn) => {
+  requestAnimationFrame: (fn) => {
     frames.set(++nextFrame, fn);
     return nextFrame;
   },
-  cancelAnimationFrame: (/** @type {number} */ id) => frames.delete(id),
-  setInterval: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setInterval(fn, ms).unref(),
-  setTimeout: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setTimeout(fn, ms).unref(),
+  cancelAnimationFrame: (id) => frames.delete(id),
+  setInterval: (fn, ms) => setInterval(fn, ms).unref(),
+  setTimeout: (fn, ms) => setTimeout(fn, ms).unref(),
   fetch: async (input, init) => {
     const { pathname: path, searchParams } = new URL(String(input), location.href);
     if (path === "/api/chat/shape") {
@@ -315,11 +315,22 @@ Object.assign(globalThis, {
       runSignal = init.signal;
       return lateRunRead.promise;
     }
+    if (path === "/api/advisory") return Response.json({ accounts: [] });
+    if (path === "/api/chat/active") return Response.json({ turns: [] });
+    if (path === "/api/chat/intent") return Response.json({ intents: [], pools: [] });
+    if (path === "/api/chat/events") return Response.json({ events: [] });
+    if (path === "/api/chat/runs/sub-agent/transcript") return Response.json({ items: [], next: null });
+    if (path.startsWith("/api/chat/chats/")) {
+      if (resource === "runtime-policy") return Response.json({ project: null, effective: runtimePolicy });
+      if (resource === "made") return Response.json({ made: [], next_before: null });
+      if (resource === "messages") return Response.json({ messages: [] });
+      if (resource === "hops") return Response.json({ hops: [] });
+    }
     return Response.json({});
   },
   EventSource: class { addEventListener() {} close() {} },
 });
-Object.defineProperty(navigator, "clipboard", { value: { writeText: async (/** @type {string} */ text) => { clipboard.push(text); } } });
+Object.defineProperty(navigator, "clipboard", { value: { writeText: async (text) => { clipboard.push(text); } } });
 function setPhone(value) { phone = value; }
 function setHoldRunRead(value) { holdRunRead = value; }
 function setLateRunRead(value) { lateRunRead = value; }

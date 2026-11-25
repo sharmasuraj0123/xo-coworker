@@ -37,7 +37,6 @@ export function createSideRows(scope, { view, world, CH, places, D, projects, co
     $("#nv-chats").classList.toggle("is-on", CH.isChats(current));
     $("#nv-arts").classList.toggle("is-on", current === "artifacts");
     $("#nv-lp").classList.toggle("is-on", current === "launchpad");
-    // the Artifacts row's count is quiet: a number, never a signal
     const artifacts = /** @type {import("../surface-types").ArtifactsPage | undefined} */ (places.get("page", "artifacts"));
     const count = artifacts?.count() ?? 0;
     const label = count ? String(count) : "";

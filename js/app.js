@@ -63,8 +63,7 @@ import { mountProjectIcons } from "../modules/projects/surface.js";
 import { mountShells } from "../modules/shells/surface.js";
 import { artifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
-import { createHomeModule } from "../modules/home/module.js";
-import { homeSkeletonModule } from "../modules/home/skeleton.js";
+import { createHomeModule, homeSkeletonModule } from "../modules/home/module.js";
 import { wordsOf } from "../modules/conversation/words.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 import { SHAPE_IC } from "../modules/settings/index.js";
@@ -179,12 +178,12 @@ const dockRender = MDOCK.render;
 
 
 const { saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
-    fileReferences, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
+    fileReferences, lrefRender, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, mentions, wireComposer, updateComposer } = createComposerSurface(appScope, {
   places: kernel.places, view: currentView, session,
   localMessages, world, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, announce, heraldShow, heraldFor, schedule,
   render: () => render(), go, PHONE, isBusy, sendWhileRunning, noun, IQ, sessionOf, running, projects, projectIcon,
-  lrefRender: () => lrefRender(), stopRun, VW, SHAPE,
+  stopRun, VW, SHAPE,
 });
 const { heraldBox, heraldRender, heraldRoom } = mountNoticeLine(appScope, kernel.places, {
   notice: notices.current, world, MK, composerNow, panelHost: () => session.panel()?.box ?? null, connDest, placeRegion,
@@ -216,9 +215,9 @@ const { back, module: navigationModule } = createNavigation({
 /** @param {string} v @param {import("../shell/navigation-types.d.ts").NavigationOptions} [options] */
 function go(v, options) { kernel.bus.emit("app:navigate", { view: v, options }); }
 
-const { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender } = createFileQuestion({
+const { youText, askPlace, askAboutLines, composeAbout, askAboutFile } = createFileQuestion({
   view: currentView, localMessages, fileReferences, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
-  fileScope, localIn, lineRef, fileRef,
+  fileScope, localIn, lineRef, fileRef, lrefRender,
 });
 
 const fileRoute = createFileRoute({ currentView: () => drawingView() || currentView(), convThread });
@@ -229,7 +228,7 @@ const topRender = mountConversationHeader({
 }, appScope, schedule);
 const panelShell = mountPanel(STAGE);
 
-const CREATE = createProjectModule({ phone: PHONE, go, heraldShow, setDrawer, welcome: localMessages.welcome });
+const CREATE = createProjectModule();
 
 const JUMP = createJumpModule({
   projectIcon, create: CREATE.open, settings: () => settings.open(), keys: () => openKeys(), IQ, toggleStage: () => STAGE.toggle(),

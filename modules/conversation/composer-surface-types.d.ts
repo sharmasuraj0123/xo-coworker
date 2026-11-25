@@ -11,7 +11,7 @@ export type ComposerHost =
   & Pick<TargetDeps, "world" | "CH" | "PHONE" | "PROJ" | "convThread" | "isBusy" | "sendWhileRunning" | "noun">
   & Pick<ComposerControlsDeps, "IQ" | "CH" | "sessionOf" | "running">
   & Pick<MentionDeps, "world" | "projects" | "projectIcon" | "isBusy">
-  & Pick<ComposerDeps, "lrefRender" | "stopRun">
+  & Pick<ComposerDeps, "stopRun">
   & Pick<Parameters<typeof createComposerAttachments>[0], "VW">
   & Pick<Parameters<typeof createConversationStarts>[0], "SHAPE">
   & {

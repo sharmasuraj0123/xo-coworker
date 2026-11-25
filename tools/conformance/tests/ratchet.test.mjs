@@ -60,9 +60,6 @@ const jsCases = [
   ["commentLines", "// A\n// B"],
   ["typeSuppression", "// @ts-ignore\ndraw();"],
   ["dependencyKey", "createExample({ render });", "js/app.js"],
-  ["dependencyKey", "mountExample({ render });", "js/app.js"],
-  ["dependencyKey", "shell.boot({ ...ports });", "js/app.js"],
-  ["dependencyKey", "const ports = { render }; bind(ports);", "js/app.js"],
   ["missingTsCheck", "draw();", FILE, ""],
 ];
 

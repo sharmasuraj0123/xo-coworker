@@ -37,9 +37,6 @@
  "shell/panel/width.js": {
   "observer": 1
  },
- "shell/rail/rows.js": {
-  "setTimeout": 2
- },
  "shell/return-pill.js": {
   "requestAnimationFrame": 1,
   "setTimeout": 1

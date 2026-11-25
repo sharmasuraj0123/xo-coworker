@@ -52,11 +52,6 @@ export function rememberedMade() {
   return p ? p.n : null;
 }
 
-/** @type {import("../../core/kernel/types").ModuleDef} */
-export const homeSkeletonModule = {
-  manifest: { id: "xo.home-skeleton", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["homeSkeleton"] },
-  activate(ctx) { ctx.provide("homeSkeleton", { skTile, skBar: bar, rememberedMade }); },
-};
 export function rememberHome() {
   const body = document.getElementById("hm-body");
   if (!body || !body.offsetParent || document.querySelector("#home .hm-sk, #hm-head .sk")) return; // hidden, or not drawn yet

@@ -1,4 +1,5 @@
 // @ts-check
+import { skTile, bar, rememberedMade } from "./skeleton.js";
 import { $ } from "../../core/platform/dom.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { convOfChat } from "../../shell/place-context.js";
@@ -39,3 +40,9 @@ export function createHomeModule(host) {
     homeRender: (needs) => controller?.homeRender(needs),
   };
 }
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const homeSkeletonModule = {
+  manifest: { id: "xo.home-skeleton", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["homeSkeleton"] },
+  activate(ctx) { ctx.provide("homeSkeleton", { skTile, skBar: bar, rememberedMade }); },
+};

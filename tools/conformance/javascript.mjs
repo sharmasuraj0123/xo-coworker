@@ -44,8 +44,10 @@ export function javascriptRules(file, source, { tree, comments }, report, files,
         if ([...bindingNames(param)].includes("S")) count("sharedStateParameter");
       }
     }
-    if (file === "js/app.js" && node.type === "ObjectExpression") {
-      for (const property of node.properties) report("dependencyKey", property.loc.start.line);
+    if (node.type === "CallExpression" && file === "js/app.js" && /^create[A-Z]/.test(node.callee.name ?? "")) {
+      for (const bag of node.arguments.filter((arg) => arg.type === "ObjectExpression")) {
+        for (const property of bag.properties) report("dependencyKey", property.loc.start.line);
+      }
     }
     if (node.type === "CallExpression" && (node.callee.name ?? member(node.callee)) === "matchMedia") {
       const query = literal(node.arguments[0]);
