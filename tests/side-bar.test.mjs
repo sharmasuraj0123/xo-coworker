@@ -26,6 +26,14 @@ const scope = createScope();
 let jumps = 0;
 const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
 const SIDE = createSide({ ...deps, scope });
+SIDE.fold(true);
+const peek = document.querySelector("[data-side-peek]");
+assert.ok(peek, "folded navigation has a peek button");
+peek.click();
+assert.equal(peek.getAttribute("aria-expanded"), "true");
+assert.equal(SIDE.folded, true, "peeking preserves the saved fold preference");
+document.querySelector("#side-fold").click();
+assert.equal(SIDE.folded, false, "pinning docks the open sheet");
 
 const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");

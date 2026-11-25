@@ -19,10 +19,10 @@ const key = (/** @type {string} */ name, mods = {}) => {
   window.dispatchEvent(event);
   return event;
 };
-assert.equal(key("b", { metaKey: true, shiftKey: true }).defaultPrevented, true);
+assert.equal(key("b", { metaKey: true }).defaultPrevented, true);
 assert.ok(app.classList.contains("side-folded"));
 assert.equal(fold.getAttribute("aria-expanded"), "false");
-key("b", { metaKey: true, shiftKey: true });
+key("b", { metaKey: true });
 assert.ok(!app.classList.contains("side-folded"));
 assert.equal(key("k", { metaKey: true }).defaultPrevented, true, "boot registers the Jump shortcut");
 assert.equal(jump.hidden, false);

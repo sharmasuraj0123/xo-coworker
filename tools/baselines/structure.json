@@ -1017,7 +1017,7 @@
   "lineLength": 6
  },
  "shell/sidebar.css": {
-  "lineLength": 16
+  "lineLength": 15
  },
  "shell/sideorder.js": {
   "lineLength": 2,
@@ -1033,9 +1033,6 @@
   "sourceRead": 1
  },
  "tests/flavours.test.mjs": {
-  "sourceRead": 1
- },
- "tests/hover-veil.test.mjs": {
   "sourceRead": 1
  },
  "tests/lib/cascade.mjs": {

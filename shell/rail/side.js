@@ -25,11 +25,17 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     fold(on, { quiet = false } = {}) {
       SIDE.folded = !!on;
       writeFold(on);
-      requireHtml("#app").classList.toggle("side-folded", SIDE.folded);
+      const app = requireHtml("#app");
+      app.classList.toggle("side-folded", SIDE.folded);
+      app.classList.remove("side-peeking");
+      const peekButton = requireHtml("[data-side-peek]", "button");
+      peekButton.setAttribute("aria-expanded", "false");
       const b = requireHtml("#side-fold", "button");
       b.setAttribute("aria-expanded", String(!SIDE.folded));
-      b.setAttribute("aria-label", SIDE.folded ? "Show the sidebar" : "Fold the sidebar");
-      b.title = `${SIDE.folded ? "Show" : "Fold"} the sidebar${K.hint("sideFold")}`;
+      b.innerHTML = SIDE.folded ? ICON.pin : ICON.sidebar;
+      b.setAttribute("aria-label", SIDE.folded ? "Pin the sidebar" : "Fold the sidebar");
+      b.title = `${b.getAttribute("aria-label")}${K.hint("sideFold")}`;
+      if (!quiet) (SIDE.folded ? peekButton : b).focus({ preventScroll: true });
       requireHtml("#side-jump", "button").title = `Search and jump${K.hint("jump")}`;
       // the places' names become their tooltips while the words are hidden
       for (const r of $$("#side .nav .nrow").filter(isHtml)) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }

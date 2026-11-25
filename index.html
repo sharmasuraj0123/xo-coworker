@@ -31,6 +31,11 @@
 </head>
 <body>
   <div class="app" id="app">
+    <div class="side-peek">
+      <button type="button" class="side-ib" data-side-peek aria-label="Show sidebar" aria-controls="side" aria-expanded="false"></button>
+      <button type="button" class="side-ib" data-go="chats" aria-label="New chat"></button>
+    </div>
+    <div class="side-edge" aria-hidden="true"></div>
     <aside class="side" id="side" aria-label="Navigation">
       <div class="side-top">
         <button type="button" class="side-ib side-fold" id="side-fold" aria-controls="side" aria-expanded="true" aria-label="Fold the sidebar"></button>

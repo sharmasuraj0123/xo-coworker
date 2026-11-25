@@ -142,10 +142,10 @@
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
   --r-note:calc(var(--r) + var(--s-2));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
+  --side-w:256px;
   --halo:8px; --cell-in:4px;
   --halo-row:12px;
   --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
-  --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
   /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
   --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */

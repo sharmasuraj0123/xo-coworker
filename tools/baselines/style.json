@@ -51,7 +51,7 @@
   "rawColor": 1
  },
  "core/ui/app-controls.css": {
-  "px-size": 4,
+  "px-size": 3,
   "rawColor": 1
  },
  "core/ui/components/xo-select.css": {
@@ -254,14 +254,14 @@
   "px-effect": 2,
   "px-position": 1,
   "px-radius": 1,
-  "px-size": 18,
+  "px-size": 17,
   "px-spacing": 44,
   "rawColor": 2,
-  "widthMediaQuery": 2
+  "widthMediaQuery": 1
  },
  "shell/sidebar.css": {
   "px-effect": 14,
-  "rawColor": 28,
+  "rawColor": 25,
   "themeSelector": 4
  }
 }
