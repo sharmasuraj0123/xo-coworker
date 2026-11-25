@@ -4,7 +4,7 @@ import { ApiError } from "../../core/platform/http.js";
 
 const PREVIEW_CONCURRENCY = 3;
 
-/** @typedef {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} Scope */
+/** @typedef {import("../../core/kernel/types").Lifetime} Scope */
 
 /** @param {Scope} scope @param {(key: string) => number | null} distance @param {(key: string) => void} fail */
 export function createPreviewQueue(scope, distance, fail) {

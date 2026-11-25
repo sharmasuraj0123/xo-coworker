@@ -1,5 +1,4 @@
 // @ts-check
-import { createScope } from "../../core/kernel/scope.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { viewerFile } from "../../core/services/media/items.js";
 import { wireDragOut } from "../../core/services/media/hydrate.js";
@@ -17,8 +16,7 @@ export const conversationHeaderModule = {
       "messageContext", "threadGroups", "threadMenu", "threadRuntime", "navigationState", "chats", "checklist"],
     optional: ["threadActions", "home"] },
   activate(ctx) {
-    const scope = createScope(), project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
-    ctx.effect(() => scope.dispose);
+    const project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
     const descriptions = ctx.use("projectDescriptions");
     /** @type {import("./header-types").MainHeader<import("../../shell/render-types").FrameNeeds[number]>} */
     const header = {
@@ -31,7 +29,7 @@ export const conversationHeaderModule = {
       tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
     };
     const schedule = () => ctx.invalidate("workspace");
-    const render = createTopHeader({ ...header, conversationHeaderHtml: createConversationHeader(header) }, scope, schedule);
+    const render = createTopHeader({ ...header, conversationHeaderHtml: createConversationHeader(header) }, ctx, schedule);
     ctx.provide("conversationHeader", render);
   },
 };

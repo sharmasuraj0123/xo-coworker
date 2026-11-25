@@ -1,5 +1,4 @@
 // @ts-check
-import { createScope } from "../../core/kernel/scope.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { createWorkspaceHeader } from "../../shell/workspace-header.js";
 import { requireHtml } from "../../core/platform/dom.js";
@@ -45,16 +44,14 @@ export const mainViewportModule = {
   manifest: { id: "xo.main-viewport", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["mainViewport"],
     needs: ["conversationSession", "currentView", "placeContext", "world", "chats", "noticeLine", "toastLine"] },
   activate(ctx) {
-    const scope = createScope();
-    ctx.effect(() => scope.dispose);
     const session = ctx.use("conversationSession"), place = ctx.use("placeContext");
-    const viewport = mountMainViewport(scope, {
+    const viewport = mountMainViewport(ctx, {
       main: session.main, view: ctx.use("currentView"), takeFoldChange: session.folds.takeChange,
       heraldRoom: ctx.use("noticeLine").heraldRoom, CH: ctx.use("chats"), world: ctx.use("world"),
       convThread: place.convThread, chatOf: place.convProject, render: () => ctx.emit("app:render"),
     });
     conversationGestures({ scroller: viewport.scroller, msgs: viewport.msgsEl, say: session.composer.say,
-      toast: ctx.use("toastLine") }, wordsOf, scope);
+      toast: ctx.use("toastLine") }, wordsOf, ctx);
     ctx.on("app:view-visited", viewport.follow);
     ctx.on("workspace:layout", (view) => dockAtTop(view === "chats"));
     ctx.on("app:return-target", viewport.returnPill);

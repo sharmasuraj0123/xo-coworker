@@ -2,7 +2,7 @@
 import { requireHtml } from "../../core/platform/dom.js";
 /** @typedef {{ dock: HTMLElement, host: HTMLElement, heraldRoom(): void }} DockLayout */
 
-/** @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope @param {DockLayout} layout */
+/** @param {import("../../core/kernel/types").Lifetime} scope @param {DockLayout} layout */
 export function watchDock(scope, { dock, host, heraldRoom }) {
   const bar = dock.querySelector(".cbar");
   const ro = new ResizeObserver(() => {

@@ -1,3 +1,4 @@
+import { createScope } from "../../../core/kernel/scope.js";
 import assert from "node:assert/strict";
 import { deferred } from "../../../tests/lib/dom.mjs";
 
@@ -14,8 +15,9 @@ const threads = [{ id: "t1", project: "demo", title: "Writer", lastAt: Date.now(
 const world = { state: { threads, projects: [{ id: "demo", chatId: "c1" }] }, project: (id) => (id === "demo" ? { id: "demo", chatId: "c1" } : null) };
 const make = (api) => {
   const said = [], marks = { scheduled: 0 };
-  const S = createMadeStore({ world, api, schedule: () => marks.scheduled++, announce: (w) => said.push(w) });
-  return { S, said, marks };
+  const scope = createScope();
+  const S = createMadeStore({ scope, world, api, schedule: () => marks.scheduled++, announce: (w) => said.push(w) });
+  return { S, said, marks, scope };
 };
 
 await t("the backend's newest page, newest first, once it answers; pending until then", async () => {
@@ -62,7 +64,7 @@ await t("a refresh started before pinning cannot revert the saved pin", async ()
   const edits = [];
   let readCount = 0;
   const item = () => row("a", "2026-11-19T10:00:00Z", { pinned: false });
-  const { S } = make({
+  const { S, scope } = make({
     made: () => ++readCount === 1 ? Promise.resolve({ made: [item()] }) : refresh.promise,
     pinMade: async (_chat, _id, pinned) => { edits.push(pinned); },
   });
@@ -84,14 +86,14 @@ await t("a refresh started before pinning cannot revert the saved pin", async ()
     assert.equal(view.pinned, true, "the older pin value cannot undo the local write");
   } finally {
     Date.now = realNow;
-    S.dispose();
+    scope.dispose();
   }
 });
 
 await t("rapid pin changes save in order while immediately showing the latest choice", async () => {
   const edits = [];
   const pending = deferred();
-  const { S } = make({
+  const { S, scope } = make({
     made: async () => ({ made: [row("a", "2026-11-19T10:00:00Z", { pinned: false })] }),
     pinMade: async (_chat, _id, pinned) => {
       edits.push(pinned);
@@ -109,7 +111,7 @@ await t("rapid pin changes save in order while immediately showing the latest ch
   await tick();
   assert.deepEqual(edits, [true, false]);
   assert.equal(S.madeOf("demo")[0].pinned, false);
-  S.dispose();
+  scope.dispose();
 });
 await t("older pages are read a page at a time from one second past the last, and merged", async () => {
   const asked = [];
@@ -127,8 +129,9 @@ await t("a project that changes chat reads and pins from the new owner", async (
   const project = { id: "demo", chatId: "before" };
   const edits = [];
   const localWorld = { state: { threads, projects: [project] }, project: () => project };
+  const scope = createScope();
   const S = createMadeStore({
-    world: localWorld, schedule() {}, announce() {},
+    scope, world: localWorld, schedule() {}, announce() {},
     api: {
       made: async (chat) => ({ made: [row(chat, "2026-11-19T12:00:00Z")] }),
       pinMade: async (chat, id, on) => { edits.push([chat, id, on]); },
@@ -147,7 +150,7 @@ await t("a project that changes chat reads and pins from the new owner", async (
     await tick();
     assert.deepEqual(edits, [["after", "after", true]]);
   } finally {
-    S.dispose();
+    scope.dispose();
   }
 });
 
@@ -155,14 +158,14 @@ await t("each store deduplicates reads and disposal prevents late commits", asyn
   const pending = deferred();
   const signals = [];
   const api = { made: (_chat, _query, { signal }) => { signals.push(signal); return pending.promise; } };
-  const { S: first, marks } = make(api);
-  const { S: second } = make(api);
+  const { S: first, marks, scope: firstScope } = make(api);
+  const { S: second, scope: secondScope } = make(api);
   first.madePending(null);
   first.madeOf("demo");
   second.madePending(null);
   await tick();
   assert.equal(signals.length, 2);
-  first.dispose();
+  firstScope.dispose();
   assert.equal(signals[0].aborted, true);
   assert.equal(signals[1].aborted, false);
   pending.resolve({ made: [row("late", "2026-11-19T12:00:00Z")] });
@@ -170,7 +173,7 @@ await t("each store deduplicates reads and disposal prevents late commits", asyn
   assert.deepEqual(first.madeOf("demo").map((item) => item.name), ["notes.md"]);
   assert.deepEqual(second.madeOf("demo").map((item) => item.name), ["late.md"]);
   assert.equal(marks.scheduled, 0);
-  second.dispose();
+  secondScope.dispose();
 });
 
 await t("an unexpected refresh failure reports once and leaves the last artifacts visible", async () => {
@@ -180,7 +183,7 @@ await t("an unexpected refresh failure reports once and leaves the last artifact
   const failure = new Error("Made storage unavailable");
   Object.defineProperty(globalThis, "reportError", { configurable: true, value: (error) => reports.push(error) });
   let requests = 0;
-  const { S } = make({ made: async () => {
+  const { S, scope } = make({ made: async () => {
     if (requests++ === 0) return { made: [row("saved", "2026-11-19T12:00:00Z")] };
     throw failure;
   } });
@@ -197,7 +200,7 @@ await t("an unexpected refresh failure reports once and leaves the last artifact
     assert.deepEqual(reports, [failure]);
     assert.equal(requests, 2);
   } finally {
-    S.dispose();
+    scope.dispose();
     Date.now = now;
     if (descriptor) Object.defineProperty(globalThis, "reportError", descriptor);
     else Reflect.deleteProperty(globalThis, "reportError");

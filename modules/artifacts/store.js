@@ -1,6 +1,5 @@
 // @ts-check
 
-import { createScope } from "../../core/kernel/scope.js";
 import { read, write } from "../../core/platform/storage.js";
 import { createMadeReads } from "./made-reads.js";
 import { madeFromServer, madeItems } from "./model.js";
@@ -18,7 +17,7 @@ function parsePins(raw) {
 }
 
 /** @param {MadeStoreOptions} options */
-export function createMadeStore({ world, api, scope = createScope(), schedule, announce }) {
+export function createMadeStore({ world, api, scope, schedule, announce }) {
   const pins = new Set(read(PINS, parsePins, []));
   const reads = createMadeReads(api.made, scope.signal, schedule, schedule);
   const toggleRemotePin = createMadePins(api.pinMade, reads.setPin, scope.signal, (message) => {
@@ -110,7 +109,7 @@ export function createMadeStore({ world, api, scope = createScope(), schedule, a
   const hasOlder = (state) => projectsMade().some((project) => project.chatId && reads.olderStatus(project.chatId) === state);
 
   return {
-    madeOf, madePending, olderPages, projectsMade, togglePin, dispose: scope.dispose,
+    madeOf, madePending, olderPages, projectsMade, togglePin,
     olderLeft: () => hasOlder("reading"),
     olderFailed: () => hasOlder("retry"),
   };

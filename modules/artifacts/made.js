@@ -1,5 +1,4 @@
 // @ts-check
-import { createScope } from "../../core/kernel/scope.js";
 import { createPreviews } from "./previews.js";
 import { createCards, KIND_IC } from "./cards.js";
 import { createMadeStore } from "./store.js";
@@ -27,7 +26,7 @@ export function madeNaming(m, max = 28) {
 }
 
 /** @param {import("./page-types.d.ts").MadeDeps} deps */
-export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade, scope = createScope() }) {
+export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade, scope }) {
   const MS = createMadeStore({ world, api, scope, schedule, announce });
   const { madeOf, madePending, togglePin } = MS;
   const PV = createPreviews({ world, api, sharedFileRoute, scope, box: () => AP.box(), landed: schedule });
@@ -81,7 +80,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     if (g) { go((/** @type {string} */ ((/** @type {HTMLElement} */ (g)).dataset.madeGo))); return; }
   });
   return {
-    homeMade, jumpItems, dispose: scope.dispose,
+    homeMade, jumpItems,
     /** @param {string} tid @param {string | null} project */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     count: () => (madePending(null) ? 0 : madeOf(null).length),

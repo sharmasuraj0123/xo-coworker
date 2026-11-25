@@ -1,5 +1,4 @@
 import type { MadeRow, MadeThread } from "./types";
-import type { createScope } from "../../core/kernel/scope.js";
 
 export type MadeReader = (
   chat: string,
@@ -38,7 +37,7 @@ export interface MadeStoreOptions {
     made: MadeReader;
     pinMade(chat: string, id: string, on: boolean): Promise<unknown>;
   };
-  scope?: ReturnType<typeof createScope>;
+  scope: import("../../core/kernel/types").Lifetime;
   schedule(): void;
   announce(words: string): void;
 }

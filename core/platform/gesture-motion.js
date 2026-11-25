@@ -3,7 +3,7 @@
 import { createScope } from "../kernel/scope.js";
 import { EASE, RM } from "./motion.js";
 
-/** @typedef {{ms?: number, opacity?: number, scope?: ReturnType<typeof createScope>}} GlideOptions */
+/** @typedef {{ms?: number, opacity?: number, scope?: import("../kernel/types").Lifetime}} GlideOptions */
 
 /** @param {HTMLElement} el @param {string} transform @param {GlideOptions} [options] @returns {Promise<void>} */
 export function glide(el, transform, { ms = 220, opacity, scope = createScope() } = {}) {

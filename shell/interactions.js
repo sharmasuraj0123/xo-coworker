@@ -1,6 +1,5 @@
 // @ts-check
 import { requireHtml } from "../core/platform/dom.js";
-import { createScope } from "../core/kernel/scope.js";
 import { PHONE } from "../core/platform/viewport.js";
 import { sessionOf, PAGE_OF } from "./place-context.js";
 import { RM } from "../core/ui/motion.js";
@@ -18,8 +17,6 @@ export const interactionModule = {
       "rail", "lightbox", "drawer", "decisionPresentation", "chats", "world", "composer", "mainViewport"],
     optional: ["settingsFrame", "createProject", "jump", "files"] },
   activate(ctx) {
-    const scope = createScope();
-    ctx.effect(() => scope.dispose);
     const phone = PHONE;
     if (!phone) throw new Error("Shell interactions require media queries.");
     const navigationState = ctx.use("navigationState"), SH = ctx.use("shellDock");
@@ -34,7 +31,7 @@ export const interactionModule = {
     const createOpen = () => ctx.optional("createProject")?.isOpen() ?? false;
     const closeJump = () => ctx.optional("jump")?.close();
     const currentView = navigationState.view;
-    scope.listen(requireHtml("#top-back", "button"), "click", back);
+    ctx.listen(requireHtml("#top-back", "button"), "click", back);
     const GLOBAL = {
       shells: () => SH.toggle(),
       jump: () => (jump.hidden ? ctx.optional("jump")?.open() : closeJump()),
@@ -69,14 +66,14 @@ export const interactionModule = {
     const { syncInert, dispose: disposeKeyboardLayers } = mountKeyboardLayers({
       layers: LAYERS, phone, app: requireHtml("#app"), main: requireHtml("#main"), side: requireHtml("#side"), settings: setEl,
     });
-    scope.effect(() => wireGlobalKeys({
+    ctx.effect(() => wireGlobalKeys({
       view: currentView, capturing: capturing, SH, jump, IQ, CREATE: { isOpen: createOpen }, keys, GLOBAL,
       FP: { toggleTree: () => files()?.page.toggleTree() ?? false }, QO, LAYERS, back, go,
     }));
-    scope.effect(() => disposeKeyboardLayers);
-    scope.effect(() => LAYERS.undo);
+    ctx.effect(() => disposeKeyboardLayers);
+    ctx.effect(() => LAYERS.undo);
     const { canBack, stepBack } = createBackSteps({ location: navigationState, LAYERS, placeOk, go, back });
-    scope.effect(() => wireBack({ canBack, stepBack }));
+    ctx.effect(() => wireBack({ canBack, stepBack }));
 
     wireGestures({
       phone: () => phone.matches,
@@ -97,8 +94,8 @@ export const interactionModule = {
         { host: requireHtml("#cs-pop"), open: () => CH.setupOpen && requireHtml("#cs-pop").classList.contains("is-sheet"),
           close: () => { CH.closeSetup(); updateComposer(); } },
       ],
-    }, scope);
-    scope.listen(requireHtml("#pb-t"), "click", () => {
+    }, ctx);
+    ctx.listen(requireHtml("#pb-t"), "click", () => {
       (currentView() === "home" ? requireHtml("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
     });
     ctx.on("app:sync-inert", syncInert);

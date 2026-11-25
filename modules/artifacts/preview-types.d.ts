@@ -1,5 +1,4 @@
 import type { Api } from "../../core/platform/api-types.d.ts";
-import type { createScope } from "../../core/kernel/scope.js";
 import type { sharedFileRoute } from "../../core/services/world/relay.js";
 
 export interface PreviewDeps {
@@ -8,5 +7,5 @@ export interface PreviewDeps {
   sharedFileRoute: typeof sharedFileRoute;
   box: () => HTMLElement | null;
   landed: () => void;
-  scope?: ReturnType<typeof createScope>;
+  scope?: import("../../core/kernel/types").Lifetime;
 }

@@ -119,6 +119,8 @@ export interface Services {}
 
 export type ServiceValue<Name extends string> = Name extends keyof Services ? Services[Name] : unknown;
 
+export type Lifetime = Pick<ModuleContext, "signal" | "effect" | "listen" | "timeout" | "frame" | "observe">;
+
 export interface ModuleContext {
   readonly id: string;
   readonly kernelVersion: string;

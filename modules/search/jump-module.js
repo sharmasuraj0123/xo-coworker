@@ -1,6 +1,5 @@
 // @ts-check
 import { requireHtml } from "../../core/platform/dom.js";
-import { createScope } from "../../core/kernel/scope.js";
 import { pageEl, sessionOf } from "../../shell/place-context.js";
 import { createWorkspaceJump } from "./jump-items.js";
 
@@ -10,8 +9,7 @@ export const jumpModule = {
     needs: ["currentView", "placeContext", "threadPresentation", "decisionPresentation", "announce", "overlayFocus", "navigation",
       "intelligence", "projectIcons", "stage", "shortcuts"], optional: ["createProject", "settingsFrame"] },
   activate(ctx) {
-    const scope = createScope(), view = ctx.use("currentView"), el = requireHtml("#jump");
-    ctx.effect(() => scope.dispose);
+    const view = ctx.use("currentView"), el = requireHtml("#jump");
     const session = () => sessionOf(view()), { intelligence } = ctx.use("intelligence");
     const shortcuts = ctx.use("shortcuts"), stage = ctx.use("stage");
     const jump = createWorkspaceJump({
@@ -26,7 +24,7 @@ export const jumpModule = {
         intelligence: () => !!intelligence.kindOf(session()),
         openIntelligence: () => intelligence.open(session(), requireHtml("#iq", "button")),
       },
-    }, scope);
+    }, ctx);
     ctx.effect(() => jump.close);
     ctx.provide("jump", jump);
   },

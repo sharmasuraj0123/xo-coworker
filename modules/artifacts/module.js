@@ -1,7 +1,6 @@
 // @ts-check
 import { createMade } from "./made.js";
 import { madeSection } from "./section.js";
-import { createScope } from "../../core/kernel/scope.js";
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const artifactsModule = {
@@ -12,10 +11,8 @@ export const artifactsModule = {
     contributes: ["rail.count:artifacts", "home.section:hm-made", "page:artifacts", "search.provider:artifacts"],
   },
   activate(ctx) {
-    const scope = createScope();
-    ctx.effect(() => scope.dispose);
     const made = createMade({
-      ...ctx.use("homeSkeleton"), scope, world: ctx.use("world"), PROJ: ctx.use("projectName"),
+      ...ctx.use("homeSkeleton"), scope: ctx, world: ctx.use("world"), PROJ: ctx.use("projectName"),
       announce: ctx.use("announce"), go: ctx.use("navigation").go, schedule: () => ctx.invalidate("workspace"),
       VW: { open: (file, from) => ctx.emit("app:open-file", { file, from }) },
     });

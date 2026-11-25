@@ -4,7 +4,6 @@ import { esc } from "../core/platform/util.js";
 import { XO } from "../core/ui/icons/names.js";
 import { usable } from "../core/ui/a11y/focus.js";
 import { redraw } from "../core/ui/redraw.js";
-import { createScope } from "../core/kernel/scope.js";
 import { PAGE_OF } from "./place-context.js";
 import { faviconRender } from "./favicon.js";
 import { createSurfaceSlots } from "./surfaces.js";
@@ -15,13 +14,12 @@ export const workspaceRendererModule = {
     needs: ["world", "currentView", "placeContext", "decisionPresentation", "threadPresentation", "rail", "conversationSession",
       "conversationContent", "redrawFocus"] },
   activate(ctx) {
-    const scope = createScope(), places = ctx.places;
-    ctx.effect(() => scope.dispose);
+    const places = ctx.places;
     const world = ctx.use("world"), view = ctx.use("currentView"), place = ctx.use("placeContext");
     const decisions = ctx.use("decisionPresentation"), { isBusy } = ctx.use("threadPresentation"), rail = ctx.use("rail");
     const session = ctx.use("conversationSession"), content = ctx.use("conversationContent"), focus = ctx.use("redrawFocus");
     const drawPages = createSurfaceSlots({
-      places, place: "page", read: () => places.entries("page"), scope, schedule: () => ctx.invalidate("workspace"), hideOnRetire: true,
+      places, place: "page", read: () => places.entries("page"), scope: ctx, schedule: () => ctx.invalidate("workspace"), hideOnRetire: true,
       fallback: () => [requireHtml("#nv-home", "button"), requireHtml("#pb-menu", "button")].find(usable) ?? null,
     });
     ctx.on("app:render", () => {

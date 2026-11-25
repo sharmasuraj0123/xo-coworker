@@ -110,7 +110,9 @@ const issued = [];
 const cursor = "2026-11-19T12:00:00Z";
 const requestedCursor = "2026-11-19T12:00:01Z";
 const makeRow = (id, updated_at) => ({ id, name: `${id}.md`, relative_path: `${id}.md`, updated_at });
+const storeScope = createScope();
 const store = createMadeStore({
+  scope: storeScope,
   world: { state: { threads: [], projects: [project] }, project: () => project },
   api: { made: async (_chat, { before }) => {
     if (!before) return { made: [makeRow("latest", cursor)], next_before: cursor };
@@ -166,7 +168,7 @@ try {
     assert.deepEqual(issued, [requestedCursor, requestedCursor]);
   });
 } finally {
-  store.dispose();
+  storeScope.dispose();
   if (origReport) Object.defineProperty(globalThis, "reportError", origReport);
   else Reflect.deleteProperty(globalThis, "reportError");
 }

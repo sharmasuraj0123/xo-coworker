@@ -1,7 +1,7 @@
 import type { Contributed, Entry, Places, Undo } from "../core/kernel/types";
-import type { createScope } from "../core/kernel/scope.js";
+import type { ModuleContext } from "../core/kernel/types";
 
-export type SurfaceScope = ReturnType<typeof createScope>;
+export type SurfaceScope = Pick<ModuleContext, "signal" | "effect">;
 
 export type SurfaceEntry<C> = Entry & {
   mount?(host: HTMLElement): Undo | void;

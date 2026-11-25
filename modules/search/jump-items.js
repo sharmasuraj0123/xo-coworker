@@ -47,7 +47,7 @@ function createJumpActions(actions) {
   };
 }
 
-/** @param {WorkspaceJumpDeps} options @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+/** @param {WorkspaceJumpDeps} options @param {import("../../core/kernel/types").Lifetime} scope */
 export function createWorkspaceJump({ sources, items, actions, ...options }, scope) {
   const field = options.host.querySelector("input");
   const list = options.host.querySelector("ul");

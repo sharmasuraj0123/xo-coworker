@@ -5,7 +5,7 @@
 import { esc } from "../../core/platform/util.js";
 import { createScope } from "../../core/kernel/scope.js";
 
-/** @param {import("./types").JumpDeps} deps @param {ReturnType<typeof createScope>} scope */
+/** @param {import("./types").JumpDeps} deps @param {import("../../core/kernel/types").Lifetime} scope */
 export function createJump({ host, field, list, places, actions, more, go, announce, focusIn, onHidden }, scope = createScope()) {
   let jsel = 0;
   /** @type {import("./types").JumpItem[]} */

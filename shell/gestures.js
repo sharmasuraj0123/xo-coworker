@@ -18,7 +18,7 @@ const committed = (d, v, size, frac) => Math.abs(d) > size * frac || (Math.abs(v
 // never start a navigation swipe on these: they take touches of their own
 const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre, table, .md-code, iframe, .xterm, [data-noswipe]";
 
-/** @param {HTMLElement | null} tdock @param {ReturnType<typeof createScope>} scope */
+/** @param {HTMLElement | null} tdock @param {import("../core/kernel/types").Lifetime} scope */
 export function dockGestures(tdock, scope) {
   if (!tdock) return;
   /** @type {HTMLElement | null} */
@@ -46,7 +46,7 @@ export function dockGestures(tdock, scope) {
   });
 }
 
-/** @param {SurfaceGestures} A @param {ReturnType<typeof createScope>} scope */
+/** @param {SurfaceGestures} A @param {import("../core/kernel/types").Lifetime} scope */
 export function wireGestures(A, scope) {
   const $ = (/** @type {string} */ s) => /** @type {HTMLElement} */ (document.querySelector(s));
   const main = $("#main"), side = $("#side"), scrim = $("#side-scrim");
@@ -229,7 +229,7 @@ export function wireRunsGesture(runsCard, detail, back, signal) {
   });
 }
 
-/** @param {Conversation} C @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
+/** @param {Conversation} C @param {WordsOf} wordsOf @param {import("../core/kernel/types").Lifetime} scope */
 export function conversationGestures(C, wordsOf, scope) {
   // ── while typing, a drag down over the conversation lowers the keyboard (the draft is kept) ──
   const sc = C.scroller;
@@ -248,7 +248,7 @@ export function conversationGestures(C, wordsOf, scope) {
 }
 
 const HOLD = 480;
-/** @param {Conversation} A @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
+/** @param {Conversation} A @param {WordsOf} wordsOf @param {import("../core/kernel/types").Lifetime} scope */
 function longPress(A, wordsOf, scope) {
   const msgs = A.msgs;
   let cancelHold = () => {}, cancelMenu = () => {}, fired = false;

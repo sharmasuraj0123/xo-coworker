@@ -25,7 +25,7 @@ export interface GalleryState {
 }
 
 export interface GalleryDeps {
-  scope?: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+  scope?: import("../../core/kernel/types").Lifetime;
   MS: ReturnType<typeof createMadeStore>;
   PV: ReturnType<typeof createPreviews>;
   syncCards: ReturnType<typeof createCards>["syncCards"];
@@ -34,7 +34,7 @@ export interface GalleryDeps {
 }
 
 export interface MadeDeps {
-  scope?: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+  scope: import("../../core/kernel/types").Lifetime;
   world: import("./read-types.d.ts").MadeWorld & {
     thread: (id: string | null) => Parameters<typeof import("../../core/services/world/relay.js").sharedFileRoute>[0];
   };
