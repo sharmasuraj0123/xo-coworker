@@ -17,7 +17,7 @@
 .theme[aria-checked="true"] .th-knob svg:last-child{opacity:0}
 
 .brand{flex:1;display:flex;align-items:center;gap:var(--s-2);white-space:nowrap;min-width:0}
-.brand-mark .xo-mark{display:block;width:var(--size-30);height:var(--size-13)}
+.brand-mark .xo-mark{display:block;width:var(--h-control-compact);height:var(--ic-inline-compact)}
 .brand b{font:var(--fw-strong) var(--fs-title)/1 var(--sans);letter-spacing:var(--tr-20)}
 .xo-mark .x{stroke:var(--mark-x)}.xo-mark .o{stroke:var(--mark-o)}
 .side-x{display:none}

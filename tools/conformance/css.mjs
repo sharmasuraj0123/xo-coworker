@@ -43,12 +43,19 @@ function acceptsNamedColors(prop) {
 }
 
 /** @param {string} file @param {object} tree @param {Function} report */
-export function cssRules(file, tree, report, migrated = new Set()) {
+export function cssRules(file, tree, report, migrated = new Set(), record = report) {
   const tokenFile = TOKEN_FILE.has(file);
   tree.walkDecls((decl) => {
     const line = decl.source.start.line;
     if (decl.important) report("important", line);
-    if (tokenFile || migrated.has(decl)) return;
+    if (tokenFile) {
+      if (file === "core/ui/tokens.css" && /^--(?:s|size|ic|inset|gap|h|w|offset|r)-/.test(decl.prop)) {
+        const px = PX.exec(decl.value);
+        if (px && Number(px[1]) % 4 !== 0) record("offGridToken", line, decl.value);
+      }
+      return;
+    }
+    const count = migrated.has(decl) ? record : report;
     const tokens = valueTokens(decl.value);
     for (let index = 0; index < tokens.length; index++) {
       const { text } = tokens[index];
@@ -61,18 +68,19 @@ export function cssRules(file, tree, report, migrated = new Set()) {
       }
       if (HEX.test(text) || (isFunction && COLOR_FN.test(text))
           || (!isFunction && NAMED_COLORS.has(lower) && acceptsNamedColors(decl.prop))) {
-        report("rawColor", line);
+        count("rawColor", line);
       }
       const dimension = PX.exec(text);
-      if (dimension && ![0, 1].includes(Number(dimension[1]))) report(`px-${lengthClass(decl.prop)}`, line);
+      if (dimension && ![0, 1].includes(Number(dimension[1]))) count(`px-${lengthClass(decl.prop)}`, line);
     }
   });
   tree.walkRules((rule) => {
-    if (tokenFile || migrated.has(rule)) return;
+    if (tokenFile) return;
+    const count = migrated.has(rule) ? record : report;
     const tokens = valueTokens(rule.selector).filter(({ text }) => text.trim() && !text.startsWith("/*"));
     for (let index = 1; index < tokens.length; index++) {
       if (tokens[index - 1].text === "[" && tokens[index].text.toLowerCase() === "data-theme") {
-        report("themeSelector", rule.source.start.line + rule.selector.slice(0, tokens[index].offset).split("\n").length - 1);
+        count("themeSelector", rule.source.start.line + rule.selector.slice(0, tokens[index].offset).split("\n").length - 1);
       }
     }
   });

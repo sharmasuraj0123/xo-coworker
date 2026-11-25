@@ -13,7 +13,7 @@
   :root{--pw:100%}
   .app{grid-template-columns:minmax(0,1fr)}
   .side{position:fixed;z-index:var(--z-overlay);top:0;bottom:0;left:0;width:min(300px,84vw);transform:translateX(-102%);transition:transform var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease);box-shadow:none}
-  .app.drawer .side{transform:none;box-shadow:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
+  .app.drawer .side{transform:none;box-shadow:var(--shadow-drawer)}
   .side-x{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:10px;color:var(--ink-3)}
   .side-x svg{width:var(--ic);height:var(--ic)}
   .side-scrim{position:fixed;inset:0;z-index:calc(var(--z-overlay) - 5);background:var(--scrim);animation:fade var(--dur-base)}

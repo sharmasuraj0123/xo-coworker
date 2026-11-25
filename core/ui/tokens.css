@@ -99,7 +99,7 @@
   --stroke-focus-outline:3px; --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
   /* Scroll containers reserve the ring's offset and room around focused controls. */
   --ring-room:6px;
-  --s-keycap-block:var(--s-0-5); --s-keycap-inline:var(--s-1-25); --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
+  --s-keycap-block:var(--gap-control-tight); --s-keycap-inline:var(--inset-badge); --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
   --on-agent:#0B0B0C; /* Dark ink maintains contrast on agent colours. */
   --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3); --fill-theme-track-on:var(--switch-on);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
@@ -165,24 +165,24 @@
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24);
   --badge-dot:calc(var(--ic) * 3 / 8);
   --shadow-ink:rgba(0,0,0,.35);
+  --shadow-drawer:var(--h-control-compact) 0 var(--size-preview-compact) rgb(0 0 0 / calc(.5 * var(--sha)));
   --offset-outset:-10px;
   --offset-half-icon:-8px;
-  --s-0-5:2px;
-  --s-1-25:5px;
+  --gap-control-tight:2px;
+  --inset-badge:5px;
   --palette-shadow-clear:#0000;
-  --size-13:13px;
-  --size-15:15px;
+  --ic-inline-compact:13px;
+  --ic-inline:15px;
   --offset-outset-small:-3px;
   --w-compact-menu:168px;
-  --s-2-5:10px;
-  --s-0-75:3px;
+  --inset-control-inline:10px;
+  --inset-segment:3px;
   --ic-medium:18px;
-  --size-30:30px;
-  --size-80:80px;
+  --h-control-compact:30px;
+  --size-preview-compact:80px;
   --ic-tiny:9px;
   --r-tight:3px;
-  --s-1-5:6px;
-  --z-grip:3;
+  --inset-row-compact:6px;
   --opacity-muted:.5;
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
   --gap-icon:var(--s-2); /* Spacing follows a 4 px grid. */
@@ -193,10 +193,10 @@
   --ic-activity:10px; --ic-tool-file:26px; --w-tool-file-label:260px; --s-tool-icon-inset:1px;
   --h-thread-label:22px; --s-thread-label-inline:9px; --w-thread-label:180px; --h-risk-badge:20px;
   --w-thread-label-phone:110px;
-  --s-thread-control-inline:var(--s-2-5); --s-thread-menu-offset:6px; --w-thread-menu-floor:180px; --w-thread-rename:200px;
+  --s-thread-control-inline:var(--inset-control-inline); --s-thread-menu-offset:6px; --w-thread-menu-floor:180px; --w-thread-rename:200px;
   --s-tool-rail-phone:14px;
-  --ic-decision-option:var(--size-13); --s-decision-option-text:2px; --s-decision-section:10px; --s-decision-change-inline:14px;
-  --w-run-chip:280px; --w-run-stat-min:88px; --ic-run-sr:1px; --s-run-control-inline:var(--s-2-5); --s-run-text-gap:2px;
+  --ic-decision-option:var(--ic-inline-compact); --s-decision-option-text:2px; --s-decision-section:10px; --s-decision-change-inline:14px;
+  --w-run-chip:280px; --w-run-stat-min:88px; --ic-run-sr:1px; --s-run-control-inline:var(--inset-control-inline); --s-run-text-gap:2px;
   --s-run-undo-inset:2px; --palette-mask-opaque:#000; --mask-run-tail:linear-gradient(var(--palette-mask-opaque) 60%,var(--fill-clear));
   --mix-rec-hover:22%;
   --palette-transparent:transparent; --fill-clear:var(--palette-transparent); --fill-link-base:var(--palette-transparent);
@@ -221,7 +221,7 @@
   --slide-undo-entry:-24px; --slide-confirm-exit:-8px; --slide-cancel-exit:-18px; --shift-hover-chevron:3px;
   --ic-approval-stamp:84px; --w-effort-label:96px; --w-decision-attribution:84px; --w-empty-state-mark:58px;
   --s-touch-extension:-8px; --s-notice-touch-extension:-12px; --h-folder-touch-action:28px;
-  --s-model-chip-phone:var(--s-1-5); --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
+  --s-model-chip-phone:var(--inset-row-compact); --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
   --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
   --s-message-files-top:6px; --w-message-files:560px; --w-message-file-min:220px;
@@ -234,14 +234,14 @@
   --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
   --s-long-press-gap:2px; --s-long-press-inline:14px;
   --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
-  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-80); --stroke-artifact-focus:2px;
+  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-preview-compact); --stroke-artifact-focus:2px;
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
   --h-skeleton-label:10px;
   --s-since-phone-block:10px;
   --w-stage-preferred:clamp(420px,42vw,720px);
   --s-map-header-tight:10px; --offset-map-status-inline:7px; --s-map-control-inset:9px; --w-map-status-mark:2px;
   --h-map-legend-max:86px; --w-map-agent-max:260px; --stroke-map-focus:2px; --w-map-node:172px; --h-map-node:34px;
-  --w-map-node-icon:var(--size-15); --h-map-root-node:38px; --offset-map-root-node:-2px; --ic-map-status:6px;
+  --w-map-node-icon:var(--ic-inline); --h-map-root-node:38px; --offset-map-root-node:-2px; --ic-map-status:6px;
   --w-map-more-min:84px; --h-map-note:26px; --ic-map-spinner:var(--ic-tiny); --s-map-node-halo:3px;
 
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
@@ -251,8 +251,8 @@
   --s-viewer-head-top:14px;
   --s-viewer-button-end:11px;
   --s-viewer-button-start:9px;
-  --s-viewer-segment-in:var(--s-0-75);
-  --s-viewer-seg-inline:var(--s-2-5);
+  --s-viewer-segment-in:var(--inset-segment);
+  --s-viewer-seg-inline:var(--inset-control-inline);
   --r-viewer-segment-inset:4px; --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
   --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
   --measure-viewer-empty:44ch; --palette-white:#fff; --fill-viewer-document:var(--palette-white); --tile-viewer-checker:16px;
@@ -269,7 +269,7 @@
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8);
   /* Stacking: one scale, so a popover can never fall under a panel. */
-  --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
+  --z-raised:2; --z-grip:3; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
   /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
   --ease:cubic-bezier(.2,.8,.2,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */

@@ -29,6 +29,9 @@ export function tokenCensus(allowances = []) {
     });
     tree.walkDecls(decl => {
       const shared = file === TABLE && decl.prop.startsWith("--");
+      if (shared && /^--(?:size-\d+(?:-|$)|[srh]-\d+-\d+(?:-|$))/.test(decl.prop)) {
+        report("valueNamedToken", decl.source.start.line, decl.prop);
+      }
       if (shared) table.set(decl.prop, decl.source.start.line);
       for (const key of references(decl.value)) {
         if (shared) add(aliases, key, decl.prop);

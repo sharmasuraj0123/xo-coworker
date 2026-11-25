@@ -53,7 +53,7 @@ function pythonComments(root, files) {
 }
 
 /** @param {string} root @param {string[]} [files] */
-export function inventory(root, files = conformanceFiles(root)) {
+export function inventory(root, files = conformanceFiles(root), recordedStyle = {}) {
   const baseline = join(root, "tools/baselines/token-ownership.json");
   const census = tokenCensus(existsSync(baseline) ? JSON.parse(readFileSync(baseline, "utf8")) : []);
   const sourceFiles = new Set(files);
@@ -92,7 +92,10 @@ export function inventory(root, files = conformanceFiles(root)) {
         });
         commentRules(comments, report, false);
         census.sheet(file, tree, (rule, line, detail) => add(file, rule, line, detail));
-        cssRules(file, tree, report, census.marked);
+        cssRules(file, tree, report, census.marked, (rule, line, value) => {
+          const key = [file, rule, value].filter(Boolean).join(" / ");
+          recordedStyle[key] = (recordedStyle[key] ?? 0) + 1;
+        });
       } else if (file.endsWith(".sh")) {
         commentRules(shellComments(source), report, false);
       } else {

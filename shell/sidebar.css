@@ -117,5 +117,5 @@
 .pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}
 
 @layer tokens{
-:where(.side.is-drag){--shadow-sidebar-drag:var(--size-30) 0 var(--size-80) rgb(0 0 0 / calc(.5 * var(--sha)))}
+:where(.side.is-drag){--shadow-sidebar-drag:var(--shadow-drawer)}
 }

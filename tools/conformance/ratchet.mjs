@@ -134,10 +134,15 @@ export function checkConformance(root, baselineDir, { update, base }) {
   const repository = checkout(root, base);
   const baselines = {};
   const growth = [];
+  let recordedStyle = {};
   for (const name of FAMILIES) {
     const path = join(baselineDir, `${name}.json`);
     const local = relative(root, path).split(sep).join("/");
     const current = readBaseline(local, readFileSync(path, "utf8"));
+    if (name === "style") {
+      recordedStyle = current.$recorded ?? {};
+      delete current.$recorded;
+    }
     baselines[name] = current;
     if (!repository) continue;
     const { git, ref } = repository;
@@ -146,7 +151,13 @@ export function checkConformance(root, baselineDir, { update, base }) {
     if (!entry.stdout) continue;
     const existing = git(["show", `${ref}:${local}`]);
     if (existing.status !== 0) throw new Error(existing.error?.message ?? existing.stderr);
-    growth.push(...allowanceSurplus(current, readBaseline(local, existing.stdout),
+    const previous = readBaseline(local, existing.stdout);
+    if (name === "style" && previous.$recorded) {
+      const offGrid = record => Object.fromEntries(Object.entries(record).filter(([key]) => key.includes(" / offGridToken / ")));
+      growth.push(...allowanceSurplus({ shared: offGrid(recordedStyle) }, { shared: offGrid(previous.$recorded) },
+        (file, key) => `  New off-grid token debt: ${key}`));
+    }
+    growth.push(...allowanceSurplus(current, previous,
       (file, rule, old, count) => `  ${local}: ${file} raised the ${rule} allowance from ${old} to ${count}`));
   }
   if (growth.length) return growth.join("\n");
@@ -169,11 +180,15 @@ export function checkConformance(root, baselineDir, { update, base }) {
     if (wiring.length) return wiring.join("\n");
   }
   const { coverage, prior } = loadCoverage(root, baselineDir, repository);
-  const migrated = applyCoverage(root, inventory(root), coverage, prior, touched);
+  const observed = {};
+  const migrated = applyCoverage(root, inventory(root, undefined, observed), coverage, prior, touched);
   const { current, errors } = compare(migrated.remaining, baselines, touched, prior ?? {});
   if (migrated.errors.length) return [...migrated.errors, ...errors].join("\n");
   if (errors.length) return errors.join("\n");
   if (!update) {
+    if (formatBaseline({ recordedStyle }) !== formatBaseline({ recordedStyle: observed })) {
+      return "Refresh the recorded CSS debt with --update-baselines.";
+    }
     const stale = FAMILIES.flatMap(name => allowanceSurplus(baselines[name], current[name],
       (file, rule, count, allowed) => `  ${file}: ${rule} has ${count}, baseline allows ${allowed}`));
     if (stale.length) return `Stale conformance baseline. Run node tools/check.mjs --fast --update-baselines.\n${stale.join("\n")}`;
@@ -181,8 +196,9 @@ export function checkConformance(root, baselineDir, { update, base }) {
   if (update) {
     for (const name of FAMILIES) {
       const path = join(baselineDir, `${name}.json`);
-      const updated = formatBaseline(current[name]);
-      if (updated !== formatBaseline(baselines[name])) writeFileSync(path, updated);
+      const snapshot = name === "style" && Object.keys(observed).length ? { ...current[name], $recorded: observed } : current[name];
+      const updated = formatBaseline(snapshot);
+      if (updated !== readFileSync(path, "utf8")) writeFileSync(path, updated);
     }
   }
   return null;

@@ -312,6 +312,27 @@ test("component geometry allowances match the exact declaration", (context) => {
   assert.deepEqual(inventory(root), []);
 });
 
+test("shared role names and whole grid steps are accepted while numeric aliases are rejected", context => {
+  const root = fixture(context, {
+    "core/ui/tokens.css": ":root{--size-13:13px;--s-1-25:5px;--r-1-5:6px;--h-0-5:2px;--s-2:8px;--inset-badge:5px}",
+  });
+  const names = inventory(root).filter(item => item.rule === "valueNamedToken").map(item => item.note);
+  assert.deepEqual(names, ["--size-13", "--s-1-25", "--r-1-5", "--h-0-5"]);
+});
+
+test("recognized geometry remains counted and cannot cover the same literal on another declaration", context => {
+  const file = "modules/map/badge.css";
+  const root = fixture(context, {
+    [file]: ":root{--tip:3px}.badge{width:3px}",
+    "core/ui/tokens.css": ":root{--inset-badge:5px;--s-2:8px}",
+    "tools/baselines/token-ownership.json": JSON.stringify([JSON.stringify([file, ":root", "--tip", "3px"])]),
+  });
+  const recorded = {};
+  const findings = inventory(root, undefined, recorded);
+  assert.deepEqual(recorded, { [file + " / px-size"]: 1, "core/ui/tokens.css / offGridToken / 5px": 1 });
+  assert.deepEqual(findings.filter(row => row.rule === "px-size").map(row => row.file), [file]);
+});
+
 test("DOM property detection follows the lexical binding and counts reflective writes", (context) => {
   const root = fixture(context, { [FILE]: HEADER + `
     const node = document.querySelector("div");
