@@ -14659,11 +14659,18 @@
   },
   "tests/browser/flows.test.cjs::ids::arts-body": {
    "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "home": "e2e/specs/flows.spec.mjs",
+   "note": "The Artifacts controls spec covers C013 phone rows and decoded thumbnails, C065 empty-kind selection and both H13 pin cases. The Files-from-Artifacts ring sweep remains open."
   },
   "tests/browser/flows.test.cjs::ids::arts": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/artifacts-controls.spec.mjs",
+   "evidence": {
+    "e2e/specs/artifacts-controls.spec.mjs": {
+     "anchor": "async function pinCard(t, phone, theme, key)",
+     "reason": "H13 reaches a virtualized phone row by wheel, pins it once and keeps focus. H8 verifies keyboard Jump lands in Artifacts. C013 checks phone rows and the Images grid, pinning the release geometry with the pre-existing 4 px overlap left for owner follow-up."
+    }
+   }
   },
   "tests/browser/flows.test.cjs::ids::cp-stop": {
    "status": "planned",
@@ -14718,12 +14725,24 @@
    "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-pj": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/artifacts-controls.spec.mjs",
+   "evidence": {
+    "e2e/specs/artifacts-controls.spec.mjs": {
+     "anchor": "async function kinds(t, phone, theme)",
+     "reason": "C065 selects the project from the visible combobox and keeps Images checked with one Tab stop and the project-specific empty state."
+    }
+   }
   },
   "tests/browser/flows.test.cjs::ids::arts-f": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/artifacts-controls.spec.mjs",
+   "evidence": {
+    "e2e/specs/artifacts-controls.spec.mjs": {
+     "anchor": "async function kinds(t, phone, theme)",
+     "reason": "Native arrow keys move the single selected kind and focus. Images stays selected across the empty project change and displays the decoded image in the two-column phone grid."
+    }
+   }
   },
   "tests/browser/flows.test.cjs::ids::say": {
    "status": "planned",
@@ -14755,7 +14774,8 @@
   },
   "tests/browser/flows.test.cjs::ids::lbx-states": {
    "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "home": "e2e/specs/flows.spec.mjs",
+   "note": "The lightbox controls spec proves the S201/S202 navigation and focus behavior with a real conversation album. The STATES hover and press sweep remains open."
   },
   "tests/browser/flows.test.cjs::ids::hm-next": {
    "status": "planned",
