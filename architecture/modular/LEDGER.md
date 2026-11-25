@@ -20,7 +20,7 @@ Items inside first-party files: 2488 (moved 1794, deleted 239, planned 233, kept
 |---|---:|---|---|
 | `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
 | `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
-| `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
+| `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the quick start and the layout by folder and layer; checks and tests moved to DEVELOPING.md |
 | `favicon.svg` | 6 | planned | favicon.svg · next: Published at the existing root URL. The icon pack source has the same path geometry and paint. Generating the published asset from the pack is pending. |
 | `index.html` | 299 | split | index.html, shell/overlays.js · next: The visible frame stays in the HTML for first paint; the existing shell mount inserts hidden regions before app startup. |
 | `serve.py` | 714 | kept | serve.py |

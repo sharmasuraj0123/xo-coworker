@@ -13,7 +13,7 @@
   "README.md": {
    "status": "kept",
    "home": "README.md",
-   "note": "rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane"
+   "note": "rewritten: what the app does, the quick start and the layout by folder and layer; checks and tests moved to DEVELOPING.md"
   },
   "assets/icons/xo/a-places-and-the-frame/artifacts.svg": {
    "status": "moved",

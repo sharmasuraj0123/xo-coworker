@@ -18,7 +18,14 @@
 | `http.js` | `request` and the one error parser (`ApiError`), the Coder token, `blob`, `text`, `upload`, `signedUrl`, `socketUrl`, `urlOf`, `missingRoute`, `clientId`. | **yes**: takes the Coder token out of the address bar |
 | `keys.js` | The shortcut catalogue and engine: `is`, `globalFor`, `typing`, `label`, `hint`, `set`, `reset`, `onChange`. | **yes**: reads `cv-keys` from localStorage |
 | `gestures.js` | The touch primitive: `drag`, `glide`, `follow`, `unstyle`, `tick`, `scrollsX`, `scrolledY`, `edgeIsSafari`, `FLICK`. | **yes**: a capture `touchstart` listener resets the one-touch claim |
-| `types.d.ts` | Types shared by the files above. | — |
+| `storage.js` | The only way to browser storage: `read`, `write`, `erase`, with failures reported. | no |
+| `cache.js`, `latest.js` | `createLru` (a bounded cache) and `latest` (a refresh that cancels the one it replaces). | no |
+| `api.js`, `project-api.js` | The client for xo-space's routes. | through `http.js` |
+| `response.js`, `response-fields.js`, `*-response.js`, `*-responses.js`, `launchpad-stream.js` | Typed readers that check each server response before it is used (`requestChecked`), and their field checks. | through `http.js` |
+| `failure.js` | `createFailureSurface`: groups failure reports into one line with bounded details. | no |
+| `gesture-motion.js` | `glide`, `follow`, `unstyle`: the motion under touch gestures. | no |
+| `dom.js`, `viewport.js`, `calendar.js`, `relative-time.js`, `words.js`, `style-token.js` | Small helpers: element lookup, the phone media query, days, relative time, counted words, a token's computed value. | no |
+| `types.d.ts`, `*-types.d.ts` | Types shared by the files above. | — |
 
 Import the side-effect files by their own path, never through `index.js`, so loading the surface never touches the page.
 
