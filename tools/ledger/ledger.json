@@ -2759,7 +2759,7 @@
      "reason": "GitHub sends issue and pull request text to the project composer."
     },
     "modules/threads/action-surface.js": {
-     "anchor": "export function createThreadActions",
+     "anchor": "export const threadActionsModule",
      "reason": "Threads owns its edit, resolve and delete actions and their receipts."
     },
     "modules/threads/presentation.js": {
@@ -2775,7 +2775,7 @@
      "reason": "Decisions owns the mounted conversation dock and header opener."
     },
     "modules/conversation/thread-page-module.js": {
-     "anchor": "export function createThreadPageModule",
+     "anchor": "export const threadPageModule",
      "reason": "Conversation owns the thread page contribution, its Escape behavior and transfer to the main chat."
     },
     "modules/conversation/composer-module.js": {

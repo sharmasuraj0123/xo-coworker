@@ -25,7 +25,6 @@ export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C exte
   msgsEl: HTMLElement;
   placeRegion(): HTMLElement;
   loadAhead(conversation: C): void;
-  TP: { C: unknown; tid: string | null; wait?: boolean };
   STAGE: Sync & { pageShown?: { name: string } | null };
   drawThreadPage(needs: N[]): void;
   dockRender(needs: N[]): void;

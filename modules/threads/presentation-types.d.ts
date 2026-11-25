@@ -10,3 +10,14 @@ export type ThreadPresentation = Pick<typeof status, "glyphOf" | "isBusy" | "isH
 declare module "../../core/kernel/types" {
   interface Services { threadPresentation: ThreadPresentation }
 }
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    threadControls: ReturnType<typeof import("./controls.js").createThreadControls>;
+    threadMenu: ReturnType<typeof import("./menu.js").createThreadMenu>;
+    threadActions: {
+      closeMenu: ReturnType<typeof import("./editing.js").createThreadEditing>["closeThreadMenu"];
+      renderDelete: ReturnType<typeof import("./delete.js").createThreadDelete>["render"];
+    };
+  }
+}

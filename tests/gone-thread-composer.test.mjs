@@ -39,7 +39,7 @@ const render = createShellRenderer({
   PAGE_OF: { home: "#home" }, MAIN: { rendered: null },
   pings: noop, dockAtTop: noop, convThread, sideRender: noop, homeRender: noop,
   places, LPP: { render: noop }, topRender: noop, wsHeadRender: noop, drawConv: noop,
-  say, msgsEl, placeRegion: () => region, loadAhead: noop, TP: { C: null, tid: null }, STAGE: sync,
+  say, msgsEl, placeRegion: () => region, loadAhead: noop, STAGE: sync,
   drawThreadPage: noop, dockRender: noop, heraldRender: noop, chatTargetRender: () => true, targetLineRender: noop,
   syncPlaceholder, sendRender: noop, chipRender: noop, files: () => undefined, LW: sync,
   titleFor: (_, title) => title, isBusy: () => false,

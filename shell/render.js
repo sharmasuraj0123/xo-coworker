@@ -12,7 +12,7 @@ import { createSurfaceSlots } from "./surfaces.js";
 /** @template {import("./render-types.d.ts").RenderNeed} Need @template {import("./render-types.d.ts").RenderThread} Thread @template {import("./render-types.d.ts").RenderConversation} Conversation @param {import("./render-types.d.ts").RenderDeps<Need, Thread, Conversation>} options */
 export function createShellRenderer({
   world, D, view, restoreFocus, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, places, LPP,
-  topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
+  topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
   files, LW, titleFor, isBusy,
 }, /** @type {SurfaceScope} */ scope, /** @type {() => void} */ schedule) {
@@ -57,7 +57,7 @@ export function createShellRenderer({
       if (gone && document.activeElement === say) ([.../** @type {NodeListOf<HTMLElement>} */ (msgsEl.querySelectorAll('.calm-act [data-go="home"]'))].find(usable) || placeRegion()).focus({ preventScroll: true });
     }
     if (!isPage) scope.frame(() => loadAhead(MAIN));
-    if (TP.C && TP.tid && !TP.wait && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
+    drawThreadPage(needs);
     dockRender(needs);
     heraldRender(needs);
     // The line above the composer follows the world's current state on every view.

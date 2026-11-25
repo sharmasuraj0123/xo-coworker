@@ -64,3 +64,7 @@ export type ThreadPageDeps<DockDeps, N extends DockNeed> = {
   sendRender(composer: Composer): void;
   targetLineRender(composer: Composer): unknown;
 };
+
+declare module "../../core/kernel/types" {
+  interface Services { threadPage: { draw(needs: RankedNeed[]): void } }
+}
