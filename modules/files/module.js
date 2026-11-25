@@ -54,6 +54,7 @@ export function createFilesModule(options) {
         stage, files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
       });
       viewer = mountedViewer;
+      ctx.on("app:open-file", ({ file, from }) => mountedViewer.open(file, from));
       const routes = createConversationFiles({
         currentView: ctx.use("currentView"), convThread: ctx.use("placeContext").convThread,
         convAt: options.convAt, CHG: changes, VW: mountedViewer,

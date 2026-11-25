@@ -15,5 +15,5 @@ export interface Row {
   at?: string;
 }
 export interface Group { k: string; word?: string; rows: Row[] }
-export interface Agent { go: string; title: string; color: string; doing: string; since?: number; busy?: boolean; waiting?: boolean }
+export interface Agent { go: string; title: string; color: string; doing: string; since: number | null; busy?: boolean; waiting?: boolean }
 export interface Change { path: string; rel: string; project: string; who?: string; mark?: string; live?: boolean }

@@ -4,7 +4,7 @@ import type { DrawingDeps } from "./draw-types";
 import type { createReadingLayout } from "./reading-layout.js";
 import type { createLocalMessages } from "./local-messages.js";
 
-export type TranscriptHost = Pick<MessageDetailsDeps, "REC" | "threadMark" | "agentOf" | "noun" | "sendWhileRunning"
+export type TranscriptHost = Pick<MessageDetailsDeps, "threadMark" | "agentOf" | "noun" | "sendWhileRunning"
   | "running" | "workingRuns" | "isStopping">
   & Pick<MessageItemsDeps, "CH" | "STAGE" | "limitStatus" | "transcriptOpen" | "youText" | "startHtml" | "fileRoute">
   & Pick<DrawingDeps, "liveReady" | "ensureRoot">

@@ -23,6 +23,10 @@ export interface ViewerFile {
 
 export type OpenFile = ViewerFile & { image: boolean; where: string };
 
+declare module "../../core/kernel/types" {
+  interface Topics { "app:open-file": { file: ViewerFile; from: Element | null } }
+}
+
 export interface ViewerData {
   kind: string;
   name?: string;

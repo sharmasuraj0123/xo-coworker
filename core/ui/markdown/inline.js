@@ -197,6 +197,11 @@ export function renderInline(text, noLinks = false) {
   return formatInline(text, noLinks, false);
 }
 
+/** @param {string} text @param {string} [kind] */
+export function stepLineHtml(text, kind) {
+  return kind === "subagent" ? esc(text.replace(/`([^`]*)`/g, "$1")) : renderInline(text, true);
+}
+
 /** @param {unknown} text */
 export function inlineText(text) {
   return formatInline(text, true, true);

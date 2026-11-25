@@ -18,6 +18,7 @@ export interface StageState {
 }
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
 interface MapApi {
+  render(view: string): void;
   agents(view: string): Agent[];
   mode: "graph" | "tree";
   setMode(mode: "graph" | "tree"): void;

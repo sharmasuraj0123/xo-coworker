@@ -57,3 +57,7 @@ interface MadeFile {
   rel?: string;
   why?: string;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services { homeSkeleton: Pick<MadeDeps, "skTile" | "skBar" | "rememberedMade"> }
+}

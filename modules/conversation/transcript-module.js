@@ -39,6 +39,10 @@ export function createTranscriptModule(host) {
         },
       }, ctx);
       const details = createMessageDetails({
+        REC: { latestOf(thread, project) {
+          const page = /** @type {import("../../shell/surface-types").ArtifactsPage | undefined} */ (ctx.places.get("page", "artifacts"));
+          return page?.latestOf(thread, project) ?? null;
+        } },
         ...host, ...place, ...status, ...decision, world, SHAPE: shape, aliases: host.localMessages.aliases });
       items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf });
       draw = createConversationDrawing({ ...host.reading, ...host, CHG, msgItems: items.msgItems, typingRender: typing.render });

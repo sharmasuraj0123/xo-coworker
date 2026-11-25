@@ -5,6 +5,7 @@ import { elapsed } from "../../../core/platform/index.js";
 import { ICON, stepMark, DOTS } from "../../../core/ui/icons/names.js";
 import { xi, ARC } from "../../../core/ui/icons/icon.js";
 import { renderMarkdown, renderInline } from "../../../core/ui/markdown/markdown.js";
+import { stepLineHtml } from "../../../core/ui/markdown/inline.js";
 import { mediaHtml } from "../../../core/services/media/render.js";
 import { fromSharedFile, dedupeByMade } from "../../../core/services/media/items.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "../../../core/services/comms.js";
@@ -28,8 +29,6 @@ import { stepIcon } from "../../../core/services/step-icons.js";
 
 /** @param {number | null | undefined} ms */
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
-/** @param {string} s @param {string} [kind] */
-export const stepLineHtml = (s, kind) => (kind === "subagent" ? esc(String(s).replace(/`([^`]*)`/g, "$1")) : renderInline(s, true));
 
 /** @param {Step} r */
 function rowMark(r) {

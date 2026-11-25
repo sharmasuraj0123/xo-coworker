@@ -5,7 +5,7 @@ import { createAppServices } from "../../../shell/app-services.js";
 
 const { document } = await dom('<div id="home"></div>');
 globalThis.localStorage = { getItem: () => null };
-const { createArtifactsModule } = await import("../module.js");
+const { artifactsModule } = await import("../module.js");
 const project = { id: "demo", name: "Demo", chatId: "chat" };
 const world = { state: { projects: [project], threads: [] }, project: () => project, thread: () => null };
 const rows = Array.from({ length: 1 }, (_, i) => ({
@@ -31,11 +31,15 @@ places.define({ id: "home.section", kind: "list", scope: "app", description: "Se
 });
 places.define({ id: "page", kind: "keyed", scope: "app", description: "Main pages" });
 places.define({ id: "search.provider", kind: "list", scope: "app", description: "Jump results" });
-const artifacts = createArtifactsModule({
-  go: (view) => visits.push(view), VW: { open() {} }, skTile: () => "", skBar: () => "", rememberedMade: () => null,
+kernel.register({
+  manifest: { id: "test.surfaces", kernel: "^1.1.0", version: "1.0.0", provides: ["navigation", "homeSkeleton"] },
+  activate(ctx) {
+    ctx.provide("navigation", { go: (view) => visits.push(view), back() {} });
+    ctx.provide("homeSkeleton", { skTile: () => "", skBar: () => "", rememberedMade: () => null });
+  },
 });
 kernel.register(createAppServices({ world, announce() {}, projectName: () => project.name, currentView: () => "home" }, () => {}));
-kernel.register(artifacts.module);
+kernel.register(artifactsModule);
 const failed = await kernel.start();
 assert.match(failed.failed[0]?.error, /record slot unavailable/);
 assert.equal(places.entries("home.section").length, 0, "a failed mount leaves no contribution");

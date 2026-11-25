@@ -12,6 +12,11 @@ export interface FileRouteEntry extends Entry {
   route(target: Element, event: MouseEvent): boolean;
 }
 
+export interface ArtifactsPage extends Entry {
+  count(): number;
+  latestOf(thread: string, project: string): { key: string; path?: string; title?: string | null; name?: string } | null;
+}
+
 export interface SurfaceOptions {
   places: Places;
   place: string;

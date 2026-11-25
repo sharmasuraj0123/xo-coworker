@@ -30,7 +30,7 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
   });
   globalThis.removeEventListener ??= () => {};
   const { createMap } = await import("../modules/map/map.js");
-  const { stepLineHtml } = await import("../modules/conversation/blocks/turn.js");
+  const { stepLineHtml } = await import("../core/ui/markdown/inline.js");
   const world = { state: { threads: [], projects: [], turns: null }, thread: () => null, project: () => null };
   const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {}, stepLineHtml };
   const MAP = createMap(options);

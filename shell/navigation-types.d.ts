@@ -1,5 +1,9 @@
 import type { createNavigationState } from "./navigation-state.js";
 
+declare module "../core/kernel/types" {
+  interface Services { navigation: { go(view: string, options?: NavigationOptions): void; back(): void } }
+}
+
 export interface NavigationOptions {
   from?: string;
   row?: string | null;

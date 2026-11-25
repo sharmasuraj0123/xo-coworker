@@ -6,6 +6,7 @@ import { usable } from "../core/ui/a11y/focus.js";
 import { redraw } from "../core/ui/redraw.js";
 import { faviconRender } from "./favicon.js";
 import { createSurfaceSlots } from "./surfaces.js";
+import { mapFrameAt } from "./panel/frame-bindings.js";
 
 /** @import { SurfaceScope } from "./surface-types.d.ts" */
 
@@ -24,7 +25,7 @@ export function createShellRenderer({
   world, D, view, restoreFocus, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, places, LPP,
   topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
-  MAP, VW, LW, FP, titleFor, isBusy,
+  VW, LW, FP, titleFor, isBusy,
 }, /** @type {SurfaceScope} */ scope, /** @type {() => void} */ schedule) {
   const drawPages = createSurfaceSlots({
     places, place: "page", scope, schedule, hideOnRetire: true,
@@ -75,7 +76,7 @@ export function createShellRenderer({
     sendRender();
     chipRender();
     D.sync();
-    MAP.render(v);
+    mapFrameAt(places)?.api.render(v);
     VW.notice();
     STAGE.sync();
     LW.sync();

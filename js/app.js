@@ -9,7 +9,7 @@ import { createIntelSurface } from "../modules/chats/intel-surface.js";
 import { $ } from "../core/platform/dom.js";
 import { dockAtTop } from "../modules/conversation/dock-layout.js";
 import { PAGE_OF, pageEl, sessionOf, convOfChat } from "../shell/place-context.js";
-import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
+import { turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { mountConversationMarkdown, WEBPICS } from "../modules/conversation/markdown.js";
 import { createRunsModule } from "../modules/runs/module.js";
 import { mountApplicationSettings } from "../modules/settings/application.js";
@@ -29,7 +29,8 @@ import { createComposerSurface } from "../modules/conversation/composer-surface.
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { askShort } from "../modules/decisions/ask-label.js";
 import { createFilesModule } from "../modules/files/module.js";
-import { createMapModule } from "../modules/map/module.js";
+import { mapModule } from "../modules/map/module.js";
+import { mapFrameAt } from "../shell/panel/frame-bindings.js";
 import { mountWorkspaceStage } from "../shell/panel/workspace-stage.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
@@ -61,10 +62,10 @@ import { createChangesModule } from "../modules/changes/module.js";
 import { createProjectModule } from "../modules/create-project/module.js";
 import { mountProjectIcons } from "../modules/projects/surface.js";
 import { mountShells } from "../modules/shells/surface.js";
-import { createArtifactsModule } from "../modules/artifacts/module.js";
+import { artifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
 import { createHomeModule } from "../modules/home/module.js";
-import { skTile, bar as skBar, rememberedMade } from "../modules/home/skeleton.js";
+import { homeSkeletonModule } from "../modules/home/skeleton.js";
 import { wordsOf } from "../modules/conversation/words.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 import { SHAPE_IC } from "../modules/settings/index.js";
@@ -132,13 +133,12 @@ const { paths: PATHS, quickOpen: QO } = createFileSearch(appScope, files, {
 });
 const LB = mountConversationMedia(appScope, kernel.places, VW, announce);
 const { SH, mountPanel } = mountShells(appScope, { applicationShape, places: kernel.places, view: currentView, world, PROJ, announce, heraldShow, onChange: schedule });
-const artifacts = createArtifactsModule({ go, VW, skTile, skBar, rememberedMade });
 
 const wsHeadRender = createWorkspaceHeader(currentView, projects);
 const { PICK, projectIcon } = mountProjectIcons(appScope, { world, SHAPE, PROJ, announce, render: () => render() });
-const MAP = createMapModule({ go: (v) => go(v, { panel: true }), isBusy, openFile: (f, from) => VW.open(f, from), stepLineHtml });
 const { panelThreads, threadCounts } = createThreadGroups({
-  world, D, MAP, convProject, askShort, threadMark: (t) => threadMark(t), isBusy, isHeld,
+  world, D, MAP: { agents: (view) => mapFrameAt(kernel.places)?.api.agents(view) ?? [] }, convProject, askShort,
+  threadMark: (t) => threadMark(t), isBusy, isHeld,
 });
 const { LP, LW, LPP, lpProject, dispose: disposeLaunchpad } = createLaunchpadSurface({
   world, isBusy, isHeld, PROJ, projectIcon, projects, go, announce, schedule, notices,
@@ -155,7 +155,7 @@ const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRu
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 
 const sideRender = createSideRows({
-  view: currentView, world, CH, REC: { artifacts }, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
+  view: currentView, world, CH, places: kernel.places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
 });
 
 const chatOf = convProject;
@@ -209,12 +209,12 @@ const { MAIN, scroller, msgsEl, loadAhead, loadOlderNow, reading, returnPill, sh
 });
 const openFromPanel = createPanelThreadOpener({ view: currentView, world, STAGE, TP, go, showMsg });
 const { drawConv, drawingView, module: transcriptModule } = createTranscriptModule({
-  REC: artifacts, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf, isStopping, localMessages, limitStatus, CH, STAGE,
+  threadMark, noun, sendWhileRunning, running, workingRuns, agentOf, isStopping, localMessages, limitStatus, CH, STAGE,
   transcriptOpen: transcriptFolds.open, youText: (text) => youText(text), startHtml, fileRoute: (path, conv) => fileRoute(path, conv),
   reading, ensureRoot, liveReady, actions: () => ({ convAt, loadOlderNow, transcriptFolds, schedule, toggleChecklist, checklistRender,
     requestFocus: redrawFocus.request, heraldBox, interruptRun }),
 });
-const { go: navigate, back } = createNavigation({
+const { go: navigate, back, module: navigationModule } = createNavigation({
   location: navigationState, VW, STAGE, IQ, PHONE, bus: kernel.bus, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open),
   clearDock: () => MDOCK.reset({ restoreFocus: false }),
   clearThreadEdit: threadControls.clear,
@@ -267,7 +267,7 @@ const rendererOptions = {
   pings, dockAtTop, convThread, sideRender, homeRender, places: kernel.places, LPP,
   topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
-  MAP, VW, LW, FP, titleFor: Kit.titleFor, isBusy,
+  VW, LW, FP, titleFor: Kit.titleFor, isBusy,
 };
 const renderShell = createShellRenderer(rendererOptions, appScope, schedule);
 function render() {
@@ -284,8 +284,8 @@ const syncInert = mountShellInteractions(appScope, kernel.layers, {
 });
 
 await bootShell(appScope, [
-  noticeModule, failureModule,
+  noticeModule, failureModule, navigationModule,
   threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
-  homeModule, JUMP.module, sinceModule, artifacts.module, runs.module, settings.module,
-  MAP.module, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,
+  homeSkeletonModule, homeModule, JUMP.module, sinceModule, artifactsModule, runs.module, settings.module,
+  mapModule, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,
 ], { shapeIcon: SHAPE_IC, dispose: [SIDE.dispose, CH.dispose, disposeLaunchpad], THEME, applyTheme, SIDE, PHONE, setDrawer, render, world, schedule, follow, loadDraft });

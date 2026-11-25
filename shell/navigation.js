@@ -46,5 +46,10 @@ export function createNavigation({
     if (v.startsWith("c:")) go("chats", { from: "t:", remember: false });
     else if (v.startsWith("t:")) go(location.parentOf(v) || "p:" + convThread(v)?.project, { from: v, remember: false });
   }
-  return { go, back };
+  /** @type {import("../core/kernel/types").ModuleDef} */
+  const module = {
+    manifest: { id: "xo.navigation", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["navigation"] },
+    activate(ctx) { ctx.provide("navigation", { go, back }); },
+  };
+  return { go, back, module };
 }

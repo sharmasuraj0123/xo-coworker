@@ -6,6 +6,11 @@ import { ownSurface } from "../surfaces.js";
 
 /** @import { SurfaceScope } from "../surface-types.d.ts" */
 
+/** @param {Pick<StageDeps["places"], "get">} places */
+export function mapFrameAt(places) {
+  return /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
+}
+
 /** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: { map: HTMLElement, changes: HTMLElement } }} BindHosts */
 
 /** @typedef {{ options: ChangesFrameOptions, fallback: () => HTMLElement, refresh: () => void }} BindActions */
@@ -21,7 +26,7 @@ export function bindPanelFrames({ places, scope, hosts, options, fallback, refre
   let retireMap = () => {}, retireChanges = () => {};
 
   function sync() {
-    const mapEntry = /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
+    const mapEntry = mapFrameAt(places);
 
     const changesEntry = /** @type {ChangesFrame | undefined} */ (places.get("panel.frame", "changes"));
     if (mapEntry !== mapFrame) {

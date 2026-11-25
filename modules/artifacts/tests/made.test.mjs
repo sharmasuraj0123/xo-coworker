@@ -6,7 +6,7 @@ const { document } = await dom(`<div id="home"></div>`);
 globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
-const { createArtifactsModule } = await import("../module.js");
+const { artifactsModule } = await import("../module.js");
 const { createAppServices } = await import("../../../shell/app-services.js");
 const { createKernel } = await import("../../../core/kernel/index.js");
 const { definePlaces, contributedSearch } = await import("../../../shell/places.js");
@@ -36,14 +36,18 @@ const world = { state: { threads, projects: [{ id: "demo", name: "Demo", chatId:
 /** @type {string[]} */
 const went = [];
 
-/** @type {Parameters<Parameters<typeof createArtifactsModule>[0]["VW"]["open"]>[0][]} */
+/** @type {import("../../../core/kernel/types").Topics["app:open-file"]["file"][]} */
 const opened = [];
-const MD = createArtifactsModule({
-  go: (v) => went.push(v), VW: { open: (f) => opened.push(f) },
-  skTile: () => '<li class="md-it is-sk"></li>', skBar: () => "", rememberedMade: () => 3,
+kernel.register({
+  manifest: { id: "test.surfaces", kernel: "^1.1.0", version: "1.0.0", provides: ["navigation", "homeSkeleton"] },
+  activate(ctx) {
+    ctx.provide("navigation", { go: (view) => went.push(view), back() {} });
+    ctx.provide("homeSkeleton", { skTile: () => '<li class="md-it is-sk"></li>', skBar: () => "", rememberedMade: () => 3 });
+    ctx.on("app:open-file", ({ file }) => opened.push(file));
+  },
 });
 kernel.register(createAppServices({ world, announce() {}, projectName: (p) => p.toUpperCase(), currentView: () => "home" }, () => {}));
-kernel.register(MD.module);
+kernel.register(artifactsModule);
 await kernel.start();
 const section = places.get("home.section", "hm-made");
 const jump = (query) => contributedSearch(places, query);
@@ -66,7 +70,7 @@ await t("a card's press opens its file in the viewer; a branch goes to its threa
   assert.deepEqual(opened.map((f) => [f.name, f.project, f.rel]), [["plan.md", "demo", "plan.md"]]);
   document.querySelector('[data-made-file="b"]').dispatchEvent(new window.Event("click", { bubbles: true }));
   assert.deepEqual(went, ["t:t2"]);
-  assert.equal(MD.latestOf("t1", "demo")?.id, "a");
+  assert.equal(places.get("page", "artifacts").latestOf("t1", "demo")?.id, "a");
 });
 await t("selecting a Jump result goes to its thread and opens the file", () => {
   jump("plan")[0].run();

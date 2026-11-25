@@ -17216,7 +17216,7 @@
   },
   "js/turnview.js::exports::stepLineHtml": {
    "status": "moved",
-   "home": "modules/conversation/blocks/turn.js"
+   "home": "core/ui/markdown/inline.js"
   },
   "js/turnview.js::functions::cmdIcon": {
    "status": "moved",

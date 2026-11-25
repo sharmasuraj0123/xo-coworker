@@ -35,7 +35,6 @@ export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C exte
   syncPlaceholder(): void;
   sendRender(): void;
   chipRender(): void;
-  MAP: { render(view: string): void };
   VW: { notice(): void };
   LW: Sync;
   FP: Sync;

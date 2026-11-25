@@ -9,7 +9,7 @@ import { createCalmOrder } from "../sideorder.js";
 /** @import { Hold, SideNeed, SideRowsDeps } from "./rows-types.d.ts" */
 
 /** @template {SideNeed} N @param {SideRowsDeps<N>} deps */
-export function createSideRows({ view, world, CH, REC, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
+export function createSideRows({ view, world, CH, places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
   const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false, t: 0 });
   /** @type {Map<string, { n: number, until: number }>} */
   const washes = new Map();
@@ -37,7 +37,11 @@ export function createSideRows({ view, world, CH, REC, D, projects, convThread, 
     $("#nv-arts").classList.toggle("is-on", current === "artifacts");
     $("#nv-lp").classList.toggle("is-on", current === "launchpad");
     // the Artifacts row's count is quiet: a number, never a signal
-    { const n = REC.artifacts.count(); const t = n ? String(n) : ""; if ($("#arts-n").textContent !== t) $("#arts-n").textContent = t; $("#nv-arts").setAttribute("aria-label", n ? `Artifacts, ${n}` : "Artifacts"); }
+    const artifacts = /** @type {import("../surface-types").ArtifactsPage | undefined} */ (places.get("page", "artifacts"));
+    const count = artifacts?.count() ?? 0;
+    const label = count ? String(count) : "";
+    if ($("#arts-n").textContent !== label) $("#arts-n").textContent = label;
+    $("#nv-arts").setAttribute("aria-label", count ? `Artifacts, ${count}` : "Artifacts");
     // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
     for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts"), $("#nv-lp")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     $("#nv-more").classList.toggle("is-on", !!$("#side .nav .nrow.is-on[hidden]")); // a place kept in More marks More
