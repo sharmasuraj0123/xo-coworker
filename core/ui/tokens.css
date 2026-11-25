@@ -167,6 +167,13 @@
   --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
   --s-message-files-top:6px; --w-message-files:560px; --w-message-file-min:220px;
+  --offset-shell-toggle-icon:-2px; --h-shell-dock:320px; --offset-shell-grip-ring:-8px; --s-shell-compact-gap:2px;
+  --s-shell-control-inset:10px; --s-shell-row-inset:6px; --w-shell-tab-rename:200px; --w-shell-tab:220px;
+  --h-shell-count:18px; --s-shell-count-inline:5px; --ic-shell-status:7px; --d-shell-wait:1.2s; --w-shell-location:280px;
+  --stroke-shell-ended:1.5px; --mix-shell-confirm:30%;
+  --s-shell-note-edge:14px; --w-shell-confirm-message:220px;
+  --offset-shell-list-link:3px; --s-shell-status-top:7px; --w-shell-list-name:320px; --s-shell-flag-block:1px;
+  --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
@@ -284,3 +291,4 @@
 /* Phone controls retain the touch floor while taller rows keep their own heights. */
 @media (max-width:760px){:root{--h-row:36px}}
 @media (max-width:760px){:root{--cbar-fade:22px}}
+:where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}

@@ -53,7 +53,7 @@ test("a 40 px bar holds a 32 px control and the ring", () => {
   const insideRule = "inset 0 -1px 0 var(--line-faint)";
   assert.ok(bars.some((rule) => rule.sel === ".vw-top" && declares(rule, "border-bottom", "0")
     && declares(rule, "box-shadow", insideRule)));
-  assert.ok(bars.some((rule) => rule.sel === ".shd-bar" && declares(rule, "box-shadow", insideRule)));
+  assert.ok(bars.some((rule) => rule.sel === ".shd-bar" && resolved(rule, "box-shadow", resolveValue(insideRule))));
 });
 
 test("the desktop version strip fits its smaller controls and ring above its border", () => {

@@ -1,0 +1,4 @@
+@media (max-width:760px){
+  .side{grid-row:auto}
+  .main{grid-column:1}
+}

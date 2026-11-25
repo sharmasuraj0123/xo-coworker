@@ -1,0 +1,17 @@
+@media (max-width:760px){
+  .shd{position:fixed;inset:0;z-index:calc(var(--z-overlay) + 10);height:auto;border-top:0;padding-bottom:env(safe-area-inset-bottom)}
+  .shd.is-min{display:none}
+  .shd-grip{display:none}
+  .shd-bar{min-height:var(--h-shell-phone-bar);padding-top:env(safe-area-inset-top)}
+  .shd-where,.shd-act>span{display:none}
+  .shd-act{width:var(--h-lg);height:var(--h-lg);padding:0;justify-content:center}
+  /* Close shell keeps a word on a phone ("× Close"): a bare × beside − and ↓ read as one more way to put the dock away */
+  .shd-act.is-danger{width:auto;padding:0 var(--s-3) 0 var(--s-shell-control-inset)}
+  .shd-act.is-danger>span{display:inline}
+  .shd-long{display:none}
+  .shd-acts [data-sh-min]{display:none}
+  .shl-row{flex-wrap:wrap}
+  .shl-acts{width:100%;justify-content:flex-end}
+  .shd-tx{width:var(--h-ctl);height:var(--h-ctl)}
+  .shd-tabw.is-edit .shd-in{width:var(--w-shell-phone-rename);font-size:var(--fs-input)}
+}
