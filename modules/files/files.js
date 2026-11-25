@@ -1,5 +1,5 @@
 // @ts-check
-
+import { redraw } from "../../core/ui/redraw.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { esc, copyText, COPY_REFUSED, space } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -62,9 +62,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     lay.classList.toggle("is-file", !F.wide && has && F.fileView);
     if (treeFocus && !treeFocus.getClientRects().length) { const v = document.getElementById("viewer"); if (v && !v.hidden && v.getClientRects().length) v.focus({ preventScroll: true }); }
     lay.classList.toggle("has-file", has);
-    const bar = /** @type {import("./tree-types.d.ts").CachedElement} */ (F.host.querySelector(".fl-bar"));
+    const bar = F.host.querySelector(".fl-bar");
     const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${ICON.back}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
-    if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
+    redraw(bar, bh);
     if (retryOf != null && !/** @type {HTMLElement} */ (a).isConnected) {
       const target = F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf ? rowOf(retryOf) : F.host.querySelector("[data-fl-new]"));
       /** @type {HTMLElement | null} */ (target)?.focus({ preventScroll: true });
@@ -335,6 +335,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       mounted = scope;
       F.host = host;
       const vw = document.getElementById("viewer");
+      const home = document.createComment("viewer");
+      vw?.before(home);
+      scope.effect(() => () => { if (vw) home.replaceWith(vw); });
       host.innerHTML = `<div class="fl"><nav class="fl-rail" aria-label="Files, folded"><button type="button" class="fl-rb" data-fl-rail="changes">${CHANGED_IC}<em hidden></em></button><button type="button" class="fl-rb" data-fl-rail="all" title="All files">${ICON.folder}</button><button type="button" class="fl-rb" data-fl-rail="find" title="Find a file">${ICON.search}</button></nav>` +
         `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       if (vw) /** @type {HTMLElement} */ (host.querySelector(".fl-view")).appendChild(vw);
@@ -349,7 +352,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
         mounted = undefined;
       });
       wireMenu(menu, scope);
-      pointerFollows(menu);
+      scope.effect(() => pointerFollows(menu));
       wire(host, scope);
       return scope.dispose;
     },

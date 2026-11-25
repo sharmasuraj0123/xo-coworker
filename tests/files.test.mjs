@@ -123,7 +123,8 @@ const files = createFiles({
 const host = document.getElementById("files");
 const viewerEl = document.getElementById("viewer");
 host.getBoundingClientRect = () => ({ width: 400 });
-files.mount(host);
+const viewerHome = viewerEl.parentElement, previous = viewerEl.previousElementSibling;
+const unmountFiles = files.mount(host);
 t("Files mounts the existing viewer into its preview", () => {
   same(host.querySelector(".fl-view #viewer"), viewerEl);
 });
@@ -249,6 +250,13 @@ t("The Files page mounts once and keeps tree width and fold under their existing
   assert.equal(panelFiles.toggleTree(), true);
   assert.deepEqual(folds, [true, false]);
   assert.equal(storage.get("xo-files-folds"), JSON.stringify({ tree: "open" }));
+});
+
+t("unmount restores the original viewer to its shell position", () => {
+  unmountFiles();
+  assert.ok(viewerEl.parentElement === viewerHome);
+  assert.ok(viewerEl.previousElementSibling === previous);
+  assert.ok(document.getElementById("viewer") === viewerEl);
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

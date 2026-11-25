@@ -685,7 +685,6 @@
   "lineLength": 1
  },
  "modules/files/files.js": {
-  "domExpando": 1,
   "functionLines": 1,
   "lineLength": 33,
   "unusedExport": 1

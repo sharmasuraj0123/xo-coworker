@@ -1,5 +1,7 @@
 # Modularization handoff
 
+The Files page returns the shared viewer to its shell position on unmount. At 400 lines, the next change to `modules/files/files.js` must first extract a coherent part, such as mounting and viewer placement.
+
 ## Standing rules for every phase
 
 - Move code as it is. Don't hard-code any value, and don't change any CSS value, look or behaviour while modularizing.
