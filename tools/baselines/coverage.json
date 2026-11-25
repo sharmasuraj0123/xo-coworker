@@ -82,18 +82,6 @@
    ["setTimeout",59,""]
   ]
  },
- "core/services/media/intersection.js": {
-  "sha256": "c9f64ea192c2d1bebdcf2b79d940b15e2d2217067d00bb67d0750b418d5799b4",
-  "sites": [
-   ["observer",23,""]
-  ]
- },
- "core/services/media/object-urls.js": {
-  "sha256": "2257c8dd85807fc2fbd790436b03e5a3fcb400cb3f9cba9bbafbd1b4e6780428",
-  "sites": [
-   ["observer",47,""]
-  ]
- },
  "core/services/shape/store.js": {
   "sha256": "1c594065418c9184c2247fc17929bd76a8081d3e307ad4405234aeff96a08c5b",
   "sites": [
@@ -111,46 +99,6 @@
    ["storage",9,""],
    ["storage",9,""],
    ["commentOnlyCatch",9,""]
-  ]
- },
- "core/services/storm/account.js": {
-  "sha256": "48d796c1e9db8cc13e7b5030ccf0ff460a8b2dc617e01f377ed01558439dd2d7",
-  "sites": [
-   ["setTimeout",33,""],
-   ["setTimeout",49,""]
-  ]
- },
- "core/services/storm/history.js": {
-  "sha256": "520cecdf1c2282322db1dd72392800c1a898e3cde7f38442ead5c804d5be61e6",
-  "sites": [
-   ["commentOnlyCatch",115,""],
-   ["commentOnlyCatch",131,""],
-   ["commentOnlyCatch",132,""],
-   ["setTimeout",162,""],
-   ["commentOnlyCatch",177,""]
-  ]
- },
- "core/services/storm/hops.js": {
-  "sha256": "b6e0ce590e40f6b1b14bf00744d0fc53f9fe3aeb29db5d65b1025f8bb4af0b3a",
-  "sites": [
-   ["setTimeout",18,""]
-  ]
- },
- "core/services/storm/selectors/commit.js": {
-  "sha256": "d934fa27625252abd0ceca6404124f7437b2c27d8b9d98c91377104676b29cc6",
-  "sites": [
-   ["setTimeout",63,""],
-   ["setTimeout",64,""]
-  ]
- },
- "core/services/storm/stream.js": {
-  "sha256": "9d3310269fb79c1c33b7fc692c04eb5004b8fdc76b64d7478271600e709253b3",
-  "sites": [
-   ["setTimeout",35,""],
-   ["setTimeout",46,""],
-   ["setInterval",97,""],
-   ["globalListener",106,""],
-   ["globalListener",112,""]
   ]
  },
  "core/ui/a11y/announce.js": {
@@ -177,12 +125,6 @@
    ["globalListener",167,""],
    ["globalListener",168,""],
    ["setTimeout",210,""]
-  ]
- },
- "core/ui/intersection.js": {
-  "sha256": "886b63bed648110c829095c78b225666bfc0662188e4cb7f54c8a68145328f95",
-  "sites": [
-   ["observer",6,""]
   ]
  },
  "core/ui/lightbox.js": {
@@ -229,8 +171,7 @@
    ["requestAnimationFrame",125,""],
    ["requestAnimationFrame",125,""],
    ["requestAnimationFrame",145,""],
-   ["requestAnimationFrame",145,""],
-   ["observer",158,""]
+   ["requestAnimationFrame",145,""]
   ]
  },
  "css/app.css": {

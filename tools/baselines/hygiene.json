@@ -164,21 +164,11 @@
  "core/services/step-icons.js": {
   "commentLines": 1
  },
- "core/services/storm/account.js": {
-  "commentLines": 2,
-  "commentOnlyCatch": 5,
-  "explicitAny": 1
- },
- "core/services/storm/hops.js": {
-  "commentOnlyCatch": 1
+ "core/services/storm/act.js": {
+  "commentLines": 1
  },
  "core/services/storm/index.js": {
   "commentLines": 4
- },
- "core/services/storm/load.js": {
-  "commentLines": 2,
-  "commentOnlyCatch": 6,
-  "explicitAny": 2
  },
  "core/services/storm/selectors/threads.js": {
   "commentLines": 4
@@ -709,8 +699,7 @@
   "commentLines": 49
  },
  "tests/browser/harness.cjs": {
-  "changelogComment": 2,
-  "commentLines": 35
+  "commentLines": 31
  },
  "tests/browser/held-contract.test.cjs": {
   "commentLines": 6
@@ -879,10 +868,6 @@
  },
  "tests/stopped-on-purpose.test.mjs": {
   "commentLines": 3
- },
- "tests/storm-harness.mjs": {
-  "commentLines": 1,
-  "explicitAny": 8
  },
  "tests/storm-recover.test.mjs": {
   "commentLines": 1,

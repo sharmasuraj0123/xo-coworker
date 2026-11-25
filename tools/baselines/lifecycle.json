@@ -20,18 +20,6 @@
  "modules/changes/store.js": {
   "setTimeout": 1
  },
- "modules/conversation/decoration.js": {
-  "observer": 3
- },
- "modules/conversation/follow.js": {
-  "observer": 1
- },
- "modules/conversation/latest-button.js": {
-  "observer": 4
- },
- "modules/conversation/message-reply.js": {
-  "observer": 1
- },
  "modules/conversation/navigation.js": {
   "setTimeout": 3
  },
@@ -126,9 +114,6 @@
  },
  "shell/gestures.js": {
   "setTimeout": 1
- },
- "shell/keyboard-layers.js": {
-  "observer": 1
  },
  "shell/panel/panel.js": {
   "observer": 1,

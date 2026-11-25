@@ -189,29 +189,29 @@
   "unusedExport": 1
  },
  "core/services/storm/account.js": {
-  "lineLength": 6
+  "lineLength": 3
  },
  "core/services/storm/act.js": {
-  "lineLength": 6
+  "lineLength": 4
  },
  "core/services/storm/client.js": {
   "lineLength": 2
  },
  "core/services/storm/commands.js": {
-  "lineLength": 9
+  "lineLength": 8
  },
  "core/services/storm/history.js": {
   "functionLines": 1,
   "lineLength": 5
  },
  "core/services/storm/hops.js": {
-  "lineLength": 3
+  "lineLength": 1
  },
  "core/services/storm/index.js": {
   "unusedExport": 1
  },
  "core/services/storm/load.js": {
-  "lineLength": 7
+  "lineLength": 5
  },
  "core/services/storm/reducers/apps.js": {
   "lineLength": 1
@@ -245,7 +245,7 @@
   "lineLength": 4
  },
  "core/services/storm/stream.js": {
-  "lineLength": 4
+  "lineLength": 3
  },
  "core/services/types.d.ts": {
   "lineLength": 2
@@ -411,7 +411,7 @@
  },
  "js/app.js": {
   "dependencyKey": 665,
-  "lineLength": 67
+  "lineLength": 66
  },
  "js/recordview.js": {
   "lineLength": 1
@@ -1122,12 +1122,6 @@
  },
  "shell/workspace-header.js": {
   "lineLength": 1
- },
- "tests/browser-hooks.test.mjs": {
-  "sourceRead": 1
- },
- "tests/browser/harness.cjs": {
-  "sourceRead": 1
  },
  "tests/cardparts.test.mjs": {
   "sourceRead": 1

@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 488 |
+| moved | 489 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 110 |
+| planned | 109 |
 | kept | 90 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1774, planned 270, kept 229, deleted 212, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1779, planned 260, kept 230, deleted 216, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -373,7 +373,7 @@ Items inside first-party files: 2488 (moved 1774, planned 270, kept 229, deleted
 | `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/smoke.test.cjs` | 115 | moved | e2e/specs/smoke.spec.mjs · next: Eight public UI cases passed in dark and light at 1440×900 and 390×844, DPR 1, on 2b9d2503. |
 
 ## tests-lib (2)
 
