@@ -11,7 +11,7 @@ export function createBus(warn = console.error) {
     let set = topics.get(topic);
     if (!set) topics.set(topic, (set = new Set()));
     set.add(notify);
-    return () => { set.delete(notify); if (!set.size) topics.delete(topic); };
+    return () => { if (set.delete(notify) && !set.size) topics.delete(topic); };
   }
   return {
     on(topic, ...[fn]) {
