@@ -26,10 +26,9 @@
   "px-position": 16,
   "px-radius": 3,
   "px-size": 50,
-  "px-spacing": 117,
+  "px-spacing": 115,
   "px-stroke": 5,
-  "rawColor": 38,
-  "themeSelector": 6,
+  "rawColor": 37,
   "widthMediaQuery": 1
  },
  "css/diffs.css": {

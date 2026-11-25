@@ -179,6 +179,7 @@
   --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:80px; --stroke-artifact-focus:2px;
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
   --h-skeleton-label:10px;
+  --s-since-phone-block:10px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
@@ -298,3 +299,8 @@
 @media (max-width:760px){:root{--cbar-fade:22px}}
 :where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
 :where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
+:root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
+:root[data-theme="light"] :where(.md-pin){
+  --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);
+  --ink-artifact-pin-hover:color-mix(in srgb,var(--accent) 75%,var(--ink));
+}

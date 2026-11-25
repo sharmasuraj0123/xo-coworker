@@ -39,14 +39,15 @@
 .md-from svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 .md-from span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .md-pin{position:absolute;top:var(--cell-in);right:var(--cell-in);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);
-  border-radius:calc(var(--nest-r) - var(--nest-in));background:color-mix(in srgb,var(--canvas) 78%,var(--palette-transparent));
+  border-radius:calc(var(--nest-r) - var(--nest-in));
+  background:var(--fill-artifact-pin,color-mix(in srgb,var(--canvas) 78%,var(--palette-transparent)));
   color:var(--ink-3);opacity:0;
   transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .md-pin svg{width:var(--ic-sm);height:var(--ic-sm)}
 .md-it:hover .md-pin,.md-pin:focus-visible,.md-it.is-pin .md-pin{opacity:1}
 /* Use the stronger accent surface when a pinned control is hovered. */
-.md-pin:hover{background:color-mix(in srgb,var(--fill-3) 92%,var(--palette-transparent));color:var(--ink)}
-.md-it.is-pin .md-pin:hover{color:var(--accent-hover)}
+.md-pin:hover{background:var(--fill-artifact-pin-hover,color-mix(in srgb,var(--fill-3) 92%,var(--palette-transparent)));color:var(--ink)}
+.md-it.is-pin .md-pin:hover{color:var(--ink-artifact-pin-hover,var(--accent-hover))}
 .md-it.is-pin .md-pin{color:var(--accent)}
 .md-it.is-pin .md-pin svg{fill:currentColor}
 .md-grid.is-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}

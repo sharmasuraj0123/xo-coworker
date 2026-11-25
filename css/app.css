@@ -56,19 +56,9 @@
 @import url("../core/ui/skeleton.css");
 @import url("../modules/home/skeleton.css");
 @import url("../modules/artifacts/skeleton.css");
-:root[data-theme="light"] .sk{background:var(--fill-2)}
-:root[data-theme="light"] .hm-sk .sk-card{border-color:var(--line-soft)}
-:root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--fill-2)}
-:root[data-theme="light"] .md-pin{background:color-mix(in srgb,var(--surface) 85%,transparent)}
-:root[data-theme="light"] .md-pin:hover{background:var(--surface)}
-/* (light's --accent-hover is a fill's hover, paler: as ink on white it fell to 2.2:1; a pinned pin's glyph goes a step firmer instead) */
-:root[data-theme="light"] .md-it.is-pin .md-pin:hover{color:color-mix(in srgb,var(--accent) 75%,var(--ink))}
-@media (hover:none){.md-pin{opacity:1}}
-@media (max-width:760px){
-  .since{padding:10px 12px}
-  .md-grid.is-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .md-grid.is-strip .md-it:nth-child(n+5){display:none}
-}
+@import url("../modules/artifacts/card-hover.css");
+@import url("../modules/since/layout-phone.css");
+@import url("../modules/artifacts/cards-phone.css");
 
 /* ── the Map (js/map.js), in the panel's Map frame: the folder as boxes on a dotted canvas, each agent a gliding cursor; blue working, amber waiting, green new ── */
 :root{--mw:clamp(420px,42vw,720px)
