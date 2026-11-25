@@ -58,10 +58,6 @@
  "modules/files/files.js": {
   "observer": 1
  },
- "modules/files/section-folds.js": {
-  "commentOnlyCatch": 1,
-  "storage": 2
- },
  "modules/files/viewer-events.js": {
   "globalListener": 2,
   "setTimeout": 1

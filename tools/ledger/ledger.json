@@ -9530,7 +9530,13 @@
   },
   "js/files.js::storage::xo-files-secs": {
    "status": "moved",
-   "home": "modules/files/section-folds.js"
+   "home": "modules/files/section-folds.js",
+   "evidence": {
+    "modules/files/section-folds.js": {
+     "anchor": "const SECS_KEY = \"xo-files-secs\"",
+     "reason": "Per-project section folds retain their key and are read and written through shared storage."
+    }
+   }
   },
   "js/files.js::keys::all": {
    "status": "moved",

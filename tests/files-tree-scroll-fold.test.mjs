@@ -11,9 +11,14 @@ test("Files keeps scroll position and the fold state for each project", async (c
   const { window, document } = await dom('<aside id="files"></aside>');
   const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const storage = new Map();
+  const broken = new Error("Files folds storage failed");
+  let writeError;
   Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
-    value: { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) },
+    value: { getItem: (key) => storage.get(key), setItem: (key, value) => {
+      if (writeError) throw writeError;
+      storage.set(key, value);
+    } },
   });
   context.after(() => {
     if (originalStorage) Object.defineProperty(globalThis, "localStorage", originalStorage);
@@ -75,6 +80,19 @@ test("Files keeps scroll position and the fold state for each project", async (c
   click('[data-fl-rail="all"]');
   assert.equal(expanded(all), "true");
   assert.equal(host.querySelector(".fl-list > .fl-g").hidden, false);
+
+  const reporter = Object.getOwnPropertyDescriptor(globalThis, "reportError");
+  const reports = [];
+  Object.defineProperty(globalThis, "reportError", { configurable: true, value: (error) => reports.push(error) });
+  context.after(() => {
+    if (reporter) Object.defineProperty(globalThis, "reportError", reporter);
+    else Reflect.deleteProperty(globalThis, "reportError");
+  });
+  writeError = broken;
+  click(all);
+  assert.equal(expanded(all), "false");
+  assert.deepEqual(JSON.parse(storage.get("xo-files-secs")), {});
+  assert.deepEqual(reports, [broken]);
 });
 
 test("the Files section heading uses the panel's control size, chevron, ring and hover ink", () => {

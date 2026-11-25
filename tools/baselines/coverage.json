@@ -126,12 +126,6 @@
    ["commentOnlyCatch",54,""]
   ]
  },
- "modules/files/section-folds.js": {
-  "sha256": "74d5100c4dae834fb95d98fde261c5a676ab6278dbc63edef324bc40efef1f9f",
-  "sites": [
-   ["commentOnlyCatch",8,""]
-  ]
- },
  "modules/files/viewer-events.js": {
   "sha256": "b7e74416e7572521b1e9c809bff83de3b5b94896a33fcff6b5fd0119416e6df2",
   "sites": [
