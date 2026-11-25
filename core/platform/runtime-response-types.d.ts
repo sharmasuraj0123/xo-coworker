@@ -19,7 +19,7 @@ export interface RuntimeHealth {
   usable?: boolean;
   why_not?: string | null;
   error?: RuntimeError | null;
-  limit?: string;
+  limit?: string | null;
   resets_at?: string | null;
   windows?: Record<string, UsageWindow | null>;
 }
@@ -50,10 +50,11 @@ export interface Policies {
 
 export interface RuntimeModel {
   id: string;
-  name: string;
+  name: string | null;
   family?: string | null;
   family_default?: boolean;
-  description?: string;
+  description?: string | null;
+  context_window?: number | null;
   is_default?: boolean;
   takes_effort?: boolean;
   efforts?: string[];

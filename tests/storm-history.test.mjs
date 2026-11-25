@@ -35,7 +35,9 @@ t("a thread's first page lands with its turns and hops, not before; an older pag
   const hopsGate = gated(), framesGate = gated();
   const be = fakeBackend({
     "GET /chat/chats/chat_p/threads": { threads: [thread("t1", { session_id: "s1" })] },
-    "GET /chat/chats/chat_p/messages": (q) => (q.before_seq === String(NEWEST) ? { messages: [row(10, { thread_ts: "t1" })], next_before_seq: 10 } : { messages: [row(5, { thread_ts: "t1" }), row(7, { thread_ts: "t1" })] }),
+    "GET /chat/chats/chat_p/messages": (q) => q.before_seq === String(NEWEST)
+      ? { messages: [row(10, { thread_ts: "t1" })], next_before_seq: 10 }
+      : { messages: [5, 7, 10].map((seq) => row(seq, { thread_ts: "t1" })) },
     "GET /chat/chats/chat_p/hops": async () => { await hopsGate.p; return { hops: [] }; },
     "GET /chat/events": async (q) => {
       if (q.kinds) return { events: [] };
@@ -59,10 +61,13 @@ t("a thread's first page lands with its turns and hops, not before; an older pag
   await settle();
   assert.deepEqual(world.state.threadMsgs.t1.map((r) => r.seq), [10], "the older page waits for its frames");
   be.push("message", { seq: 11, chat_id: "chat_p", data: row(11, { thread_ts: "t1" }) });
-  await until(() => world.state.threadMsgs.t1.some((r) => r.id === "r11"));
+  be.push("reaction", { seq: 12, chat_id: "chat_p", data: { thread_ts: "t1", message_id: "r10", emoji: "👍" } });
+  const reaction = () => world.state.threadMsgs.t1.find((r) => r.id === "r10")?.extra?.reactions?.[0]?.emoji;
+  await until(() => reaction() === "👍" && world.state.threadMsgs.t1.some((r) => r.id === "r11"));
   framesGate.open();
   await older;
   assert.deepEqual(world.state.threadMsgs.t1.map((r) => r.seq), [5, 7, 10, 11]);
+  assert.equal(reaction(), "👍", "the overlapping page keeps the newer live revision");
   const olderMsgs = be.asked.filter((a) => a.path === "/chat/chats/chat_p/messages" && a.query.thread === "t1" && a.query.before_seq !== String(NEWEST));
   assert.deepEqual(olderMsgs.map((a) => [a.query.before_seq, a.query.limit]), [["10", "30"]], "once");
   const frames = be.asked.filter((a) => a.path === "/chat/events" && !a.query.kinds).map((a) => a.query.before_seq);

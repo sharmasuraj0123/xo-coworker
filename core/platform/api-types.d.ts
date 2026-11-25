@@ -5,7 +5,7 @@ import type {
   AbortReceipt, ActiveTurn, ChatRecord, CursorPage, HopRecord, MessageRecord, ObservedPage, PromptReceipt,
   Seen, SessionRecord, StoredFrame, ThreadContinuation, ThreadDeletion, ThreadRecord,
 } from "./chat-response-types.d.ts";
-import type { RunDetail, RunList, RunStopResult, RunTranscript } from "./run-response-types.d.ts";
+import type { MissingStopReceipt, RunDetail, RunList, RunTranscript, StopRunReceipt, StopRunsReceipt } from "./run-response-types.d.ts";
 import type { ReviewPage, ReviewRecord, Rule, RuleBatch } from "./review-response-types.d.ts";
 import type { AccountIntents, Advisory, PaidReceipt } from "./account-response-types.d.ts";
 
@@ -74,8 +74,8 @@ export interface Api extends ProjectApi, ScheduleApi {
   runs(session: Id, query?: Query, options?: ReadOptions): Promise<RunList>;
   run(id: Id, options?: ReadOptions): Promise<RunDetail>;
   transcript(id: Id, query?: Query, options?: ReadOptions): Promise<RunTranscript>;
-  stopRun(id: Id): Promise<RunStopResult | null>;
-  stopRuns(session: Id): Promise<RunStopResult | null>;
+  stopRun(id: Id): Promise<StopRunReceipt | MissingStopReceipt>;
+  stopRuns(session: Id): Promise<StopRunsReceipt | MissingStopReceipt>;
 
   worktrees(chat?: Id | null): Json;
   removeWorktree(chat: Id, ts: string, confirm?: string | null): Json;

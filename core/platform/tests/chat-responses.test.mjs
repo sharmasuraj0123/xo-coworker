@@ -4,12 +4,13 @@ import { test } from "node:test";
 import { api, chatActivityApi, request } from "../api.js";
 
 const rows = JSON.parse(readFileSync(new URL("./fixtures/chat-reads.json", import.meta.url), "utf8"));
+const systemMessage = { ...rows.message, author_kind: "system", author_id: null, author_session_id: null };
 const routes = [
   ["/chat/chats", () => chatActivityApi.chats(), { chats: [rows.chat] }, { chats: [{ id: 2 }] }],
   ["/chat/chats/chat_example", () => api.chat("chat_example"), rows.chat, { ...rows.chat, routing: [] }],
   ["/chat/chats/chat_example/threads", () => api.threads("chat_example"), { threads: [rows.thread] }, { threads: false }],
   ["/chat/chats/chat_example/threads/thread_example", () => api.thread("chat_example", "thread_example"), rows.thread, {}],
-  ["/chat/chats/chat_example/messages", () => api.messages("chat_example"), { messages: [rows.message], next_after_seq: 1 },
+  ["/chat/chats/chat_example/messages", () => api.messages("chat_example"), { messages: [rows.message, systemMessage], next_after_seq: 1 },
     { messages: [{ ...rows.message, extra: 1 }] }],
   ["/chat/sessions", () => api.sessions(), { sessions: [rows.session], next_after_seq: 2 }, { sessions: null }],
   ["/chat/sessions/session_example", () => api.session("session_example"), rows.session, { ...rows.session, epoch: "1" }],

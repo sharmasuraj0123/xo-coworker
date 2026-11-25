@@ -36,7 +36,7 @@ export function createModelCatalog(runtimes) {
         try {
           const data = await api.models(name, { signal });
           if (signal.aborted) return null;
-          const entries = data.models || [];
+          const entries = data.models.map((model) => model.name == null ? { ...model, name: model.id } : model);
           if (runtimes().some((runtime) => runtime.name === name)) cache.set(name, entries);
           return entries;
         } catch (error) {

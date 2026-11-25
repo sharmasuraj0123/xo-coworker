@@ -68,6 +68,7 @@ export interface RunTranscript {
   next?: string | null;
 }
 
-export interface RunStopResult {
-  stopping?: boolean | string[] | null;
-}
+export type MissingStopReceipt = { run?: never; stopping?: null } | null;
+export interface StopRunReceipt { run: RunDetail; stopping: boolean }
+export interface StopRunsReceipt { stopping: string[] }
+export type RunStopResult = StopRunReceipt | StopRunsReceipt | MissingStopReceipt;

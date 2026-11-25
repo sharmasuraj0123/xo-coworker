@@ -103,8 +103,8 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
       : C.failed.has(st.agent) ? `Couldn't read ${esc(cliName(st.agent))}'s models: ${esc((/** @type {string} */ (C.failed.get(st.agent))).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.`
       : st.unsure ? `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.` : "";
     const models = `<div class="iq-sec"><p class="iq-lab" id="cs-model-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">` +
-      row("data-cs-model", "", "Default", def ? modelDesc(def) || def.name : "The agent's own choice", !st.model, false) +
-      offered(st.agent).map((m) => row("data-cs-model", m.id, m.name, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
+      row("data-cs-model", "", "Default", def ? modelDesc(def) || (def.name ?? def.id) : "The agent's own choice", !st.model, false) +
+      offered(st.agent).map((m) => row("data-cs-model", m.id, m.name ?? m.id, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
     const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
     const lists = {

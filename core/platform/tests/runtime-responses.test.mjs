@@ -5,9 +5,21 @@ import { api, request } from "../api.js";
 
 const samples = JSON.parse(readFileSync(new URL("./fixtures/runtime-api.json", import.meta.url), "utf8"));
 const projectPolicy = { ...samples.policy, project: null };
+const unavailableRuntime = {
+  name: "unavailable", default: false, cli: null, health: {
+    installed: false, logged_in: false, usable: false, account: null, cli_version: null, pool: null,
+    limit: null, resets_at: null, windows: {}, error: { code: "not_installed", message: "CLI missing" },
+  },
+};
+const nullableModel = {
+  id: "catalog-id", name: null, description: null, family: null, family_default: false, efforts: [],
+  default_effort: null, context_window: null, is_default: false, takes_effort: true,
+};
 const routes = [
-  ["GET", "/chat/runtimes", () => api.runtimes(), samples.runtimes, { runtimes: [{ name: "x", health: { installed: "yes" } }] }],
-  ["GET", "/chat/runtimes/codex/models", () => api.models("codex"), samples.models, { models: [{ name: "missing id" }] }],
+  ["GET", "/chat/runtimes", () => api.runtimes(),
+    { runtimes: [...samples.runtimes.runtimes, unavailableRuntime] }, { runtimes: [{ name: "x", health: { installed: "yes" } }] }],
+  ["GET", "/chat/runtimes/codex/models", () => api.models("codex"),
+    { models: [...samples.models.models, nullableModel] }, { models: [{ ...nullableModel, description: {} }] }],
   ["GET", "/chat/runtime-policy", () => api.runtimePolicy(), samples.policy, {}],
   ["PUT", "/chat/runtime-policy", () => api.setRuntimePolicy({}), samples.policy, { effective: { fallback: [] } }],
   ["GET", "/chat/chats/demo/runtime-policy", () => api.chatRuntimePolicy("demo"), projectPolicy, { effective: null }],

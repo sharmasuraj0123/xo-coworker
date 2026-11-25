@@ -8,7 +8,7 @@ import { engineStatus, requestChecked } from "./response.js";
 import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
 import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
 import { isModels, isPolicies, isRouter, isRouterModels, isRuntimes } from "./runtime-responses.js";
-import { isRunDetail, isRunList, isRunStopResult, isRunTranscript } from "./run-responses.js";
+import { isRunDetail, isRunList, isRunTranscript, isStopRunReceipt, isStopRunsReceipt } from "./run-responses.js";
 import {
   isAbortReceipt, isActive, isChat, isChats, isEvents, isHops, isMessage, isMessages, isObservedPage,
   isPromptReceipt, isSeenAck, isSession, isSessions, isThread, isThreadContinuation, isThreadDeletion, isThreads,
@@ -152,8 +152,8 @@ export const api = {
   run: (id, options) => requestChecked(`/chat/runs/${enc(id)}`, isRunDetail, options),
   transcript: (id, query = {}, { signal } = {}) =>
     requestChecked(`/chat/runs/${enc(id)}/transcript`, isRunTranscript, { query, signal }),
-  stopRun: (id) => requestChecked(`/chat/runs/${enc(id)}/stop`, isRunStopResult, { method: "POST" }),
-  stopRuns: (session) => requestChecked(`/chat/sessions/${enc(session)}/runs/stop`, isRunStopResult, { method: "POST" }),
+  stopRun: (id) => requestChecked(`/chat/runs/${enc(id)}/stop`, isStopRunReceipt, { method: "POST" }),
+  stopRuns: (session) => requestChecked(`/chat/sessions/${enc(session)}/runs/stop`, isStopRunsReceipt, { method: "POST" }),
 
   worktrees: (chat) => chatActivityApi.worktrees(chat),
   removeWorktree: (chat, ts, confirm) => chatActivityApi.removeWorktree(chat, ts, confirm),

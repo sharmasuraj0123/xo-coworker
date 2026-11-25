@@ -81,7 +81,7 @@ export interface MessageRecord {
   chat_id?: string;
   thread_ts?: string | null;
   author_kind?: string;
-  author_id?: string;
+  author_id?: string | null;
   author_session_id?: string | null;
   client_id?: string | null;
   text?: string;

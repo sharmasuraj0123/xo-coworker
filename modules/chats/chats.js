@@ -50,7 +50,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** @param {string} t */
   const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   /** @param {string | null | undefined} agent @param {string} id */
-  const modelWord = (agent, id) => { const m = (C.models.get(/** @type {string | null} */ (agent)) || []).find((x) => x.id === id); return m ? m.name : id; };
+  const modelWord = (agent, id) => { const m = (C.models.get(/** @type {string | null} */ (agent)) || []).find((x) => x.id === id); return m?.name ?? id; };
   /** @param {string | null | undefined} agent */
   const agentMark = (agent, lead = true) => rtMark(/** @type {string} */ (agent), { lead }) || `${esc(cliName(agent))}${lead ? " " : ""}`;
   /** @param {string | null | undefined} cwd */

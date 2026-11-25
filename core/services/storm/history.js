@@ -116,6 +116,7 @@ export function installHistory(ctx) {
     const th = state.threadHist[ts];
     if (signal.aborted || !r || !th || !canPageOlder(th)) return;
     const stopLoading = loading(cycle, th, "older");
+    const beforeRead = new Map((state.threadMsgs[ts] || []).map((row) => [row.id, row]));
     ctx.soon();
     try {
       const m = await client.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE }, { signal });
@@ -123,7 +124,9 @@ export function installHistory(ctx) {
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null, signal);
       if (signal.aborted) return;
-      state.threadMsgs[ts] = mergeRows(state.threadMsgs[ts] || [], m.messages || []).list;
+      const current = state.threadMsgs[ts] || [];
+      const newer = new Set(current.filter((row) => beforeRead.get(row.id) !== row).map((row) => row.id));
+      state.threadMsgs[ts] = mergeRows(current, m.messages.filter((row) => !newer.has(row.id))).list;
       Object.assign(th, pageAfter(th, m), { olderError: null });
     } catch (err) { if (signal.aborted) return; th.olderError = err instanceof Error ? err.message : String(err); }
     finally { stopLoading(); }

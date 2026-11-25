@@ -73,8 +73,8 @@ export const isThreads = (value) => isResponseObject(value) && Array.isArray(val
 
 /** @param {unknown} value @returns {value is Wire.MessageRecord} */
 export const isMessage = (value) => isResponseObject(value) && typeof value.id === "string" && optionalNumber(value.seq)
-  && [value.thread_ts, value.author_session_id, value.client_id, value.reply_to].every(textOrNone)
-  && [value.chat_id, value.author_kind, value.author_id, value.text, value.created_at].every(optionalText)
+  && [value.thread_ts, value.author_id, value.author_session_id, value.client_id, value.reply_to].every(textOrNone)
+  && [value.chat_id, value.author_kind, value.text, value.created_at].every(optionalText)
   && recordOrNone(value.extra);
 
 /** @param {unknown} value @returns {value is Wire.CursorPage & { messages: Wire.MessageRecord[] }} */

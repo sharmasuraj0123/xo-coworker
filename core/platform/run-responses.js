@@ -54,7 +54,13 @@ const isTranscriptItem = (value) => isResponseObject(value) && typeof value.id =
 /** @param {unknown} value @returns {value is Wire.RunTranscript} */
 export const isRunTranscript = (value) => isResponseObject(value) && isArrayOf(value.items, isTranscriptItem) && textOrNone(value.next);
 
-/** @param {unknown} value @returns {value is Wire.RunStopResult | null} */
-export const isRunStopResult = (value) => value === null || isResponseObject(value)
-  && (value.stopping == null || typeof value.stopping === "boolean"
-    || Array.isArray(value.stopping) && value.stopping.every((run) => typeof run === "string"));
+/** @param {unknown} value @returns {value is Wire.MissingStopReceipt} */
+const isMissingStopReceipt = (value) => value === null || isResponseObject(value) && value.run === undefined && value.stopping == null;
+
+/** @param {unknown} value @returns {value is Wire.StopRunReceipt | Wire.MissingStopReceipt} */
+export const isStopRunReceipt = (value) => isMissingStopReceipt(value)
+  || isResponseObject(value) && typeof value.stopping === "boolean" && isRunDetail(value.run);
+
+/** @param {unknown} value @returns {value is Wire.StopRunsReceipt | Wire.MissingStopReceipt} */
+export const isStopRunsReceipt = (value) => isMissingStopReceipt(value) || isResponseObject(value) && value.run === undefined
+  && Array.isArray(value.stopping) && value.stopping.every((run) => typeof run === "string");

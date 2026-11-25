@@ -102,9 +102,8 @@ export async function request(path, options) {
     || CHECKED_CHAT_READS.test(route) || route === "/advisory" || /^\/messages\/[^/]+$/.test(route)))
     || (method === "PUT" && CHECKED_SEEN.test(route)) || (method === "PATCH" && CHECKED_CHAT_PATCH.test(route))
     || (method === "POST" && (CHECKED_STOP.test(route) || CHECKED_CHAT_POST.test(route)))
-    || (method === "DELETE" && CHECKED_CHAT_DELETE.test(route));
-  const project = hasCheckedProjectResponse(route, method);
-  if (checked || project || CHECKED_ROUTES.has(route) || CHECKED_DETAIL.test(route) || CHECKED_REVIEW.test(route)) {
+    || (method === "DELETE" && CHECKED_CHAT_DELETE.test(route)) || hasCheckedProjectResponse(route, method);
+  if (checked || CHECKED_ROUTES.has(route) || CHECKED_DETAIL.test(route) || CHECKED_REVIEW.test(route)) {
     throw new TypeError(`Use the checked adapter for ${route}.`);
   }
   return requestJson(path, options);

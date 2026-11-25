@@ -46,9 +46,12 @@ try {
   await picker.open("t:one", anchor, { rt: "claude_code" });
   assert.equal(pop.classList.contains("is-sheet"), true);
   assert.equal(pending.length, 1);
-  pending[0].resolve(Response.json({ models: [{ id: "move", name: "Move model" }] }));
+  pending[0].resolve(Response.json({ models: [
+    { id: "move", name: "Move model" }, { id: "unnamed-model", name: null, description: null },
+  ] }));
   await new Promise(setImmediate);
   assert.equal(pop.querySelector('[data-mvm="move"]')?.textContent, "Move model");
+  assert.equal(pop.querySelector('[data-mvm="unnamed-model"]')?.textContent, "unnamed-model");
   mock.timers.tick(30_000);
   assert.doesNotMatch(pop.textContent, /models are slow/);
   picker.close({ apply: false });

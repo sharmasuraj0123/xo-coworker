@@ -27,9 +27,9 @@ const isRuntimeError = (value) => isResponseObject(value) && optional(value.code
 function isHealth(value) {
   if (!isResponseObject(value)) return false;
   return [value.installed, value.logged_in, value.usable].every((flag) => optional(flag, boolean))
-    && [value.cli_version, value.checked_at, value.account, value.pool, value.why_not, value.resets_at]
+    && [value.cli_version, value.checked_at, value.account, value.pool, value.why_not, value.resets_at, value.limit]
       .every((field) => nullable(field, string))
-    && nullable(value.error, isRuntimeError) && optional(value.limit, string)
+    && nullable(value.error, isRuntimeError)
     && optional(value.windows, (windows) => isResponseObject(windows)
       && Object.values(windows).every((window) => nullable(window, isUsageWindow)));
 }
@@ -55,8 +55,9 @@ const isRuntime = (value) => isResponseObject(value) && string(value.name) && op
 export const isRuntimes = (value) => isResponseObject(value) && Array.isArray(value.runtimes) && value.runtimes.every(isRuntime);
 
 /** @param {unknown} value @returns {value is RuntimeModel} */
-const isModel = (value) => isResponseObject(value) && string(value.id) && string(value.name)
-  && nullable(value.family, string) && nullable(value.default_effort, string) && optional(value.description, string)
+const isModel = (value) => isResponseObject(value) && string(value.id) && (value.name === null || string(value.name))
+  && [value.family, value.default_effort, value.description].every((field) => nullable(field, string))
+  && nullable(value.context_window, number)
   && [value.family_default, value.is_default, value.takes_effort].every((flag) => optional(flag, boolean))
   && optional(value.efforts, strings);
 
