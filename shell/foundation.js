@@ -46,7 +46,7 @@ export function createShellFoundation(render, syncInert) {
   appScope.effect(keepFocusInView);
   return {
     appScope, world, schedule, notices, noticeModule, announce, applicationShape, navigationState, place,
-    services, PHONE, setDrawer: createDrawer({ phone: PHONE, syncInert }), redrawFocus: createRedrawFocus(),
+    services, PHONE, setDrawer: createDrawer(appScope, PHONE, syncInert), redrawFocus: createRedrawFocus(),
     toastLine, focusOverlay: createOverlayFocus(appScope),
   };
 }

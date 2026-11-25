@@ -4,9 +4,9 @@
 
 import { $ } from "../core/platform/dom.js";
 
-/** The drawer's open and close, wired to its buttons. @param {{ phone: MediaQueryList, syncInert: () => void }} deps @returns {(open: boolean) => void} */
-export function createDrawer({ phone: PHONE, syncInert }) {
-  /** @type {any} */
+/** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {MediaQueryList} PHONE @param {() => void} syncInert */
+export function createDrawer(scope, PHONE, syncInert) {
+  /** @type {Element | null} */
   let drawerReturn = null;
   /** @param {boolean} open */
   function setDrawer(open) {
@@ -19,15 +19,12 @@ export function createDrawer({ phone: PHONE, syncInert }) {
     syncInert();
     if (open) $("#nv-home").focus();
     else if ($("#side").contains(document.activeElement) || document.activeElement === document.body) {
-      const back = [drawerReturn, $("#top-menu"), $("#pb-menu")].find((/** @type {any} */ b) => b && b.isConnected && b.offsetParent && !b.closest("[inert]"));
+      const back = [drawerReturn, $("#top-menu"), $("#pb-menu")].find((b) => b instanceof HTMLElement
+        && b.isConnected && b.offsetParent && !b.closest("[inert]"));
       if (PHONE.matches) back?.focus({ preventScroll: true });
     }
   }
-  $("#pb-menu").addEventListener("click", () => setDrawer(true));
-  $("#top-menu").addEventListener("click", () => setDrawer(true));
-  $("#side-x").addEventListener("click", () => setDrawer(false));
-  $("#side-scrim").addEventListener("click", () => setDrawer(false));
-  // on a phone the shells open as a sheet over everything: the sidebar they were opened from steps aside
-  $("#nv-shells").addEventListener("click", () => setDrawer(false));
+  for (const selector of ["#pb-menu", "#top-menu"]) scope.listen($(selector), "click", () => setDrawer(true));
+  for (const selector of ["#side-x", "#side-scrim", "#nv-shells"]) scope.listen($(selector), "click", () => setDrawer(false));
   return setDrawer;
 }

@@ -6,7 +6,7 @@ import {
   threadResolves, setTimeout, flushFrames, frames, shapeReads, stream, encoder, storage, createGithubSignal,
   createCloneSignal, lastHomeVisit, readFileSync, createCloneWrite, createGithubRead, initialShape,
   createClonePolls, shapeWrites, lateStatus, historyCalls, githubRead, connectorReplies,
-  artifactsRead, shellStatus, audioAccess, setHeldStatusSignal,
+  artifactsRead, shellStatus, audioAccess, setHeldStatusSignal, setPhone,
 } from "./environment.mjs";
 import {
   press, kernel, mainLatest, renderMarkdown, pictureMarkup, scrollPane, scrollContent,
@@ -159,6 +159,10 @@ const createProgress = document.querySelector("#cp-prog").innerHTML;
 const createGithub = document.querySelector("#cp-gh").innerHTML;
 storage.delete("xo-seen");
 pagehide(false);
+setPhone(true);
+document.querySelector("#pb-menu").click();
+assert.ok(!app.classList.contains("drawer"), "the retired phone drawer ignores its permanent menu button");
+setPhone(false);
 assert.ok(JSON.parse(storage.get("xo-seen") || "{}")["p:demo"] > lastHomeVisit, "Since records the active project before unload disposes it");
 assert.equal(kernel.live("xo.thread-presentation"), 0);
 assert.ok(kernel.modules().every(({ id }) => kernel.live(id) === 0), "permanent unload releases core and feature scopes");

@@ -1,7 +1,7 @@
 // @ts-check
 import {
   document, checkFeatureOwnership, flushFrames, assert, window, setImmediate, STONE, FLAVOURS,
-  storage, blockedStorage, phone, lastHomeVisit, artifactsSignal, setPhone,
+  storage, blockedStorage, lastHomeVisit, artifactsSignal, setPhone,
 } from "./environment.mjs";
 import {
   kernel, press, fold,
