@@ -41,8 +41,7 @@
   vertical-align:calc(var(--s-1) * -0.5);
   border:var(--stroke-md-quote) solid var(--line-strong);border-radius:var(--r-xs);color:var(--accent-ink);cursor:pointer
 }
-.cm-md-task:hover{border-color:var(--ink-3)}
-.cm-md-task.is-done{background:var(--accent-fill);border-color:var(--accent-fill)}
+.cm-md-task.is-done{background:var(--accent-fill);border-color:var(--fill-clear)}
 .cm-md-task svg{width:var(--ic-xs);height:var(--ic-xs)}
 .cm-md-done{color:var(--ink-4);text-decoration:line-through;text-decoration-color:var(--line-hover)}
 
@@ -77,9 +76,8 @@
   margin:0 var(--hair);padding:0 var(--s-1);border-radius:var(--r-xs);font:var(--fw-medium) var(--fs-meta)/0 var(--sans);
   color:var(--info);cursor:pointer;vertical-align:super
 }
-.cm-md-fnref:hover{background:var(--hover-fill)}
 .cm-md-notes{
-  margin-top:var(--s-4);padding-bottom:var(--s-2);font:var(--fw-strong) var(--fs-meta)/var(--lh-meta) var(--sans);
+  margin-top:var(--s-4);padding-bottom:var(--s-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);
   letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--ink-4)
 }
 .cm-md-fn{
