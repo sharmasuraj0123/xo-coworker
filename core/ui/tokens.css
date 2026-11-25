@@ -166,6 +166,7 @@
   --s-model-chip-phone:6px; --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
   --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
+  --s-message-files-top:6px; --w-message-files:560px; --w-message-file-min:220px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;

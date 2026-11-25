@@ -40,10 +40,12 @@
 @import url("../shell/rail/counts.css");
 @import url("../modules/conversation/attachments.css");
 @import url("../modules/conversation/reactions.css");
-.m-files{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:6px 0 0;padding:0;list-style:none;max-width:min(560px,100%)}
-.m-files .tb-fb{min-width:min(220px,100%)}
+.m-files{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--s-2);margin:var(--s-message-files-top) 0 0;
+  padding:0;list-style:none;max-width:min(var(--w-message-files),100%)}
+.m-files .tb-fb{min-width:min(var(--w-message-file-min),100%)}
 .m-files .tb-fb:disabled{cursor:default;opacity:.75}
-.m-files .tb-fb.is-img .tb-fi{padding:0;overflow:hidden;background:var(--fill-2) repeating-conic-gradient(var(--checker) 0 25%,transparent 0 50%) 0 0/10px 10px}
+.m-files .tb-fb.is-img .tb-fi{padding:0;overflow:hidden;
+  background:var(--fill-2) repeating-conic-gradient(var(--checker) 0 25%,var(--fill-clear) 0 50%) 0 0/var(--tile-thumb) var(--tile-thumb)}
 .m-files .tb-fi img{display:block;width:100%;height:100%;object-fit:cover}
 .vw-pdf{background:var(--fill-1)}
 @media (max-width:760px){
@@ -52,7 +54,6 @@
 }
 a.vw-btn{text-decoration:none}
 .vw-sub>span:first-child::before{content:none;margin:0}
-/* ── shells (js/shells/): a dock under the main column, tabs of attached shells, and their list ── */
 .app{grid-template-rows:minmax(0,1fr) auto}
 .side{grid-column:1;grid-row:1/-1}
 .main{grid-column:2;grid-row:1}
@@ -169,7 +170,6 @@ a.vw-btn{text-decoration:none}
   .shd-tx{width:var(--h-ctl);height:var(--h-ctl)}
   .shd-tabw.is-edit .shd-in{width:160px;font-size:var(--fs-input)} /* 16 on a phone: anything smaller zooms the page */
 }
-
 /* Paint the surfaces being dragged, their shadows and the next action. */
 .conv.is-swiped{background:var(--canvas);box-shadow:var(--e2)}
 .main:has(.conv.is-swiped){background:var(--sunken)}
