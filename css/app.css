@@ -42,8 +42,7 @@
 @import url("../modules/conversation/reactions.css");
 @import url("../modules/files/previews.css");
 @import url("../modules/conversation/attachment-layout-phone.css");
-a.vw-btn{text-decoration:none}
-.vw-sub>span:first-child::before{content:none;margin:0}
+@import url("../modules/files/viewer-links.css");
 .app{grid-template-rows:minmax(0,1fr) auto}
 .side{grid-column:1;grid-row:1/-1}
 .main{grid-column:2;grid-row:1}
