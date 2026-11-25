@@ -7,7 +7,6 @@
 :root[data-theme="light"] .nrow.is-on{
   background:var(--surface);box-shadow:inset 0 0 0 var(--hair) var(--edge-sidebar-active),var(--sb-lift-1)
 }
-:root[data-theme="light"] .prow.is-on{box-shadow:var(--sb-lift-1)}
 :root[data-theme="light"] .prow.is-on .pr-busy{background:var(--surface)}
 
 :root[data-theme="light"] .md-it{background:var(--surface);border-color:var(--line-soft)}
