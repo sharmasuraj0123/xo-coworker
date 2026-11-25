@@ -40,7 +40,7 @@
 @import url("../shell/rail/counts.css");
 @import url("../modules/conversation/attachments.css");
 
-.m-reacts{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0}
+.m-reacts{display:flex;flex-wrap:wrap;gap:var(--s-1);margin:var(--s-1) 0 0}
 .m-you .m-reacts{justify-content:flex-end}
 .m-react{display:inline-flex;align-items:center;gap:2px;height:22px;padding:0 7px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-ui);line-height:1;cursor:default}
 .m-react-n{font-size:var(--fs-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
@@ -61,9 +61,9 @@ a.vw-btn{text-decoration:none}
 .app{grid-template-rows:minmax(0,1fr) auto}
 .side{grid-column:1;grid-row:1/-1}
 .main{grid-column:2;grid-row:1}
-.top-end{gap:8px}
+.top-end{gap:var(--s-2)}
 .sh-btn svg{width:var(--ic-sm);height:var(--ic-sm);margin-left:-2px;color:var(--ink-3)}
-.sh-btn:not(:has(span)){padding-right:12px}
+.sh-btn:not(:has(span)){padding-right:var(--s-3)}
 .shd{grid-column:2;grid-row:2;--shd-h:320px;position:relative;z-index:6;display:flex;flex-direction:column;height:var(--shd-h);min-height:0;background:var(--canvas);border-top:1px solid var(--line-soft)}
 .shd.is-min{height:auto}
 .shd.is-min .shd-body,.shd.is-min .shd-grip{display:none}
@@ -81,7 +81,7 @@ a.vw-btn{text-decoration:none}
 .shd-tabw{flex:none;display:flex;align-items:center;border-radius:var(--r-sm);transition:background var(--d-hover) var(--ease)}
 .shd-tabw:hover{background:var(--hover-fill);transition-duration:var(--d-hover-in)}
 /* a shell's name is renamed where it lives: its tab becomes the field */
-.shd-tabw.is-edit,.shd-tabw.is-edit.is-on{gap:8px;padding-left:10px;background:none}
+.shd-tabw.is-edit,.shd-tabw.is-edit.is-on{gap:var(--s-2);padding-left:10px;background:none}
 .shd-tabw.is-edit .shd-in{width:200px}
 .shd-tabw.is-on{background:var(--fill-3)}
 .shd-tab{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:220px;padding:0 6px 0 10px;border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
@@ -101,7 +101,7 @@ a.vw-btn{text-decoration:none}
 .shd-dot.d-wait{background:var(--warn);animation:shd-pulse 1.2s var(--ease-loop) infinite}
 .shd-dot.d-ended{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-4)}
 @keyframes shd-pulse{50%{opacity:.35}}
-.shd-acts{flex:none;display:flex;align-items:center;gap:4px;min-width:0}
+.shd-acts{flex:none;display:flex;align-items:center;gap:var(--s-1);min-width:0}
 .shd-where{max-width:280px;margin-right:6px;font-size:var(--fs-meta);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .shd-act{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .shd-act:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
@@ -117,7 +117,7 @@ a.vw-btn{text-decoration:none}
 .shd-confirm{flex:none;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:var(--err-subtle);border-bottom:1px solid color-mix(in srgb,var(--err) 30%,var(--line-soft));font-size:var(--fs-ui);color:var(--ink-2)}
 .shd-confirm p{flex:1;min-width:220px}
 .shd-confirm b{color:var(--ink);font-weight:var(--fw-strong)}
-.shd-ca{display:flex;gap:8px}
+.shd-ca{display:flex;gap:var(--s-2)}
 .shd-term{position:relative;flex:1;min-height:0;background:var(--canvas)}
 .shd-x{position:absolute;inset:8px 8px 4px 20px} /* the text starts on the dock's 20 px edge, with the list's and the tabs' */
 .shd-x .xterm{height:100%}
@@ -126,8 +126,8 @@ a.vw-btn{text-decoration:none}
 .shd-note{position:absolute;left:50%;bottom:var(--float-inset);z-index:3;transform:translateX(-50%);display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);padding:6px 6px 6px 14px;border-radius:var(--r-lg);background:var(--herald-bg,var(--fill-1));border:1px solid var(--line-soft);box-shadow:var(--shadow-md);font-size:var(--fs-ui);color:var(--ink-2);white-space:nowrap}
 .shd-note>span:not(.spin){overflow:hidden;text-overflow:ellipsis}
 .shd-list{flex:1;min-height:0;overflow-y:auto;padding:12px 20px 20px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-.shl-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.shl-f{display:inline-flex;align-items:center;gap:8px;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.shl-head{display:flex;align-items:center;gap:var(--s-2);flex-wrap:wrap;margin-bottom:10px}
+.shl-f{display:inline-flex;align-items:center;gap:var(--s-2);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .shl-all{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
 .shl-all:hover{color:var(--ink)}
 .shl-sp{flex:1}
@@ -149,8 +149,8 @@ a.vw-btn{text-decoration:none}
 .shl-w{font-size:var(--fs-meta);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .shl-s{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:var(--fs-meta);color:var(--ink-4);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .shl-fg{flex:none;padding:1px 6px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
-.shl-acts{flex:none;display:flex;align-items:center;gap:4px}
-.shl-empty{max-width:560px;padding:16px 0;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
+.shl-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
+.shl-empty{max-width:560px;padding:var(--s-4) 0;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .shl-empty b{color:var(--ink);font-weight:var(--fw-strong)}
 .shl-err{margin-top:10px;font-size:var(--fs-meta);color:var(--err-ink)}
 /* On a phone the shells are a full-screen sheet; minimised, they wait in the sidebar's Shells row. */
@@ -164,7 +164,7 @@ a.vw-btn{text-decoration:none}
   .shd-where,.shd-act>span{display:none}
   .shd-act{width:var(--h-lg);height:var(--h-lg);padding:0;justify-content:center}
   /* Close shell keeps a word on a phone ("× Close"): a bare × beside − and ↓ read as one more way to put the dock away */
-  .shd-act.is-danger{width:auto;padding:0 12px 0 10px}
+  .shd-act.is-danger{width:auto;padding:0 var(--s-3) 0 10px}
   .shd-act.is-danger>span{display:inline}
   .shd-long{display:none}
   /* on a phone a minimised dock is put away (.shd.is-min hides it), so − and ↓ did the same: ↓ alone stays, and the tab keeps its name */
