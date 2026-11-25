@@ -9,28 +9,19 @@ import { createImageWidget } from "./markdown-figures.js";
 import { createInlineWidgets } from "./markdown-inline-widgets.js";
 import { createInline } from "./markdown-inline.js";
 import { notesOf } from "./markdown-notes.js";
+import { setLineStyle, toggleMark } from "./markdown-commands.js";
+import { formatBar } from "./markdown-format-bar.js";
+import { insertBar } from "./markdown-insert-bar.js";
 import { reportFailure } from "../../core/services/notices/failures.js";
 
-/** @import {CodeMirror, EditorState, EditorView, Extension, TransactionSpec, ViewUpdate} from "./cm-types.d.ts" */
+/** @import {CodeMirror, EditorView, Extension, TransactionSpec, ViewUpdate} from "./cm-types.d.ts" */
 
-/** @import {ImageSource} from "./markdown-figures.js" */
+/** @import {PageExtensionOptions} from "./editor-extensions.js" */
 
-/** @param {CodeMirror} CM @param {EditorState} state @param {string} mark @returns {TransactionSpec} */
-function toggleMark(CM, state, mark) {
-  const n = mark.length;
-  return {
-    ...state.changeByRange((r) => {
-      if (state.sliceDoc(r.from - n, r.from) === mark && state.sliceDoc(r.to, r.to + n) === mark) {
-        return { changes: [{ from: r.from - n, to: r.from }, { from: r.to, to: r.to + n }], range: CM.EditorSelection.range(r.from - n, r.to - n) };
-      }
-      return { changes: [{ from: r.from, insert: mark }, { from: r.to, insert: mark }], range: CM.EditorSelection.range(r.from + n, r.to + n) };
-    }),
-    userEvent: "input.format", scrollIntoView: true,
-  };
-}
+/** @import {LineStyle, Mark} from "./markdown-commands.js" */
 
-/** @param {CodeMirror} CM @param {{images?: ImageSource | null}} [options] @returns {Extension} */
-export function pageView(CM, { images = null } = {}) {
+/** @param {CodeMirror} CM @param {PageExtensionOptions} [options] @returns {Extension} */
+export function pageView(CM, { images = null, askAbout = null } = {}) {
   const { ViewPlugin, Decoration, WidgetType, EditorView, StateField, syntaxTree, Prec, keymap } = CM;
   const { BlockWidget, MathWidget, FrontWidget, bullet, notesHead } = createMarkdownWidgets(WidgetType);
   const blocks = createBlockField(CM, {
@@ -55,20 +46,34 @@ export function pageView(CM, { images = null } = {}) {
     provide: (plugin) => EditorView.atomicRanges.of((view) => view.plugin(plugin)?.ranges.atomic ?? Decoration.none),
   });
 
-  /** @param {string} mark */
-  const wrap = (mark) => (/** @type {EditorView} */ view) => {
-    view.dispatch(view.state.update(toggleMark(CM, view.state, mark)));
+  /** @param {(view: EditorView) => TransactionSpec} spec @returns {(view: EditorView) => boolean} */
+  const command = (spec) => (view) => {
+    if (view.state.readOnly) return false;
+    view.dispatch(view.state.update(spec(view)));
     return true;
   };
+
+  /** @param {Mark} m */
+  const mark = (m) => command((view) => toggleMark(CM, view.state, m));
+
+  /** @param {LineStyle} s */
+  const style = (s) => command((view) => setLineStyle(view.state, s));
   const keys = Prec.high(keymap.of([
-    { key: "Mod-b", run: wrap("**") },
-    { key: "Mod-i", run: wrap("*") },
-    { key: "Mod-e", run: wrap("`") },
-    { key: "Mod-Shift-x", run: wrap("~~") },
+    { key: "Mod-b", run: mark("bold") },
+    { key: "Mod-i", run: mark("italic") },
+    { key: "Mod-e", run: mark("code") },
+    { key: "Mod-Shift-x", run: mark("strike") },
+    { key: "Mod-Alt-0", run: style("body") },
+    { key: "Mod-Alt-1", run: style("h1") },
+    { key: "Mod-Alt-2", run: style("h2") },
+    { key: "Mod-Alt-3", run: style("h3") },
+    { key: "Mod-Shift-7", run: style("ol") },
+    { key: "Mod-Shift-8", run: style("ul") },
+    { key: "Mod-Shift-9", run: style("task") },
   ]));
 
   return [
-    blocks, notes, inlinePlugin, keys, EditorView.exceptionSink.of(reportFailure),
+    blocks, notes, inlinePlugin, keys, formatBar(CM, askAbout), insertBar(CM), EditorView.exceptionSink.of(reportFailure),
     EditorView.editorAttributes.of({ class: "cm-xo-page" }),
   ];
 }

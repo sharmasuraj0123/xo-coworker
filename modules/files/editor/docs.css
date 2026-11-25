@@ -1,3 +1,5 @@
+@import url("./page-blocks.css");
+@import url("./page-tools.css");
 .vw-doc{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--canvas)}
 .vw-doc>.cm-editor{flex:1 1 auto;min-height:0;height:100%}
 .vw-doc>.cm-editor.cm-focused{outline:none}
@@ -24,11 +26,12 @@
 }
 
 /* Markdown page typography and editing marks. */
-.vw-doc.is-page{background:var(--surface)}
+.vw-doc.is-page{background:var(--surface);container-type:inline-size}
 .vw-doc .cm-xo-page .cm-scroller{font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink-read)}
 /* A wide table or drawing scrolls inside its own box; the page keeps the panel's width. */
 .vw-doc .cm-xo-page .cm-content{
-  box-sizing:border-box;min-width:0;max-width:var(--w-md-page);margin:0 auto;padding:var(--s-8) var(--s-10) var(--h-bar)
+  box-sizing:border-box;min-width:0;max-width:var(--w-md-page);margin:0 auto;
+  padding:var(--s-8) clamp(var(--s-5),6cqi,var(--s-10)) calc(var(--h-bar) * 2)
 }
 .vw-doc .cm-xo-page .cm-activeLine{background:var(--fill-clear)}
 .vw-doc .cm-xo-page .cm-line{padding:var(--md-line-padding,0)}

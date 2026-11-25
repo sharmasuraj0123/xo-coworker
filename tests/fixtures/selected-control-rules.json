@@ -22,6 +22,7 @@
   ".prow.is-on",
   ".prow.is-on.busy",
   ".prow.is-on.needs",
+  ".pt-tool[aria-pressed=\"true\"]",
   ".qo-opt[aria-pressed=\"true\"]",
   ".rs.is-cur",
   ".rs.r-destructive.is-cur",

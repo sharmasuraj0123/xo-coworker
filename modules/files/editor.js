@@ -28,12 +28,13 @@ const TINT_MS = 2400;
 export async function mount(host, { docs, doc, name = "", page = false, onLines = null, onAsk = null, onSave = null, onKey = null }) {
   const [CM, { createEditorConfiguration, loadPageExtension }] = await Promise.all([loadCM(), import("./editor-extensions.js")]);
   const { EditorState, EditorView, lineNumbers, highlightActiveLineGutter, foldGutter, LanguageDescription, languages } = CM;
-  const { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions } = createEditorConfiguration(CM, { onLines, onAsk });
+  const configuration = createEditorConfiguration(CM, { onLines, onAsk });
+  const { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions, askTip, askAbout } = configuration;
   const isMd = /\.(md|markdown|mdx)$/i.test(name) || doc.kind === "markdown";
   const scope = createScope();
   const { signal } = scope;
   const images = isMd && doc.project && doc.rel && !doc.project.startsWith("att:") ? projectImages(doc.project, doc.rel, scope) : null;
-  const pageExt = isMd ? await loadPageExtension(CM, { images }) : [];
+  const pageExt = isMd ? await loadPageExtension(CM, { images, askAbout }) : [];
 
   const extensions = prepareExtensions({
     name, page, isMd, pageExt, onSave, onKey,
@@ -108,7 +109,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     /** Switch Markdown between page and source. @param {boolean} on */
     setPage(on) {
       if (!isMd) return;
-      view.dispatch({ effects: [pageC.reconfigure(on ? pageExt : []), gutters.reconfigure(on ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter()])] });
+      view.dispatch({ effects: [pageC.reconfigure(on ? pageExt : askTip), gutters.reconfigure(on ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter()])] });
       view.contentDOM.setAttribute("spellcheck", on ? "true" : "false");
     },
     get isMarkdown() { return isMd; },

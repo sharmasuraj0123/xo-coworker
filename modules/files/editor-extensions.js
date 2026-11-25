@@ -17,7 +17,9 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 
 const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "");
 
-/** @param {CodeMirror} CM @param {{images?: ImageSource | null}} [options] @returns {Promise<Extension>} */
+/** @typedef {{images?: ImageSource | null, askAbout?: ((state: EditorState) => void) | null}} PageExtensionOptions */
+
+/** @param {CodeMirror} CM @param {PageExtensionOptions} [options] @returns {Promise<Extension>} */
 export async function loadPageExtension(CM, options) {
   try {
     return (await import("./markdown-page.js")).pageView(CM, options);
@@ -101,26 +103,26 @@ function askTip(CM, { onLines, onAsk }) {
       if (!tr.selection && !tr.docChanged) return lines;
       return linesOf(tr.state);
     },
-    provide: (f) => showTooltip.compute([f], (state) => {
-      const l = state.field(f);
-      if (!l || !onAsk) return null;
-      return {
-        pos: l.pos, above: false, arrow: false,
-        create: () => {
-          const dom = document.createElement("div");
-          dom.className = "cm-xo-asktip";
-          const b = document.createElement("button");
-          b.type = "button"; b.className = "xd-ask";
-          const label = l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`;
-          const modifier = MAC ? xi("key-command", "kb-ic") : "Ctrl ";
-          b.innerHTML = `<span>Ask about ${label}</span><kbd>${modifier}L</kbd>`;
-          b.addEventListener("mousedown", (e) => e.preventDefault()); // the selection stays
-          b.addEventListener("click", () => onAsk({ a: l.a, b: l.b }));
-          dom.appendChild(b);
-          return { dom };
-        },
-      };
-    }),
+  });
+  const tip = showTooltip.compute([field], (state) => {
+    const l = state.field(field);
+    if (!l || !onAsk) return null;
+    return {
+      pos: l.pos, above: false, arrow: false,
+      create: () => {
+        const dom = document.createElement("div");
+        dom.className = "cm-xo-asktip";
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "xd-ask";
+        const label = l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`;
+        const modifier = MAC ? xi("key-command", "kb-ic") : "Ctrl ";
+        b.innerHTML = `<span>Ask about ${label}</span><kbd>${modifier}L</kbd>`;
+        b.addEventListener("mousedown", (e) => e.preventDefault()); // the selection stays
+        b.addEventListener("click", () => onAsk({ a: l.a, b: l.b }));
+        dom.appendChild(b);
+        return { dom };
+      },
+    };
   });
   /** @type {string | null} */
   let last = null;
@@ -133,7 +135,12 @@ function askTip(CM, { onLines, onAsk }) {
       if (onLines) onLines(l ? { a: l.a, b: l.b } : null);
     }
   });
-  return { field, ext: [field, listen], linesOf };
+  /** @param {EditorState} state */
+  const askAbout = (state) => {
+    const l = linesOf(state);
+    if (l && onAsk) onAsk({ a: l.a, b: l.b });
+  };
+  return { field, tip, ext: [field, listen], linesOf, askAbout: onAsk ? askAbout : null };
 }
 
 /** @param {CodeMirror} CM */
@@ -209,7 +216,7 @@ export function createEditorConfiguration(CM, { onLines, onAsk }) {
       search({ top: true }),
       wrap.of(EditorView.lineWrapping),
       lang.of(isMd ? markdown({ base: markdownLanguage, codeLanguages: languages }) : []),
-      pageC.of(page && isMd ? pageExt : []),
+      pageC.of(page && isMd ? pageExt : ask.tip),
       ro.of([EditorState.readOnly.of(!!readOnly), EditorView.editable.of(!readOnly)]),
       mergeC.of([]),
       tint.field, ask.ext, keys, theme,
@@ -221,5 +228,5 @@ export function createEditorConfiguration(CM, { onLines, onAsk }) {
       EditorView.domEventHandlers({ keydown: (/** @type {KeyboardEvent} */ e) => (onKey ? onKey(e) : false) }),
     ];
   }
-  return { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions };
+  return { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions, askTip: ask.tip, askAbout: ask.askAbout };
 }

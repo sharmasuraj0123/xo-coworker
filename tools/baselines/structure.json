@@ -673,9 +673,6 @@
  "modules/files/folder-reads.js": {
   "lineLength": 3
  },
- "modules/files/markdown-page.js": {
-  "lineLength": 2
- },
  "modules/files/marks.js": {
   "lineLength": 5
  },

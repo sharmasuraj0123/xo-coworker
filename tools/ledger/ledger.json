@@ -11441,7 +11441,7 @@
   },
   "js/mdlive.js::exports::toggleMark": {
    "status": "deleted",
-   "reason": "The formatter is private to the Markdown page keymap, which now provides the test entry point."
+   "reason": "The formatter belongs to the Markdown page commands, which the page keymap and its bars share."
   },
   "js/mdlive.js::exports::rowLine": {
    "status": "deleted",
@@ -11461,7 +11461,7 @@
   },
   "js/mdlive.js::functions::toggleMark": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-commands.js"
   },
   "js/mdlive.js::functions::rowLine": {
    "status": "moved",

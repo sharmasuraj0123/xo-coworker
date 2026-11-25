@@ -339,9 +339,6 @@
  "modules/files/folder-reads.js": {
   "commentLines": 2
  },
- "modules/files/markdown-page.js": {
-  "commentLines": 1
- },
  "modules/files/marks.js": {
   "commentLines": 2
  },
