@@ -48,7 +48,7 @@ export function createTopHeader(deps, scope, schedule) {
     const { who, controls } = conversationHeaderHtml(v, t, needs);
     if (who != null) redraw($("#top-who"), who);
     const pv = v.startsWith("p:");
-    const endHtml = t ? "" : (pv ? controls + headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
+    const endHtml = t ? "" : controls + (pv ? headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
     redraw($("#top-end"), endHtml);
     LP.ensure(v);
     checklistRender(needs);

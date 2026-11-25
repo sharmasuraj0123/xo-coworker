@@ -233,6 +233,8 @@ assert.equal(chatComposer.selectionStart, chatComposer.value.length);
 assert.ok(document.activeElement === chatComposer);
 
 press("#nv-ws");
+assert.equal(document.querySelector("#conv-title").textContent, "All projects");
+assert.doesNotMatch(document.querySelector("#top-who").textContent, /idle|All quiet/);
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
 assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 2 projects/);

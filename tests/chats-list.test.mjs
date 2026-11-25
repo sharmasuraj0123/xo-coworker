@@ -155,7 +155,7 @@ t("Recent chats share the search style and align controls with the composer", ()
 
 t("The Chats greeting replaces the desktop bar while the phone keeps its menu", () => {
   const chats = '.app:is([data-conv="chats"],[data-conv^="c:"])';
-  style(chats + " .top", { display: "none" }, "@media (min-width:761px)");
+  style('.app[data-conv="chats"] .top', { display: "none" }, "@media (min-width:761px)");
   style(":root:root " + chats + " #top-who", { display: "none" }, "@media (max-width:760px)");
 });
 

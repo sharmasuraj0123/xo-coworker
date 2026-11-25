@@ -118,9 +118,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
-    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
+    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"]
+      : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : null;
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${metaHtml(s)}</span></span>` +
-      `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
+      (st ? `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>` : "");
   }
 
   /** @param {string} v */
@@ -129,7 +130,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
+      return st.cwd ? `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd)))}</span>` : `${ICON.thread}<span>Quick chat</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -165,6 +166,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const own = ownOf(v);
     if (v !== "chats" && !own) return "";
     const st = own || setup();
+    if (!st.cwd) return "";
     return st.agent && st.mode ? `${xi(MODE_WORDS[st.mode]?.[2] || "lock")}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
   }
   /** The mode chip's title: a new chat's choice, or an open chat's fixed mode and folder. @param {string} v */
