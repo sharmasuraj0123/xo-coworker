@@ -4827,9 +4827,12 @@
    "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/smoke.test.cjs": {
-   "status": "planned",
+   "status": "moved",
    "home": "e2e/specs/smoke.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "Eight public UI cases passed in dark and light at 1440×900 and 390×844, DPR 1, on 2b9d2503.",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "Smoke: sent with the composer in reach", "reason": "Composer, Stage, Files, theme and Keyboard steps run through the real controls and fake Space." }
+   }
   },
   "tests/busy.test.mjs": {
    "status": "planned",
@@ -14947,24 +14950,39 @@
    "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::stage": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/smoke.spec.mjs",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "[data-stage-inert]", "reason": "Closing Stage clears inert markers. Opening Files keeps the conversation in place." }
+   }
   },
   "tests/browser/smoke.test.cjs::ids::theme": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/smoke.spec.mjs",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "theme round trip and Keyboard wheel", "reason": "The theme button switches to the opposite theme and back through the phone drawer or desktop rail." }
+   }
   },
   "tests/browser/smoke.test.cjs::ids::say": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/smoke.spec.mjs",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "Smoke: after closing the panel", "reason": "Native keyboard input and Enter reach the composer before and after the Stage and Files interactions." }
+   }
   },
   "tests/browser/smoke.test.cjs::ids::keys-reset-all": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/smoke.spec.mjs",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "rect.top < innerHeight && rect.bottom > 0", "reason": "Native wheel input brings the Keyboard footer into the viewport." }
+   }
   },
   "tests/browser/smoke.test.cjs::ids::main": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/smoke.spec.mjs",
+   "evidence": {
+    "e2e/specs/smoke.spec.mjs": { "anchor": "el.scrollTop), 0", "reason": "The main region stays stationary after wheeling to the Keyboard footer." }
+   }
   },
   "tests/busy.test.mjs::functions::fakeBackend": {
    "status": "planned",
