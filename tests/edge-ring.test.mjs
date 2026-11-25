@@ -1,14 +1,19 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import harness from "./browser/harness.cjs";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const H = read("tests/browser/harness.cjs"), F = read("tests/browser/flows.test.cjs");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-
-t("the ring sweep counts the screen's edges as a clip, and reads a file from Artifacts in the panel", () => {
-  assert.match(H, /at the screen's edge/);
-  assert.match(H, /if \(ring\.top < -0\.5 && r\.top >= -0\.5\) vs\.push\("top"\);/);
-  assert.match(F, /await sweep\("a file from Artifacts, in the panel"\);/);
+const { document } = await dom('<input id="file-search">');
+const field = document.querySelector("input");
+Object.assign(globalThis, {
+  innerWidth: 800, innerHeight: 600,
+  requestAnimationFrame: fn => fn(0),
+  getComputedStyle: () => ({ outlineStyle: "solid", outlineOffset: "1px", outlineWidth: "2px" }),
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+Object.defineProperty(document.documentElement, "clientWidth", { value: 800 });
+let y = 0;
+field.getBoundingClientRect = () => ({ left: 20, right: 120, top: y, bottom: y + 30, width: 100, height: 30 });
+const page = { evaluate: (fn, arg) => fn(arg) };
+const sweep = () => harness.ringClips(page, "File in the panel");
+assert.deepEqual((await sweep()).cut, ["File in the panel: input#file-search at the screen's edge: top"]);
+y = 4;
+assert.deepEqual((await sweep()).cut, []);

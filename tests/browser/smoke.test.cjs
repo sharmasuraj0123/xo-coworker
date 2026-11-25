@@ -1,8 +1,3 @@
-// The smoke gate (the owner's choice, 9 Nov): before a head goes to the graders, the few things everyone does, in all
-// four cells (dark and light, 1440×900 and 390×844), on the mock world: type and send in the message box; open and
-// close the panel; switch the theme; a file in the panel with the chat where it was; on a phone, open a file from the
-// panel, close the panel, and type. A head is published only when this passes. No page errors and no focus fallen to the page, ever.
-//   node tests/browser/smoke.test.cjs
 "use strict";
 const assert = require("assert/strict");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";

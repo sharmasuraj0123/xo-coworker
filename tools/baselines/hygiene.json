@@ -143,9 +143,6 @@
  "core/ui/components/hold.js": {
   "commentLines": 2
  },
- "core/ui/components/xo-select.css": {
-  "commentLines": 7
- },
  "core/ui/components/xo-select.js": {
   "commentLines": 5
  },
@@ -164,22 +161,7 @@
  "core/ui/markdown/markdown.js": {
   "commentLines": 1
  },
- "core/ui/markdown/rich.css": {
-  "commentLines": 19
- },
  "core/ui/markdown/rich.js": {
-  "commentLines": 14
- },
- "core/ui/tokens.css": {
-  "commentLines": 14
- },
- "css/app.css": {
-  "commentLines": 1
- },
- "css/diffs.css": {
-  "commentLines": 9
- },
- "css/panel.css": {
   "commentLines": 14
  },
  "e2e/lib/apps.mjs": {
@@ -281,9 +263,6 @@
  "modules/conversation/composer-attachments.js": {
   "commentLines": 2
  },
- "modules/conversation/conversation.css": {
-  "commentLines": 1
- },
  "modules/conversation/decoration.js": {
   "commentLines": 3
  },
@@ -348,7 +327,7 @@
   "commentLines": 1
  },
  "modules/decisions/needs.js": {
-  "commentLines": 3
+  "commentLines": 2
  },
  "modules/decisions/toast.js": {
   "commentLines": 1
@@ -513,7 +492,7 @@
   "commentLines": 2
  },
  "serve.py": {
-  "commentLines": 71
+  "commentLines": 2
  },
  "shell/favicon.js": {
   "commentLines": 1,
@@ -547,10 +526,6 @@
  "shell/sideorder.js": {
   "commentLines": 1
  },
- "tests/app-ctl-scale.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 5
- },
  "tests/attach.test.mjs": {
   "commentLines": 2
  },
@@ -582,19 +557,11 @@
  "tests/browser/settings.test.cjs": {
   "commentLines": 3
  },
- "tests/browser/smoke.test.cjs": {
-  "changelogComment": 2,
-  "commentLines": 4
- },
  "tests/busy.test.mjs": {
   "commentLines": 3
  },
  "tests/conv-actions.test.mjs": {
   "commentLines": 1
- },
- "tests/conv-herald-resolve.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
  },
  "tests/coord-colour.test.mjs": {
   "changelogComment": 2,
@@ -611,10 +578,6 @@
  },
  "tests/drafts.test.mjs": {
   "commentLines": 1
- },
- "tests/edge-ring.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 3
  },
  "tests/edits.test.mjs": {
   "commentLines": 3
@@ -651,14 +614,6 @@
  "tests/logic.test.mjs": {
   "commentLines": 4
  },
- "tests/main-clip.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/map-follow-cursor.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
  "tests/media-lifecycle.test.mjs": {
   "commentLines": 1
  },
@@ -678,10 +633,6 @@
  "tests/pending.test.mjs": {
   "commentLines": 1
  },
- "tests/picker-keys.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
  "tests/record.test.mjs": {
   "commentLines": 8
  },
@@ -693,7 +644,7 @@
   "commentLines": 1
  },
  "tests/scroller-ring.test.mjs": {
-  "commentLines": 17
+  "commentLines": 5
  },
  "tests/serve.test.py": {
   "commentLines": 13
@@ -703,10 +654,6 @@
  },
  "tests/shells.test.mjs": {
   "commentLines": 1
- },
- "tests/sidebar-hover.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 4
  },
  "tests/stopped-on-purpose.test.mjs": {
   "commentLines": 3

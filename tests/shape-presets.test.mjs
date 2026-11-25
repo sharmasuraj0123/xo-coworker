@@ -1,13 +1,16 @@
 // The shape store reads a preset from the file that sits beside it, by its own default loader: the URL it asks for is a preset on disk.
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import engineering from "../core/services/shape/presets/engineering.json" with { type: "json" };
+import marketing from "../core/services/shape/presets/marketing.json" with { type: "json" };
+
+const presets = new Map([["engineering", engineering], ["marketing", marketing]].map(([id, data]) =>
+  [new URL(`../core/services/shape/presets/${id}.json`, import.meta.url).href, data]));
 
 const asked = [];
 globalThis.fetch = async (url) => {
   asked.push(String(url));
-  const path = fileURLToPath(url);
-  return existsSync(path) ? new Response(readFileSync(path, "utf8")) : new Response(null, { status: 404 });
+  const data = presets.get(String(url));
+  return data ? Response.json(data) : new Response(null, { status: 404 });
 };
 const { createShapeStore } = await import("../core/services/shape/store.js");
 const store = createShapeStore({ storage: { getItem: () => null, setItem() {}, removeItem() {} } });

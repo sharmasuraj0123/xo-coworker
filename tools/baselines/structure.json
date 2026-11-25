@@ -164,10 +164,6 @@
  "core/services/shape/changes.js": {
   "lineLength": 4
  },
- "core/services/shape/index.js": {
-  "lineLength": 1,
-  "unusedExport": 18
- },
  "core/services/shape/model.js": {
   "lineLength": 29,
   "unusedExport": 8
@@ -364,7 +360,7 @@
   "lineLength": 2
  },
  "core/ui/tokens.css": {
-  "lineLength": 33
+  "lineLength": 30
  },
  "core/ui/virtual.js": {
   "lineLength": 4
@@ -381,7 +377,7 @@
  },
  "css/panel.css": {
   "important": 10,
-  "lineLength": 57
+  "lineLength": 56
  },
  "index.html": {
   "lineLength": 19
@@ -450,8 +446,7 @@
   "lineLength": 1
  },
  "modules/chats/intel-view.js": {
-  "lineLength": 32,
-  "sourceReadTarget": 1
+  "lineLength": 32
  },
  "modules/chats/intel.js": {
   "functionLines": 1,
@@ -633,8 +628,7 @@
   "lineLength": 5
  },
  "modules/decisions/needs.js": {
-  "lineLength": 3,
-  "unusedExport": 1
+  "lineLength": 2
  },
  "modules/decisions/pacing.js": {
   "lineLength": 1,
@@ -648,8 +642,8 @@
   "lineLength": 7
  },
  "modules/decisions/rank.js": {
-  "lineLength": 2,
-  "unusedExport": 2
+  "lineLength": 1,
+  "unusedExport": 1
  },
  "modules/decisions/toast.js": {
   "lineLength": 2
@@ -815,8 +809,7 @@
   "lineLength": 6
  },
  "modules/map/camera.js": {
-  "lineLength": 4,
-  "sourceReadTarget": 1
+  "lineLength": 4
  },
  "modules/map/drawing.js": {
   "lineLength": 9
@@ -992,10 +985,6 @@
  "shell/header.js": {
   "lineLength": 1
  },
- "shell/kernel.js": {
-  "lineLength": 1,
-  "unusedExport": 1
- },
  "shell/keyboard-layers.js": {
   "lineLength": 3
  },
@@ -1062,9 +1051,6 @@
  "tests/coord-colour.test.mjs": {
   "sourceRead": 1
  },
- "tests/edge-ring.test.mjs": {
-  "sourceRead": 1
- },
  "tests/flavours.test.mjs": {
   "sourceRead": 1
  },
@@ -1083,22 +1069,13 @@
  "tests/lib/sources.mjs": {
   "sourceRead": 1
  },
- "tests/map-follow-cursor.test.mjs": {
-  "sourceRead": 1
- },
  "tests/names.test.mjs": {
   "sourceRead": 1
  },
  "tests/pack-where-it-fits.test.mjs": {
   "sourceRead": 1
  },
- "tests/picker-keys.test.mjs": {
-  "sourceRead": 1
- },
  "tests/refusal-mark.test.mjs": {
-  "sourceRead": 1
- },
- "tests/shape-presets.test.mjs": {
   "sourceRead": 1
  }
 }
