@@ -317,7 +317,6 @@
 :where(.dg-tools){--shadow-map-tools:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)))}
 :root[data-theme="light"] :where(.dg-sep){--fill-map-tools-separator:var(--line-soft)}
 :root[data-theme="light"] :where(.dg-mode button[aria-pressed="true"]){--fill-map-mode-selected:var(--fill-2)}
-:root[data-theme="light"] :where(.fl-q){--edge-file-search-light:rgba(0,0,0,.12)}
 :root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
 :root[data-theme="light"] :where(.md-pin){
   --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);
