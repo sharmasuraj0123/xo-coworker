@@ -345,7 +345,7 @@
   "lineLength": 26
  },
  "core/ui/markdown/chart.js": {
-  "lineLength": 23,
+  "lineLength": 21,
   "unusedExport": 3
  },
  "core/ui/markdown/highlight.js": {

@@ -138,9 +138,8 @@ export function webImageUrl(u, { bare = false } = {}) {
   const h = String(u || "").trim();
   if (!HTTP_HREF.test(h)) return null;
   if (bare) {
-    let path = "";
-    try { path = new URL(h).pathname; } catch { return null; }
-    if (!IMG_PATH.test(path)) return null;
+    try { if (!IMG_PATH.test(new URL(h).pathname)) return null; }
+    catch (error) { if (error instanceof TypeError) return null; throw error; }
   }
   return h;
 }

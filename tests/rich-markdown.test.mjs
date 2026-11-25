@@ -104,6 +104,9 @@ t("shorthands: a bare array; labels; data", () => {
   const c = readChart(JSON.stringify({ labels: ["a", "b"], series: [{ name: "s", data: [1, 2] }] }));
   assert.deepEqual(c.cats, ["a", "b"]);
   assert.equal(readChart("{}"), null);
+  assert.equal(readChart("{ invalid chart"), null);
+  const unexpected = new Error("chart input failed");
+  assert.throws(() => readChart({ toString() { throw unexpected; } }), (error) => error === unexpected);
   assert.equal(readChart(JSON.stringify({ series: [{ values: ["x", null] }] })), null);
 });
 t("numeric x places points by value", () => {
@@ -125,6 +128,7 @@ t("![alt](relative.png) is a picture in the conversation's folder", () => {
   assert.deepEqual(imageLine("![a](https://x.test/a.png)"), [{ alt: "a", url: "https://x.test/a.png" }]);
   assert.equal(imageLine("![a](../secret.png)"), null);
   assert.equal(imageLine("![a](notes.txt)"), null);
+  assert.equal(imageLine("https://[invalid]/a.png"), null);
   // without the app's picture renderer it's the file's capsule (opens in Files)
   assert.match(renderMarkdown("![The fit](plots/fit.png)"), /data-file="plots\/fit.png"/);
 });

@@ -1,12 +1,18 @@
 // @ts-check
 
-// A ```chart block's JSON spec drawn as HTML over one stretched SVG, as a string: no library, same spec same HTML, every word through esc().
-
 import { esc } from "../../platform/index.js";
 
 /** @typedef {[number, number | null]} Pt @typedef {{ name: string, pts: Pt[] }} Series */
 
 /** @typedef {{ type: string, title: string, xLabel: string, yLabel: string, cats: string[] | null, series: Series[], yMin: number | null, yMax: number | null }} Chart */
+
+/** @typedef {{ values?: unknown[], label?: unknown, min?: unknown, max?: unknown }} ChartAxis */
+
+/** @typedef {{ name?: unknown, points?: unknown[], values?: unknown[], data?: unknown[] }} ChartSeriesInput */
+
+/** @typedef {{ x?: ChartAxis | unknown[], y?: ChartAxis, labels?: unknown[] }} ChartAxes */
+
+/** @typedef {ChartAxes & {type?: string, title?: unknown, series?: ChartSeriesInput[]}} ChartInput */
 
 const MAX_SERIES = 8, MAX_POINTS = 2000;
 const num = (/** @type {unknown} */ v) => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN);
@@ -14,12 +20,14 @@ const fin = (/** @type {unknown} */ v) => Number.isFinite(num(v));
 
 /** The spec, read leniently and checked: {type, title, xLabel, yLabel, cats|null, series:[{name, pts:[[x,y]]}], yMin, yMax} or null. @param {unknown} src @returns {Chart | null} */
 export function readChart(src) {
-  /** @type {any} */
+  const input = String(src || "");
+  /** @type {ChartInput | null} */
   let s;
-  try { s = JSON.parse(String(src || "")); } catch { return null; }
+  try { s = JSON.parse(input); } catch (error) { if (error instanceof SyntaxError) return null; throw error; }
   if (Array.isArray(s)) s = { series: [{ values: s }] };
   if (!s || typeof s !== "object") return null;
-  const type = ["line", "area", "bar", "scatter"].includes(s.type) ? s.type : s.type === "column" ? "bar" : "line";
+  const type = s.type && ["line", "area", "bar", "scatter"].includes(s.type) ? s.type : s.type === "column" ? "bar" : "line";
+  /** @type {ChartAxis} */
   const x = s.x && typeof s.x === "object" && !Array.isArray(s.x) ? s.x : { values: Array.isArray(s.x) ? s.x : s.labels };
   const y = s.y && typeof s.y === "object" ? s.y : {};
   const xs = Array.isArray(x.values) ? x.values.slice(0, MAX_POINTS) : null;
@@ -27,12 +35,16 @@ export function readChart(src) {
   /** @type {Series[]} */
   const series = [];
   for (const [i, r] of raw.entries()) {
-    const name = String((r && r.name) ?? (raw.length > 1 ? `Series ${i + 1}` : "")).slice(0, 80);
+    const { name: label, points, values, data } = r ?? {};
+    const name = String(label ?? (raw.length > 1 ? `Series ${i + 1}` : "")).slice(0, 80);
     /** @type {Pt[]} */
     let pts = [];
-    if (type === "scatter" && Array.isArray(r && r.points)) pts = r.points.slice(0, MAX_POINTS).filter((/** @type {any} */ p) => Array.isArray(p) && fin(p[0]) && fin(p[1])).map((/** @type {any[]} */ p) => /** @type {Pt} */ ([num(p[0]), num(p[1])]));
+    if (type === "scatter" && Array.isArray(points)) {
+      pts = points.slice(0, MAX_POINTS).flatMap((p) =>
+        Array.isArray(p) && fin(p[0]) && fin(p[1]) ? [/** @type {Pt} */ ([num(p[0]), num(p[1])])] : []);
+    }
     else {
-      const vals = Array.isArray(r) ? r : Array.isArray(r && r.values) ? r.values : Array.isArray(r && r.data) ? r.data : [];
+      const vals = Array.isArray(r) ? r : Array.isArray(values) ? values : Array.isArray(data) ? data : [];
       pts = vals.slice(0, MAX_POINTS).map((/** @type {unknown} */ v, /** @type {number} */ j) => /** @type {Pt} */ ([j, fin(v) ? num(v) : null]));
     }
     if (pts.some((p) => p[1] != null)) series.push({ name, pts });

@@ -28,18 +28,6 @@
    ["setTimeout",278,""]
   ]
  },
- "core/ui/markdown/chart.js": {
-  "sha256": "05d8f44ea45bf22c85b461f62895df39e941a43f0ddf5ee352ca65358df654f9",
-  "sites": [
-   ["commentOnlyCatch",19,""]
-  ]
- },
- "core/ui/markdown/inline.js": {
-  "sha256": "c08eb279b7378dce79294cbf141179fe7896eea2aeca39074935c28dda196ff1",
-  "sites": [
-   ["commentOnlyCatch",142,""]
-  ]
- },
  "core/ui/markdown/rich.js": {
   "sha256": "f417f168bcfc414899b61a3588a7e4f5d5a0c4f926158dbd1c52a690d08a104c",
   "sites": [

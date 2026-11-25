@@ -194,8 +194,7 @@
   "explicitAny": 42
  },
  "core/ui/markdown/chart.js": {
-  "commentLines": 5,
-  "explicitAny": 3
+  "commentLines": 5
  },
  "core/ui/markdown/inline.js": {
   "commentLines": 3
