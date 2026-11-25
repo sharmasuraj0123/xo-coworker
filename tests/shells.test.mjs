@@ -159,7 +159,8 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
   const hooks = registerHooks({
     load(url, context, next) {
       if (url.endsWith("/vendor/xterm/addon-fit.mjs")) {
-        return { format: "module", shortCircuit: true, source: "export class FitAddon { fit() { this.fits = (this.fits || 0) + 1; } }" };
+        const source = "export class FitAddon { fit() { if (this.failure) throw this.failure; this.fits = (this.fits || 0) + 1; } }";
+        return { format: "module", shortCircuit: true, source };
       }
       if (url.endsWith("/vendor/xterm/xterm.mjs")) {
         return {
@@ -217,6 +218,33 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
     assert.equal(observers.size, 0, "disconnect the host and theme observers");
     assert.equal(onlineListeners.size, 0, "remove the terminal's online listener");
     host.remove();
+  });
+  t("fit errors and malformed control frames are reported and a valid frame still reaches the terminal", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    Object.defineProperties(host, {
+      clientWidth: { value: 300 }, clientHeight: { value: 120 }, offsetParent: { value: document.body },
+    });
+    const errors = [], previous = globalThis.reportError;
+    const events = [];
+    globalThis.reportError = (error) => errors.push(error);
+    const shell = mountShell(host, { id: "demo", ticket: "attach-ticket", on: { error: (event) => events.push(event.code) } });
+    try {
+      const fitError = new Error("fit failed");
+      shell.term.fit.failure = fitError;
+      shell.refit();
+      const socket = sockets.at(-1);
+      socket.onmessage({ data: "{invalid control data" });
+      socket.onmessage({ data: JSON.stringify({ type: "error", code: "closed" }) });
+      assert.equal(errors[0], fitError);
+      assert.equal(errors[1]?.message, "The terminal sent malformed control JSON.");
+      assert.equal(errors.length, 2);
+      assert.deepEqual(events, ["closed"]);
+    } finally {
+      shell.dispose();
+      globalThis.reportError = previous;
+      host.remove();
+    }
   });
   t("a socket close failure is reported while the terminal still disposes", () => {
     const host = document.createElement("div");

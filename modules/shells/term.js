@@ -123,7 +123,7 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   const visible = () => host.offsetParent !== null && Boolean(host.clientWidth && host.clientHeight);
   function refit({ tell = true } = {}) {
     if (!visible()) return;
-    try { fit.fit(); } catch { return; }
+    try { fit.fit(); } catch (error) { reportFailure(error); return; }
     const size = `${term.rows}x${term.cols}`;
     if (tell && size !== lastSize) { lastSize = size; control({ type: "resize", rows: term.rows, cols: term.cols }); }
   }
@@ -164,7 +164,7 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
       if (typeof ev.data !== "string") return write(new Uint8Array(ev.data));
       /** @type {TerminalFrame} */
       let m;
-      try { m = JSON.parse(ev.data); } catch { return; }
+      try { m = JSON.parse(ev.data); } catch { reportFailure(new Error("The terminal sent malformed control JSON.")); return; }
       if (m.type === "ready") {
         tries = 0;
         // a new viewer replays the kept output from its start: begin from a clean screen

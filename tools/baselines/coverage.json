@@ -1,9 +1,1 @@
-{
- "modules/shells/term.js": {
-  "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
-  "sites": [
-   ["commentOnlyCatch",126,""],
-   ["commentOnlyCatch",167,""]
-  ]
- }
-}
+{}
