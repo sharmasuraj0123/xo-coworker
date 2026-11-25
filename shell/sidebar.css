@@ -1,6 +1,10 @@
 
 
 .nav{padding:var(--s-1) var(--s-3) 0}
+.side-top .brand{order:-1}
+.side > .nrow{margin-inline:var(--s-3);width:auto}
+#nv-chats{background:var(--fill-2)}
+#nv-chats .nr-ic{color:var(--accent)}
 .side .gear,.side-plus{border-radius:var(--r)}
 .side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
 .side :is(.gear,.side-plus):focus-visible{border-radius:var(--r)}

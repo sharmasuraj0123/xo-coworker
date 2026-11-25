@@ -33,7 +33,7 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
     const wnHtml = wsN ? `<span class="nv-dot" aria-hidden="true"></span>${wsN}` : "";
     const wn = findHtml("#ws-n");
     if (workspaceCount !== wsN) { redraw(wn, wnHtml); workspaceCount = wsN; }
-    requireHtml("#nv-ws", "button").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
+    requireHtml("#nv-ws", "button").setAttribute("aria-label", wsN ? "All projects, coordinator needs you" : "All projects");
     requireHtml("#nv-home", "button").classList.toggle("is-on", current === "home");
     requireHtml("#nv-ws", "button").classList.toggle("is-on", current === "ws");
     requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current));

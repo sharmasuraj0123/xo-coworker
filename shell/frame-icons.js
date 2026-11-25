@@ -9,8 +9,8 @@ export function drawPlaceIcons() {
   requireHtml("#brand-mark").innerHTML = XO;
   requireHtml("#sc-ic").innerHTML = ICON.plus;
   requireHtml("#ic-home").innerHTML = ICON.home;
-  requireHtml("#ic-ws").innerHTML = XO;
-  requireHtml("#ic-chats").innerHTML = ICON.thread;
+  requireHtml("#ic-ws").innerHTML = xi("dashboard");
+  requireHtml("#ic-chats").innerHTML = ICON.plus;
   requireHtml("#ic-arts").innerHTML = ICON.stack;
   requireHtml("#ic-lp").innerHTML = ICON.deploy;
   requireHtml("#ic-shells").innerHTML = ICON.shell;
@@ -34,7 +34,7 @@ export function drawFrameIcons() {
 
 export function drawSidebarControls() {
   requireHtml("#side-fold", "button").innerHTML = ICON.sidebar;
-  requireHtml("#side-jump", "button").innerHTML = ICON.search;
-  requireHtml("#ic-more").innerHTML = xi("dashboard");
+  requireHtml("[data-search-icon]").innerHTML = ICON.search;
+  requireHtml("#ic-more").innerHTML = ICON.more;
   requireHtml("#nv-more .nr-chev").innerHTML = ICON.right;
 }

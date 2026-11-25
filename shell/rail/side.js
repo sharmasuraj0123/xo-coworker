@@ -46,8 +46,8 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     BAR,
     CORE: [
       { id: "home", name: "Home", sel: "#nv-home" },
-      { id: "ws", name: "Workspace", sel: "#nv-ws" },
-      { id: "chats", name: "Chats", sel: "#nv-chats" },
+      { id: "ws", name: "All projects", sel: "#nv-ws" },
+      { id: "chats", name: "New chat", sel: "#nv-chats" },
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
     ],
     PLACES: [
@@ -117,9 +117,11 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         }
         if (!el) continue;
         if (p.sel) el.hidden = !on;
+        if (id === "ws" || id === "chats") continue;
         if (on || p.sel) { if (el.nextElementSibling !== more || el.parentNode !== nav) nav.insertBefore(el, more); }
         if (on && SIDE.folded) el.title = p.name;
       }
+      requireHtml("#nv-home").after(requireHtml("#side-jump"));
       if (!requireHtml("#side-more").hidden) SIDE.drawMore();
     },
     /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with its switch and grip. */

@@ -40,19 +40,21 @@
       <div class="side-top">
         <button type="button" class="side-ib side-fold" id="side-fold" aria-controls="side" aria-expanded="true" aria-label="Fold the sidebar"></button>
         <p class="brand"><span class="brand-mark" id="brand-mark"></span><span class="sr-only">XO </span><b>Space</b></p>
-        <button type="button" class="side-ib" id="side-jump" aria-label="Search and jump"></button>
         <button type="button" class="side-x" id="side-x" aria-label="Close menu"></button>
       </div>
+        <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">New chat</span></button>
       <nav class="nav" aria-label="Main">
         <button type="button" class="nrow" data-go="home" id="nv-home"><span class="nr-ic" id="ic-home"></span><span class="nr-name">Home</span><span class="nr-n" id="home-n"></span></button>
-        <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span><span class="nr-n" id="ws-n"></span></button>
-        <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
-        <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n" data-rail-count></span></button>
+        <button type="button" class="nrow" id="side-jump">
+          <span class="nr-ic" data-search-icon></span><span class="nr-name">Search</span>
+        </button>
+        <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span></button>
         <button type="button" class="nrow" data-go="launchpad" id="nv-lp" hidden><span class="nr-ic" id="ic-lp"></span><span class="nr-name">Launchpad</span></button>
         <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span><span class="nr-chev" aria-hidden="true"></span></button>
       </nav>
       <div class="side-pop" id="side-more" role="menu" aria-label="More places" tabindex="-1" hidden></div>
-      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
+      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="New project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
+        <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic" id="ic-ws"></span><span class="nr-name">All projects</span><span class="nr-n" id="ws-n"></span></button>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
       <div class="side-foot">
         <button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"></span><span class="sh-n"></span></button>
