@@ -740,6 +740,15 @@ class StaticCaching(unittest.TestCase):
         status, _, _ = fetch(f"/v/{serve.tree_version()}/js/../../serve.py")
         self.assertNotEqual(status, 200)
 
+    def test_only_application_assets_are_public(self):
+        for prefix in ("", "/v/000000000000"):
+            for path in ("/boot.js", "/modules/map/controls.css"):
+                with self.subTest(prefix=prefix, path=path):
+                    self.assertEqual(fetch(prefix + path)[0], 200)
+            for path in ("/AGENTS.md", "/serve.py", "/modules/", "/core/platform/tests/fixtures/account-api.json"):
+                with self.subTest(prefix=prefix, path=path):
+                    self.assertEqual(fetch(prefix + path)[0], 404)
+
     def test_version_follows_content(self):
         import tempfile
         with tempfile.TemporaryDirectory() as d:

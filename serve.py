@@ -256,16 +256,33 @@ def _stamp(st: os.stat_result) -> tuple:
     return (st.st_ino, st.st_mtime_ns, st.st_size)
 
 
+def public_asset(root: str, path: str) -> bool:
+    relative = os.path.relpath(path, root)
+    parts = relative.split(os.sep)
+    if any(part.startswith(".") or part == "tests" for part in parts):
+        return False
+    if relative not in VERSIONED_FILES and (len(parts) == 1 or parts[0] not in VERSIONED_DIRS):
+        return False
+    if os.path.realpath(path) != os.path.join(os.path.realpath(root), relative):
+        return False
+    return os.path.isfile(path)
+
+
 def versioned_files(root: str):
     for name in VERSIONED_FILES:
         path = os.path.join(root, name)
-        if os.path.isfile(path):
+        if public_asset(root, path):
             yield path
     for top in VERSIONED_DIRS:
-        for directory, dirs, files in os.walk(os.path.join(root, top)):
-            dirs.sort()
+        base = os.path.join(root, top)
+        if os.path.islink(base):
+            continue
+        for directory, dirs, files in os.walk(base):
+            dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d != "tests")
             for name in sorted(files):
-                yield os.path.join(directory, name)
+                path = os.path.join(directory, name)
+                if not name.startswith(".") and not os.path.islink(path):
+                    yield path
 
 
 def tree_version(root: str = ROOT) -> str:
@@ -394,6 +411,8 @@ class Handler(SimpleHTTPRequestHandler):
             self._cache = IMMUTABLE if m[1] == tree_version() else "no-cache"
             self.path = m[2] + ("?" + query if query else "")
         file = self.translate_path(self.path)
+        if not public_asset(ROOT, file):
+            return self.send_error(404)
         ctype = self.guess_type(file)
         try:
             st = os.stat(file)
