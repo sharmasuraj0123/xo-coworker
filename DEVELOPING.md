@@ -13,6 +13,8 @@ Development runs straight from the source. If a `dist/` is left from a build, `s
 
 `npm run build` (`tools/build-ui.mjs`) bundles the entry points with esbuild, inlines every stylesheet in cascade order into one `css/app.css`, writes the release to `dist/<digest>/` and then points `dist/current` at it. Production runs this build when its Docker image is built. The full check builds a release in a temporary folder and checks its asset graph and both serving modes over HTTP (`tools/build/check.mjs`).
 
+For an in-place rollout, build into the existing `dist/` and restart the server. It prints its mode and digest. Source assets revalidate on request. Each production build retains the last two distinct releases for open tabs and keeps their diagnostic source maps private. If a replacement image drops a tab’s release, the existing notice line offers **Reload**.
+
 The pre-commit hook (`.githooks/pre-commit`) is enabled through the shared git config; never run `git config` for it.
 
 ## Structure
