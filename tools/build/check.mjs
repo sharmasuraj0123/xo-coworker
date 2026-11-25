@@ -32,6 +32,7 @@ try {
   }
   checkHttp(root, source, "raw", true);
   checkHttp(temporary, bundled, "production");
+  run("python3", ["tools/build/check-releases.py"]);
 } finally {
   rmSync(temporary, { recursive: true, force: true });
 }

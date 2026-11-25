@@ -607,7 +607,7 @@ class StaticCaching(unittest.TestCase):
             with self.subTest(path=relative):
                 status, headers, body = fetch(f"/v/{version}/{relative}")
                 self.assertEqual(status, 200)
-                self.assertEqual(headers["cache-control"], serve.IMMUTABLE)
+                self.assertEqual(headers["cache-control"], "no-cache")
                 with open(os.path.join(ROOT, relative), "rb") as file:
                     self.assertEqual(body, file.read())
 
@@ -629,7 +629,7 @@ class StaticCaching(unittest.TestCase):
                 with self.subTest(library=library, path=path):
                     status, headers, contents = fetch(f"{base}/{library}/{path}")
                     self.assertEqual((status, headers.get("cache-control"), sha256(contents).hexdigest()),
-                                     (200, serve.IMMUTABLE, digest))
+                                     (200, "no-cache", digest))
                     if path.endswith(".js"):
                         self.assertEqual(headers.get("content-type"), "text/javascript")
 
@@ -643,7 +643,7 @@ class StaticCaching(unittest.TestCase):
             with self.subTest(path=relative):
                 status, headers, body = fetch(f"{prefix}/{relative}")
                 self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
-                                 (200, "text/javascript", serve.IMMUTABLE))
+                                 (200, "text/javascript", "no-cache"))
                 self.assertEqual(sha256(body).hexdigest(), sha256(path.read_bytes()).hexdigest())
         relative = entry.relative_to(root).as_posix()
         self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
@@ -655,7 +655,7 @@ class StaticCaching(unittest.TestCase):
                 relative = f"vendor/agent-marks/{mark}.svg"
                 status, headers, body = fetch(f"{prefix}/{relative}")
                 self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
-                                 (200, "image/svg+xml", serve.IMMUTABLE))
+                                 (200, "image/svg+xml", "no-cache"))
                 with open(os.path.join(ROOT, relative), "rb") as svg:
                     self.assertEqual(body, svg.read())
                 self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
@@ -692,7 +692,7 @@ class StaticCaching(unittest.TestCase):
             with self.subTest(asset=asset):
                 status, headers, contents = fetch(f"{prefix}/{relative}/{asset}")
                 self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
-                                 (200, mime, serve.IMMUTABLE))
+                                 (200, mime, "no-cache"))
                 self.assertEqual(sha256(contents).hexdigest(), digest)
                 self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
 
@@ -703,7 +703,7 @@ class StaticCaching(unittest.TestCase):
         stylesheet = f"{prefix}/{relative}/katex.min.css"
         status, headers, css = fetch(stylesheet)
         self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
-                         (200, "text/css", serve.IMMUTABLE))
+                         (200, "text/css", "no-cache"))
         self.assertEqual(css, (bundle / "katex.min.css").read_bytes())
         fonts = set(re.findall(r"url\(([^)]+\.woff2)\)", css.decode()))
         self.assertEqual(fonts, {p.relative_to(bundle).as_posix() for p in bundle.glob("fonts/*.woff2")})
@@ -713,16 +713,16 @@ class StaticCaching(unittest.TestCase):
             with self.subTest(asset=asset):
                 status, headers, body = fetch(urljoin(stylesheet, asset))
                 self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
-                                 (200, mime, serve.IMMUTABLE))
+                                 (200, mime, "no-cache"))
                 self.assertEqual(body, (bundle / asset).read_bytes())
         for asset in ("katex.min.css", "katex.min.js", *sorted(fonts)):
             with self.subTest(retired=asset):
                 self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
 
-    def test_current_version_is_immutable(self):
+    def test_source_version_revalidates(self):
         status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")
         self.assertEqual(status, 200)
-        self.assertEqual(h["cache-control"], serve.IMMUTABLE)
+        self.assertEqual(h["cache-control"], "no-cache")
         with open(os.path.join(ROOT, "js", "app.js"), "rb") as fh:
             self.assertEqual(body, fh.read())
 

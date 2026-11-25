@@ -254,24 +254,27 @@ def read_build(root):
     return version, files
 
 
-def selected_build(root):
+def selected_builds(root):
     try:
         with open(os.path.join(root, "dist", "current"), encoding="ascii") as pointer:
-            version = pointer.read(14).strip()
-        if not re.fullmatch(r"[0-9a-f]{12}", version):
-            raise ValueError("Invalid production release name")
+            versions = pointer.read(64).splitlines()
+    except FileNotFoundError:
+        return {}
+    if not 1 <= len(versions) <= 2 or any(not re.fullmatch(r"[0-9a-f]{12}", version) for version in versions):
+        raise ValueError("Invalid production release selection")
+    releases = {}
+    for version in versions:
         directory = os.path.join(root, "dist", version)
         digest, files = read_build(directory)
         if digest != version:
-            raise ValueError("Production release digest does not match its directory")
-        return directory, digest, files
-    except FileNotFoundError:
-        return None, None, frozenset()
+            raise ValueError(f"Production release digest does not match {directory}")
+        releases[version] = directory, files
+    return releases
 
 
-PUBLIC_DIR, BUILD_VERSION, BUILD_FILES = (
-    (None, None, frozenset()) if os.environ.get("XO_SERVE_RAW") == "1" else selected_build(SOURCE_ROOT)
-)
+RELEASES = {} if os.environ.get("XO_SERVE_RAW") == "1" else selected_builds(SOURCE_ROOT)
+BUILD_VERSION = next(iter(RELEASES), None)
+PUBLIC_DIR, BUILD_FILES = RELEASES.get(BUILD_VERSION, (None, frozenset()))
 ROOT = PUBLIC_DIR or SOURCE_ROOT
 VERSIONED_DIRS = ("js", "css", "fonts", "presets", "assets", "core", "shell", "modules", "apps-host", "vendor")
 VERSIONED_FILES = ("boot.js", "favicon.svg")
@@ -281,6 +284,7 @@ if PUBLIC_DIR:
 directory_pattern = "|".join(map(re.escape, VERSIONED_DIRS) if PUBLIC_DIR else VERSIONED_DIRS)
 STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % (directory_pattern, "|".join(map(re.escape, VERSIONED_FILES)))
 VERSION_PATH = re.compile(r"^/v/([0-9a-f]{12})(/(?:%s))$" % STATIC_PATH)
+RELEASE_PATH = re.compile(r"/v/([0-9a-f]{12})(/.+)")
 INDEX_PATH = re.compile(r'((?:href|src)=")\./(%s)(?=")' % STATIC_PATH)
 IMMUTABLE = "public, max-age=31536000, immutable"
 GZIP_TYPES = ("text/", "application/json", "application/javascript", "image/svg+xml", "application/xml")
@@ -292,14 +296,17 @@ def _stamp(st: os.stat_result) -> tuple:
     return (st.st_ino, st.st_mtime_ns, st.st_size)
 
 
-def public_asset(root: str, path: str) -> bool:
+def public_asset(root: str, path: str, manifest=None) -> bool:
     relative = os.path.relpath(path, root)
-    if PUBLIC_DIR and root == ROOT and relative not in BUILD_FILES:
-        return False
+    if manifest is None and PUBLIC_DIR and root == ROOT:
+        manifest = BUILD_FILES
     parts = relative.split(os.sep)
     if any(part.startswith(".") or part == "tests" for part in parts):
         return False
-    if relative not in VERSIONED_FILES and (len(parts) == 1 or parts[0] not in VERSIONED_DIRS):
+    if manifest is not None:
+        if relative not in manifest or relative == "index.html":
+            return False
+    elif relative not in VERSIONED_FILES and (len(parts) == 1 or parts[0] not in VERSIONED_DIRS):
         return False
     if os.path.realpath(path) != os.path.join(os.path.realpath(root), relative):
         return False
@@ -446,18 +453,25 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _static(self):
         self._cache = "no-cache"
+        self.directory = ROOT
+        manifest = BUILD_FILES if PUBLIC_DIR else None
         path, _, query = self.path.partition("?")
         if path in ("/", "/index.html"):
             return self._index()
-        m = VERSION_PATH.match(posixpath.normpath(unquote(path)))
+        version_path = RELEASE_PATH if PUBLIC_DIR else VERSION_PATH
+        m = version_path.fullmatch(posixpath.normpath(unquote(path)))
         if path.startswith("/v/") and not m:
             return self.send_error(404)
         if m:
-            # an old version's URL gets today's file, revalidated rather than kept for a year
-            self._cache = IMMUTABLE if m[1] == tree_version() else "no-cache"
+            if PUBLIC_DIR:
+                release = RELEASES.get(m[1])
+                if release is None:
+                    return self.send_error(404)
+                self.directory, manifest = release
+                self._cache = IMMUTABLE
             self.path = m[2] + ("?" + query if query else "")
         file = self.translate_path(self.path)
-        if not public_asset(ROOT, file):
+        if not public_asset(self.directory, file, manifest):
             return self.send_error(404)
         ctype = self.guess_type(file)
         try:
@@ -721,7 +735,8 @@ class Server(ThreadingHTTPServer):
 
 def main():
     httpd = Server((HOST, PORT), Handler)
-    print(f"XO chat UI on http://{HOST}:{PORT}  ->  proxying /api/* to {XO_API}", flush=True)
+    mode = "release" if BUILD_VERSION else "source"
+    print(f"XO chat UI on http://{HOST}:{httpd.server_port} serving {mode} {STARTUP_VERSION}; proxying /api/* to {XO_API}", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

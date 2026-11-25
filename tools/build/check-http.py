@@ -54,6 +54,10 @@ def check():
                     if prefix:
                         assert headers["Cache-Control"] == serve.IMMUTABLE, file
             if serve.PUBLIC_DIR:
+                maps = sorted((root / "js").glob("*.js.map"))
+                assert maps and all(json.loads(path.read_text())["sources"] for path in maps), "Missing diagnostic maps"
+                url = "/js/" + maps[0].name
+                assert get(url)[0] == 404 and get(f"/v/{version}" + url)[0] == 404
                 for path in ["/.build.json", "/js/app.js", "/core/kernel/kernel.js", "/serve.py"]:
                     assert get(path)[0] == 404, path
         finally:

@@ -1,5 +1,6 @@
 import { build } from "esbuild";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { atRule } from "postcss";
@@ -29,7 +30,7 @@ async function buildPublic() {
   };
   await build({
     absWorkingDir: root, entryPoints, outdir: join(out, "js"), entryNames: "[name]", chunkNames: "[name]-[hash]",
-    format: "esm", target: "es2022", platform: "browser", splitting: true, bundle: true, minify: true,
+    format: "esm", target: "es2022", platform: "browser", splitting: true, bundle: true, minify: true, sourcemap: "external",
     plugins: [{ name: "runtime-assets", setup(builder) {
       builder.onResolve({ filter: /\/vendor\// }, args => ({
         path: "../" + relative(root, resolve(args.resolveDir, args.path)), external: true,
@@ -87,15 +88,5 @@ async function buildPublic() {
   writeFileSync(join(out, "css/app.css"), css.join("\n"));
   writeFileSync(join(out, "index.html"), document.toString());
   const version = finishPublicTree(root, out);
-  const published = join(destination, version);
-  try { renameSync(out, published); }
-  catch (error) {
-    if (!["EEXIST", "ENOTEMPTY"].includes(error.code) || !existsSync(join(published, ".build.json"))) throw error;
-  }
-  const pointer = out + ".current";
-  try {
-    writeFileSync(pointer, version + "\n");
-    renameSync(pointer, join(destination, "current"));
-  } finally { rmSync(pointer, { force: true }); }
-  return published;
+  return execFileSync("python3", [join(root, "tools/build/publish.py"), out, version], { encoding: "utf8" }).trim();
 }
