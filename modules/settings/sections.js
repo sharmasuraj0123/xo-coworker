@@ -35,7 +35,7 @@ export function createSettingsSections({ places, nav, pages, at, pick, isOpen, o
     return { tab, page, live, entry: e, undo: /** @type {(() => void) | undefined} */ (undefined) };
   }
   function sync() {
-    const entries = /** @type {import("./types").SectionEntry[]} */ (places.entries("settings.section", at()));
+    const entries = places.entries("settings.section", at());
     const tabsNow = () => [...nav.children].filter((el) => [...shown.values()].some((s) => s.tab === el));
     const was = tabsNow();
     const ids = new Set(entries.map((e) => e.id));

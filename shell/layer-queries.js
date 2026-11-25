@@ -21,6 +21,5 @@ export function layerQueries(entries, tabOrder) {
     isOpen: (/** @type {string} */ id) => entries.get(id)?.open() ?? false,
     inertsApp: () => surfaces.some((layer) => layer.inertsApp && layer.open()),
     watched: surfaces.flatMap((layer) => layer.watchHidden ? [layer.watchHidden] : []),
-    open: ({ overlay = false } = {}) => surfaces.some((layer) => (!overlay || layer.overlay !== false) && layer.open()),
   };
 }

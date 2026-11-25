@@ -16,7 +16,7 @@ export const interactionModule = {
   manifest: { id: "xo.interactions", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["navigationState", "shellDock", "intelligence", "shortcuts", "fileSearch", "navigation", "conversationSession", "stage",
       "rail", "lightbox", "drawer", "decisionPresentation", "chats", "world", "composer", "mainViewport"],
-    optional: ["settingsFrame", "createProject", "jump", "runs", "files"] },
+    optional: ["settingsFrame", "createProject", "jump", "files"] },
   activate(ctx) {
     const scope = createScope();
     ctx.effect(() => scope.dispose);
@@ -50,7 +50,6 @@ export const interactionModule = {
       { id: "jump", tab: () => jump, inertsApp: true, watchHidden: jump, open: () => !jump.hidden, close: () => { closeJump(); } },
       { id: "intel", open: () => IQ.isOpen, close: () => { IQ.close(); } },
       { id: "quickopen", inertsApp: true, open: () => QO.isOpen, close: () => { QO.close(); } },
-      { id: "runs", open: () => ctx.optional("runs")?.isOpen() ?? false, close: () => ctx.optional("runs")?.back() },
       { id: "keys", tab: () => keys, inertsApp: true, watchHidden: keys, open: () => !keys.hidden, close: () => { closeKeys(); } },
       { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
       { id: "settings", tab: () => phone.matches ? setEl : null, watchHidden: setEl,

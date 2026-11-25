@@ -44,6 +44,7 @@ export function createLayers(warn = console.error) {
         if (el?.isConnected && "focus" in el && typeof el.focus === "function") el.focus({ preventScroll: true });
       };
     },
+    open: ({ overlay = false } = {}) => stack.some((layer) => (!overlay || layer.overlay !== false) && (layer.open?.() ?? true)),
     top: () => stack[stack.length - 1],
     list: () => stack.slice(),
     escape: (order) => offer("escape", order),

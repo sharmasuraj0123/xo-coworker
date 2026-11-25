@@ -75,6 +75,8 @@ export interface Scheduler {
 }
 
 export interface Layer {
+  open?(): boolean;
+  overlay?: boolean;
   id: string;
   escape?(): boolean;
   back?(): boolean;
@@ -82,6 +84,7 @@ export interface Layer {
   returnFocus?: Element | null;
 }
 export interface Layers {
+  open(options?: { overlay?: boolean }): boolean;
   push(layer: Layer, owner?: string): Undo;
   top(): Layer | undefined;
   list(): ReadonlyArray<Layer>;
@@ -137,7 +140,7 @@ export interface ModuleContext {
   onFlush(key: string, fn: () => void): Undo;
   invalidate(key?: string): void;
   pushLayer(layer: Layer): Undo;
-  readonly layers: Pick<Layers, "back" | "escape">;
+  readonly layers: Pick<Layers, "back" | "escape" | "open">;
   readonly places: Pick<Places, "entries" | "get" | "first" | "watch" | "has">;
   log(...args: unknown[]): void;
 }

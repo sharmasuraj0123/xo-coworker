@@ -39,6 +39,8 @@ export const runsModule = {
       return true;
     }));
     ctx.contribute("thread.head", { id: "runs", order: 20, render: strip.runsStrip });
-    ctx.provide("runs", { working: strip.workingRuns, isOpen: () => page.isOpen, back: page.back });
+    const close = () => { if (!page.isOpen) return false; page.back(); return true; };
+    ctx.pushLayer({ id: "runs", open: () => page.isOpen, back: close, escape: close });
+    ctx.provide("runs", { working: strip.workingRuns });
   },
 };

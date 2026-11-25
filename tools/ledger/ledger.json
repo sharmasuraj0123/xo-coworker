@@ -16851,7 +16851,7 @@
    "evidence": {
     "modules/runs/panel.js": {
      "anchor": "function runsGone()",
-     "reason": "Runs owns dismissal of its panel view."
+     "reason": "Runs owns its panel dismissal and retires its Back and Escape layer with the module."
     }
    }
   },

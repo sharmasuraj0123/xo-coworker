@@ -12,6 +12,11 @@ import {
 import {
   panelThread, picker,
 } from "./thread-composer.mjs";
+assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length, 1);
+await kernel.disable("xo.runs");
+assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length, 0, "retiring Runs removes its Back and Escape layer");
+await kernel.enable("xo.runs");
+assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length, 1);
 const threadPageModuleId = "xo.thread-page";
 function mountedThreadObservers() {
   const observers = [...threadDockObservers];

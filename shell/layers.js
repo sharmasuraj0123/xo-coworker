@@ -8,7 +8,7 @@ const ORDER = {
 };
 /** @import { Layers } from "../core/kernel/types" */
 
-/** @param {Pick<Layers, "push" | "back" | "escape">} layers @param {import("./layer-queries.js").AppLayer[]} list */
+/** @param {Pick<Layers, "push" | "back" | "escape" | "open">} layers @param {import("./layer-queries.js").AppLayer[]} list */
 export function stackLayers(layers, list) {
   const entries = new Map(list.map((layer) => [layer.id, layer]));
   if (entries.size !== list.length) throw new Error("shell layers must have unique ids");
@@ -18,12 +18,14 @@ export function stackLayers(layers, list) {
     const layer = entries.get(id);
     if (!layer) return [];
     const close = () => layer.open() && layer.close() !== false;
-    return layers.push({ id, back: ORDER.back.includes(id) ? close : undefined, escape: ORDER.escape.includes(id) ? close : undefined });
+    return layers.push({ id, open: layer.open, overlay: layer.overlay,
+      back: ORDER.back.includes(id) ? close : undefined, escape: ORDER.escape.includes(id) ? close : undefined });
   });
   return {
     back: () => layers.back(["failure-details", ...ORDER.back]),
     escape: () => layers.escape(["failure-details", ...ORDER.escape]),
     ...layerQueries(entries, ORDER.tab),
+    open: layers.open,
     undo: () => { for (const u of undos.reverse()) u(); },
   };
 }
