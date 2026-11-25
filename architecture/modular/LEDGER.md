@@ -7,12 +7,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 488 |
 | vendor | 376 |
 | deleted | 337 |
-| planned | 134 |
-| kept | 69 |
+| planned | 129 |
+| kept | 74 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1773, planned 331, deleted 194, kept 187, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted 194, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -277,7 +277,7 @@ Items inside first-party files: 2488 (moved 1773, planned 331, deleted 194, kept
 | `tests/panel-threads.test.mjs` | 103 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/path-copy-inline.test.mjs` | 24 | moved | modules/files/tests/path-copy-inline.test.mjs |
 | `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-cascade.test.mjs` | 27 | planned | core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/phone-cascade.test.mjs` | 27 | kept | tests/phone-cascade.test.mjs · next: Cross-surface cascade guard verifies phone precedence and dimensions, including compound compact winners. |
 | `tests/phone-floor.test.mjs` | 140 | planned | core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-hit-area.test.mjs` | 34 | planned | core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-panel-go.test.mjs` | 40 | planned | shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -342,7 +342,7 @@ Items inside first-party files: 2488 (moved 1773, planned 331, deleted 194, kept
 | `tests/state-hover.test.mjs` | 127 | kept | tests/state-hover.test.mjs |
 | `tests/step-line-face.test.mjs` | 15 | kept | tests/step-line-face.test.mjs |
 | `tests/stopped-on-purpose.test.mjs` | 145 | planned | modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/storm.test.mjs` | 401 | planned | core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/storm.test.mjs` | 401 | kept | tests/storm.test.mjs · next: Cross-layer behavior tests for the SSE parser and reconnect, World turn blocks, reviews and hop ordering. |
 | `tests/target-bounded.test.mjs` | 29 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/targets-css.test.mjs` | 74 | planned | core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-filter.test.mjs` | 55 | planned | modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -379,14 +379,14 @@ Items inside first-party files: 2488 (moved 1773, planned 331, deleted 194, kept
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/lib/cascade.mjs` | 248 | planned | core/ui/test-kit/cascade.mjs |
-| `tests/lib/tokens.mjs` | 20 | planned | core/ui/test-kit/tokens.mjs |
+| `tests/lib/cascade.mjs` | 248 | kept | tests/lib/cascade.mjs · next: Shared cascade helper used by shell and cross-surface CSS guards. tests/phone-cascade.test.mjs exercises the phone precedence, size and compact winner checks. |
+| `tests/lib/tokens.mjs` | 20 | kept | tests/lib/tokens.mjs · next: Shared published size resolver for phone, panel and control-scale guards. tests/phone-cascade.test.mjs and tests/ctl-scale.test.mjs exercise it. |
 
 ## tests-fixtures (2)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/fixtures/plain-turn.sse` | 92 | planned | core/platform/tests/fixtures/plain-turn.sse |
+| `tests/fixtures/plain-turn.sse` | 92 | kept | tests/fixtures/plain-turn.sse · next: The recorded turn is unchanged. tests/storm.test.mjs consumes it for SSE parsing, block folding and mid-stream state. |
 | `tests/fixtures/storm-held-contract.json` | 307 | planned | e2e/fixtures/storm-held-contract.json |
 
 ## presets (2)

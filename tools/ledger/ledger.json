@@ -5031,8 +5031,9 @@
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/fixtures/plain-turn.sse": {
-   "status": "planned",
-   "home": "core/platform/tests/fixtures/plain-turn.sse"
+   "status": "kept",
+   "home": "tests/fixtures/plain-turn.sse",
+   "note": "The recorded turn is unchanged. tests/storm.test.mjs consumes it for SSE parsing, block folding and mid-stream state."
   },
   "tests/fixtures/storm-held-contract.json": {
    "status": "planned",
@@ -5170,12 +5171,14 @@
    "home": "modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lib/cascade.mjs": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs",
+   "note": "Shared cascade helper used by shell and cross-surface CSS guards. tests/phone-cascade.test.mjs exercises the phone precedence, size and compact winner checks."
   },
   "tests/lib/tokens.mjs": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs",
+   "note": "Shared published size resolver for phone, panel and control-scale guards. tests/phone-cascade.test.mjs and tests/ctl-scale.test.mjs exercise it."
   },
   "tests/link-buttons.test.mjs": {
    "status": "planned",
@@ -5366,8 +5369,9 @@
    "home": "core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/phone-cascade.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-cascade.test.mjs",
+   "note": "Cross-surface cascade guard verifies phone precedence and dimensions, including compound compact winners."
   },
   "tests/phone-floor.test.mjs": {
    "status": "planned",
@@ -5672,8 +5676,9 @@
    "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/storm.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/storm.test.mjs",
+   "note": "Cross-layer behavior tests for the SSE parser and reconnect, World turn blocks, reviews and hop ordering."
   },
   "tests/target-bounded.test.mjs": {
    "status": "planned",
@@ -15061,152 +15066,152 @@
    "home": "modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/lib/cascade.mjs::exports::ORDER": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::rules": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::decls": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::spec": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::cmp": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::mediaHolds": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::context": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::isPhone": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::overlaps": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::reaches": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::reach": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::lost": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::losers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::chain": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::covers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::px": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::shrunk": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::rules": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::splitList": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::decls": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::spec": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::mediaHolds": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::context": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::overlaps": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::reaches": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::reach": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::lost": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::losers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::chain": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::simples": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::covers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::px": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::shrunk": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/tokens.mjs::exports::tokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::exports::NEW_SIZES": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::exports::resolveTokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::functions::resolveTokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/logic.test.mjs::routes::/chat/chats/x/messages": {
    "status": "planned",
@@ -15532,8 +15537,8 @@
    "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/storm.test.mjs::functions::fakeServer": {
-   "status": "planned",
-   "home": "core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/storm.test.mjs"
   },
   "tests/targets-css.test.mjs::functions::rulesOf": {
    "status": "planned",
