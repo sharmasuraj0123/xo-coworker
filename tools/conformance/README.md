@@ -19,8 +19,8 @@ fallback. Shared scope and storage primitives own the underlying platform calls.
 Source-read attribution traces static paths and recognizable templates. Dynamic
 reads still count against their test file. The expando rule detects underscore
 writes and other writes on statically recognizable DOM receivers. Export usage
-follows re-exports and treats namespace or dynamic imports as potentially reading
-any export.
+follows re-exports and counts the names read through a namespace or destructured
+from it. Opaque namespace reads conservatively keep any export they could access.
 
 For stylesheet moves, compare `node tools/conformance/css-resolve.mjs --flat <root>`
 for the two trees. It follows links and imports, preserves layer registration,

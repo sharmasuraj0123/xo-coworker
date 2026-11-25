@@ -98,6 +98,30 @@ test("comment checks leave CSS colours and formatted measurements alone", (conte
   assert.deepEqual(inventory(root), []);
 });
 
+test("namespace property reads track only names on the imported binding", (context) => {
+  const file = "core/ui/public.js";
+  const root = fixture(context, {
+    [file]: HEADER + ["first", "second", "outer", "shadowed"].map(name => `export const ${name} = 1;`).join("\n"),
+    "core/ui/consumer.js": HEADER + [
+      'import * as api from "./public.js";',
+      'const { second: local } = api; use(local, api["first"]);',
+      "function render(api) { return api.shadowed; }",
+      'const { outer } = await import("./public.js"); use(outer);',
+    ].join("\n"),
+  });
+  const findings = inventory(root);
+  assert.deepEqual(findings.map((finding) => [finding.file, finding.rule, finding.note]), [[file, "unusedExport", "shadowed"]]);
+  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 1);
+});
+
+test("opaque namespace accesses preserve exports that can be read at runtime", (context) => {
+  const root = fixture(context, {
+    "core/ui/public.js": HEADER + "export const runtime = 1; export const fallback = 2;",
+    "core/ui/consumer.js": HEADER + 'import * as api from "./public.js"; use(api[key]);',
+  });
+  assert.deepEqual(inventory(root), []);
+});
+
 test("only the canonical calendar day constant owns the millisecond literal", (context) => {
   const calendar = "core/platform/calendar.js";
   const definition = "const DAY_MS = 86_400_000;";

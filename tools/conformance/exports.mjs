@@ -1,21 +1,51 @@
 // @ts-check
 
 import { dirname, join } from "node:path/posix";
+import { isReference, lexicalBindings } from "./bindings.mjs";
 import { bindingNames, literal, SOURCE, TEST, walk } from "./syntax.mjs";
 
 /** @param {object} node */
 const name = (node) => node?.name ?? node?.value;
+
+/** @param {object} key @param {boolean} computed */
+function propertyName(key, computed) {
+  const value = computed ? literal(key) : name(key);
+  return typeof value === "string" || typeof value === "number" ? String(value) : "*";
+}
+
+/** @param {object} pattern */
+function patternUses(pattern) {
+  if (pattern.type !== "ObjectPattern") return ["*"];
+  return pattern.properties.map(item => item.type === "RestElement" ? "*" : propertyName(item.key, item.computed));
+}
+
+/** @param {object} node @param {object} parent */
+function namespaceUses(node, parent) {
+  if (parent?.type === "MemberExpression" && parent.object === node) {
+    return [propertyName(parent.property, parent.computed)];
+  }
+  if (parent?.type === "VariableDeclarator" && parent.init === node) return patternUses(parent.id);
+  if (parent?.type === "AssignmentExpression" && parent.right === node && parent.left.type === "ObjectPattern") {
+    return patternUses(parent.left);
+  }
+  return ["*"];
+}
 
 /** @param {string} file @param {object} tree */
 export function moduleEdges(file, tree) {
   const exports = new Map();
   const stars = [];
   const imports = [];
+  const namespaces = new Map();
   const target = (spec) => typeof spec === "string" && spec.startsWith(".") ? join(dirname(file), spec) : null;
   for (const node of tree.body) {
     const from = target(literal(node.source));
     if (node.type === "ImportDeclaration" && from) {
       for (const spec of node.specifiers) {
+        if (spec.type === "ImportNamespaceSpecifier") {
+          namespaces.set(spec, from);
+          continue;
+        }
         const key = spec.type === "ImportDefaultSpecifier" ? "default" : name(spec.imported) ?? "*";
         imports.push([from, key]);
       }
@@ -35,10 +65,21 @@ export function moduleEdges(file, tree) {
       exports.set(name(spec.exported), [spec.loc.start.line, from, name(spec.local)]);
     }
   }
-  walk(tree, (node) => {
-    if (node.type !== "ImportExpression") return;
-    const from = target(literal(node.source));
-    if (from) imports.push([from, "*"]);
+  const references = namespaces.size ? lexicalBindings(tree) : null;
+  const parents = new WeakMap();
+  walk(tree, (node, parent) => {
+    parents.set(node, parent);
+    if (node.type === "ImportExpression") {
+      const from = target(literal(node.source));
+      if (!from) return;
+      const awaited = parent?.type === "AwaitExpression";
+      const keys = awaited ? namespaceUses(parent, parents.get(parent)) : ["*"];
+      for (const key of keys) imports.push([from, key]);
+    } else if (references && isReference(node, parent)) {
+      const from = namespaces.get(references.binding(node));
+      if (!from) return;
+      for (const key of namespaceUses(node, parent)) imports.push([from, key]);
+    }
   });
   return { exports, stars, imports };
 }
