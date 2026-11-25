@@ -52,47 +52,7 @@
 @import url("../shell/panel/sheet-grip.css");
 @import url("../modules/shells/sheet-phone.css");
 @import url("../modules/since/layout.css");
-
-.md-grid{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.md-it{position:relative;--nest-r:var(--r-lg);--nest-in:calc(var(--cell-in) + 1px);display:flex;flex-direction:column;border-radius:var(--nest-r);border:1px solid var(--line);background:var(--fill-1);overflow:hidden;transition:border-color var(--d-hover) var(--ease),background-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-/* the whole card answers, not only its border (Plan F: a hover is ≥ 1.15:1 against rest) */
-.md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 7%,var(--fill-1))}
-.md-open{cursor:pointer}
-.md-it:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-/* Place the focus ring above the picture and inside the card edge. */
-.md-open:focus-visible{outline:none}
-.md-it:has(.md-open:focus-visible)::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px var(--focus)}
-.md-it:has(.md-open:active){transform:scale(.985)}
-.md-open{display:flex;flex-direction:column;text-align:left;min-width:0}
-.md-th{position:relative;display:grid;place-items:center;align-content:center;gap:8px;height:110px;background:var(--fill-1);border-bottom:1px solid var(--line-faint);color:var(--ink-3);overflow:hidden}
-.md-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.md-ic{display:grid;place-items:center;width:var(--tile-lg);height:var(--tile-lg);border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line)}
-.md-ic svg{width:var(--ic);height:var(--ic)}
-.md-th.k-image .md-ic{color:var(--violet)}.md-th.k-page .md-ic{color:var(--info)}.md-th.k-doc .md-ic{color:var(--ink-2)}.md-th.k-code .md-ic{color:var(--accent)}.md-th.k-data .md-ic{color:var(--warn)}
-.md-ext{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.md-ext.is-word{max-width:90%;text-transform:none;letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-th.k-link .md-ic{color:var(--info)}.md-th.k-branch .md-ic{color:var(--violet)}
-.md-it.is-gone .md-th,.md-it.is-gone .md-meta b{opacity:.55}
-.md-meta{display:flex;flex-direction:column;gap:4px;padding:10px 12px 4px;min-width:0}
-.md-meta b{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* Both halves of the truncated name inherit the same type. */
-.md-meta > span{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-from{display:flex;align-items:center;gap:4px;margin:0 6px 7px;padding:4px 6px;border-radius:var(--r-sm);min-width:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-align:left}
-.md-from:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.md-from svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
-.md-from span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-pin{position:absolute;top:var(--cell-in);right:var(--cell-in);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:calc(var(--nest-r) - var(--nest-in));background:color-mix(in srgb,var(--canvas) 78%,transparent);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
-.md-pin svg{width:var(--ic-sm);height:var(--ic-sm)}
-.md-it:hover .md-pin,.md-pin:focus-visible,.md-it.is-pin .md-pin{opacity:1}
-/* Use the stronger accent surface when a pinned control is hovered. */
-.md-pin:hover{background:color-mix(in srgb,var(--fill-3) 92%,transparent);color:var(--ink)}
-.md-it.is-pin .md-pin:hover{color:var(--accent-hover)}
-.md-it.is-pin .md-pin{color:var(--accent)}
-.md-it.is-pin .md-pin svg{fill:currentColor}
-.md-grid.is-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
-.md-grid.is-strip .md-th{height:80px}
-.md-grid.is-strip .md-meta{padding-bottom:var(--s-3)}
-.md-recent .hm-lbl svg{width:var(--ic-sm);height:var(--ic-sm)}
+@import url("../modules/artifacts/cards.css");
 /* Match the final layout to prevent shifts when loading finishes. */
 .sk{display:inline-block;vertical-align:middle;height:8px;max-width:100%;border-radius:999px;background:var(--fill-2);animation:sk-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
 .sk.sk-l{height:16px}
