@@ -40,6 +40,7 @@ test("size review includes server, tools and tests without blocking cohesive fil
     "tests/small.mjs": "\n".repeat(400),
   });
   assert.deepEqual(sizeSignals(root), ["serve.py (401 lines)", "tests/view.mjs (402 lines)", "tools/report.mjs (403 lines)"]);
+  assert.deepEqual(sizeSignals(root, new Set(["serve.py", "tests/small.mjs"])), ["serve.py (401 lines)"]);
   assert.deepEqual(compare(inventory(root), EMPTY, new Set()).errors, []);
 });
 

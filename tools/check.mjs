@@ -4,7 +4,7 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { importEffects } from "./conformance/app-wiring.mjs";
 import { javascript, TEST } from "./conformance/syntax.mjs";
-import { checkConformance } from "./conformance/ratchet.mjs";
+import { changedFiles, checkConformance } from "./conformance/ratchet.mjs";
 import { sizeSignals, sizeRatchet } from "./conformance/size-ratchet.mjs";
 import { runGit } from "./git-environment.mjs";
 import { parseArgs } from "node:util";
@@ -84,7 +84,7 @@ function sourceFiles() {
 }
 
 step("ratchets", () => {
-  for (const file of sizeSignals(ROOT)) console.log(`  size review: ${file}`);
+  for (const file of sizeSignals(ROOT, changedFiles(ROOT, flags["conformance-base"]))) console.log(`  size review: ${file}`);
   const basePath = join(BASE_DIR, "ratchets.json");
   const now = { lines: {}, important: {} };
   for (const f of sourceFiles()) {

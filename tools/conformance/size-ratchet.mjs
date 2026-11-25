@@ -4,10 +4,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { conformanceFiles } from "./inventory.mjs";
 
-/** @param {string} root */
-export function sizeSignals(root) {
+/** @param {string} root @param {Set<string>} [only] */
+export function sizeSignals(root, only) {
   const signals = [];
   for (const file of conformanceFiles(root)) {
+    if (only && !only.has(file)) continue;
     const source = readFileSync(join(root, file), "utf8");
     const lines = source.split("\n").length - Number(source.endsWith("\n"));
     if (lines > 400) signals.push(`${file} (${lines} lines)`);
