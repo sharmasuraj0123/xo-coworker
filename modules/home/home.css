@@ -1,5 +1,5 @@
 .home{position:absolute;inset:0;scroll-padding-bottom:calc(var(--dock-h) + var(--s-5));overflow-y:auto;
-  overflow-x:hidden;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) var(--scrollbar-track);}
+  overflow-x:hidden;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) var(--scrollbar-track);background:var(--canvas)}
 .hm{width:var(--col-w);margin-left:var(--col-x);padding:clamp(var(--s-8),6vh,calc(2 * var(--s-8))) 0 calc(var(--dock-h) + var(--s-12))}
 .home.enter{animation:rise-in var(--d-in) var(--ease)}
 .home.enter-l{animation:col-l var(--d-in) var(--ease)}

@@ -29,4 +29,3 @@
 :root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{
   background-image:linear-gradient(var(--hover-fill),var(--hover-fill))
 }
-:root[data-theme="light"] .dg-mode button[aria-pressed="true"]{background:var(--fill-2)}

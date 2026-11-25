@@ -51,17 +51,17 @@
   "themeSelector": 1
  },
  "css/light.css": {
-  "themeSelector": 24
+  "themeSelector": 23
  },
  "css/panel.css": {
   "px-effect": 8,
   "px-position": 16,
   "px-radius": 7,
-  "px-size": 45,
-  "px-spacing": 77,
+  "px-size": 40,
+  "px-spacing": 63,
   "px-stroke": 8,
-  "rawColor": 37,
-  "themeSelector": 20
+  "rawColor": 36,
+  "themeSelector": 19
  },
  "css/phone.css": {
   "widthMediaQuery": 2

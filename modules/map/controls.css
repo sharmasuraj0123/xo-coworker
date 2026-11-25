@@ -8,7 +8,7 @@
   transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
 .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,var(--palette-transparent));color:var(--info)}
-.dg-mode button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
+.dg-mode button[aria-pressed="true"]{background:var(--fill-map-mode-selected,var(--fill-3));color:var(--ink)}
 .dg-tools svg,.dg-mode svg{width:var(--ic);height:var(--ic)}
 .dg-key{position:absolute;left:var(--s-map-tools-inset);bottom:var(--s-map-tools-inset);display:flex;gap:var(--s-3);
   height:var(--h-map-key);align-items:center;padding:0 var(--s-map-tools-inset);border-radius:var(--r-sm);background:var(--surface);

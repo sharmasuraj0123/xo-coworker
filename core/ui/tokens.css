@@ -151,6 +151,7 @@
   --w-md-page:760px; --stroke-md-quote:2px; --s-md-code-y:1px; --w-doc-change-bar:3px;
   --s-doc-action:10px; --s-doc-ask-gap:6px; --offset-file-tab-focus:-2px;
   --s-file-tab-gap:2px; --w-file-tab:220px; --ic-file-dirty:8px; --s-file-versions-gap:2px; --w-file-version-count:48px;
+  --s-file-tree-inset:6px;
   --font-file-meta:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);
   --font-file-meta-code:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);
   --w-stage-default:360px; --h-foundation-row:36px; --slide-panel-in:12px; --edge-panel-flush:rgba(0,0,0,.08);
@@ -315,6 +316,8 @@
 :where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
 :where(.dg-tools){--shadow-map-tools:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)))}
 :root[data-theme="light"] :where(.dg-sep){--fill-map-tools-separator:var(--line-soft)}
+:root[data-theme="light"] :where(.dg-mode button[aria-pressed="true"]){--fill-map-mode-selected:var(--fill-2)}
+:root[data-theme="light"] :where(.fl-q){--edge-file-search-light:rgba(0,0,0,.12)}
 :root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
 :root[data-theme="light"] :where(.md-pin){
   --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);

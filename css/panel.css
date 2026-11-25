@@ -1,38 +1,7 @@
 @import url("../shell/panel/stage-bar.css");
 @import url("../shell/panel/stage-overlay.css");
 @import url("../modules/files/stage-search.css");
-:root[data-theme="light"] .fl-q{background:var(--surface);border-color:rgba(0,0,0,.12)}
-
-/* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
-   folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
-/* Files fits whole rows when scrolling ends, avoiding the cost of a snap area for every file. */
-.fl-list{padding:0 6px}
-.fl-sec{box-sizing:border-box;height:var(--h-ctl);margin:0;padding:0 6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
-.fl-sec:first-child{padding-top:0}
-/* a section's head is its disclosure (Changed, All files), as a panel frame's is: folded, its rows go and its count shows */
-button.fl-sec{display:flex;align-items:center;gap:4px;width:100%;border:0;background:none;text-align:left;cursor:pointer;transition:color var(--d-hover) var(--ease)}
-button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
-.fl-sec .fl-c svg{transition:transform var(--d-hover) var(--ease)}
-.fl-sec[aria-expanded="true"] .fl-c svg{transform:rotate(90deg)}
-.fl-sec-n{margin-left:auto;font-weight:var(--fw-regular);color:var(--ink-5)}
-.fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
-.fl-r.is-dir{color:var(--ink-2);font-weight:var(--fw-regular)}
-.fl-r:hover{background:var(--surface);color:var(--ink)}
-.fl-r.is-on{background:var(--fill-2);color:var(--ink)}
-.fl-c{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
-.fl-c svg{width:var(--ic-xs);height:var(--ic-xs)}
-.fl-c.fl-i svg,.fl-c svg.fi{width:var(--ic);height:var(--ic)}
-.fl-r.is-open .fl-c svg{transform:rotate(90deg)}
-.fl-n{line-height:var(--lh-ui)}
-.fl-r.is-touch .fl-n{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.fl-who{margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
-.fl-sz{display:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-@container stage (min-width:480px){.fl-sz{display:inline}}
-.fl-note{min-height:28px;padding-left:calc(var(--pn) - 6px + var(--d,0) * 16px);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
-.fl-note .spin{width:10px;height:10px}
-.fl-bar{padding:6px 6px 0}
-.fl-back{height:var(--h-ctl);padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.fl-back svg{width:var(--ic);height:var(--ic)}
+@import url("../modules/files/stage-tree.css");
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
 /* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the

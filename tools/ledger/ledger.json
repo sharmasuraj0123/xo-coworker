@@ -1629,10 +1629,11 @@
    "home": [
     "shell/panel/frame-styles.css",
     "shell/panel/stage-resize.css",
+    "modules/home/home.css",
     "core/ui/tokens.css",
     "css/foundation.css"
    ],
-   "note": "The shell owns the panel frame defaults, entrance and Stage resize geometry. Shared role and dimension tokens live in core UI. Remaining frame, control and component rules publish from the original entry."
+   "note": "The shell owns the panel frame defaults, entrance and Stage resize geometry. Home owns its canvas paint. Shared role and dimension tokens live in core UI. Remaining frame, control and component rules publish from the original entry."
   },
   "css/launchpad.css": {
    "status": "split",
@@ -1650,7 +1651,7 @@
     "core/ui/tokens.css",
     "css/light.css"
    ],
-   "note": "Shared light roles and the Map toolbar separator role live in core UI. Remaining Rail, Artifacts, Conversation and Map overrides publish from the original Light entry."
+   "note": "Shared light roles and the Map toolbar separator and selected mode roles live in core UI. Remaining Rail, Artifacts, Conversation and Map overrides publish from the original Light entry."
   },
   "css/links.css": {
    "status": "split",
@@ -1671,10 +1672,11 @@
     "shell/panel/stage-bar.css",
     "shell/panel/stage-overlay.css",
     "modules/files/stage-search.css",
+    "modules/files/stage-tree.css",
     "core/ui/tokens.css",
     "css/panel.css"
    ],
-   "note": "The shell owns the Stage header and overlay. Files owns the Stage search header. Core UI owns shared Stage roles. Remaining Stage region rules publish from the original entry."
+   "note": "The shell owns the Stage header and overlay. Files owns the Stage search header and tree geometry. Core UI owns shared Stage roles. Remaining Stage region rules publish from the original entry."
   },
   "css/phone.css": {
    "status": "split",

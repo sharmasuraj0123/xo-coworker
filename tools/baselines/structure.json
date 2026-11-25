@@ -389,7 +389,7 @@
  },
  "css/panel.css": {
   "important": 10,
-  "lineLength": 62
+  "lineLength": 57
  },
  "index.html": {
   "lineLength": 19

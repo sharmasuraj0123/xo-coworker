@@ -6,6 +6,6 @@
 .fl-up{margin:0 calc((var(--s-4) - var(--h-sm)) / 2);border-radius:var(--r-sm)}
 .fl-up svg{width:var(--ic-sm);height:var(--ic-sm)}
 .fl-q{box-sizing:border-box;height:var(--h-ctl);padding:0 var(--s-2);gap:var(--s-2);border-radius:var(--r-sm);
-  background:var(--surface);border:1px solid var(--line-soft)}
+  background:var(--surface);border:1px solid var(--edge-file-search-light,var(--line-soft))}
 .fl-q svg{width:var(--ic);height:var(--ic)}
 .fl-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}

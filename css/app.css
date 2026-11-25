@@ -151,7 +151,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .fl-up:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .fl-up svg{width:var(--ic);height:var(--ic)}
 .fl-q{display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);background:var(--fill-1);border:1px solid var(--line);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
-.fl-q:focus-within{border-color:var(--line-strong)}
+.fl-q:focus-within{border-color:var(--edge-file-search-light,var(--line-strong))}
 .fl-q svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .fl-q input{flex:1;min-width:0;height:100%;border:0;background:none;outline:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .fl-q input::placeholder{color:var(--ink-4)}

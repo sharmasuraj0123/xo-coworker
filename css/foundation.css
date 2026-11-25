@@ -2,10 +2,6 @@
 @import url("../shell/panel/stage-resize.css");
 
 :root[data-theme="light"] :is(.stage,.panel,.viewer){border-color:var(--edge-panel-flush);box-shadow:none}
-/* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
-.home{background:var(--canvas)}
-
-
 .top-back,.tw-rt,.target,.attach{margin-left:0}
 /* Work rows use the text surface until they are pressed. */
 .tb-h{background-color:var(--fill-clear)!important}
