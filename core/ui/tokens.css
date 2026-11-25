@@ -234,7 +234,8 @@
   --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
   --s-long-press-gap:2px; --s-long-press-inline:14px;
   --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
-  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-preview-compact); --stroke-artifact-focus:2px;
+  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-preview-compact);
+  --stroke-artifact-focus:2px;
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
   --h-skeleton-label:10px;
   --s-since-phone-block:10px;

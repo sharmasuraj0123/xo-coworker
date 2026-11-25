@@ -10,21 +10,21 @@ export function mountReleaseNotice(ctx) {
   const notices = ctx.use("notices");
   const mid = "system:ui-update";
   ctx.effect(() => () => notices.drop(mid));
-  let checking = false;
+  let checking = false, nextCheck = 0;
   function show() {
     if (ctx.signal.aborted || notified.has(document)) return;
     notified.add(document);
     notices.show({ mid, kind: "calm", force: true, text: "XO was updated", undoLabel: "Reload", undo: () => location.reload() }, 30000);
   }
   async function check() {
-    if (checking || notified.has(document) || ctx.signal.aborted || document.visibilityState === "hidden") return;
+    if (checking || Date.now() < nextCheck || notified.has(document) || ctx.signal.aborted || document.visibilityState === "hidden") return;
     checking = true;
     try {
       const response = await fetch("/", { method: "HEAD", cache: "no-store", signal: ctx.signal });
       const latest = response.headers.get("X-XO-UI-Version");
       if (response.ok && latest && latest !== version) show();
     } catch {
-      return;
+      nextCheck = Date.now() + 5000;
     } finally {
       checking = false;
     }

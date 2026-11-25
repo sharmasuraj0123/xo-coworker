@@ -11,7 +11,8 @@
 .dg-mode button[aria-pressed="true"]{background:var(--fill-map-mode-selected,var(--fill-3));color:var(--ink)}
 .dg-tools svg,.dg-mode svg{width:var(--ic);height:var(--ic)}
 .dg-key{position:absolute;left:var(--inset-control-inline);bottom:var(--inset-control-inline);display:flex;gap:var(--s-3);
-  height:var(--h-control-compact);align-items:center;padding:0 var(--inset-control-inline);border-radius:var(--r-sm);background:var(--surface);
+  height:var(--h-control-compact);align-items:center;padding:0 var(--inset-control-inline);
+  border-radius:var(--r-sm);background:var(--surface);
   border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:default}
 .dg-key[hidden]{display:none}
 .dg-key span{display:inline-flex;align-items:center;gap:var(--s-1)}
