@@ -6,7 +6,7 @@
   padding:14px var(--s-5) var(--s-3) var(--s-7);border-bottom:1px solid var(--line-view)}
 .set-top h1{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
 .set-body{flex:1;min-height:0;display:grid;grid-template-columns:212px minmax(0,760px);justify-content:center;align-content:start;
-  gap:var(--s-12);padding:var(--s-7) var(--s-7) var(--s-12);overflow-y:auto;scrollbar-width:thin;
+  gap:var(--s-12);padding:var(--s-7) var(--s-7) 0;overflow-y:auto;scrollbar-width:thin;
   scrollbar-color:var(--line) transparent}
 /* Settings (hub #18/#19): a rail of sections, each with its icon; the open one carries a short */
 .set-nav{position:sticky;top:0;z-index:1;align-self:start;display:flex;flex-direction:column;gap:2px;padding-left:10px;border-left:1px solid var(--line-faint)}
@@ -28,7 +28,8 @@
 .set-nav button[aria-selected="true"]{background:var(--row-bg);color:var(--ink)}
 /* the page you're on still answers the pointer: its row one step brighter (it came after :hover and hid it) */
 .set-nav button[aria-selected="true"]:hover{background:var(--row-bg-hover)}
-.set-page{animation:rise-in var(--d-sheet) var(--ease)}
+/* the end space lives in the page: some engines drop a grid scroller's bottom padding */
+.set-page{padding-bottom:var(--s-12);animation:rise-in var(--d-sheet) var(--ease)}
 .set-page h2{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
 .set-ph{margin:0 0 var(--s-6);padding-bottom:var(--s-4);border-bottom:1px solid var(--line-faint)}
 .set-intro{margin-top:6px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
