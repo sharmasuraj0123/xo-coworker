@@ -10,7 +10,7 @@ export type Routing = WorldRouter;
 export type Draft = { auto: boolean; model?: string | null; effort?: string | null };
 export type Policy = RuntimePolicy;
 export type IntelChat = { chatId: string; pin?: Setting | null; routing?: Routing | null };
-export type IntelThread = { id: string; chatId: string; project: string; state?: string; session?: Setting | null; pin?: Setting; movedTo?: object | null };
+export type IntelThread = { id: string; chatId: string; project: string; state?: string; busy?: boolean; session?: Setting | null; pin?: Setting; movedTo?: object | null };
 export type IntelError = Error & { status?: number; code?: string };
 
 export interface IntelWorld {
