@@ -1,7 +1,7 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { readConnections, readSharing } from "../../../core/platform/space-surfaces-response.js";
+import { configureConnection, readConnections, readSharing } from "../../../core/platform/space-surfaces-response.js";
 import { scheduleApi, saveAgentSchedule } from "../../../core/platform/schedule-response.js";
 import { scheduleEditor } from "../schedule-editor.js";
 import { readSpaceMap } from "../../../core/platform/explore-response.js";
@@ -24,6 +24,7 @@ const payloads = {
   "/api/schedules/sample/run": { ok: true, started: true },
   "/api/project-sharing/check": { ok: true },
   "/api/connections/github/poll": { toolkit: "github", new_events: 2 },
+  "/api/connections/github": { toolkit: "github", enabled: true },
   "/api/xo-projects/sample/commits": { project_id: "sample", branch: "main", path: "/example", behind: 2 },
   "/api/xo-projects/sample/apply": { project_id: "sample", applied: 2 },
   "/api/xo-projects/sample/share": { ok: true, repo: "example/sample" },
@@ -57,6 +58,7 @@ assert.deepEqual(await readDoctor(signal), payloads["/api/doctor"]);
 assert.equal(await runJob("sample", signal), "Run requested.");
 assert.equal(await checkSharing(signal), "Sharing check requested.");
 assert.equal(await pollConnection("github", signal), "New events: 2");
+assert.equal((await configureConnection("github", true, signal)).enabled, true);
 assert.equal((await projectSync("sample", signal)).behind, 2);
 assert.equal((await applySharedCommits("sample", signal)).applied, 2);
 assert.equal((await shareProject("sample", "recipient", signal)).repo, "example/sample");

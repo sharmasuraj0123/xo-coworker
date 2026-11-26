@@ -1,6 +1,6 @@
 // @ts-check
 import { scheduleApi } from "../../core/platform/schedule-response.js";
-import { readConnections, readSharing } from "../../core/platform/space-surfaces-response.js";
+import { configureConnection, readConnections, readSharing } from "../../core/platform/space-surfaces-response.js";
 import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -35,7 +35,9 @@ async function connectors(signal) {
   const { connections } = await readConnections(signal);
   return connections.map(c => row(c.display_name || c.toolkit,
     c.connected_here ? "Connected here" : c.configured ? "Configured" : "Available",
-    c.connected_here ? action(c.toolkit, "Poll now") : ""));
+    (c.connected_here ? action(c.toolkit, "Poll now") : "")
+    + `<button type="button" class="btn" data-action="${esc(c.toolkit)}" data-enable="${!c.enabled}">`
+    + (c.enabled ? "Pause collection" : "Enable collection") + "</button>"));
 }
 
 /** @param {AbortSignal} signal */
@@ -90,7 +92,11 @@ export const spacePages = {
           const status = host.querySelector("[data-result]");
           if (status) status.textContent = "Requesting…";
           try {
-            notice = await (id === "shared" ? checkSharing(ctx.signal)
+            const enabled = target.closest("[data-enable]")?.getAttribute("data-enable");
+            if (id === "connectors" && enabled != null) {
+              await configureConnection(key, enabled === "true", ctx.signal);
+              notice = enabled === "true" ? "Collection enabled." : "Collection paused.";
+            } else notice = await (id === "shared" ? checkSharing(ctx.signal)
               : id === "scheduled" ? runJob(key, ctx.signal) : pollConnection(key, ctx.signal));
           } catch (error) {
             if (ctx.signal.aborted) return;
