@@ -198,8 +198,8 @@ export function decorateConversation(E) {
     row.innerHTML =
       `<button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>` +
       `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button>` +
-      `<button type="button" data-mx-rate="good" title="Good response" aria-label="Good response" aria-pressed="${r === "good"}">${IC.good}</button>` +
-      `<button type="button" data-mx-rate="bad" title="Bad response" aria-label="Bad response" aria-pressed="${r === "bad"}">${IC.bad}</button>` +
+      `<button type="button" hidden data-mx-rate="good" title="Good response" aria-label="Good response" aria-pressed="${r === "good"}">${IC.good}</button>` +
+      `<button type="button" hidden data-mx-rate="bad" title="Bad response" aria-label="Bad response" aria-pressed="${r === "bad"}">${IC.bad}</button>` +
       `<time></time>`;
     ROWS.set(k, row);
     if (ROWS.size > 800) for (const [key, x] of ROWS) { if (ROWS.size <= 600) break; if (!x.isConnected) ROWS.delete(key); }

@@ -77,6 +77,7 @@ assert.ok(fresh.querySelector(":scope > .mb > .mx-actrow") === row, "the same ac
 
 // Good, Bad: pressed, kept on this device; pressed again, taken back
 const good = row.querySelector('[data-mx-rate="good"]'), bad = row.querySelector('[data-mx-rate="bad"]');
+assert.ok(good.hidden && bad.hidden, "rating buttons stay hidden until rating does something");
 click(good);
 assert.equal(good.getAttribute("aria-pressed"), "true"); assert.equal(bad.getAttribute("aria-pressed"), "false");
 assert.deepEqual(JSON.parse(store.get("xo-msg-rating")), { a1: "good" });
