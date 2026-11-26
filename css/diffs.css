@@ -110,8 +110,7 @@
 
 /* File and Changes keep their labels visible in the narrow header. */
 .vw-seg.is-words{flex:none}
-.vw-seg.is-words button{width:auto;height:var(--h-sm);padding:0 8px} /* the segment's 26 (36 on a phone: phone.css) */
-@container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 8px}}
+@container flpv (max-width:520px){.vw-seg.is-words button{width:auto;padding:0 var(--s-viewer-seg-inline)}}
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 
 /* ── Files (js/viewer.js): the file's state in its head, read-only places, files that run code ── */
