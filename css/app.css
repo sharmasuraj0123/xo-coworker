@@ -64,6 +64,7 @@
 @import url("../modules/map/graph.css");
 @import url("../modules/map/cursors.css");
 @import url("../modules/map/controls.css");
+@import url("../modules/runtimes/runtimes.css");
 
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
 /* a phone: the head clears the notch, the tools reach touch size */
@@ -185,17 +186,16 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 
 /* Runtime names use neutral ink. Pills and meters show approaching and reached limits. */
 .rt-list{display:flex;flex-direction:column;gap:8px}
-.rt-card{display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline)}
+.rt-card{display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-5);border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline)}
 .rt-hd{display:flex;align-items:baseline;gap:8px;min-width:0}
 .rt-hd b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .rt-v{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4)}
 .rt-v.rt-paid{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--warn)} /* informational: the account is on paid usage now */
-.rt-pill{margin-left:auto;align-self:center;flex:none;display:inline-flex;align-items:center;height:var(--h-sm);padding:0 10px;border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);background:var(--fill-2);color:var(--ink-3)}
+.rt-pill{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);background:var(--fill-2);color:var(--ink-3)}
 .rt-pill.t-ok{background:color-mix(in srgb,var(--go) 12%,transparent);color:var(--go)}
 .rt-pill.t-warn{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .rt-pill.t-bad{background:var(--danger-tint);color:var(--err-ink)}
 .rt-sub{font-size:var(--fs-ui);color:var(--ink-3)}
-.rt-acct{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
 .rt-why{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);max-width:62ch}
 .rt-fix{color:var(--ink-3)}
 .rt-fix code,.rt-why code{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);padding:2px 6px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink)}

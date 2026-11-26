@@ -38,6 +38,8 @@ export const space = {
     // the person's shape changed on a device (this one's own write echoes too): the shape store decides
     else if (d.key === "ui.shape") ctx.event({ kind: "shape", value: d.value ?? null });
   },
+  // a runtime was installed, signed in or changed account: read the runtimes again
+  "runtimes.changed"(ctx) { ctx.refreshRuntimes(); },
   pool(ctx, env, d) {
     const { state } = ctx;
     if (typeof d.pool !== "string" || !d.pool) return rejectFrame(ctx, "pool", "pool");

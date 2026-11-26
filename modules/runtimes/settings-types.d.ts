@@ -7,6 +7,8 @@ type AccountSources = Parameters<typeof accountRows>[0];
 export interface RuntimeSettingsDeps {
   world: SettingsWorld;
   announce(words: string): void;
+  life: ReturnType<typeof import("./lifecycle.js").createLifecycle>;
+  uninstall(name: string, from: Element | null): void;
   scope: Pick<ModuleContext, "listen" | "timeout" | "effect" | "signal">;
   root: HTMLElement;
 }

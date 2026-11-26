@@ -9,5 +9,13 @@
   background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat;
   mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat
 }
+.agm-cursor{
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/cursor.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/cursor.svg) center/contain no-repeat
+}
+.agm-grok{
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/grok.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/grok.svg) center/contain no-repeat
+}
 .agm-n{white-space:nowrap}
 .agm-n>.agm,.agm.is-lead{margin-right:var(--gap-icon)}

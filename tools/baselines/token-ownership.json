@@ -78,7 +78,6 @@
  "--h-thread-label",
  "--h-thread-state-mark",
  "--h-tool-count",
- "--h-tool-output",
  "--h-tool-status",
  "--h-upload-progress",
  "--ic-approval-stamp",

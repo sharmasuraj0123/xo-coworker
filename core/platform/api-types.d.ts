@@ -18,8 +18,9 @@ type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
 interface ReadOptions { signal?: AbortSignal }
 type SignInApi = typeof import("./sign-in-response.js").signInApi;
+type LifecycleApi = typeof import("./lifecycle-response.js").lifecycleApi;
 
-export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, SignInApi, ActionsApi {
+export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, SignInApi, LifecycleApi, ActionsApi {
   status(options?: ReadOptions): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Promise<{ runtimes: Runtime[] }>;
   models(runtime: string, options?: ReadOptions): Promise<{ models: RuntimeModel[] }>;

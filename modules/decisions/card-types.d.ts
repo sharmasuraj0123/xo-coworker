@@ -39,7 +39,7 @@ export type CardNeed = BaseNeed & {
 
 export type CardDeps = {
   PROJ(project: string): string;
-  world: { act: { resolve?: unknown } };
+  world: { act: { resolve?: unknown }; state: import("../../core/services/runtime-types").SessionsState };
   F: { open0: Record<string, { ev?: boolean }> };
   teach: Map<string, string>;
   noSecret: Set<string>;

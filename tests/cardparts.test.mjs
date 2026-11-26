@@ -113,12 +113,12 @@ t("every kind has a strip and buttons, and every ask maps to a kind", () => {
     node(item({ kind: "question", detail: { questions: [{ question: "Which?", options: [{ label: "A" }] }] } })),
     node(item({ kind: "question", detail: { questions: [{ question: "Key?", secret: true }] } })),
     node(item({ kind: "create_project" })), node(item({ kind: "create_job" })), node(item({ kind: "integrity" })), node(item({ kind: "usage" })), node(item({ kind: "suggestion" })),
-    node(item({ kind: "something_new" })),
+    node(item({ kind: "something_new" })), node(item({ kind: "approval", detail: { runtime_action: { runtime: "codex", action: "uninstall" } } })),
     { t: thread, risk: "notable", ask: { kind: "question", title: "It's waiting for your reply", replyOnly: true, live: true } },
     { t: thread, risk: "stopped", group: "stopped", ask: { kind: "stopped", title: "Fix" } },
   ];
   const kinds = asks.map(kindOf);
-  assert.deepEqual(kinds, ["command", "web", "tool", "file", "change", "plan", "action", "question", "secret", "create_project", "create_job", "integrity", "usage", "suggestion", "approval", "reply", "stopped"]);
+  assert.deepEqual(kinds, ["command", "web", "tool", "file", "change", "plan", "action", "question", "secret", "create_project", "create_job", "integrity", "usage", "suggestion", "approval", "runtime", "reply", "stopped"]);
   assert.deepEqual([...new Set(kinds)].sort(), Object.keys(KINDS).sort(), "every kind in the table is reachable");
   for (const n of asks) { assert.ok(actsOf(n, { canResolve: true }).some((b) => b.role === "primary") || isOnePress(n), `${kindOf(n)}: a way to answer`); stripOf(n); chipsOf(n); headOf(n); }
 });

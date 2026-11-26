@@ -42,6 +42,7 @@ export const KINDS = {
   usage: { strip: "none", acts: "binary" },
   suggestion: { strip: "none", acts: "binary" },
   approval: { strip: "none", acts: "binary" },
+  runtime: { strip: "none", acts: "binary" },
   reply: { strip: "none", acts: "words" },
   stopped: { strip: "error", acts: "stopped" },
 };
@@ -64,6 +65,7 @@ export function kindOf(n) {
     if (d.url) return "web";
     if (d.mcp) return "tool";
     if (filesOf(d).length) return "file";
+    if (d.runtime_action) return "runtime";
     return "approval";
   }
   return it.kind && it.kind in KINDS ? /** @type {keyof typeof KINDS} */ (it.kind) : "approval";
@@ -195,6 +197,13 @@ export const isOnePress = (n) => {
   return qs.length === 1 && !qs[0].multi && !qs[0].secret && qs[0].options.length > 0 && !itemParts(it).hold;
 };
 
+/** An uninstall's approve button says what it stops. @param {Detail} d */
+const runtimeGo = (d) => {
+  if (d.runtime_action?.action !== "uninstall") return "";
+  const n = Array.isArray(d.sessions) ? d.sessions.length : 0;
+  return n ? `Stop ${n} and uninstall` : "Uninstall";
+};
+
 /** @param {Need} n @param {{refused?: boolean, canResolve?: boolean}} opts */
 export function actsOf(n, opts = {}) {
   const a = n.ask, it = a.item, kind = kindOf(n), out = [];
@@ -204,7 +213,8 @@ export function actsOf(n, opts = {}) {
     case "binary": {
       if (it) {
         const P = itemParts(it);
-        if (P.primary) out.push(P.hold ? { act: "hold", label: holdWords(P.primary), role: "primary" } : { act: "allow", label: P.primary.label || "Allow", role: "primary" });
+        const label = (kind === "runtime" && runtimeGo(it.detail || {})) || P.primary?.label || "Allow";
+        if (P.primary) out.push(P.hold ? { act: "hold", label: holdWords(P.primary), role: "primary" } : { act: "allow", label, role: "primary" });
         if (P.back) out.push({ act: P.back.note ? "back" : "back-now", label: P.back.label || "Send back", role: "secondary" });
       } else {
         out.push(n.risk === "destructive" ? { act: "hold", label: "Hold to allow", role: "primary" } : { act: "allow", label: "Allow", role: "primary" });

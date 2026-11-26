@@ -37,7 +37,8 @@ const answeredAfter = (list, m) => {
 /** @param {MessageItemsDeps} deps */
 export function createMessageItems({
   limitStatus, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
-  youText, startHtml, fileRoute, threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo, transcriptOpen,
+  youText, startHtml, fileRoute, threadCardHtml, queuedMeta, nameOf, moveBannerHtml, setupBannerHtml, handBackRowHtml, passedTo,
+  transcriptOpen,
 }) {
   /** @param {string} conv @param {RankedNeed[]} needs */
   function msgItems(conv, needs) {
@@ -147,6 +148,12 @@ export function createMessageItems({
           (it.why ? `<p class="lim-why">${esc(it.why)}</p>` : "") + (status?.error ? `<p class="rt-ferr" role="alert">${esc(status.error)}</p>` : "") + `<div class="lim-acts">${opts}</div></div>`;
       } else if (m.who === "system" && (m.continuedIn || m.continuedFrom)) {
         html = moveBannerHtml(m, convThread(conv));
+      } else if (m.who === "system" && m.setup) {
+        html = setupBannerHtml(m, convThread(conv));
+      } else if (m.who === "handback") {
+        const t = convThread(conv);
+        if (!t || !m.hopRow) { prev = m; continue; }
+        html = handBackRowHtml(m.hopRow, t);
       } else if (m.who === "asked") {
         const open = !!transcriptOpen()[m.key];
         html = `<div class="ev ev-sys ev-asked${open ? " is-open" : ""}"><span class="ev-ic">${ICON.arrow}</span><button type="button" class="ev-t" data-tb="${esc(m.key)}" aria-expanded="${open}" title="${open ? "Fold" : "Show all of it"}">Asked the coordinator: ${esc(m.text)}</button><time>${clock(m.at)}</time></div>`;

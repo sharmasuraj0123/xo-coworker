@@ -18,6 +18,7 @@ import { terminalApi } from "./terminal-response.js";
 import { githubAuthApi } from "./github-auth-response.js";
 import { githubIssue, githubIssues, githubPull, githubPulls } from "./github-issues-response.js";
 import { signInApi } from "./sign-in-response.js";
+import { lifecycleApi } from "./lifecycle-response.js";
 import { launchpadActionsApi } from "./launchpad-actions-response.js";
 import { launchpadCheck, launchpadPreflight } from "./launchpad-check-response.js";
 import { launchpadDeploy, launchpadWatch } from "./launchpad-stream.js";
@@ -177,6 +178,7 @@ export const api = {
   githubPulls,
   githubPull,
   ...signInApi,
+  ...lifecycleApi,
   ...launchpadActionsApi,
   launchpadCheck,
   launchpadPreflight,

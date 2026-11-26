@@ -26,9 +26,23 @@ export interface RuntimeHealth {
 
 export interface RuntimeFeature { values?: string[]; support?: string | null; behaviour?: string | null }
 
+export type LifecycleAction = "install" | "update" | "uninstall" | "sign_out" | "sign_in";
+export interface Lifecycle {
+  name: string;
+  state: "not_installed" | "installed" | "signed_in" | "installing" | "updating" | "uninstalling" | "failed" | string;
+  installed: boolean;
+  signed_in: boolean;
+  actions: string[];
+  job?: string | null;
+  version?: string | null;
+  needs_update?: boolean;
+  update?: string | null;
+}
+
 export interface Runtime {
   name: string;
   default?: boolean;
+  lifecycle?: Lifecycle | null;
   cli?: { version?: string | null; logged_in?: boolean; account?: string | null } | null;
   health?: RuntimeHealth | null;
   features?: { features?: Record<string, RuntimeFeature | undefined> };

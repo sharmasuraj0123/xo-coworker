@@ -12,7 +12,7 @@ let from = "";
 const record = (method, url) => { const u = new URL(String(url), "http://127.0.0.1:5180/"); seen.push({ method: method.toUpperCase(), path: u.pathname, from }); };
 globalThis.fetch = (async (url, init = {}) => {
   record(init.method || "GET", url);
-  const status = String(url).startsWith("connect/antigravity") ? 404 : 204;
+  const status = 204;
   return { ok: false, status, statusText: "", type: "basic", text: async () => "", json: async () => ({}), blob: async () => ({}) };
 });
 globalThis.XMLHttpRequest = (class { constructor() { this.upload = {}; } open(m, u) { record(m, u); } setRequestHeader() {} send() {} abort() {} });
@@ -28,19 +28,18 @@ const ARGS = {
   launchpadApps: [["x"]],
   launchpadDeploy: [["x", {}, STREAM_OPTIONS]],
   launchpadWatch: [["x", STREAM_OPTIONS]],
-  signInStream: ["claude-code", "codex", "antigravity"].map((route) => [route, STREAM_OPTIONS]),
-  signInCode: ["claude-code", "antigravity"].map((route) => [route, "session", "code"]),
-  signInCancel: [["claude-code"]],
+  signInStream: [["claude_code", STREAM_OPTIONS]],
+  signInCode: [["claude_code", "session", "code"]],
+  signInCancel: [["claude_code"]],
+  runtimeAction: ["install", "update", "uninstall", "sign_out"].map((action) => ["codex", action]),
+  setRemoteControl: [["codex", true], ["codex", false]],
 };
 const OPTIONAL_GITHUB = new Map([
   ["api.githubIssue", "/api/xo-projects/x/github/issues/y"],
   ["api.githubPulls", "/api/xo-projects/x/github/pulls"],
   ["api.githubPull", "/api/xo-projects/x/github/pulls/y"],
 ]);
-const OPTIONAL_SIGN_IN = new Map([
-  ["api.signInStream", "/connect/antigravity"],
-  ["api.signInCode", "/connect/antigravity/callback"],
-]);
+const OPTIONAL_SIGN_IN = new Map();
 const call = async (name, fn, args) => { from = name; await Promise.resolve().then(() => fn(...args)).catch(() => undefined); };
 for (const [name, fn] of Object.entries(api)) {
   if (name === "streamUrl") { from = `api.${name}`; record("GET", fn()); continue; }
@@ -77,8 +76,6 @@ t("each optional entry refers to a route absent from this OpenAPI snapshot", () 
     }
   }
 });
-await assert.rejects(api.signInStream("antigravity", STREAM_OPTIONS), { status: 404, code: "http_404" });
-await assert.rejects(api.signInCode("antigravity", "session", "code"), { status: 404, code: "http_404" });
 t("a shell's socket hangs off a terminal session xo-space defines (OpenAPI lists no sockets)", () => {
   const session = wsPath.replace(/\/ws$/, "");
   assert.notEqual(session, wsPath, "the socket is the session's /ws");

@@ -4,12 +4,14 @@ import { esc } from "../../../core/platform/util.js";
 import { clock } from "../../../core/platform/time.js";
 import * as K from "../../../core/platform/keys.js";
 import { evidenceOf } from "../../../core/services/review.js";
-import { resetWords, rtName } from "../../../core/services/runtimes.js";
+import { resetWords, rtName, rtMark } from "../../../core/services/runtimes.js";
 import { ICON, stepMark } from "../../../core/ui/icons/names.js";
 import { renderMarkdown, excerptMarkdown, renderInline } from "../../../core/ui/markdown/markdown.js";
 import { highlight } from "../../../core/ui/markdown/highlight.js";
 
 /** @import { Change, EvidenceNeed, WaitingNeed, ItemNeed, LimitItem } from "./evidence-types.d.ts" */
+
+/** @import { SessionThread } from "../../../core/services/runtime-types" */
 
 /** @param {WaitingNeed} n */
 export function waitingDetailsHtml(n) {
@@ -74,4 +76,13 @@ export function limitHtml(it) {
   const when = L.resetsAt ? resetWords(L.resetsAt) : "";
   return `<div class="lim">${when ? `<p class="lim-when">${ICON.clock}<span>Opens again ${esc(when)}</span></p>` : ""}` +
     `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
+}
+
+/** The threads an approved uninstall stops, by title. @param {string} runtime @param {SessionThread[]} uses */
+export function runtimeUsesHtml(runtime, uses) {
+  const go = (/** @type {SessionThread} */ u) => (u.go ? `<button type="button" class="rt-go" data-go="${esc(u.go)}" ` +
+    `title="Open “${esc(u.title)}”"><b>${esc(u.title)}</b></button>` : `<b>${esc(u.title)}</b>`);
+  const li = (/** @type {SessionThread} */ u) => `<li>${go(u)}${u.where ? `<span class="lim-stay">${esc(u.where)}</span>` : ""}</li>`;
+  const head = `<p class="lim-when">${rtMark(runtime) || ""}<span>Stops these, running on ${esc(rtName(runtime))}:</span></p>`;
+  return uses.length ? `<div class="lim">${head}<ul class="lim-ts" aria-label="Threads it stops">${uses.map(li).join("")}</ul></div>` : "";
 }

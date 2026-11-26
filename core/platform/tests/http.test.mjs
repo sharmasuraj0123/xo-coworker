@@ -104,7 +104,7 @@ await t("an already cancelled request does not dispatch in any fetch adapter", a
   ctl.abort(reason);
   const { signal } = ctl;
   const reads = [
-    H.requestJson("/a", { signal }), H.exchange("api/a", "GET", undefined, signal),
+    H.requestJson("/a", { signal }),
     H.text("/a", { signal }), H.blob("/a", { signal }),
   ];
   const outcomes = await Promise.allSettled(reads);

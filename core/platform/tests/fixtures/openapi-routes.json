@@ -166,8 +166,48 @@
   "/api/chat/runtimes": [
    "GET"
   ],
+  "/api/chat/runtimes/{name}/install": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/jobs/{job_id}": [
+   "GET"
+  ],
+  "/api/chat/runtimes/{name}/lifecycle": [
+   "GET"
+  ],
   "/api/chat/runtimes/{name}/models": [
    "GET"
+  ],
+  "/api/chat/runtimes/{name}/remote-control/pair": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/remote-control/pair/status": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/remote-control/start": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/remote-control/status": [
+   "GET"
+  ],
+  "/api/chat/runtimes/{name}/remote-control/stop": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/sign-in": [
+   "POST",
+   "DELETE"
+  ],
+  "/api/chat/runtimes/{name}/sign-in/callback": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/sign-out": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/uninstall": [
+   "POST"
+  ],
+  "/api/chat/runtimes/{name}/update": [
+   "POST"
   ],
   "/api/chat/sessions": [
    "GET"
