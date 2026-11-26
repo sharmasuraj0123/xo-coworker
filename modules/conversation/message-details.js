@@ -120,16 +120,15 @@ export function createMessageDetails({
     return at || t.lastAt;
   }
 
-  /** A result hop as one quiet line: giver's mark, arrow, receiver's mark, the result. @param {Hop} h @param {MessageThread} t */
+  /** A result hop as one quiet line: to whom, with the receiver's mark, and the result. @param {Hop} h @param {MessageThread} t */
   function handBackRowHtml(h, t) {
     const sessions = world.state.sessions || {};
-    const from = (h.from_session && sessions[h.from_session]?.agent) || agentOf(t);
     const to = (h.to_session && sessions[h.to_session]?.agent) || null;
-    const toWho = h.to_role === "workspace-coordinator" ? "the Workspace coordinator" : `the ${PROJ(t.project)} coordinator`;
+    const toWho = h.to_role === "workspace-coordinator" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`;
     const made = REC.latestOf ? REC.latestOf(t.id, t.project) : null;
     const at = Date.parse(h.created_at || h.at || "") || t.lastAt;
     const title = made ? made.title || made.name || null : null;
-    return handBackHtml({ from, to, toWho, at, title, file: made?.key || null, path: made?.path || null });
+    return handBackHtml({ to, toWho, at, title, file: made?.key || null, path: made?.path || null });
   }
 
   /** @param {Message} m */

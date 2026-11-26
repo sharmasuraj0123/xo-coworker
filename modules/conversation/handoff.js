@@ -63,14 +63,13 @@ export function setupHtml(set, agent, at) {
   return handoffHtml({ to: { agent, model: set.model, effort: set.effort }, words, at, strong });
 }
 
-/** A thread handing its result back: its mark, an arrow, the receiver's mark, then the result's title. @param {Back} b */
-export function handBackHtml({ from, to, toWho, title = null, file = null, path = null, at }) {
-  const a = from ? rtMark(from) || "" : "", z = to ? rtMark(to) || "" : "";
-  const marks = a || z ? `<span class="ho-mini">${a}${a && z ? ARROW : ""}${z}</span>`
-    : `<span class="ev-ic">${ICON.arrow}</span>`;
+/** A thread handing its result back, in words: to whom, with the receiver's mark, then the result's title. @param {Back} b */
+export function handBackHtml({ to, toWho, title = null, file = null, path = null, at }) {
+  const z = to ? rtMark(to) || "" : "";
   const tip = path ? ` title="${esc(path)}"` : "";
   const name = title && file ? `<button type="button" class="rt-go" data-made-file="${esc(file)}"${tip}>${esc(title)}</button>`
     : esc(title || "");
-  return `<div class="ev ev-sys ev-handback" title="Handed back to ${esc(toWho)}">${marks}` +
-    `<span class="ev-t">Handed back its result${title ? ` · ${name}` : ""}</span><time>${esc(clock(at))}</time></div>`;
+  return `<div class="ev ev-sys ev-handback"><span class="ev-ic">${ICON.arrow}</span>` +
+    `<span class="ev-t">This thread handed its result back to the ${z ? `${z} ` : ""}${esc(toWho)}${title ? ` · ${name}` : ""}</span>` +
+    `<time>${esc(clock(at))}</time></div>`;
 }

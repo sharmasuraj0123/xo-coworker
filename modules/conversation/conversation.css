@@ -338,10 +338,7 @@ code.hl{color:var(--code-ink)}
 .ho-words .ho-t{min-width:0}
 .ho-words time{flex:none;margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.ho-pair .ho-arrow{animation:none}}
-/* A result handed back: one quiet line, the giver's and the receiver's marks dimmed */
-.ho-mini{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);color:var(--ink-4)}
-.ho-mini .agm{opacity:var(--opacity-muted)}
-.ho-mini .ho-arrow svg{width:var(--ic-xs);height:var(--ic-xs)}
+.ev-handback .agm{opacity:var(--opacity-muted)}
 
 .typing{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding-bottom:8px;animation:msg-in var(--d-in) var(--ease)}
 .av-w{position:relative}
