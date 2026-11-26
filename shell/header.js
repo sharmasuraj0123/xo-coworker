@@ -7,14 +7,17 @@ import { xi, hasIcon } from "../core/ui/icons/icon.js";
 
 /** @typedef {import("../core/kernel/types").Kernel["places"]} Places @typedef {import("../core/kernel/types").At} At */
 
-/** @typedef {import("../core/kernel/types").Entry & { label: string, icon: string, onPress(at: At): void }} Action */
+/** @typedef {import("../core/kernel/types").Entry & { label: string, icon: string, bare?: boolean, onPress(at: At): void }} Action */
 
 /** The buttons for where you are, in the place's order. @param {Pick<Places, "entries">} places @param {At} at */
 export function headerActionsHtml(places, at) {
   /** @type {Action[]} */
   const actions = places.entries("header.action", at);
-  return actions.map((e) =>
-    `<button type="button" class="tw-act" data-header-action="${esc(e.id)}" title="${esc(e.label)}">${hasIcon(e.icon) ? xi(e.icon) : ""}<span>${esc(e.label)}</span></button>`).join("");
+  return actions.map((e) => {
+    const bare = e.bare && hasIcon(e.icon), label = esc(e.label);
+    return `<button type="button" class="tw-act" data-header-action="${esc(e.id)}" title="${label}"${bare ? ` aria-label="${label}"` : ""}>` +
+      `${hasIcon(e.icon) ? xi(e.icon) : ""}${bare ? "" : `<span>${label}</span>`}</button>`;
+  }).join("");
 }
 
 /** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {Pick<Places, "get">} places @param {() => At} at */

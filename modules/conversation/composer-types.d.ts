@@ -57,7 +57,7 @@ export type ComposerDeps = {
   syncPlaceholder(composer?: Composer): void;
   sendRender(composer?: Composer): void;
   targetLineRender(composer?: Composer): unknown;
-  connDest(): unknown;
+  connDest(view?: string): unknown;
   schedule(): void;
   mentions: ReturnType<typeof import("./mention-input.js").createMentionList>;
   saveDraft(composer?: Composer): void;

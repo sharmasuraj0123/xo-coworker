@@ -9,16 +9,16 @@ import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { EFFORT_WORD } from "./effort.js";
 import { sessionOrder } from "./session-order.js";
 import { createIntelCatalog } from "./intel-catalog.js";
-import { createIntelReads } from "./intel-reads.js";
+import { createIntelReads, routerCatalog } from "./intel-reads.js";
 import { createIntelView } from "./intel-view.js";
 import { bindIntelInput } from "./intel-input.js";
 
 /** @import { Draft, IntelChat, IntelCurrent, IntelError, IntelModel, IntelMove, IntelOptions, IntelPop, IntelState } from "./intel-types.js" */
 
 /** @param {IntelOptions} options */
-export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
+export function createIntel({ world, PROJ, onChange, record, onMoved, onProject = () => {}, simple = () => false }) {
   /** @type {IntelState} */
-  const P = { open: false, gen: 0, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, more: false };
+  const P = { open: false, gen: 0, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, page: "root" };
   const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const pop = /** @type {IntelPop} */ (document.getElementById("iq-pop"));
 
@@ -132,7 +132,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     void reads.move(name);
   }
   function stepBack() {
-    P.more = true;
+    P.page = "rt";
     lookAt(null);
     pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus({ preventScroll: true });
   }
@@ -141,15 +141,15 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!live(s) || reads.effects.signal.aborted) return;
     reads.open();
     P.gen++;
-    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = /** @type {HTMLElement | null} */ (document.activeElement); P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
+    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = /** @type {HTMLElement | null} */ (document.activeElement); P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.page = "root";
     P.saving = false;
     P.saveErr = null;
     if (failed.has(s)) { P.draft = (/** @type {Draft} */ (failed.get(s))); failed.delete(s); P.saveErr = "Your last choice here didn't save. It's still chosen: Done tries again."; }
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
     anchor?.setAttribute("aria-expanded", "true");
-    if (opts.rt) pop.querySelector(`[data-lrt="${CSS.escape(opts.rt)}"]`)?.focus({ preventScroll: true });
-    else pop.focus({ preventScroll: true });
+    const first = opts.rt ? pop.querySelector('[data-mvm][tabindex="0"]') || pop.querySelector("[data-mv-cancel]") : null;
+    (first instanceof HTMLElement ? first : pop).focus({ preventScroll: true });
     await loadModels(s);
   }
   function close({ restore = true, apply = true } = {}) {
@@ -186,24 +186,25 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
   }
   // The catalog's "no override" model. Storm stores and runs it as no override, and unlike null it
-  const defaultId = () => { const m = (P.models || []).find((x) => x.is_default); return m ? m.id : "default"; };
+  const defaultId = (models = P.models) => { const m = (models || []).find((x) => x.is_default); return m ? m.id : "default"; };
   /** What to send to put a conversation back exactly as it ran before a change. @param {string} s @param {IntelCurrent} before */
-  function restoreBody(s, before) {
+  function restoreBody(s, before, models = P.models) {
     if (kindOf(s) === "thread") {
       // a thread's pin can't be cleared (backend gap): Undo pins what it ran on, the router's choice
       return { model: before.model || defaultId(), ...(before.effort ? { effort: before.effort } : {}) };
     }
-    return before.pinned ? { model: before.model || defaultId(), effort: before.effort || null } : { model: defaultId(), effort: null };
+    return before.pinned ? { model: before.model || defaultId(models), effort: before.effort || null }
+      : { model: defaultId(models), effort: null };
   }
   /** @param {string} s @param {string | null | undefined} model @param {string | null | undefined} effort */
-  function pin(s, model, effort) {
+  function pin(s, model, effort, models = P.models) {
     const before = current(s);
     const kind = kindOf(s);
     const body = kind === "thread" ? { model, ...(effort ? { effort } : {}) } : { model, effort: effort || null };
-    return change(s, body, restoreBody(s, before), `${kind === "thread" ? "This thread" : cap(scopeWord(s))}, next turn: ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}`);
+    return change(s, body, restoreBody(s, before, models), `${kind === "thread" ? "This thread" : cap(scopeWord(s))}, next turn: ${nameOf(model)}${effort ? ` · ${EFFORT_WORD[effort] || effort}` : ""}`);
   }
   /** @param {string} s */
-  function toAuto(s) {
+  function toAuto(s, models = P.models) {
     const before = current(s);
     if (kindOf(s) === "thread") {
       // the closest a thread can come to "no pin": the CLI's own model at its own effort
@@ -211,7 +212,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const ef = d && d.takes_effort ? d.default_effort || null : null;
       return change(s, { model: defaultId(), ...(ef ? { effort: ef } : {}) }, restoreBody(s, before), "This thread is back on the CLI's default model");
     }
-    return change(s, { model: defaultId(), effort: null }, restoreBody(s, before), `${cap(scopeWord(s))} is back on its default`);
+    const words = `${cap(scopeWord(s))} is back on its default`;
+    return change(s, { model: defaultId(models), effort: null }, restoreBody(s, before, models), words);
   }
   /** @param {string} s @param {string} id */
   function route(s, id) {
@@ -219,7 +221,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const before = c && c.routing ? c.routing : null;
     const body = id === "space" ? { routing: null } : id === "agent" ? { routing: { mode: "agent" } } : id === "off" ? { routing: { mode: "off" } } : { routing: { mode: "decision", decision_model: id.slice(3) } };
     const label = id === "space" ? "uses the Space's routing" : id === "agent" ? "is routed by its coordinator" : id === "off" ? "refuses new messages: routing is off" : `is routed by ${cap(id.slice(3))}`;
-    change(s, body, { routing: before }, `${s === "ws" ? "The Workspace" : PROJ(s.slice(2))} ${label}`);
+    return change(s, body, { routing: before }, `${s === "ws" ? "The Workspace" : PROJ(s.slice(2))} ${label}`);
   }
 
   const blankPolicy = { allowed: null, default: null, preferences: null, fallback: null };
@@ -250,7 +252,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     } catch (err) { record(s, { text: `Nothing changed: ${(/** @type {IntelError} */ (err)).message}`, refused: true }); }
     P.busy = false;
     onChange();
-    if (P.open && P.session === s) { P.models = null; render(); loadModels(s); }
+    if (P.open && P.session === s) {
+      P.models = null; P.page = "root"; render();
+      pop.querySelector('[data-lpage="rt"]')?.focus({ preventScroll: true });
+      loadModels(s);
+    }
   }
   /** Continue the thread on the runtime it looks at: XO stops it, saves its work, and a linked thread starts there. */
   async function moveGo() {
@@ -284,6 +290,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   bindIntelInput(P, reads.effects, {
     pop, threadOf, deepPick, save, close, render, lookAt, setRuntime, stepBack, moveGo,
     pickMove, route, done, pickModel, pickEffort, place,
+    project() { const s = (/** @type {string} */ (P.session)); close({ restore: false }); onProject(s.slice(2)); },
   });
 
   return {
@@ -295,5 +302,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     runtimeChoice,
     get session() { return P.session; },
     kindOf, scopeWord,
+    /** The same writes the picker makes, for Project settings: closed, the picker's state stays as it is. */
+    writes: {
+      setRuntime, route, routerModels: routerCatalog, catalog: catalogState,
+      /** @param {string} s @param {Draft} d @param {IntelModel[]} models */
+      setModel: (s, d, models) => order(s, () => (d.auto ? toAuto(s, models) : pin(s, d.model, d.effort, models))),
+    },
   };
 }

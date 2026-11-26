@@ -23,7 +23,6 @@ export function dockAtTop(top) {
   const had = active instanceof HTMLElement && dock.contains(active) ? active : null;
   if (top) requireHtml("#cs-sub").after(dock); else requireHtml("#drop-veil").after(dock);
   requireHtml("#cs-hi").hidden = requireHtml("#cs-sub").hidden = !top;
-  if (!top) sc.style.removeProperty("--cs-lead");
   dock.classList.toggle("is-top", top);
   had?.focus({ preventScroll: true });
 }

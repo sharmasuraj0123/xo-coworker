@@ -33,7 +33,14 @@ export function createDelivery({
     heraldShow(refusedNotice(block, kept), 6000);
   }
 
-  function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
+  /** Where a message from this view goes, and the pool it runs in. @param {string} [view] */
+  function connDest(view = currentView()) {
+    const d = composerDest(view, view === currentView() ? say.value : "");
+    const chat = CH.isChats(view) && view.startsWith("c:") ? view.slice(2) : null;
+    const sessionId = CH.isChats(view) ? chat : d.thread ? convThread(view)?.sessionId ?? null : null;
+    const pool = world.act.poolOf ? world.act.poolOf(d.thread ? { sessionId } : { project: d.pid }) : undefined;
+    return d.thread ? { thread: true, pool } : { pid: d.pid, pool };
+  }
 
   /** @param {string} [view] @param {string} [text] */
   function composerDest(view = currentView(), text = say.value) {

@@ -12,14 +12,9 @@ import { headerActionsHtml } from "../../shell/header.js";
 
 /** @template {HeaderNeed} N @param {HeaderDeps<N>} options */
 export function createConversationHeader({
-  threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
+  threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, isHeld,
   threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
 }) {
-  /** @param {number} n @param {string} word */
-  const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
-  /** @param {(string | 0)[]} bits */
-  const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
-
   /** @param {string} v @param {N[]} needs */
   function hostNeedHtml(v, needs) {
     const h = convHost(v);
@@ -37,16 +32,7 @@ export function createConversationHeader({
     let who;
     let controls = "";
     if (v === "ws") {
-      const P0 = homeParts(needs);
-      const asking = new Set(needs.map((n) => n.t.id));
-      const working = world.state.threads.filter(isBusy).length;
-      const waiting = world.state.threads.filter((x) => isHeld(x) && !asking.has(x.id)).length;
-      const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
-      const done = doneToday().length;
-      const parts = [counted(working, "working"), counted(waiting, "waiting"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
-      const need = hostNeedHtml(v, needs);
-      const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
-      who = `<span class="tw-ic" aria-hidden="true">${xi("layers")}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
+      who = `<span class="tw-ic" aria-hidden="true">${xi("layers")}</span><span class="tw-t is-one"><h1 id="conv-title">Workspace</h1>${hostNeedHtml(v, needs)}</span>`;
     } else if (v.startsWith("p:")) {
       const pid = v.slice(2);
       const by = threadCounts(pid, needs);

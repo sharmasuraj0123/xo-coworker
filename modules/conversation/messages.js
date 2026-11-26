@@ -77,7 +77,7 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
       else if (t && m.who === "agent" && /^✓\s/.test(m.text)) {
         out.push({ key: base.key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
       }
-      else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", fwd: conv !== "ws" && m.fwd ? m.fwd : null, threads: on.get(m.id) || null });
+      else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", fwd: conv !== "ws" && m.fwd ? m.fwd : null, author: m.role || null, threads: on.get(m.id) || null });
     }
     if (conv.startsWith("p:")) {
       const pid = conv.slice(2);

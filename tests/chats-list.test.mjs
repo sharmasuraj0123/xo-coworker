@@ -3,12 +3,13 @@ import { publishedRules } from "./lib/css-snapshot.mjs";
 import { cliName } from "../core/services/world/conn.js";
 import { chatOrder } from "../core/services/world/conversation.js";
 import { heldShort, heldBadge } from "../core/services/world/held.js";
-import { dayGroup, rowTime } from "../core/services/world/list-time.js";
+import { rowTime } from "../core/services/world/list-time.js";
+import { threadsHtml } from "../shell/panel/lists.js";
 import { dom, same } from "./lib/dom.mjs";
 import { createChats as mountChats } from "../modules/chats/chats.js";
 import { turnHtml, turnAv } from "../modules/conversation/blocks/turn.js";
 
-const createChats = (deps) => mountChats(deps, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
+const createChats = (deps) => mountChats(deps, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, rowTime });
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -16,48 +17,37 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const now = new Date(2026, 10, 20, 15, 0);
 const at = (d, h = 10) => new Date(2026, 10, 20 - d, h, 30).toISOString();
 await dom("");
-t("day groups: Today, Yesterday, This week, then the month (its year when not this one)", () => {
-  assert.equal(dayGroup(at(0), now), "Today");
-  assert.equal(dayGroup(at(1), now), "Yesterday");
-  assert.equal(dayGroup(at(4), now), "This week");
-  assert.equal(dayGroup(at(25), now), new Date(2026, 9, 26).toLocaleDateString(undefined, { month: "long" }));
-  assert.match(dayGroup(new Date(2025, 2, 1).toISOString(), now), /2025/);
-  assert.equal(dayGroup("nonsense", now), "Earlier");
-});
 t("a row's time: the clock for today and yesterday, the weekday this week, else the date", () => {
   assert.equal(rowTime(at(0), now), new Date(at(0)).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }));
   assert.equal(rowTime(at(1), now), new Date(at(1)).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }));
   assert.equal(rowTime(at(4), now), new Date(at(4)).toLocaleDateString(undefined, { weekday: "short" }));
   assert.equal(rowTime(at(25), now), new Date(at(25)).toLocaleDateString(undefined, { month: "short", day: "numeric" }));
 });
-t("a row: the agent's mark, its state as a badge on it (none when idle), the title and the time, one line", () => {
+t("your chats are in the panel, grouped as threads are: needing you, working, then the rest, newest first", () => {
   const plain = { role: "plain", agent: "codex", created_at: at(0) };
   const sessions = {
     idle: { ...plain, id: "idle", state: "idle", permission_mode: "plan" },
     waiting: { ...plain, id: "waiting", state: "waiting_on_person", permission_mode: "auto" },
+    old: { ...plain, id: "old", state: "idle", created_at: at(3) },
   };
   const chats = createChats({ world: { state: { sessions }, act: {}, onEvent() {} }, schedule() {} });
-  chats.showAll(true);
+  const groups = chats.groups("c:idle");
+  assert.deepEqual(groups.map((g) => [g.k, g.word, g.rows.map((r) => r.go)]), [["needs", "Needs you", ["c:waiting"]], ["recent", "Recent", ["c:idle", "c:old"]]]);
+  const idle = groups[1].rows[0];
+  assert.equal(idle.title, "A chat in your projects folder");
+  assert.equal(idle.sub, "Plan only", "what isn't a new chat's default");
+  assert.equal(groups[1].rows[1].sub, "Codex", "else its agent");
+  assert.equal(idle.at, rowTime(plain.created_at));
+  assert.equal(idle.on, true, "the open chat is marked");
+  assert.match(idle.icon, /agm-openai/, "the agent's mark");
   const box = document.createElement("div");
-  const paint = () => { box.innerHTML = chats.items("chats").map((row) => row.html).join(""); };
-  paint();
-  const group = box.querySelector(".chl-g");
-  assert.equal(group.querySelector(".chl-h").id, group.getAttribute("aria-labelledby"));
-  const idle = box.querySelector('[data-go="c:idle"]');
-  assert.ok(idle.querySelector(".chl-tile .agm-openai"));
-  assert.ok(idle.querySelector(".chl-tile [data-xi]") === null, "idle tiles have no icon badge");
-  assert.equal(idle.querySelector(".chl-t").textContent, "A chat in your projects folder");
-  assert.equal(idle.querySelector(".chl-a").textContent, rowTime(plain.created_at));
-  assert.ok(box.querySelector('[data-go="c:waiting"] .chl-tile [data-xi="state-needs-you"]'));
-  sessions.idle.updated_at = at(0, 11);
-  sessions.waiting.updated_at = at(0, 12);
-  paint();
-  assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:waiting", "c:idle"]);
-  chats.search("plan only");
-  paint();
-  assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:idle"]);
+  box.innerHTML = threadsHtml(groups, "plan only", { folds: {}, more: {}, noun: "chat" });
+  assert.deepEqual([...box.querySelectorAll("[data-go]")].map((row) => row.dataset.go), ["c:idle"], "the panel's filter reads it");
+  box.innerHTML = threadsHtml(groups, "nothing like it", { folds: {}, more: {}, noun: "chat" });
+  assert.match(box.textContent, /^No chat matches/);
+  assert.deepEqual(["chats", "c:idle", "ws", "p:xo"].map(chats.isChats), [true, true, false, false], "the Workspace's panel keeps its threads");
 });
-t("the Workspace rests above your recent chats, says who is at work, and leaves All chats to your chats", () => {
+t("the Chats screen keeps only the Workspace under the composer: no Recent, no All chats", () => {
   const sessions = { one: { role: "plain", agent: "codex", id: "one", state: "idle", created_at: at(0) } };
   const workspace = { projects: 3, working: 2, coordinator: true };
   const chats = createChats({ world: { state: { sessions }, act: {}, onEvent() {} }, schedule() {}, workspace: () => workspace });
@@ -65,8 +55,10 @@ t("the Workspace rests above your recent chats, says who is at work, and leaves 
   const paint = () => { box.innerHTML = chats.items("chats").map((row) => row.html).join(""); };
   paint();
   const rows = [...box.querySelectorAll(".chl-row")];
-  assert.equal(rows[0].dataset.go, "ws");
+  assert.deepEqual(rows.map((row) => row.dataset.go), ["ws"]);
   assert.ok(rows[0].closest(".chl-pin"));
+  assert.equal(box.textContent.includes("Recent"), false);
+  assert.equal(box.querySelector("[data-chl-all]"), null);
   assert.equal(rows[0].querySelector(".chl-a").textContent, "2 working · 3 projects");
   assert.equal(rows[0].getAttribute("aria-label"), "Workspace: your coordinator across 3 projects, 2 working");
   workspace.working = 0;
@@ -75,9 +67,6 @@ t("the Workspace rests above your recent chats, says who is at work, and leaves 
   workspace.coordinator = false;
   paint();
   assert.equal(box.querySelector('[data-go="ws"] .chl-a').textContent, "3 projects");
-  chats.showAll(true);
-  paint();
-  assert.equal(box.querySelector('[data-go="ws"]'), null);
 });
 
 {
@@ -137,7 +126,7 @@ const style = (selector, expected, condition = "") => {
   assert.deepEqual(actual, expected, `${selector} ${condition}`);
 };
 
-t("Chats lists bare marks beside reading-size titles with no row dividers", () => {
+t("The Workspace row is a bare mark beside a reading-size title with no divider", () => {
   style(".chl-list", { "list-style": "none", display: "flex", "flex-direction": "column", margin: "0", padding: "0" });
   assert.ok(!rules.some(({ sel }) => sel.includes(".chl-list>li+li")), "no dividers");
   style(".chl-row", {
@@ -149,7 +138,7 @@ t("Chats lists bare marks beside reading-size titles with no row dividers", () =
   assert.ok(Object.keys(tile).every((property) => !/^(background|border|box-shadow)/.test(property)), "the mark has no fill or rim");
   style(".chl-t", { font: "var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans)" });
   const start = rules.find(({ sel }) => sel === ".cs-hi").n;
-  const end = rules.find(({ sel }) => sel === ".chl-calm").n;
+  const end = rules.find(({ sel }) => sel === ".chl-a>.is-busy").n;
   const literals = rules.filter(({ n, declarations: rows }) => n >= start && n < end
     && rows.some(({ v }) => /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i.test(v)));
   assert.deepEqual(literals.map(({ sel }) => sel), []);
@@ -161,24 +150,29 @@ t("A project heading with no actions can use the full row", () => {
   style('.top[data-kind="project"]:has(>.top-end:empty) .top-who', { flex: "1", "max-width": "none" });
 });
 
+t("A notice on the Chats start screen rests at the page's foot, not between the composer and the Workspace", () => {
+  style(".dock.is-top", { position: "static" });
+  style(".dock.is-top>.herald", { bottom: "var(--dock-gap)", top: undefined });
+});
+
 t("The Chats greeting and composer lead the page without space reserved at the foot", () => {
-  style(".dock.is-top>.herald", { top: "calc(100% + (var(--s-10) - var(--h-ctl)) / 2)", bottom: "auto" });
   style(".main:has(.dock.is-top)", { "--dock-h": "0px" });
   style(".cs-hi", {
     font: "var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans)",
-    margin: "var(--cs-lead,auto) 0 var(--s-2) var(--col-x)",
+    margin: "auto 0 var(--s-2) var(--col-x)",
   });
 });
 
-t("Recent chats share the search style and align controls with the composer", () => {
-  style(".chl-more", { padding: "0 var(--halo)", "margin-right": "calc(-1 * var(--halo))", "border-radius": "var(--r)" });
-  style('.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column', { height: "0", "margin-bottom": "auto" });
-  assert.ok(!rules.some(({ sel }) => sel.startsWith(".stage .tg-qf")), "the search field is one shared look");
+t("The Chats greeting and composer stand in the middle, with nothing listed under them but the Workspace", () => {
+  style('.app[data-conv="chats"] .scroller>.column', { height: "0", "margin-bottom": "auto" });
+  assert.ok(!rules.some(({ sel }) => /\.chl-(more|top|q|few|calm|h)\b/.test(sel)), "no Recent or All chats left behind");
 });
 
-t("The Chats greeting replaces the desktop bar while the phone keeps its menu", () => {
+t("The Chats greeting replaces the desktop bar but for the panel's button, while the phone keeps its menu", () => {
   const chats = '.app:is([data-conv="chats"],[data-conv^="c:"])';
-  style(chats + " .top", { display: "none" }, "@media (min-width:761px)");
+  style(chats + " .top", { position: "absolute", background: "none", "border-bottom": "0", "pointer-events": "none" }, "@media (min-width:761px)");
+  style(chats + " .top>:not(.top-end)", { display: "none" }, "@media (min-width:761px)");
+  style(chats + " .top-end", { "pointer-events": "auto" }, "@media (min-width:761px)");
   style(":root:root " + chats + " #top-who", { display: "none" }, "@media (max-width:760px)");
 });
 

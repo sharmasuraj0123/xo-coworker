@@ -19,8 +19,8 @@ test("notices move to the composer in use, with independent space and an Undo fo
     </div></div>`);
   const page = document.querySelector("#app"), panel = document.querySelector(".tp");
   const mainLine = document.querySelector("#herald"), panelLine = document.querySelector("#tpherald");
-  const main = { say: document.querySelector("#main-reply") };
-  const reply = { say: document.querySelector("#panel-reply") };
+  const main = { view: "p:demo", say: document.querySelector("#main-reply") };
+  const reply = { view: "t:demo", say: document.querySelector("#panel-reply") };
   document.querySelector("#dock").getBoundingClientRect = () => ({ top: 520 });
   document.querySelector("#tpdock").getBoundingClientRect = () => ({ top: 680 });
   mainLine.getBoundingClientRect = () => ({ top: 480 });
@@ -29,7 +29,7 @@ test("notices move to the composer in use, with independent space and an Undo fo
   const state = { view: "p:demo", herald: null };
   const { heraldRender } = createNoticeLine({
     notice: () => state.herald, MK: main, world: { state: { router: { mode: "off" } } },
-    composerNow: () => current, panelHost: () => panel, connDest: () => ({ pid: "demo" }),
+    composerNow: () => current, panelHost: () => panel, connDest: (view) => (view === "t:demo" ? { thread: true } : { pid: "demo" }),
     convThread: () => null, placeRegion: () => page, STOP_ICON: "",
   });
   heraldRender();

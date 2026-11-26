@@ -143,6 +143,8 @@
   --win-w:calc(32 * var(--h-ctl)); --win-h:calc(20 * var(--h-ctl)); --win-side:calc(7 * var(--h-ctl)); --row-k:calc(5 * var(--h-ctl));
   --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
   --r-lg-in:calc(var(--r-lg) - 1px);
+  /* every card in the conversation column shares one corner; what sits inside one takes --r-block-in less its inset */
+  --r-block:var(--r-lg); --r-block-in:calc(var(--r-block) - var(--hair));
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
   --r-note:calc(var(--r) + var(--s-2));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
@@ -284,6 +286,7 @@
   --press-scale:.97;
   --tx-press-transform:transform var(--dur-fast) var(--ease);
 }
+:root[data-msgx]{--r-block:var(--r-xl)}
 :root[data-theme="light"]{
   color-scheme:light;
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF; --fill-viewer-embedded:var(--surface);

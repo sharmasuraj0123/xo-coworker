@@ -5,7 +5,7 @@ import type { createLocalMessages } from "./local-messages.js";
 import type { Chip, createTray } from "../../core/services/media/attachment-tray.js";
 import type { Composer } from "./composer-types.d.ts";
 
-export type Thread = { id: string; project: string; title?: string };
+export type Thread = { id: string; project: string; title?: string; sessionId?: string | null };
 
 export type LocalMessage = {
   id: string;
@@ -35,6 +35,7 @@ export type DeliveryDeps = {
     state: NonNullable<Parameters<typeof sendBlock>[0]> & { projects: { id: string; name?: string }[] };
     act: {
       chatId?: (project: string) => string | null;
+      poolOf?: (to: { sessionId?: string | null; project?: string | null }) => string | null;
       ask(project: string, text: string, options: SendOptions): Promise<unknown>;
       reply(id: string, text: string, options: SendOptions): Promise<unknown>;
     };

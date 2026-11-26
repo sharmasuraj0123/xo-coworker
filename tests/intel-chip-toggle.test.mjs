@@ -6,7 +6,7 @@ import { dom, same, settle } from "./lib/dom.mjs";
 
 
 const { window, document } = await dom(`<div id="iq-pop" tabindex="-1" hidden></div><button id="iq"></button><button id="tiq"></button><p id="elsewhere">x</p>`);
-const g = /** @type {any} */ (globalThis);
+const g = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (globalThis));
 g.MutationObserver = window.MutationObserver;
 g.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 g.localStorage = g.sessionStorage = { getItem: () => null, setItem() {}, removeItem() {} };
@@ -62,6 +62,7 @@ tap(row);
 assert.equal(row.getAttribute("aria-checked"), "true");
 same(document.activeElement, row, "selecting a model keeps the original row");
 const effort = $('[data-deffort="high"]');
+assert.equal(effort.textContent, "Deep", "thinking is said in words");
 tap(effort);
 assert.equal(effort.getAttribute("aria-checked"), "true");
 same(document.activeElement, effort, "selecting effort keeps the original button");

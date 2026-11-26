@@ -37,12 +37,13 @@ const SCROLLERS = {
   ".rn-body": ["room", "the Sub-agents page"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"], ".at-list": ["room", "the composer's @ projects"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
 ".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
-  ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
+  ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"], ".iq-opts": ["inset:.iq-opt", "the picker's models and runtimes"],
   ".stage .cx-list": ["inset:.cx-r", "the changes list"],
   ".fr-b": ["inset:.ag-r", "the stage's frames (agents and changes rows, inset)"], ".stage .ch-old": ["inset:.ch-r", "a change's older lines"],
   ".home": ["inner", "Home's column carries the room"], ".arts": ["inner", "Artifacts' column carries the room"],
   ".lpp": ["inner", "Launchpad's column carries the room"], ".lq-body": ["room", "Launchpad's window body"],
   ".lq-side.nav": ["room", "Launchpad's window sections"],
+  ".ps-body": ["room", "Project settings' page"],
   ".scroller": ["inner", "the conversation: its column and the bubbles carry the room"], ".dlg": ["inner", "a dialog: its sections are padded"],
   ".card.is-dock.is-one .card-in": ["inner", "the docked decision: its body (16 px) and actions (12 px) are padded"],
   ".md-code pre": ["text", "a code block"], ".md-table": ["text", "a table in a message"],
@@ -85,8 +86,8 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
 // "page": the page itself; "decor": it holds no control (a bar, a line, words for a screen reader); "fade": a mask
 // that fades a scroller's cut edge, over controls that draw their ring inside them or sit clear of it
 const CLIPPERS = {
-  "html": ["page", "the page"], ".dlg.lq": ["inner", "Launchpad's window: its sections and body are placed (.lq-side.nav, .lq-body)"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
-  ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".agm-cursor": ["decor", "an agent's mark (Cursor's, a mask in the ink)"], ".agm-grok": ["decor", "an agent's mark (Grok's, a mask in the ink)"], ".nv-dot": ["decor", "a mark from the pack, a mask in the ink"], ".pr-d": ["decor", "a mark from the pack, a mask in the ink"], ".spin": ["decor", "a mark from the pack, a mask in the ink"], ".spin.is-load": ["decor", "a mark from the pack, a mask in the ink"], ".hr-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-m.is-wait": ["decor", "a mark from the pack, a mask in the ink"], ".shd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".dg-dot": ["decor", "a mark from the pack, a mask in the ink"], ".fl-who i": ["decor", "a mark from the pack, a mask in the ink"], ".fl-rb em": ["decor", "a mark from the pack, a mask in the ink"], ".stage .cx-pill i": ["decor", "a mark from the pack, a mask in the ink"], ".xd-state i": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st:is(.t-go,.t-stop)>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-stop>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-need>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".dd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".rn-stop span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  "html": ["page", "the page"], ".dlg.lq": ["inner", "Launchpad's window: its sections and body are placed (.lq-side.nav, .lq-body)"], ".dlg.ps": ["inner", "Project settings' window: its body is placed (.ps-body)"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
+  ".sr-only": ["decor", "words for a screen reader"], ".iq-v": ["decor", "a picker row's value (words and a mark)"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".agm-cursor": ["decor", "an agent's mark (Cursor's, a mask in the ink)"], ".agm-grok": ["decor", "an agent's mark (Grok's, a mask in the ink)"], ".nv-dot": ["decor", "a mark from the pack, a mask in the ink"], ".pr-d": ["decor", "a mark from the pack, a mask in the ink"], ".spin": ["decor", "a mark from the pack, a mask in the ink"], ".spin.is-load": ["decor", "a mark from the pack, a mask in the ink"], ".hr-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-m.is-wait": ["decor", "a mark from the pack, a mask in the ink"], ".shd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".dg-dot": ["decor", "a mark from the pack, a mask in the ink"], ".fl-who i": ["decor", "a mark from the pack, a mask in the ink"], ".fl-rb em": ["decor", "a mark from the pack, a mask in the ink"], ".stage .cx-pill i": ["decor", "a mark from the pack, a mask in the ink"], ".xd-state i": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st:is(.t-go,.t-stop)>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-stop>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-need>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".dd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".rn-stop span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
   ".c-ev.is-plan.is-more .ev-plan": ["text", "a plan's first lines on a decision card, plain words"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
@@ -173,17 +174,17 @@ t("C045: the checklist's toggle draws its ring inside it, on the bar's inner cor
   const toggle = {
     flex: "1", "min-width": "0", display: "flex", "align-items": "center", gap: "12px",
     height: "var(--h-ctl)", padding: "0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text)",
-    "border-radius": "var(--r-lg-in)",
+    "border-radius": "var(--r-block-in)",
   };
   assert.ok(exact(".ck-tog").some((rule) => Object.entries(toggle).every(([p, v]) => has(rule, p, v))));
-  assert.ok(inRule(".ckbar", "border-radius", "var(--r-lg)"));
+  assert.ok(inRule(".ckbar", "border-radius", "var(--r-block)"));
   assert.ok(valuesFor(".ckbar", "border").some((variants) =>
     [variants].flat().every((value) => value.startsWith("1px solid"))));
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
   assert.ok(exact(".md-code").length);
   assert.ok(exact(".md-code").every(({ declarations }) => declarations.every(({ p }) => !p.startsWith("overflow"))));
-  const pre = { margin: "0", padding: "12px 16px", "overflow-x": "auto", "border-radius": "0 0 var(--r-lg-in) var(--r-lg-in)" };
+  const pre = { margin: "0", padding: "12px 16px", "overflow-x": "auto", "border-radius": "0 0 var(--r-block-in) var(--r-block-in)" };
   assert.ok(exact(".md-code pre").some((rule) => Object.entries(pre).every(([p, v]) => has(rule, p, v))));
   const header = { display: "flex", "align-items": "center", "justify-content": "space-between", "min-height": "34px" };
   assert.ok(exact(".md-code-head").some((rule) => Object.entries(header).every(([p, v]) => has(rule, p, v))));

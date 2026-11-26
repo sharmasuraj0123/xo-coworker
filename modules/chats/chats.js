@@ -9,7 +9,7 @@ import { BUSY_STATES, mainRuntime } from "../../core/services/world/sessions.js"
 import { rtMark, rtName } from "../../core/services/runtimes.js";
 import { EFFORT_WORD } from "./effort.js";
 import { createSetup, MODE_WORDS, store } from "./setup.js";
-import { chatListItems } from "./list.js";
+import { chatGroups, chatListItems } from "./list.js";
 import { createChatTitles } from "./titles.js";
 import { createChatReads } from "./reads.js";
 import { promptFailure } from "./prompt-failure.js";
@@ -22,16 +22,16 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 /** @param {Session} a @param {Session} b */
 const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, rowTime }) {
   const scope = createScope();
   /** @type {ChatState} */
-  const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
+  const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map() };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   /** @param {string} sid */
   const session = (sid) => (world.state.sessions || {})[sid] || null;
   const listHost = listRoot ?? (typeof document === "undefined" ? undefined : document.getElementById("msgs")) ?? undefined;
-  const titleList = createChatTitles(listHost, session, () => { if (C.q) schedule(); });
+  const titleList = createChatTitles(listHost, session, schedule);
   scope.effect(() => titleList.stop);
   /** @param {string | null} [name] @returns {Runtime | null} */
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? /** @type {Runtime | null} */ (mainRuntime(world.state.runtimes)) : null) || null;
@@ -70,7 +70,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   scope.effect(() => world.subscribe?.(() => {
     titleList.noteSessions();
     const v = view && view();
-    if (v && v !== "chats") titleList.stop();
+    if (v && v !== "chats" && !v.startsWith("c:")) titleList.stop();
     if (!v || !v.startsWith("c:")) return;
     const sid = v.slice(2);
     const s = session(sid), h = C.hist.get(sid);
@@ -274,14 +274,17 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     /** @returns {"waiting" | "working" | ""} whether a direct chat waits on you, else whether one is working */
     live: () => { const all = sessions(); return all.some(waiting) ? "waiting" : all.some(inTurn) ? "working" : ""; },
     /** @param {string} v */
-    open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
+    open(v) { if (v === "chats" || !C.list) loadList(); if (v.startsWith("c:")) loadChat(v.slice(2)); },
     /** @param {string} v */
-    items: (v) => {
-      if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
+    items: (v) => (v === "chats" ? chatListItems(workspace?.() ?? null) : chatItems(v.slice(2))),
+    /** Your chats, grouped for the panel; null until the list is read. A filter reads titles not yet read. @param {string} v */
+    groups: (v, q = "") => {
       const rows = sessions().sort(recentFirst);
-      const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
-      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime, workspace: workspace?.() ?? null });
+      if (!scope.signal.aborted) titleList.observe(rows, q);
+      return !C.list && !rows.length ? null : chatGroups(v, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, rowTime, agentName: cliName });
     },
+    /** Why the panel has no chats to list: still reading, or couldn't. */
+    listNote: () => (C.err ? `Couldn't read your chats: ${C.err}` : "Reading your chats…"),
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm,
     /** @param {string} v */
     placeholder: (v) => (v === "chats" ? "Ask anything, or @ a project to work in it…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
@@ -293,10 +296,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s) && !waiting(s)); },
     /** Why this chat can't take a message, if it can't. @param {string} v */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
-    /** @param {string} q */
-    search(q) { if (C.q !== q) { C.q = q; schedule(); } },
-    /** @param {boolean} on */
-    showAll(on) { C.all = on; if (!on) C.q = ""; schedule(); },
     send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
     permHtml,
     toggleSetup,

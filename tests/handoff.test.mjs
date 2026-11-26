@@ -51,21 +51,21 @@ assert.equal(chips.length, 1, "a setup change has no before values, so one chip"
 assert.equal(chips[0].querySelectorAll("b")[1]?.textContent, "Deep", "the changed field is bold");
 assert.match(box.querySelector(".ho-t")?.textContent || "", /^The project coordinator set thinking to Deep\. Same session, from its next turn\.$/);
 
-box.innerHTML = handBackHtml({ from: "codex", to: "claude_code", toWho: "the Demo coordinator", at,
+box.innerHTML = handBackHtml({ to: "claude_code", toWho: "Demo coordinator", at,
   title: "Plan.md", file: "made:1", path: "docs/plan.md" });
 let row = box.querySelector(".ev-handback");
 assert.equal(!!row, true);
-const marks = [...(row?.querySelectorAll(".ho-mini .agm") || [])].map((m) => m.className);
-assert.deepEqual(marks, ["agm agm-openai", "agm agm-claude"], "the thread's mark, then the receiver's");
+const marks = [...(row?.querySelectorAll(".agm") || [])].map((m) => m.className);
+assert.deepEqual(marks, ["agm agm-claude"], "only the receiver's mark, beside its name");
 assert.equal(row?.querySelector("button.rt-go")?.getAttribute("data-made-file"), "made:1", "the title opens the result");
-assert.match(row?.querySelector(".ev-t")?.textContent || "", /^Handed back its result · Plan\.md$/);
+assert.match((row?.querySelector(".ev-t")?.textContent || "").replace(/\s+/g, " "), /^This thread handed its result back to the Demo coordinator · Plan\.md$/,
+  "who handed back to whom, in words, even when both run on the same runtime");
 
-box.innerHTML = handBackHtml({ from: "codex", to: null, toWho: "the Demo coordinator", at });
+box.innerHTML = handBackHtml({ to: null, toWho: "Workspace coordinator", at });
 row = box.querySelector(".ev-handback");
-assert.equal(row?.querySelectorAll(".agm").length, 1, "an unknown receiver shows no second mark");
+assert.equal(row?.querySelectorAll(".agm").length, 0, "an unknown receiver shows no mark");
 assert.equal(!!row?.querySelector(".xo, .agm-xo, svg.xo"), false, "never XO's mark");
-assert.equal(!!row?.querySelector(".ho-mini .ho-arrow"), false);
-assert.match(row?.querySelector(".ev-t")?.textContent || "", /^Handed back its result$/);
+assert.match(row?.querySelector(".ev-t")?.textContent || "", /^This thread handed its result back to the Workspace coordinator$/);
 
 const hop = (id, wake, extra = {}) => ({ id, thread_ts: "t1", kind: "status", from_role: "thread", to_role: "project-coordinator",
   from_session: "s_thread", to_session: "s_coord", wake_id: wake, seq: 5, created_at: "2026-11-26T14:31:00Z", ...extra });
@@ -129,12 +129,12 @@ assert.equal(rows.some((m) => m.key === "hop:h1"), false, "the result hop is not
 assert.equal(rows.filter((m) => m.key === "hop:h2").length, 1, "the idle hop gets its own line");
 draw();
 row = box.querySelector(".ev-handback");
-assert.deepEqual([...(row?.querySelectorAll(".agm") || [])].map((m) => m.className), ["agm agm-openai", "agm agm-claude"],
+assert.deepEqual([...(row?.querySelectorAll(".agm") || [])].map((m) => m.className), ["agm agm-claude"],
   "the receiver's mark comes from its session");
-assert.match(row?.textContent || "", /Handed back its result · Login fix/);
+assert.match((row?.textContent || "").replace(/\s+/g, " "), /This thread handed its result back to the Demo coordinator · Login fix/);
 world.state.sessions = { s_thread: { agent: "codex" } };
 draw();
-assert.equal(box.querySelector(".ev-handback")?.querySelectorAll(".agm").length, 1, "no receiver session, no second mark");
+assert.equal(box.querySelector(".ev-handback")?.querySelectorAll(".agm").length, 0, "no receiver session, no mark");
 
 const card = () => { box.innerHTML = details.threadCardHtml("t1", []); return box; };
 card();

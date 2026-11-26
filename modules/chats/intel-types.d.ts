@@ -38,6 +38,7 @@ export interface IntelOptions {
   onChange: () => void;
   record: (session: string, receipt: { text: string; undo?: (() => Promise<void>) | null; refused?: boolean }) => void;
   onMoved?: (thread: IntelThread | null, runtime: string | null) => void;
+  onProject?: (project: string) => void;
   simple?: () => boolean;
 }
 
@@ -65,7 +66,7 @@ export interface IntelState {
   mv: IntelMove | null;
   full: boolean;
   draft: Draft | null;
-  more: boolean;
+  page: "root" | "rt" | "route";
   saving?: boolean;
   saveErr?: string | null;
   dms?: RouterModel[];
@@ -118,4 +119,5 @@ export interface InputOptions {
   pickModel: (id: string) => void;
   pickEffort: (effort: string) => void;
   place: () => void;
+  project: () => void;
 }

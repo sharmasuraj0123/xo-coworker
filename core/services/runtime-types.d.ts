@@ -13,6 +13,7 @@ export interface UsageItem {
   options?: { decision?: string; label?: string }[];
 }
 
+export type LivePools = Record<string, { state?: string | null; resets_at?: string | null; windows?: RuntimeHealth["windows"] }>;
 export interface SessionThread { id: string; title: string; where: string; go: string | null }
 export interface SessionsState {
   threads: { id: string; title: string; project: string; sessionId?: string | null }[];

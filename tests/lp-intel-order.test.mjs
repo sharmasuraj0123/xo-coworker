@@ -42,7 +42,7 @@ try {
   click('[data-dmodel="picked"]');
   picker.close();
   await picker.open("p:work", anchor);
-  click("[data-lmore]");
+  click('[data-lpage="rt"]');
   click('[data-lrt="claude_code"]');
   await new Promise(setImmediate);
   assert.equal(writes.length, 1, "the runtime changes after the model save settles");

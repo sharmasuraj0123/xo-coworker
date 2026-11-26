@@ -11,6 +11,7 @@ import { usable } from "../../core/ui/a11y/focus.js";
 import { rtName } from "../../core/services/runtimes.js";
 import { createRecordLines } from "./record-lines.js";
 import { createIntel } from "./intel.js";
+import { createProjectSettings } from "./project-settings.js";
 
 /** @param {import("../../core/kernel/types").ModuleContext} ctx */
 function mountIntelligence(ctx) {
@@ -28,7 +29,17 @@ function mountIntelligence(ctx) {
       announce(`Continuing on ${rtName(runtime)}. This thread is frozen; write in it to pick it back up.`);
       if (thread) navigation.go("t:" + thread.id, { focus: true });
     },
+    onProject: (project) => settings.open(project),
   });
+  const icons = ctx.optional("projectIcons");
+  const settings = createProjectSettings({ world, writes: intelligence.writes, PROJ: ctx.use("projectName"),
+    iconOf: (project) => (icons ? icons.projectIcon(project) : "") });
+  ctx.contribute("header.action", {
+    id: "project-settings", label: "Project settings", icon: "gear", bare: true, order: 90,
+    when: (at) => !!at.project && at.project !== "workspace",
+    onPress: (at) => { if (at.project) settings.open(at.project); },
+  });
+  ctx.contribute("workspace.paint", { id: "project-settings", order: 81, paint: () => settings.sync() });
 
   /** @param {string} session @param {HTMLElement | null} chip */
   function toggle(session, chip) {
@@ -51,7 +62,7 @@ function mountIntelligence(ctx) {
     intelligence.activate(sessions);
   }
 
-  ctx.effect(() => () => { lines.dispose(); intelligence.dispose(); });
+  ctx.effect(() => () => { lines.dispose(); intelligence.dispose(); settings.dispose(); });
   ctx.on("app:view-preparing", () => intelligence.close({ restore: false }));
   return { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
 }
@@ -60,7 +71,9 @@ function mountIntelligence(ctx) {
 export const intelModule = {
   manifest: { id: "xo.intelligence", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "shape", "navigation", "announce", "conversationSession", "notices", "currentView", "projectName"],
-    contributes: ["conversation.press:record-undo"], provides: ["intelligence"] },
+    optional: ["projectIcons"],
+    contributes: ["conversation.press:record-undo", "header.action:project-settings", "workspace.paint:project-settings"],
+    provides: ["intelligence"] },
   activate(ctx) {
     const intelligence = mountIntelligence(ctx);
     ctx.on("workspace:painted", intelligence.activate);

@@ -15,6 +15,10 @@ K.places.contribute("header.action", { id: "dev.word:open", label: "Outline <x>"
 assert.equal(headerActionsHtml(K.places, { project: "p2" }), "", "not where its when says no");
 const html = headerActionsHtml(K.places, { project: "p1" });
 assert.match(html, /^<button type="button" class="tw-act" data-header-action="dev\.word:open" title="Outline &lt;x&gt;"><svg[^]*<span>Outline &lt;x&gt;<\/span><\/button>$/);
+K.places.contribute("header.action", { id: "dev.word:gear", label: "Settings", icon: "gear", bare: true, onPress() {} }, "xo.apps-host");
+const gear = headerActionsHtml(K.places, { project: "p2" });
+assert.match(gear, /aria-label="Settings"/, "a bare button keeps its name for a screen reader");
+assert.doesNotMatch(gear, /<span>/, "a bare button draws only its icon");
 const scope = createScope();
 document.body.innerHTML = html;
 const button = document.querySelector("button");

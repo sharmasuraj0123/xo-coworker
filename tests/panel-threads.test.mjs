@@ -55,6 +55,8 @@ test("the project header counts all thread states and places Threads before Depl
     threadControls: createThreadControls(), description: () => undefined,
     PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
   });
+  const ws = conversationHeaderHtml("ws", null, needs).who ?? "";
+  assert.match(ws, /<span class="tw-t is-one"><h1 id="conv-title">Workspace<\/h1><\/span>$/, "the Workspace's bar is a project's: its name, no count line");
   const render = createTopHeader({
     location: { view: () => "p:p", parentOf: () => undefined },
     PROJ, conversationHeaderHtml, places: kernel.places, emit: kernel.bus.emit, convThread: () => null,
@@ -167,4 +169,30 @@ test("thread marks and controls use shared size tokens", () => {
   assert.equal(tokenValuesFor().get("--mark-sm"), "var(--s-3)");
   assert.deepEqual(valuesFor(".stage .ag-mk .agm", "width"), ["12px"]);
   assert.deepEqual(valuesFor(".stage .ag-mk .agm", "height"), ["12px"]);
+});
+
+test("on Chats the panel lists your chats in place of Threads, with no Changes, Map, files or shell", async () => {
+  const rows = [{ go: "c:one", title: "Plan the trip", state: "recent", word: "Idle", sub: "Opus", at: "9:00", icon: '<span class="agm"></span>' }];
+  const chats = { is: (/** @type {string} */ v) => v === "chats" || v.startsWith("c:"), groups: () => [{ k: "recent", word: "Recent", rows }], note: () => "" };
+  const { panel, stage, visit } = await stageFixture({ place: (v) => /^(?:ws$|chats$|[pc]:)/.test(v), threads: () => panelThreads("p:p"), chats });
+  const query = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (stage.querySelector(selector));
+  const shown = () => Array.from(stage.querySelectorAll(".fr[data-fr]")).filter((frame) => !frame.hasAttribute("hidden")).map((frame) => frame.getAttribute("data-fr"));
+  visit("chats");
+  panel.open();
+  assert.match(query("#fr-title-agents").textContent, /^Chats1$/);
+  assert.deepEqual(shown(), ["agents"]);
+  assert.equal(query("[data-tg-find]").title, "Filter chats (/)");
+  assert.equal(query("[data-tg-q]").getAttribute("placeholder"), "Filter chats");
+  assert.equal(query("[data-open-files]").hidden, true);
+  assert.equal(query("[data-stg-shell]").hidden, true);
+  assert.ok(query('.tg-box [data-go="c:one"] .agm'), "a chat's row carries its agent's mark");
+  visit("p:p");
+  assert.match(query("#fr-title-agents").textContent, /^Threads4$/);
+  assert.deepEqual(shown(), ["agents", "changes", "map"]);
+  assert.equal(query("[data-open-files]").hidden, false);
+  visit("c:one");
+  assert.match(query("#fr-title-agents").textContent, /^Chats1$/);
+  visit("ws");
+  assert.match(query("#fr-title-agents").textContent, /^Threads/, "the Workspace's panel lists threads, not your chats");
+  assert.ok(!query('.tg-box [data-go="c:one"]'));
 });

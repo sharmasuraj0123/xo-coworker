@@ -19,7 +19,7 @@ await kernel.enable("xo.runs");
 assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length, 1);
 const threadPageModuleId = "xo.thread-page";
 const painters = () => kernel.places.entries("workspace.paint").map((entry) => entry.id);
-const redrawOrder = ["thread-page", "decision-dock", "notice", "composer", "decisions", "viewer", "stage", "launchpad", "files"];
+const redrawOrder = ["thread-page", "decision-dock", "notice", "composer", "decisions", "viewer", "stage", "launchpad", "project-settings", "files"];
 assert.deepEqual(painters(), redrawOrder);
 function mountedThreadObservers() {
   const observers = [...threadDockObservers];

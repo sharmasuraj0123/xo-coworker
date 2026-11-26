@@ -5,6 +5,7 @@ import { latest, once } from "../../platform/pending.js";
 import { createLru } from "../../platform/cache.js";
 import { currentPools } from "../world/sessions.js";
 import { mapLimit } from "./load.js";
+import { withPools } from "../runtimes.js";
 import { LOAD_CAP, STATUS_MS, STATUS_RETRY_MS, RUNTIMES_MS } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx */
@@ -44,7 +45,7 @@ export function installAccount(ctx) {
       state.status = status;
       state.statusError = null; state.statusCode = null;
       const fresh = (state.status.pools || []).some((p) => !(p.id in state.pools));
-      for (const p of state.status.pools || []) state.pools[p.id] = { ...(state.pools[p.id] || {}), pool: p.id, state: p.state, resets_at: p.resets_at, reason: p.reason || null };
+      for (const p of state.status.pools || []) state.pools[p.id] = { ...(state.pools[p.id] || {}), pool: p.id, state: p.state, resets_at: p.resets_at, reason: p.reason || null, ...(p.windows ? { windows: p.windows } : {}) };
       // a new pool is a re-login, and while something holds work back the account may have changed under it: read the runtimes now
       if (ctx.poolsSeen && (fresh || poolHeld())) ctx.refreshRuntimes();
       ctx.poolsSeen = true;
@@ -55,16 +56,18 @@ export function installAccount(ctx) {
       state.statusCode = err instanceof ApiError ? err.code : null;
       reportReadFailure(err, signal);
     }
+    ctx.joinPools();
     if (ctx.poolsSig() !== sig) ctx.commit();
     emit();
   }, () => state.statusError ? STATUS_RETRY_MS : STATUS_MS);
   // what a held thread waits on is its pool: a pool that changes rebuilds the threads, not only the composer
+  ctx.joinPools = () => { if (ctx.runtimesRead) state.runtimes = withPools(ctx.runtimesRead, state.pools); };
   ctx.poolsSig = () => Object.entries(state.pools).map(([id, p]) => `${id}|${p.state}|${p.resets_at}|${p.reason}`).sort().join(",");
   const poolHeld = () => currentPools(state.pools, state.runtimes).some((p) => p.state === "closed" || p.state === "paid");
   ctx.loadRuntimes = ctx.refreshRuntimes = poll(ctx, async (signal) => {
     try {
       const { runtimes } = await client.runtimes({ signal });
-      if (!signal.aborted) state.runtimes = runtimes || [];
+      if (!signal.aborted) { ctx.runtimesRead = runtimes || []; ctx.joinPools(); }
     } catch (error) { reportReadFailure(error, signal, true); }
     if (signal.aborted) return;
     try {
@@ -104,6 +107,7 @@ export function installAccount(ctx) {
       } catch (error) { reportReadFailure(error, signal, true); }
       if (!changed || signal.aborted) return;
       const usageOpen = [...state.review.values()].some((it) => it.state === "open" && it.kind === "usage");
+      if (ctx.poolsSig() !== sig) ctx.joinPools();
       if (ctx.poolsSig() !== sig || usageOpen) ctx.commit();
       emit();
     })().finally(() => { if (paidBusy?.signal === signal) paidBusy = null; });

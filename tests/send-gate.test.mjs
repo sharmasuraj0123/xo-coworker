@@ -119,7 +119,7 @@ routing.mode = "agent";
 
 S.view = "c:plain";
 say.value = "Direct chat";
-assert.deepEqual(delivery.connDest(), { thread: true });
+assert.deepEqual(delivery.connDest(), { thread: true, pool: undefined });
 delivery.send();
 assert.deepEqual(requests.at(-1), { view: "c:plain", text: "Direct chat" });
 

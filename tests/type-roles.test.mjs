@@ -84,10 +84,10 @@ test("menus and the model picker share the interface and meta roles", () => {
     }
   }
   assert.ok(declarationsFor(":is(.target,.iq)", "font-size").some(({ value }) => value === "var(--fs-meta)"));
-  for (const selector of [".iq-n", ".iq-more"]) {
+  for (const selector of [".iq-n", ".iq-item"]) {
     assert.ok(declarationsFor(selector, "font").some(({ value }) => value.includes("var(--fs-meta)/var(--lh-meta)")), selector);
   }
-  for (const selector of [".iq-row", ".iq-more"]) {
+  for (const selector of [".iq-row", ".iq-item"]) {
     assert.ok(declarationsFor(selector, "height").some(({ value }) => value === "var(--menu-row)"), selector);
   }
 });
