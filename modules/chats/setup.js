@@ -109,7 +109,7 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
     const lists = {
       cwd: () => '<header class="iq-h"><h2 id="cs-hh">Chat scope</h2></header>'
-        + '<button type="button" class="iq-row" data-go="ws" data-cs-done>All projects</button>'
+        + '<button type="button" class="iq-row" data-chat-workspace>All projects</button>'
         + '<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">'
         + folders.map(f => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("") + '</div>',
       mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`

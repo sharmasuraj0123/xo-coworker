@@ -45,7 +45,7 @@ export const chatModelModule = {
 export const chatControlsModule = {
   manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
     needs: ["world", "projectName", "currentView", "announce", "notices", "conversationSession", "chats",
-      "intelligence", "composer", "runControls"],
+      "intelligence", "composer", "runControls", "navigation"],
     contributes: ["conversation.press:chat-message"] },
   activate(ctx) {
     const view = ctx.use("currentView"), session = ctx.use("conversationSession");
@@ -115,6 +115,16 @@ export const chatControlsModule = {
       updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
     });
     const setup = requireHtml("#cs-pop");
+    const go = ctx.use("navigation").go;
+    ctx.listen(setup, "click", ({ target }) => {
+      if (!(target instanceof Element) || !target.closest("[data-chat-workspace]")) return;
+      const field = composer(), draft = field.value;
+      chats.closeSetup();
+      go("ws");
+      if (view() !== "ws") return;
+      if (draft) putBack(draft);
+      else field.focus();
+    });
     sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
       close: () => { chats.closeSetup(); updateComposer(); } });
     bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, setup, updateComposer });
