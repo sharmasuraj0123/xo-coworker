@@ -4,6 +4,12 @@
 .side-top .brand{order:-1}
 .side-recents{padding:var(--ring-room) var(--s-3);margin-bottom:var(--s-2);overflow:auto}
 .side-recents summary{cursor:pointer;padding:var(--s-2);color:var(--ink-3);font-size:var(--fs-meta)}
+.side-recents summary{list-style:none}
+.side-recents summary::after,#projects-label::after{content:" ›";display:inline-block;margin-inline-start:var(--s-1)}
+.side-recents[open] summary::after,#projects-label[aria-expanded=true]::after{transform:rotate(90deg)}
+#projects-label{font:inherit;color:inherit}
+.side:has(#projects-label[aria-expanded=false]) :is(#projects,#nv-ws,#project-overflow){display:none}
+.side [data-total]{margin-inline-start:auto;color:var(--ink-3);font-size:var(--fs-meta)}
 .recent-dot{width:var(--s-1);height:var(--s-1);border-radius:var(--r-pill);background:var(--info)}
 .recent-dot.needs{background:var(--warn)}
 .space-page{overflow:auto;padding:var(--s-6);margin-inline:auto;width:min(100%,var(--col-max))}

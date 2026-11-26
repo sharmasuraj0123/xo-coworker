@@ -13,6 +13,8 @@ const KEY = "xo-sidebar-project-pins";
 export function projectPicker(scope, projects, change) {
   const opener = requireHtml("[data-project-list]", "button"), panel = requireHtml("#rail-project-picker");
   const input = requireHtml("input", "input", panel), list = requireHtml("nav", "nav", panel);
+  const label = requireHtml("#projects-label", "button");
+  scope.listen(label, "click", () => label.setAttribute("aria-expanded", String(label.getAttribute("aria-expanded") !== "true")));
   const pins = new Set(read(KEY, raw => {
     const ids = JSON.parse(raw);
     return Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : [];
@@ -23,8 +25,7 @@ export function projectPicker(scope, projects, change) {
   function paint(opening = false) {
     const all = projects();
     opener.hidden = !all.length;
-    const label = `See all · ${all.length}`;
-    if (opener.textContent !== label) opener.textContent = label;
+    requireHtml("[data-total]", "span", opener).textContent = String(all.length);
     if (!opening && !open) return;
     const q = input.value.trim().toLowerCase();
     const matches = all.filter(p => p.name.toLowerCase().includes(q)).sort((a, b) => Number(pins.has(b.id)) - Number(pins.has(a.id)));

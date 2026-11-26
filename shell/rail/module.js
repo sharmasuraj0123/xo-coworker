@@ -36,7 +36,7 @@ export const railModule = {
       picker.paint();
       const data = chats.recent(list);
       recent.hidden = !data.count;
-      history.textContent = `See all · ${data.count}`;
+      requireHtml("[data-total]", "span", history).textContent = String(data.count);
       reconcile(list, data.rows.map(({ id, title, state }) => ({
         key: id, html: `<button type="button" class="nrow" data-go="c:${esc(id)}"><span class="nr-name">${esc(title)}</span>`
           + (state ? `<i class="recent-dot ${state}" aria-label="${state === "needs" ? "Needs you" : "Working"}"></i>` : "") + "</button>",

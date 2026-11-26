@@ -54,10 +54,15 @@
         <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span><span class="nr-chev" aria-hidden="true"></span></button>
       </nav>
       <div class="side-pop" id="side-more" role="menu" aria-label="More places" tabindex="-1" hidden></div>
-      <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="New project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
+      <div class="side-label">
+        <button id="projects-label" type="button" aria-expanded="true" aria-controls="projects nv-ws project-overflow">Projects</button>
+        <button type="button" class="side-plus" id="side-add" aria-label="New project" title="New project"><span id="sc-ic"></span></button>
+      </div>
         <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic" id="ic-ws"></span><span class="nr-name">All projects</span><span class="nr-n" id="ws-n"></span></button>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
-      <button type="button" class="nrow" data-project-list popovertarget="rail-project-picker" hidden>See all</button>
+      <button type="button" class="nrow" id="project-overflow" data-project-list popovertarget="rail-project-picker" hidden>
+        See all <span data-total></span>
+      </button>
       <section id="rail-project-picker" popover aria-label="Projects">
         <input type="search" aria-label="Find a project" placeholder="Find a project…" autofocus>
         <nav aria-label="Matching projects"></nav>
@@ -66,7 +71,7 @@
       <details class="side-recents" open hidden>
         <summary>Recents</summary>
         <nav aria-label="Recent chats"></nav>
-        <button type="button" class="nrow" data-go="chats" data-chat-history>See all</button>
+        <button type="button" class="nrow" data-go="chats" data-chat-history>See all <span data-total></span></button>
       </details>
       <div class="side-foot">
         <button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"></span><span class="sh-n"></span></button>
