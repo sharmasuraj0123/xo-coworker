@@ -1,35 +1,41 @@
-# xo-coworker: how we build
+# AGENTS.md
 
-`CLAUDE.md` only imports this file; edit here. We build and ship daily, at the bar of a strong production team. How the code fits together is in [DEVELOPING.md](DEVELOPING.md); the owner's decisions are in `architecture/decisions/`.
+XO Space's web UI: plain ES modules and CSS, no framework, no runtime build. [README.md](README.md) is the overview, [DEVELOPING.md](DEVELOPING.md) explains the kernel, modules, places and services, and `architecture/decisions/` holds the owner's decisions.
 
-## Engineering
-- Fix problems at their root; no patches, workarounds or special cases layered on top.
-- Clear boundaries: a file has one owner and one job. Split for ownership, not for a line count.
-- Real types: files start with `// @ts-check` and have JSDoc types, no `any`. Server data goes through the typed readers in `core/platform/*-response.js`.
-- No dead code. No swallowed errors: handle an expected failure; report the rest with `reportFailure` or rethrow. No bare `console` calls.
-- No sleeps or timeouts hiding a race; order the work or cancel the stale read.
-- A bug fix comes with a test that fails without the fix.
-- Comments are rare and one line; JSDoc on one line.
+## Commands
 
-## Code
-- Layers: a file imports only its own folder and lower layers. Modules never import each other; they talk through services, places and the bus, declared in their manifest.
-- Every listener, timer, observer and request is owned by a scope (`createScope()` or the module's `ctx`); requests take its signal.
-- Caches are bounded (`createLru()`), duplicate reads shared (`once()`, `latest()`), storage goes through `core/platform/storage.js`, and a renamed key gets a migration.
-- Render in place with `core/ui/redraw`. Focus never falls to BODY. Only `modules/conversation/follow.js` moves a conversation's scroll. Dialogs are `createDialog()`.
-- Visual values come from `core/ui/tokens.css` and change app-wide, never one surface at a time: one type scale, sizes from content, no literal colours, no `!important` (use `@layer`).
-- Keep functions under 150 lines and lines under 140 characters. A file past 400 lines usually hides a second owner.
-- `js/app.js` only imports and boots modules; `css/` only shrinks.
+```sh
+npm ci                                     # dev tools (lint, types, build); once
+python3 serve.py                           # the app on http://127.0.0.1:5180
+node tools/check.mjs --fast                # lint, layers, conformance; seconds (pre-commit runs it)
+node tests/run.mjs <filter>                # unit tests whose path contains <filter>
+node tools/check.mjs --conformance-base <start>   # full check: types, build, all tests; once before a merge or deploy
+```
 
-## Commits and checks
-- Small single-purpose commits whose titles say what changed. Quote commit hashes from git output.
-- While working: `node tools/check.mjs --fast` (the pre-commit hook runs it) and the tests you touched, `node tests/run.mjs <filter>`.
-- Before a merge or deploy: the full `node tools/check.mjs --conformance-base <start>`, once, on the tip you hand over.
-- Baselines in `tools/baselines/` record old debt. A raise is fine when the commit says why.
+The exit code is the verdict. A `note` line doesn't fail the check; raise a baseline in `tools/baselines/` only with the reason in the commit.
+
+## How code is written here
+
+- Layers run `core/kernel` → `core/platform` → `core/ui` → `core/services` → `shell` → `modules/*` → `apps-host`; import only your own folder or lower. Modules never import each other: they use services, places and the bus, declared in their manifest.
+- `// @ts-check` and JSDoc types, no `any`. Server data goes through the typed readers in `core/platform/*-response.js`.
+- A scope (`createScope()` or the module's `ctx`) owns every listener, timer, observer and request; requests take its signal.
+- Render in place with `core/ui/redraw`; focus never falls to BODY. Only `modules/conversation/follow.js` moves a conversation's scroll. Dialogs are `createDialog()`.
+- Storage goes through `core/platform/storage.js` (a renamed key gets a migration); caches are `createLru()`; shared reads use `once()` or `latest()`.
+- Unexpected failures go to `reportFailure` or are rethrown; never swallowed, no bare `console`.
+- Visual values come from `core/ui/tokens.css` and change app-wide, never for one surface: one type scale, sizes from content, no literal colours, no `!important` (use `@layer`).
+- `js/app.js` only imports and boots modules. `css/` only shrinks: styles live beside their module.
+- Fix the root cause, not a patch on top. Delete dead code. A bug fix comes with a test that fails without it.
+- Comments are rare and one line.
+
+## Commits
+
+Small, single-purpose commits whose titles say what changed. Quote commit hashes only from git output.
 
 ## The owner's rules
-- Nothing is pushed to a remote or deployed without the owner's OK.
+
+- Nothing is pushed or deployed without the owner's OK.
 - Only the owner's picks reach `:3000`: no switchers, test flags or demo pages.
-- Files save only on ⌘S; no autosave.
-- Browser suites run when the owner asks.
+- Files save only on ⌘S.
+- Browser suites (`e2e/`, `tests/browser/`) run only when the owner asks.
 - Apps use xo-space's local routes.
 - No personal details or secrets in the repo.

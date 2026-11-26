@@ -1,6 +1,6 @@
 # Developing xo-coworker
 
-How the code fits together, how to add to it, and how to check and land a change. The rules are in [AGENTS.md](AGENTS.md); the overview is in [README.md](README.md).
+How the code fits together, how to add to it, and how to check a change. The rules are in [AGENTS.md](AGENTS.md); the overview is in [README.md](README.md).
 
 ## Setup
 
@@ -89,12 +89,3 @@ Read the exit code, not the printed lines. Lines starting with `note` don't fail
 - A bug fix's test fails without the fix. If that isn't obvious from the test, check it.
 - DOM tests run in linkedom. When an assertion compares DOM nodes, compare identities as booleans (`assert.ok(a === b)`): a failing deep comparison of nodes can exhaust memory.
 - Fake time and the backend; never wait on a real clock.
-
-## Landing work
-
-1. Work on your own branch from `coworker/modular`.
-2. Make small single-purpose commits whose titles say what changed.
-3. Run the full check once on the tip, then hand over the head hash from `git rev-parse HEAD` with the result.
-4. The integrator fast-forwards `coworker/modular` to it; if the branch moved, rebase and hand over again.
-
-Nothing is pushed or deployed without the owner's approval; deploys go through the coordinator.
