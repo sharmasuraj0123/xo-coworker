@@ -8,7 +8,7 @@ export { clockWords, untilWords };
 /** @typedef {Row | null | undefined} Rt @typedef {RuntimePolicy | null | undefined} Policy */
 
 /** How people say a runtime's name (shown only, never branched on); one not listed shows as the server names it. @type {Record<string, string>} */
-const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity" };
+const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity", cursor: "Cursor", grok_build: "Grok Build" };
 /** The login command a runtime's CLI takes, where we know it (shown as a fix, never run). @type {Record<string, string>} */
 const LOGIN = { codex: "codex login" };
 /** A usage window's name as people say it. @type {Record<string, string>} */
@@ -18,7 +18,7 @@ const WINDOW = { five_hour: "5-hour window", seven_day: "Weekly window", weekly:
 export const rtName = (name) => NAME[/** @type {string} */ (name)] || String(name || "The agent");
 
 /** @type {Record<string, string>} */
-const MARK = { claude_code: "claude", codex: "openai", antigravity: "antigravity" };
+const MARK = { claude_code: "claude", codex: "openai", antigravity: "antigravity", cursor: "cursor", grok_build: "grok" };
 /** @param {string} name */
 export const markOf = (name) => MARK[name] || null;
 /** The mark as HTML, its name on hover and for screen readers, or null; withName writes the name beside it. @param {string} name @param {{ withName?: boolean, lead?: boolean }} [o] */

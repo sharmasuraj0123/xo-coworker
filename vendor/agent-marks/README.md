@@ -11,3 +11,5 @@ OpenAI, Antigravity to Google. They are used only to say which company's agent a
 - antigravity.svg  antigravity-color.svg
 Changed only to be standalone files: width/height 24 instead of 1em, no inline style, no <title> (the name is said
 by the element that shows the mark).
+- cursor.svg       cursor.svg (monochrome, drawn in the text's ink as a mask), added 26 Nov for Cursor
+- grok.svg         grok.svg (monochrome, drawn in the text's ink as a mask), added 26 Nov for Grok Build

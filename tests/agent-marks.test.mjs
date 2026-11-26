@@ -12,6 +12,8 @@ t("each runtime its company's mark; Codex is OpenAI's", () => {
   assert.equal(markOf("claude_code"), "claude");
   assert.equal(markOf("codex"), "openai");
   assert.equal(markOf("antigravity"), "antigravity");
+  assert.equal(markOf("cursor"), "cursor");
+  assert.equal(markOf("grok_build"), "grok");
   assert.equal(markOf("something_new"), null);
 });
 t("alone, the mark says its name (role img, aria-label, title)", () => {
@@ -28,8 +30,9 @@ t("a runtime without a mark: null, so its name stays text", () => {
   assert.equal(rtName("other"), "other");
 });
 t("every mark is a local file the stylesheet draws", () => {
-  for (const mark of ["claude", "openai", "antigravity"]) {
-    const properties = mark === "openai" ? ["-webkit-mask", "mask"] : ["background-image"];
+  const masks = ["openai", "cursor", "grok"];
+  for (const mark of ["claude", "antigravity", ...masks]) {
+    const properties = masks.includes(mark) ? ["-webkit-mask", "mask"] : ["background-image"];
     for (const property of properties) {
       const values = valuesFor(`.agm-${mark}`, property);
       assert.equal(values.length, 1);
@@ -39,7 +42,7 @@ t("every mark is a local file the stylesheet draws", () => {
       assert.equal(file, `/vendor/agent-marks/${mark}.svg`, `${mark} ${property}`);
     }
   }
-  assert.deepEqual(valuesFor(".agm-openai", "background-color"), ["currentColor"]);
+  for (const mark of masks) assert.deepEqual(valuesFor(`.agm-${mark}`, "background-color"), ["currentColor"]);
 });
 t("a mark centres on its words' capitals at the one icon size, and a picker's choice never squeezes below its mark and name", () => {
   const icon = resolveValue("var(--ic)");
