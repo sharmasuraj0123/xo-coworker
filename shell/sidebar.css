@@ -7,8 +7,8 @@
 :root:root .side .nav .nrow .nr-ic{width:var(--ic);height:var(--ic);
   background:none;border:0;border-radius:0;box-shadow:none;color:var(--ink-3)}
 :root:root .side .nav .nrow:is(:hover,.is-on) .nr-ic{color:var(--ink)}
-.nr-live:is(.is-working,.is-waiting){flex:none;width:var(--ic-tiny);height:var(--ic-tiny);
-  mask:var(--mask-dot);background:var(--info)}
+.nr-live:is(.is-working,.is-waiting){flex:none;width:var(--badge-dot);height:var(--badge-dot);
+  border-radius:var(--r-pill);background:var(--info)}
 .nr-live.is-waiting{background:var(--warn)}
 .side .gear,.side-plus{border-radius:var(--r)}
 .side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
@@ -74,7 +74,7 @@
 .sm-row:hover .sm-pin,.sm-row:focus-within .sm-pin,.sm-pin[aria-pressed="true"]{opacity:1}
 .sm-pin[aria-pressed="true"]{color:var(--ink-2)}
 @media (min-width:761px){
-  .app:not(.side-folded) .side .nav .nrow{min-height:var(--h-touch)}
+  .app:not(.side-folded) .side .nav .nrow{min-height:var(--h-row-compact)}
   .side-folded .side .nav .nrow{padding:0;gap:0}
   .side-folded .nr-live{position:absolute;top:var(--s-1);right:var(--s-1)}
   .app.side-folded{--side-w:var(--side-rail-w)}

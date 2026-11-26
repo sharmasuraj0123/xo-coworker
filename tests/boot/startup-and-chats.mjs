@@ -1,6 +1,6 @@
 // @ts-check
 import {
-  document, assert, initialChats, setImmediate, flushFrames, window, xi, ICON, modelReads, visibleChatTitles,
+  document, assert, initialChats, setImmediate, flushFrames, window, ICON, modelReads, visibleChatTitles,
   chatTitleSignal, chatTitleRead, promptCount, retireChat, setTimeout, clipboard,
 } from "./environment.mjs";
 await import("../../modules/home/skeleton.js");
@@ -99,8 +99,8 @@ scrollPane.remove();
 assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
 assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
 const expectedIcon = document.createElement("span");
-expectedIcon.innerHTML = xi("dashboard");
-assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the dashboard icon");
+expectedIcon.innerHTML = ICON.more;
+assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the ⋯ icon");
 expectedIcon.innerHTML = ICON.right;
 assert.equal(document.querySelector("#nv-more .nr-chev").innerHTML, expectedIcon.innerHTML, "More shows the right chevron");
 assert.equal(document.querySelector("#home").hidden, false, "boot starts on Home");

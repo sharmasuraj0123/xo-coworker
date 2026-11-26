@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { readFileSync } from "node:fs";
 import { STONE, FLAVOURS } from "../../core/ui/flavours.js";
-import { xi } from "../../core/ui/icons/icon.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { deferred, dom } from "../lib/dom.mjs";
 import { checkSettingsPreferences } from "../lib/settings-preferences.mjs";
@@ -340,7 +339,7 @@ function setHeldStatusSignal(value) { heldStatusSignal = value; }
 
 export {
   document, assert, initialChats, setImmediate, flushFrames,
-  window, xi, ICON, modelReads, visibleChatTitles,
+  window, ICON, modelReads, visibleChatTitles,
   chatTitleSignal, chatTitleRead, promptCount, retireChat, setTimeout,
   clipboard, checkFeatureOwnership, STONE, FLAVOURS, storage,
   blockedStorage, phone, lastHomeVisit, artifactsSignal, setPhone,
