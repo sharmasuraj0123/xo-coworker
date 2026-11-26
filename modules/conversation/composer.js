@@ -48,7 +48,8 @@ export function createComposer({
     if (chatTargetRender()) {
       syncPlaceholder();
       requireHtml("#composer", "form").classList.toggle("has-text", !!say.value);
-      sendRender(); growSay(); mentions.close();
+      sendRender(); growSay();
+      if (MK.view === "chats") mentions.render(MK); else mentions.close();
       return;
     }
     targetLineRender();

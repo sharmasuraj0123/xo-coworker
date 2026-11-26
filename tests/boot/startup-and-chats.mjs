@@ -230,6 +230,18 @@ assert.equal(chatComposer.value, "Restore this first message");
 assert.equal(chatComposer.selectionStart, chatComposer.value.length);
 assert.ok(document.activeElement === chatComposer);
 
+const typed = chatComposer.value;
+chatComposer.value = "@";
+chatComposer.selectionStart = chatComposer.selectionEnd = 1;
+chatComposer.focus();
+chatComposer.dispatchEvent(new window.Event("input", { bubbles: true }));
+assert.equal(document.querySelector("#at-list").hidden, false, "@ in a new chat lists your projects");
+assert.ok(document.querySelector('#at-list [data-pid="demo"]'));
+chatComposer.value = "@demo look here";
+chatComposer.dispatchEvent(new window.Event("input", { bubbles: true }));
+assert.match(document.querySelector("#target").textContent, /^New chat in /, "the chat will work in the project you @");
+chatComposer.value = typed;
+chatComposer.dispatchEvent(new window.Event("input", { bubbles: true }));
 press("#target");
 assert.equal(document.querySelector("#target").textContent, "New chat");
 press("#cs-pop [data-cs-ws]");

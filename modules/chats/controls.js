@@ -49,9 +49,7 @@ export function bindChatControls({ scope, list, scroller, greeting, setup, phone
 
   /** @param {Element} target */
   function changeSetup(target) {
-    const cwd = target.closest("[data-cs-cwd]")?.getAttribute("data-cs-cwd");
-    if (cwd != null) {
-      chats.setPref("cwd", cwd);
+    if (target.closest("[data-cs-chat]")) {
       chats.closeSetup();
       return true;
     }

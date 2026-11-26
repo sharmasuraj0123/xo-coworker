@@ -22,7 +22,7 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 /** @param {Session} a @param {Session} b */
 const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace, projectIcon }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
   const scope = createScope();
   /** @type {ChatState} */
   const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
@@ -38,7 +38,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** @param {Runtime | null} rt @param {string} key */
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
 
-  const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName, projectIcon });
+  const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName });
 
   const { loadList, loadChat } = createChatReads(C, { world, sessions, session, schedule, ensureModels, titles: titleList, signal: scope.signal });
   /** @param {Session} s */
@@ -122,13 +122,16 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
+  /** A new chat works in the first project you @: its folder. @param {string} text */
+  const aimedAt = (text) => [...text.matchAll(/(?:^|\s)@([\w.-]+)/g)]
+    .map((m) => (world.state.projects || []).find((p) => p.id === m[1] && p.kind === "project")).find(Boolean) || null;
   /** @param {string} v */
-  function targetHtml(v) {
+  function targetHtml(v, text = "") {
     if (v === "chats") {
-      const st = setup();
+      const st = setup(), cwd = aimedAt(text);
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `${ICON.thread}<span>New chat${st.cwd ? ` in ${esc(folderName(st.cwd))}` : ""}</span>${ICON.chevron}`;
+      return `${ICON.thread}<span>New chat${cwd ? ` in ${esc(cwd.name)}` : ""}</span>${ICON.chevron}`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -144,8 +147,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return ""; // the box's own "Reply in this chat…" says it
   }
 
-  /** @param {string} cwd */
-  const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
   /** An open chat's own agent, model, thinking and mode, as the new chat's chips show them (fixed: set when it started). @param {string} v */
   const ownOf = (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.agent ? { agent: s.agent, model: s.model || null, effort: s.effort || null, mode: s.permission_mode || null, cwd: s.cwd } : null; };
   /** @param {string} v */
@@ -189,7 +190,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!sid) {
       const st = setup();
       if (!st.agent) { announce("No agent can chat here yet."); return; }
-      local.body = { text, client_id: local.cid, agent: st.agent, ...(st.model ? { model: st.model } : {}), ...(st.effort && effortsFor(st).includes(st.effort) ? { effort: st.effort } : {}), ...(st.mode ? { permission_mode: st.mode } : {}), ...(st.cwd ? { cwd: st.cwd } : {}) };
+      local.body = { text, client_id: local.cid, agent: st.agent, ...(st.model ? { model: st.model } : {}), ...(st.effort && effortsFor(st).includes(st.effort) ? { effort: st.effort } : {}), ...(st.mode ? { permission_mode: st.mode } : {}), ...(aimedAt(text) ? { cwd: aimedAt(text)?.id } : {}) };
     } else {
       const s = session(sid);
       const rt = s ? runtime(s.agent) : null;
@@ -283,7 +284,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     },
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm,
     /** @param {string} v */
-    placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
+    placeholder: (v) => (v === "chats" ? "Ask anything, or @ a project to work in it…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
     /** @param {string} v */
     session: (v) => (v && v.startsWith("c:") ? session(v.slice(2)) : null),
     /** @param {string} v */

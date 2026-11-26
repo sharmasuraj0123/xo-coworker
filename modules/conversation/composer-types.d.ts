@@ -31,7 +31,7 @@ export type ComposerControlsDeps = {
     permHtml(view: string): string;
     permTitle(view: string): string;
     blocked(view: string): boolean | string | null;
-    targetHtml(view: string): string;
+    targetHtml(view: string, text?: string): string;
   };
   IQ: {
     kindOf(session: string): string | null;

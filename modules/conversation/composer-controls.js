@@ -66,10 +66,10 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
     fixChip(perm, view !== "chats");
     if (markup.get(perm) !== ph) { perm.innerHTML = ph; markup.set(perm, ph); }
     if (!CH.isChats(view)) { requireHtml("#target", "button").hidden = false; return false; }
-    const html = CH.blocked(view) ? CH.targetHtml(view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view);
+    const html = CH.blocked(view) ? CH.targetHtml(view, MK.say.value) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view, MK.say.value);
     paintComposerTarget(requireHtml("#target", "button"), html);
     requireHtml("#target", "button").hidden = !html;
-    requireHtml("#target", "button").title = view === "chats" ? "Talk to your Workspace, or pick the folder a new chat works in" : "";
+    requireHtml("#target", "button").title = view === "chats" ? "A new chat, or the Workspace" : "";
     return true;
   }
 

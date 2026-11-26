@@ -59,7 +59,6 @@
 .iq-ic svg{width:var(--ic);height:var(--ic)}
 .iq-row.is-sel .iq-ic{color:var(--ink-2)}
 .iq-go{flex:none;width:var(--ic-sm);height:var(--ic-sm);margin-left:auto;color:var(--ink-4)}
-.iq-rule{margin:var(--s-1) var(--s-2);border:0;border-top:1px solid var(--line-soft)}
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
 /* a choice that needs its sentence: the mark, the name over what it means */
 .iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}

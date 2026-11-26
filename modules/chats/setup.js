@@ -4,6 +4,7 @@ import { read, write } from "../../core/platform/storage.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { api } from "../../core/platform/api.js";
 import { xi } from "../../core/ui/icons/icon.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { rovingTab } from "../../core/ui/a11y/keynav.js";
 import { rtMark } from "../../core/services/runtimes.js";
@@ -25,7 +26,7 @@ const PREFS = "cv-chat-prefs";
 export const store = { get: () => read(PREFS, JSON.parse, {}), set: (/** @type {Record<string, string | null>} */ v) => write(PREFS, JSON.stringify(v)) };
 
 /** @param {SetupState} C @param {SetupDependencies} deps */
-export function createSetup(C, { world, schedule, runtime, feature, cliName, projectIcon = () => "" }) {
+export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
   /** The modes a runtime offers (never "bypass": plain chat refuses it). @param {Runtime | null} rt */
   const modesOf = (rt) => ((feature(rt, "permissions.mode") || {}).values || []).filter((m) => m !== "bypass");
   function setup() {
@@ -39,7 +40,7 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName, pro
       if (C.read.has(agent)) gone = model; else unsure = { model, failed: C.failed.has(agent) };
       model = null;
     }
-    return { rt, agent, model, gone, unsure, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
+    return { rt, agent, model, gone, unsure, effort: p.effort || null, mode, modes };
   }
   /** @param {string | null} agent */
   const offered = (agent) => (C.models.get(agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
@@ -91,7 +92,6 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName, pro
     const efforts = effortsFor(st);
     const effort = efforts.includes(/** @type {string} */ (st.effort)) ? st.effort : null;
     const modes = st.modes;
-    const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
     /** @param {string} attr @param {string} id @param {string} name @param {string} desc @param {boolean} on @param {boolean} first */
     const row = (attr, id, name, desc, on, first) => `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, first)} ${attr}="${esc(id)}"${desc ? ` title="${esc(desc)}"` : ""}><span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-tr">${esc(desc)}</span>` : ""}${CHECK}</div>`;
     const agents = rts.length > 1 ? `<div class="iq-sec"><p class="iq-lab" id="cs-agent-l">Agent</p><div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
@@ -107,19 +107,15 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName, pro
       offered(st.agent).map((m) => row("data-cs-model", m.id, m.name ?? m.id, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
     const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
-    const reach = `All ${folders.length - 1} ${folders.length === 2 ? "project" : "projects"}`;
-    const hint = "Ask how your projects are doing, or hand out work";
-    const workspace = `<div class="iq-list"><button type="button" class="iq-row" data-cs-ws title="${hint}">` +
-      `<span class="iq-ic" aria-hidden="true">${xi("layers")}</span><span class="iq-n">Workspace</span>` +
-      `<span class="iq-tr">${reach}</span>${GO}</button></div>`;
-    /** @param {{ id: string, name: string }} f */
-    const place = (f) => { const on = f.id === st.cwd, icon = f.id ? projectIcon(f.id) : xi("folder");
-      const attrs = `role="radio" aria-checked="${on}"${rovingTab(on, false)} data-cs-cwd="${esc(f.id)}"`;
-      return `<div class="iq-row${on ? " is-sel" : ""}" ${attrs}>` +
-        `<span class="iq-ic" aria-hidden="true">${icon}</span><span class="iq-n">${esc(f.name)}</span>${CHECK}</div>`; };
+    const count = world.state.projects.filter((p) => p.kind === "project").length;
+    const reach = `All ${count} ${count === 1 ? "project" : "projects"}`;
+    /** @param {string} attrs @param {string} icon @param {string} name @param {string} meta @param {string} end */
+    const place = (attrs, icon, name, meta, end) => `<button type="button" class="iq-row${end === CHECK ? " is-sel" : ""}" ${attrs}>` +
+      `<span class="iq-ic" aria-hidden="true">${icon}</span><span class="iq-n">${name}</span><span class="iq-tr">${meta}</span>${end}</button>`;
+    const chat = place(`data-cs-chat aria-current="true" title="Ask anything; @ a project to work in its folder"`, ICON.thread, "Chat", "Ask anything", CHECK);
+    const workspace = place(`data-cs-ws title="Ask how your projects are doing, or hand out work"`, xi("layers"), "Workspace", reach, GO);
     const lists = {
-      cwd: () => `${workspace}<hr class="iq-rule"><p class="iq-lab" id="cs-cwd-l">New chat in</p>` +
-        `<div class="iq-list" role="radiogroup" aria-labelledby="cs-cwd-l">${folders.map(place).join("")}</div>`,
+      to: () => `<div class="iq-list">${chat}${workspace}</div>`,
       mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
         : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
           const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;
