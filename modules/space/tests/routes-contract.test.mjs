@@ -5,7 +5,7 @@ import { readConnections, readSharing } from "../../../core/platform/space-surfa
 import { scheduleApi } from "../../../core/platform/schedule-response.js";
 import { readSpaceMap } from "../../../core/platform/explore-response.js";
 import { checkSharing, pollConnection, runJob } from "../../../core/platform/space-actions-response.js";
-import { projectSync, applySharedCommits } from "../../../core/platform/project-access-response.js";
+import { projectSync, applySharedCommits, shareProject } from "../../../core/platform/project-access-response.js";
 import { readUsage, readSources } from "../../../core/platform/space-usage-response.js";
 import { readSecretKeys, changeSecret, readDoctor } from "../../../core/platform/space-settings-response.js";
 
@@ -22,6 +22,7 @@ const payloads = {
   "/api/connections/github/poll": { toolkit: "github", new_events: 2 },
   "/api/xo-projects/sample/commits": { project_id: "sample", branch: "main", path: "/example", behind: 2 },
   "/api/xo-projects/sample/apply": { project_id: "sample", applied: 2 },
+  "/api/xo-projects/sample/share": { ok: true, repo: "example/sample" },
   "/api/secrets": { items: [{ key: "EXAMPLE", preview: "discard-me" }] },
   "/api/secrets/EXAMPLE": { key: "EXAMPLE", deleted: true },
   "/api/doctor": { checks: [{ id: "folders", findings: [] }] },
@@ -31,6 +32,7 @@ globalThis.fetch = async (input, init) => {
   const route = pathname.replace("/secrets/EXAMPLE", "/secrets/{key}").replace("/schedules/sample", "/schedules/{job_id}")
     .replace("/connections/github", "/connections/{toolkit}").replace("/xo-projects/sample", "/xo-projects/{project_id}");
   assert.ok(routes[route].includes(init.method));
+  if (pathname.endsWith("/share")) assert.deepEqual(JSON.parse(init.body), { workspace_id: "recipient" });
   return Response.json(payloads[pathname]);
 };
 const signal = new AbortController().signal;
@@ -49,3 +51,4 @@ assert.equal(await checkSharing(signal), "Sharing check requested.");
 assert.equal(await pollConnection("github", signal), "New events: 2");
 assert.equal((await projectSync("sample", signal)).behind, 2);
 assert.equal((await applySharedCommits("sample", signal)).applied, 2);
+assert.equal((await shareProject("sample", "recipient", signal)).repo, "example/sample");

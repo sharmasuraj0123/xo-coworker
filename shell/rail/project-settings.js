@@ -2,6 +2,7 @@
 import { requireHtml } from "../../core/platform/dom.js";
 import { latest, cancelLatest } from "../../core/platform/latest.js";
 import { projectAccess, projectSync, applySharedCommits, removeProject } from "../../core/platform/project-access-response.js";
+import { shareProject } from "../../core/platform/project-access-response.js";
 import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -39,6 +40,8 @@ export function projectSettings(ctx, pins) {
         allowed = data.can_remove && !data.blockers.length && !data.peers.length && !data.members.some(m => m.can_revoke);
         redraw(access, (repo ? `<a href="https://github.com/${esc(repo)}" target="_blank" rel="noopener noreferrer">${esc(repo)}</a>` : "")
           + `<p>Sharing · ${data.peers.length} peers</p>`
+          + (repo ? '<details><summary>Share project</summary><form data-share><label>Recipient workspace ID'
+            + '<input name="workspace" required autocomplete="off"></label><button type="submit">Share</button></form></details>' : "")
           + data.blockers.map(b => `<p>${esc(b.message)}</p>`).join("")
           + (allowed ? `<details><summary>Remove local project…</summary><label>Type ${esc(id)} to confirm<input data-confirm></label>`
             + '<button type="button" data-remove disabled>Remove local project</button></details>' : ""));
@@ -63,7 +66,29 @@ export function projectSettings(ctx, pins) {
       }
     }
   }
-  ctx.listen(panel, "input", () => {
+  ctx.listen(panel, "submit", async event => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.matches("[data-share]")) return;
+    event.preventDefault();
+    const id = selected, recipient = requireHtml("input", "input", form).value.trim();
+    if (!recipient || !id || busy) return;
+    busy = true;
+    const submit = requireHtml("button", "button", form);
+    submit.disabled = true;
+    try {
+      await shareProject(id, recipient, ctx.signal);
+    } catch (error) {
+      if (!ctx.signal.aborted && selected === id) {
+        let message = form.querySelector("[role=status]");
+        if (!message) { message = document.createElement("p"); message.setAttribute("role", "status"); form.append(message); }
+        message.textContent = requestFailureMessage(error, "Could not share project");
+      }
+      return;
+    } finally { busy = false; submit.disabled = false; }
+    if (!ctx.signal.aborted && selected === id) await open(id);
+  });
+  ctx.listen(panel, "input", ({target}) => {
+    if (!(target instanceof Element) || !target.matches("[data-confirm]")) return;
     requireHtml("[data-remove]", "button", panel).disabled = busy || requireHtml("[data-confirm]", "input", panel).value !== selected;
   });
   ctx.listen(panel, "click", async ({ target }) => {

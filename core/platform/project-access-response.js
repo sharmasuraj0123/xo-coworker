@@ -17,6 +17,14 @@ function access(data) {
 /** @param {string} id @param {AbortSignal} signal */
 export const projectAccess = (id, signal) => requestChecked(`/xo-projects/${encodeURIComponent(id)}/removal`, access, { signal });
 
+/** @param {string} id @param {string} workspace @param {AbortSignal} signal */
+export function shareProject(id, workspace, signal) {
+  /** @param {unknown} value @returns {value is {ok:true,repo:string}} */
+  const shared = value => isResponseObject(value) && value.ok === true && typeof value.repo === "string";
+  return requestChecked(`/xo-projects/${encodeURIComponent(id)}/share`, shared,
+    { method: "POST", body: { workspace_id: workspace }, signal });
+}
+
 /** @param {string} id @param {AbortSignal} signal */
 export function projectSync(id, signal) {
   /** @param {unknown} data @returns {data is {project_id:string,branch:string,path:string,behind:number|null}} */
