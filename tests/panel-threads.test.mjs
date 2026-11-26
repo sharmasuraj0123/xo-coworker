@@ -41,6 +41,25 @@ assert.deepEqual(panelThreads("p:p").map(({ k, rows }) => [k, rows.map(({ go }) 
   ["needs", ["t:a"]], ["working", ["p:p"]], ["waiting", ["t:e"]], ["done", ["t:c", "t:b"]],
 ]);
 
+test("on the Workspace, Threads is every project's live work, each row naming its project", () => {
+  const live = [
+    { id: "a", project: "p", state: "working", busy: true },
+    { id: "w", project: "q", state: "working", busy: true },
+    { id: "i", project: "q", state: "working" },
+    { id: "z", project: "p", state: "done" },
+  ].map((thread, i) => ({ ...thread, title: thread.id, lastAt: Date.UTC(2026, 9, i + 1) }));
+  const ws = createThreadGroups({
+    world: { state: { threads: live } }, D: { needItems: () => needs },
+    MAP: { agents: () => [{ go: "p:q", doing: "Coordinating", since: null }, { go: "t:w", doing: "editing a.js", since: 1 }] },
+    convProject: (v) => (v === "ws" ? "workspace" : "p"), PROJ: (p) => p.toUpperCase(),
+    askShort: () => "Review", threadMark: () => "", isBusy: (thread) => !!thread.busy, isHeld: () => false,
+  });
+  const groups = ws.panelThreads("ws");
+  assert.deepEqual(groups.map(({ k, rows }) => [k, rows.map(({ go }) => go)]), [["needs", ["t:a"]], ["working", ["p:q", "t:w"]]], "no idle or finished threads");
+  const rows = groups.flatMap((g) => g.rows);
+  assert.deepEqual(rows.map(({ title, sub }) => [title, sub]), [["a", "P · Review"], ["Q coordinator", "Coordinating"], ["w", "Q · editing a.js"]]);
+});
+
 
 test("the project header counts all thread states and places Threads before Deploy and the panel toggle", async (t) => {
   const { panel, document } = await stageFixture();
