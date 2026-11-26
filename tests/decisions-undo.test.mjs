@@ -66,7 +66,7 @@ assert.equal(D.decideNow("perm_1|Run: npm test", "allow"), false, "one decision 
 assert.equal(D.decide(n1, "allow"), null, "a second press on the same card does nothing");
 const toastLine = document.querySelector("#toast");
 assert.ok(toastLine.classList.contains("hr") && !toastLine.classList.contains("toast"), "the Undo line is the notice line's pill");
-assert.equal(toastLine.querySelector(".hr-t")?.textContent, "Allowed");
+assert.equal(toastLine.querySelector(".hr-t")?.textContent, "Allowed: Run: npm test");
 const toastUndo = toastLine.querySelector(".hr-undo");
 assert.ok(toastUndo);
 toastUndo.click();

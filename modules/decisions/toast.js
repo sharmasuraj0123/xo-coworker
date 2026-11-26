@@ -28,7 +28,7 @@ export function createDecisionToast(queue) {
     const left = Math.max(0, it.due - Date.now());
     toast.className = `hr hr-ev has-undo is-in k-${deny ? "calm" : "done"}`;
     toast.hidden = false;
-    toast.innerHTML = `<span class="hr-ic ${deny ? "k-calm" : "k-ok"}">${deny ? ICON.rewind : ICON.check}</span><span class="hr-t">${esc(it.meta.verb)}</span><span class="hr-s">${esc(it.meta.label)}</span>` +
+    toast.innerHTML = `<span class="hr-ic ${deny ? "k-calm" : "k-ok"}">${deny ? ICON.rewind : ICON.check}</span><span class="hr-t">${esc(it.meta.verb)}: ${esc(it.meta.label)}</span>` +
       `<button type="button" class="hr-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
     (/** @type {HTMLButtonElement} */ (toast.querySelector(".hr-undo"))).addEventListener("click", () => queue.undo(it.id));
   }
