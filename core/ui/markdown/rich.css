@@ -44,8 +44,8 @@
 :root:not([data-msgx]) .msgs>.ev+.ev{margin-top:var(--s-2)}
 :root:not([data-msgx]) .msgs>.ev+.m.m-under{margin-top:var(--s-2)}
 /* a message's action row sits in the gap under it, out of the flow: an unseen row never widens a gap */
-:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-b) + var(--s-2))}
-:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-gap) + var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-gap) + var(--mx-b) + var(--s-2))}
 :root:not([data-msgx]) .msgs>.m>.mb:has(>.mx-actrow){position:relative}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
 /* A new speaker's margin collapses through the intervening containers. */
@@ -67,8 +67,8 @@
 
 /* Offset the action row by half the extra button width to align the glyph with the text. */
 .mx-actrow{display:none}
-:root:not([data-msgx]) .msgs{--mx-b:var(--h-ctl)}
-:root:not([data-msgx]) .mx-actrow{position:absolute;top:100%;left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
+:root:not([data-msgx]) .msgs{--mx-b:var(--h-ctl);--mx-gap:var(--s-2)}
+:root:not([data-msgx]) .mx-actrow{position:absolute;top:calc(100% + var(--mx-gap));left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
 :root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
 :root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}

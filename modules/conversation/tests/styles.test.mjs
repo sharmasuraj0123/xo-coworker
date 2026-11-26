@@ -34,5 +34,7 @@ for (const { value } of waves) assert.match(value, /\bmx-(shimmer|await|doing) v
 
 const flash = declarations.filter((entry) => /\.mx-flash/.test(entry.context.at(-1)?.selector ?? ""));
 assert.ok(!flash.some(({ property }) => property === "box-shadow"), "the reply flash draws no halo that spills onto the action row");
-const rowEdge = flash.find(({ context, property }) => property === "bottom" && /:has\(>\.mb>\.mx-actrow\)::before$/.test(context.at(-1)?.selector ?? ""));
-assert.equal(rowEdge?.value, "0", "a message with an action row flashes down to its own edge, not over the row");
+const decl = (selector, property) => declarations.find((entry) => entry.context.at(-1)?.selector === selector && entry.property === property)?.value;
+assert.ok(!flash.some(({ property }) => property === "bottom"), "the reply flash keeps the same margin on every side");
+assert.match(decl(".m.mx-flash::before", "inset") ?? "", /^calc\(-1 \* var\(--mx-gap\b/, "the flash's margin is the gap above the action row");
+assert.match(decl(":root:not([data-msgx]) .mx-actrow", "top") ?? "", /^calc\(100% \+ var\(--mx-gap\)\)$/, "the action row starts below the flash, so a pressed button never lights on it");
