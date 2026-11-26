@@ -83,7 +83,7 @@ assert.ok(document.activeElement === elsewhere, "a used focus request cannot ste
 panel = "a";
 homeRender(needs);
 assert.equal(mounted, 1, "live renders leave mounted Home sections in place");
-assert.equal(document.querySelector("#hm-next .in-panel").textContent, "Open in the panel");
+assert.equal(document.querySelector("#hm-next .hm-in-panel").textContent, "Open in the panel");
 assert.ok(!document.querySelector("#hm-next .next"));
 await nextDecide("allow");
 assert.deepEqual(decided, [], "a shortcut cannot decide a card that moved to the panel");

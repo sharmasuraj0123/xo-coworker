@@ -49,7 +49,7 @@ export function createHomeView(options, scope) {
     if (card0 && (card0.classList.contains("noting") || busy.has(card0)) && P0.next && card0.dataset.key === P0.next.key) { /* Keep the draft in place. */ }
     else if (P0.next && inPanel) {
       nextKey = null;
-      redraw(nb, `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p><p class="in-panel">${ICON.arrow}<span>Open in the panel</span></p>`);
+      redraw(nb, `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p><p class="hm-in-panel">${ICON.arrow}<span>Open in the panel</span></p>`);
     } else if (P0.next) {
       const key = P0.next.key;
       const changed = nextKey !== key;

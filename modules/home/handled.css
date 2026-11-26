@@ -1,9 +1,9 @@
 .hm-body{position:relative}
 /* Include each block’s margins in the height measured for its loading placeholder. */
 #hm-body>div{display:flow-root}
-.in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-home-panel-card);
+.hm-in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-home-panel-card);
   padding:0 var(--s-5);border-radius:var(--r-xl);border:var(--hair) dashed var(--line);color:var(--ink-3);font-size:var(--fs-ui)}
-.in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.hm-in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .handled{margin-top:var(--s-8)}
 .hd-row0{display:flex;align-items:stretch;gap:var(--s-2)}
 .hd-row0>div:first-child{flex:1;min-width:0}
