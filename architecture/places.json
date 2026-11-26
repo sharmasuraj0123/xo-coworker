@@ -34,16 +34,6 @@
    ]
   },
   {
-   "id": "rail.count",
-   "kind": "keyed",
-   "scope": "app",
-   "description": "A count beside the corresponding rail destination.",
-   "openToApps": false,
-   "requires": [
-    "count"
-   ]
-  },
-  {
    "id": "rail.section",
    "kind": "list",
    "scope": "app",

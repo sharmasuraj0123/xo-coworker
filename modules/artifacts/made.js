@@ -28,7 +28,7 @@ export function madeNaming(m, max = 28) {
 /** @param {import("./page-types.d.ts").MadeDeps} deps */
 export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade, scope }) {
   const MS = createMadeStore({ world, api, scope, schedule, announce });
-  const { madeOf, madePending, togglePin } = MS;
+  const { madeOf, togglePin } = MS;
   const PV = createPreviews({ world, api, sharedFileRoute, scope, box: () => AP.box(), landed: schedule });
 
   const { syncCards } = createCards({ PV, PROJ, naming: madeNaming });
@@ -83,7 +83,6 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     homeMade, jumpItems,
     /** @param {string} tid @param {string | null} project */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
-    count: () => (madePending(null) ? 0 : madeOf(null).length),
     artifacts: { mount: AP.mount, render: AP.render },
   };
 }

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 
-const { document } = await dom(`<div id="home"></div><button data-go="artifacts" id="nv-arts"><span class="nr-name">Artifacts</span><span data-rail-count id="arts-n"></span></button>`);
+const { document } = await dom(`<div id="home"></div>`);
 globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
@@ -52,8 +52,6 @@ kernel.register({
   manifest: { id: "test.reader", kernel: "^1.1.0", version: "1.0.0", optional: ["artifactCatalog"] },
   activate(ctx) { catalog = () => ctx.optional("artifactCatalog"); },
 });
-const { railCountsModule } = await import("../../../shell/rail/counts.js");
-kernel.register(railCountsModule);
 kernel.register(artifactsModule);
 await kernel.start();
 const section = places.get("home.section", "hm-made");
@@ -86,9 +84,6 @@ await t("selecting a Jump result goes to its thread and opens the file", () => {
 });
 console.log(`\n${passed} passed`);
 
-kernel.bus.emit("app:render");
-assert.equal(document.getElementById("arts-n").textContent, "2");
-assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts, 2");
 const page = places.get("page", "artifacts");
 const gallery = document.createElement("section");
 document.body.append(gallery);
@@ -101,7 +96,5 @@ await kernel.disable("xo.artifacts");
 assert.equal(kernel.live("xo.artifacts"), 0);
 assert.equal(kernel.status("test.reader"), "active");
 assert.equal(catalog(), undefined);
-assert.equal(document.getElementById("arts-n").textContent, "");
-assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts");
 await kernel.enable("xo.artifacts");
 assert.ok(catalog() && catalog() !== previousCatalog);

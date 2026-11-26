@@ -25,7 +25,6 @@ import { messageContextModule } from "../modules/conversation/message-context.js
 import { filesModule } from "../modules/files/module.js";
 import { mapAgentsModule, mapModule } from "../modules/map/module.js";
 import { stageModule } from "../shell/panel/workspace-stage.js";
-import { railCountsModule } from "../shell/rail/counts.js";
 import { railModule } from "../shell/rail/module.js";
 import { interactionModule } from "../shell/interactions.js";
 import { edgeCardsModule } from "../shell/edge-cards.js";
@@ -85,7 +84,6 @@ export default await bootShell([
   navigationModule,
   threadPresentationModule,
   homeSkeletonModule,
-  railCountsModule,
   workspaceRendererModule,
   conversationContentModule,
   githubModule,

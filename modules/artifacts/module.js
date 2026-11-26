@@ -8,7 +8,7 @@ export const artifactsModule = {
     id: "xo.artifacts", version: "1.0.0", kernel: "^1.1.0",
     needs: ["world", "announce", "projectName", "navigation", "homeSkeleton"],
     provides: ["artifactCatalog"],
-    contributes: ["rail.count:artifacts", "home.section:hm-made", "page:artifacts", "search.provider:artifacts"],
+    contributes: ["home.section:hm-made", "page:artifacts", "search.provider:artifacts"],
   },
   activate(ctx) {
     const made = createMade({
@@ -19,7 +19,6 @@ export const artifactsModule = {
     ctx.contribute("home.section", madeSection(made));
     ctx.provide("artifactCatalog", { latestOf: made.latestOf });
     ctx.contribute("page", { id: "artifacts", ...made.artifacts });
-    ctx.contribute("rail.count", { id: "artifacts", count: made.count });
     ctx.contribute("search.provider", {
       id: "artifacts", items: made.jumpItems,
       pick: (/** @type {ReturnType<typeof made.jumpItems>[number]} */ item) => item.run(),
