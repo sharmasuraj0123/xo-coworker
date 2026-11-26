@@ -47,7 +47,8 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root, 
   let menuFor = null;
   /** @param {Runtime} rt @param {PaidRow[]} paidRows */
   const cardHtml = (rt, paidRows) => rowHtml(rt, {
-    flow: life.flow(rt.name), job: life.job(rt.name), err: life.err(rt.name), remote: life.remote(rt.name), menuOpen: menuFor === rt.name,
+    flow: life.flow(rt.name), job: life.job(rt.name), settling: life.settling(rt.name), err: life.err(rt.name),
+    remote: life.remote(rt.name), menuOpen: menuFor === rt.name,
     extra: onPaid(paidRows, rt.name) ? `<span class="rt-v rt-paid">On paid usage</span>` : "",
   });
   function listHtml() {
