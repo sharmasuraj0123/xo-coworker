@@ -9,6 +9,7 @@ import { LIMITS, MAX_TILES, fitImage, albumLayout } from "./layout.js";
 import { labelOf, midNameHtml, fromWebImage } from "./items.js";
 import { webGone } from "./cache.js";
 import { stackAttrs } from "./stack-data.js";
+import { cachedSrc } from "./images.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 
@@ -34,7 +35,8 @@ const sizeWords = (it) => (it.w && it.h ? `${it.w} by ${it.h}` : "");
 
 /** @param {MediaItem} it */
 function imgHtml(it, cls = "") {
-  const src = it.src ? ` src="${esc(it.src)}" loading="lazy"` : "";
+  const known = it.src ? "" : cachedSrc(it);
+  const src = it.src ? ` src="${esc(it.src)}" loading="lazy"` : known ? ` src="${esc(known)}"` : "";
   const web = it.web ? ` referrerpolicy="no-referrer" data-mx-web` : "";
   return `<img class="mx-img${cls}" data-mx-img="${esc(it.key)}"${web}${src} alt="${esc(labelOf(it))}" decoding="async" draggable="true">`;
 }
