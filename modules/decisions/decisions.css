@@ -306,20 +306,12 @@
 .cf-p{flex:none;font-size:var(--fs-meta);color:var(--ink-3)}
 .confirm li code{min-width:0;font-size:var(--fs-ui);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ── toast (Undo, 3 s) ───────────────────────────────────────────────────── */
+/* ── the Undo line (3 s), the notice line's pill ───────────────────────────────────── */
 .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast-wrap{position:absolute;left:0;right:0;bottom:calc(var(--dock-h) + var(--float-inset));z-index:calc(var(--z-panel) + 10);display:flex;justify-content:center;padding:0 16px;pointer-events:none;transition:right var(--d-in) var(--ease)}
 body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
-.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;max-width:min(520px,100%);min-height:var(--tile-xl);padding:5px 5px 5px 13px;border-radius:var(--r-lg);background:var(--toast-bg);border:1px solid var(--line-strong);box-shadow:var(--e2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:sheet-in var(--d-move) var(--ease)}
-.toast.bye{animation:sheet-out var(--dur-base) var(--ease) forwards}
-.t-ic{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:50%;background:rgba(var(--go-rgb),.16);color:var(--go)}
-.t-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
-.t-back .t-ic{background:var(--fill-4);color:var(--ink-2)}
-.t-m{min-width:0;font-size:var(--fs-ui);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.t-m b{color:var(--ink);font-weight:var(--fw-strong)}
-.t-undo{flex:none;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);background:var(--fill-4);color:var(--ink);font-weight:var(--fw-strong);font-size:var(--fs-ui);transition:transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
-.t-undo:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-.t-undo:active{transform:scale(.95)}
-.t-ring{width:var(--ic);height:var(--ic);color:var(--ink-3)}
+.toast-wrap>.hr.bye{animation:sheet-out var(--dur-base) var(--ease) forwards}
+.toast-wrap .hr-undo{display:inline-flex;align-items:center;gap:var(--s-1);padding:0 var(--s-3) 0 var(--s-2)}
+.t-ring{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
 .t-ring path{stroke-dasharray:1;stroke-dashoffset:0;animation:ring 3s linear forwards}
 @keyframes ring{to{stroke-dashoffset:1}}

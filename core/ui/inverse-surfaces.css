@@ -1,5 +1,5 @@
-/* Toasts and lightboxes retain the dark surface roles in light mode. */
-:root[data-theme="light"] :is(.toast,.lbx){
+/* Lightboxes retain the dark surface roles in light mode. */
+:root[data-theme="light"] .lbx{
   color-scheme:dark; color:var(--ink);
   --fill-1:var(--dark-fill-1); --fill-2:var(--dark-fill-2); --fill-3:var(--dark-fill-3); --fill-4:var(--dark-fill-4);
   --menu-focus:var(--dark-menu-focus);
@@ -23,7 +23,7 @@
   --fill-selection:rgba(var(--accent-rgb),.28);
 }
 @media (prefers-contrast: more){
-  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:var(--dark-ink-3-contrast);
+  :root[data-theme="light"] .lbx{--ink-3:var(--dark-ink-3-contrast);
   --ink-4:var(--dark-ink-4-contrast);
   --line:var(--dark-line-contrast);
   --line-hover:var(--dark-line-hover-contrast)}

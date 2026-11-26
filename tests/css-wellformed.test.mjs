@@ -23,7 +23,7 @@ test("the thread header strip retains its shared edges and separator", () => {
   assert.deepEqual(valuesFor(".thead", "flex"), ["none"]);
   assert.deepEqual(valuesFor(".thead", "padding"), [resolveValue("var(--s-1) var(--hg) var(--s-2)")]);
   const dividers = declarationsFor(".thead", "border-bottom");
-  const headerRows = stylesheetRows.filter((row) => !row.context.at(-1)?.selector?.endsWith(" :is(.toast,.lbx)"));
+  const headerRows = stylesheetRows.filter((row) => !row.context.at(-1)?.selector?.endsWith(" .lbx"));
   const { contexts } = rootTokenModel(headerRows, new Set());
   const expected = { dark: "#1F1F1F", light: "#E6E6E6" };
   for (const { state, values } of contexts) {

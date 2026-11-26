@@ -13,7 +13,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 // contests the analysis can't tell apart from turned ones, each read and found to be different elements
 const READ = [
-  [(/** @type {string} */ c) => /^core\/ui\/inverse-surfaces\.css :root\[data-theme="light"\] :is\(\.toast,\.lbx\) \{(color|--ink-[34]):/.test(c) && !/ vs .*(toast|lbx)[^ ]* \{[^}]*\}$/.test(c), "the inverse surfaces, div#toast and div.lbx, against rules that never name them"],
+  [(/** @type {string} */ c) => /^core\/ui\/inverse-surfaces\.css :root\[data-theme="light"\] \.lbx \{(color|--ink-[34]):/.test(c) && !/ vs .*lbx[^ ]* \{[^}]*\}$/.test(c), "the inverse surface, div.lbx, against rules that never name them"],
   [(/** @type {string} */ c) => /^core\/ui\/foundation\.css svg\[stroke="currentColor"\]\[fill="none"\]/.test(c), "no svg the page draws carries the pen on its root (the pack puts it on paths)"],
 ];
 

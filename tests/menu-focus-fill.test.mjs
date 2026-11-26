@@ -24,7 +24,7 @@ function rgb(hex) {
 test("menu focus differs from the float by at least 45 RGB-sum in each base theme", () => {
   const dark = tokenValuesFor();
   const light = tokenValuesFor(':root[data-theme="light"]');
-  const inverse = tokenValuesFor(':root[data-theme="light"] :is(.toast,.lbx)');
+  const inverse = tokenValuesFor(':root[data-theme="light"] .lbx');
   for (const overrides of [dark, light, inverse]) {
     assert.ok(overrides.has("--menu-focus"));
     const theme = new Map([...dark, ...overrides]);

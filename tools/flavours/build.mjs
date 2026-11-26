@@ -88,7 +88,7 @@ export function stone(root = ROOT) {
   const take = (text, into) => {
     for (const m of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       for (const sel of m[1].split(/,(?![^(]*\))/).map((s) => s.replace(/\s+/g, " ").trim())) {
-        const where = sel === ":root" ? "dark" : sel === ':root[data-theme="light"]' ? "light" : sel === ':root[data-theme="light"] :is(.toast,.lbx)' ? "inverse" : null;
+        const where = sel === ":root" ? "dark" : sel === ':root[data-theme="light"]' ? "light" : sel === ':root[data-theme="light"] .lbx' ? "inverse" : null;
         if (where) into[where].push(...decls(m[2]));
       }
     }
@@ -114,7 +114,7 @@ export function stone(root = ROOT) {
 const SEL = {
   dark: (id) => `:root:not([data-theme="light"])[data-flavour="${id}"]`,
   light: (id) => `:root[data-theme="light"][data-flavour="${id}"]`,
-  inverse: (id) => `:root[data-theme="light"][data-flavour="${id}"] :is(.toast,.lbx)`,
+  inverse: (id) => `:root[data-theme="light"][data-flavour="${id}"] .lbx`,
 };
 
 /** A flavour's look in each mode: light takes the dark look without its lift, then its own light settings. */
@@ -182,7 +182,7 @@ export function flavourBlocks(f, s = stone()) {
     const dk = paletteColours(f.dark, on("dark", s.main.dark), true), lt = paletteColours(f.light, on("light", [...s.main.dark, ...s.main.light]), false);
     const put = (mode, list) => { const m = new Map(main[mode]); for (const [k, x] of list) m.set(k, x); main[mode] = [...m]; };
     put("dark", dk); put("light", lt);
-    // the toast and the lightbox stay dark in light mode: they take the dark palette's words and colours
+    // the lightbox stays dark in light mode: it takes the dark palette's words and colours
     put("inverse", dk.filter(([k]) => /^--(ink(-\d)?|accent(-rgb)?|go(-rgb)?|err-ink)$/.test(k)));
   }
   const set = new Set([...main.dark, ...main.light].map(([k]) => k));

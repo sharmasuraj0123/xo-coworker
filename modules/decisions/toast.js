@@ -26,11 +26,11 @@ export function createDecisionToast(queue) {
     toastItem = it;
     const deny = !!it.meta.deny;
     const left = Math.max(0, it.due - Date.now());
-    toast.className = `toast t-${deny ? "back" : "allow"}`;
+    toast.className = `hr hr-ev has-undo is-in k-${deny ? "calm" : "done"}`;
     toast.hidden = false;
-    toast.innerHTML = `<span class="t-ic">${deny ? ICON.rewind : ICON.check}</span><span class="t-m"><b>${esc(it.meta.verb)}</b> <span>${esc(it.meta.label)}</span></span>` +
-      `<button type="button" class="t-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
-    (/** @type {HTMLButtonElement} */ (toast.querySelector(".t-undo"))).addEventListener("click", () => queue.undo(it.id));
+    toast.innerHTML = `<span class="hr-ic ${deny ? "k-calm" : "k-ok"}">${deny ? ICON.rewind : ICON.check}</span><span class="hr-t">${esc(it.meta.verb)}</span><span class="hr-s">${esc(it.meta.label)}</span>` +
+      `<button type="button" class="hr-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
+    (/** @type {HTMLButtonElement} */ (toast.querySelector(".hr-undo"))).addEventListener("click", () => queue.undo(it.id));
   }
 
   return toastRender;

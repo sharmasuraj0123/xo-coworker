@@ -6,7 +6,7 @@ import { dom, settle } from "./lib/dom.mjs";
 
 
 const { window } = await dom(`<div id="app"><aside id="panel"><div id="pn-h"></div><div id="pn-rail"></div><div id="pn-count"></div><div id="pn-stage"></div><div id="pn-foot"></div><button id="pn-x"></button></aside><div id="toast"></div><div id="live"></div></div>`);
-const g = /** @type {any} */ (globalThis);
+const g = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (globalThis));
 g.MutationObserver = window.MutationObserver;
 g.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 g.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
@@ -64,7 +64,10 @@ assert.equal(D.queued("perm_1|Run: npm test"), true, "held in the commit window"
 assert.match(said.at(-1), /^Allowed\. Undo for 3 seconds\.$/);
 assert.equal(D.decideNow("perm_1|Run: npm test", "allow"), false, "one decision per ask");
 assert.equal(D.decide(n1, "allow"), null, "a second press on the same card does nothing");
-const toastUndo = document.querySelector("#toast .t-undo");
+const toastLine = document.querySelector("#toast");
+assert.ok(toastLine.classList.contains("hr") && !toastLine.classList.contains("toast"), "the Undo line is the notice line's pill");
+assert.equal(toastLine.querySelector(".hr-t")?.textContent, "Allowed");
+const toastUndo = toastLine.querySelector(".hr-undo");
 assert.ok(toastUndo);
 toastUndo.click();
 assert.deepEqual(undone, ["perm_1|Run: npm test"]);

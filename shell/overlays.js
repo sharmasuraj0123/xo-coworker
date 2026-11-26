@@ -20,7 +20,7 @@ export const MAIN_LAYERS = `
 
       <section class="viewer" id="viewer" role="dialog" aria-labelledby="vw-h" tabindex="-1" hidden></section>
 
-      <div class="toast-wrap"><div class="toast" id="toast" role="status" hidden></div></div>
+      <div class="toast-wrap"><div class="hr" id="toast" role="status" hidden></div></div>
 `;
 
 export const SHELL_DOCK = `
