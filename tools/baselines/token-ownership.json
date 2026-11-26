@@ -179,6 +179,7 @@
  "--r-sheet-grip",
  "--r-sidebar-focus",
  "--r-thread-state-mark",
+ "--r-viewer-segment-inset",
  "--r-xl-in",
  "--rail-w",
  "--row-hi",

@@ -11,6 +11,6 @@ test("the viewer's segment keeps concentric segments with room around their labe
   assert.equal(wins(".vw-seg", "gap"), "var(--gap-control-tight)");
   assert.equal(wins(".vw-seg", "border-radius"), "var(--r)");
   assert.equal(wins(".vw-seg", "padding"), "var(--s-viewer-segment-in)");
-  assert.equal(wins(".vw-seg button", "border-radius"), "calc(var(--r) - var(--s-viewer-segment-in) - var(--hair))");
+  assert.equal(wins(".vw-seg button", "border-radius"), "calc(var(--r) - var(--r-viewer-segment-inset))");
   assert.equal(wins(".vw-seg button", "padding"), "0 var(--s-viewer-seg-inline)");
 });

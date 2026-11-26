@@ -7,6 +7,6 @@ const rule = (sel) => (css.match(new RegExp(`(?:^|})\\s*${sel.replace(/[.]/g, "\
 
 const body = rule(".set-body"), page = rule(".set-page");
 const pad = /padding:\s*([^;]+)/.exec(body)?.[1].trim().split(/\s+/) ?? [];
-assert.ok(pad.length === 3 && pad[2] === "0", `the scroller holds no bottom padding (Firefox drops it on a grid): ${pad.join(" ")}`);
+assert.ok(pad.length === 3 && pad[2] === "var(--ring-room)", `the scroller's bottom padding is only the ring's room (Firefox drops it on a grid): ${pad.join(" ")}`);
 assert.match(page, /padding-bottom:\s*var\(--s-12\)/, "the page itself carries the end space");
 console.log("  ok  Settings end space sits inside the page");

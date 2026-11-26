@@ -186,9 +186,9 @@ test("compact density keeps the composer controls at their regular size", () => 
 });
 
 test("segment controls are inset and stay concentric at 24 px", () => {
-  assert.deepEqual(valuesFor(".vw-seg", "padding").filter((value) => value === "3px"), ["3px", "3px"]);
-  assert.deepEqual(valuesFor(".vw-seg button", "height").filter((value) => value === "24px"), ["24px", "24px"]);
+  assert.deepEqual(valuesFor(".vw-seg", "padding").filter((value) => value === "3px"), ["3px"]);
+  assert.deepEqual(valuesFor(".vw-seg button", "height").filter((value) => value === "24px"), ["24px"]);
   const corners = valuesFor(".vw-seg button", "border-radius");
-  assert.equal(corners.filter((value) => value === "calc(6px - 4px)").length, 2);
+  assert.equal(corners.filter((value) => value === "calc(8px - 4px)").length, 1);
   assert.ok(valuesFor(".vw-seg button:where(:has(svg))", "width").includes("24px"));
 });

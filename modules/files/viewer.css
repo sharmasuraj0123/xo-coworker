@@ -27,10 +27,10 @@
   transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .vw-x:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .vw-x svg{width:var(--ic);height:var(--ic)}
-.vw-seg{display:flex;gap:var(--gap-control-tight);
+.vw-seg{display:flex;gap:var(--gap-control-tight);height:var(--h-ctl);
   padding:var(--s-viewer-segment-in);border-radius:var(--r);background:var(--surface);border:var(--hair) solid var(--line-soft)}
 .vw-seg button{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1);height:var(--h-sm);
-  padding:0 var(--s-viewer-seg-inline);border-radius:calc(var(--r) - var(--s-viewer-segment-in) - var(--hair));white-space:nowrap;
+  padding:0 var(--s-viewer-seg-inline);border-radius:calc(var(--r) - var(--r-viewer-segment-inset));white-space:nowrap;
   font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .vw-seg button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
 .vw-seg button:not([aria-pressed="true"]):hover{background:var(--hover-fill);color:var(--ink-2)}

@@ -258,7 +258,7 @@
   --s-viewer-button-start:9px;
   --s-viewer-segment-in:var(--inset-segment);
   --s-viewer-seg-inline:var(--inset-control-inline);
-  --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
+  --r-viewer-segment-inset:4px; --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
   --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
   --measure-viewer-empty:44ch; --palette-white:#fff; --fill-viewer-document:var(--palette-white); --tile-viewer-checker:16px;
   --h-home-panel-card:58px; --h-home-wait-card:50px; --ic-home-handled-badge:22px; --r-home-handled-badge:50%;
