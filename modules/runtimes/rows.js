@@ -196,15 +196,15 @@ export function rowHtml(rt, o = {}) {
   const fix = hl.fix ? ` <span class="rt-fix">${esc(hl.fix).replace(/`([^`]+)`/g, "<code>$1</code>")}</span>` : "";
   const why = settled && (hl.why || hl.fix) ? `<p class="rt-why">${esc(hl.why)}${fix}</p>` : "";
   const more = moreHtml(n, v.menu, menuOpen);
-  const buttons = v.next.map((a) => buttonHtml(n, a)).join("");
-  const acts = buttons || more ? `<div class="rt-acts">${buttons}${more}</div>` : "";
+  const pill = `<span class="rt-pill t-${v.pill[1]}">${esc(v.pill[0])}</span>`;
+  const acts = `<div class="rt-acts">${pill}${v.next.map((a) => buttonHtml(n, a)).join("")}${more}</div>`;
   const lines = job && job.open ? job.log.slice(-200).join("\n") : "";
   const log = lines ? `<pre class="rt-log" tabindex="0" aria-label="${esc(name)}'s log">${esc(lines)}</pre>` : "";
   const wins = settled ? windowsOf(rt) : [];
   const meters = wins.length ? `<ul class="rt-ws" aria-label="${esc(name)}'s usage">${wins.map(meterHtml).join("")}</ul>` : "";
   const spin = v.busy ? `<i class="spin" aria-hidden="true"></i> ` : "";
   const head = `${rtMark(n) || ""}<b>${esc(name)}</b>${ver ? `<span class="rt-v">${esc(ver)}</span>` : ""}` +
-    `${rt.default ? `<span class="rt-v">Preferred</span>` : ""}${extra}<span class="rt-pill t-${v.pill[1]}">${esc(v.pill[0])}</span>`;
+    `${rt.default ? `<span class="rt-v">Preferred</span>` : ""}${extra}`;
   const sub = v.line ? `<p class="rt-sub t-${v.tone || "none"}" role="status">${spin}${esc(v.line)}</p>` : "";
   const fail = err ? `<p class="set-err" role="alert">${esc(err)}</p>` : "";
   return `<li class="rt-card${v.tone === "bad" ? " is-down" : ""}" data-key="rt:${esc(n)}">` +

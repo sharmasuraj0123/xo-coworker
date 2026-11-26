@@ -1,8 +1,8 @@
 /* Settings › Runtimes: a row's next step, its ··· menu, a sign-in or job under way, remote control */
-.rt-top{display:flex;align-items:center;gap:var(--s-3);min-width:0}
+.rt-top{display:flex;align-items:center;gap:var(--s-4);min-width:0}
 .rt-top>.rt-hd{flex:1;min-width:0;align-items:center}
 .rt-hd .agm{align-self:center}
-.rt-acts{display:flex;align-items:center;gap:var(--s-2);flex:none}
+.rt-acts{display:flex;align-items:center;gap:var(--s-3);flex:none;margin-left:auto}
 .rt-sub{line-height:var(--lh-ui)}
 .rt-sub.t-warn{color:var(--warn-text)}
 .rt-sub.t-bad{color:var(--danger-text)}
