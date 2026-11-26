@@ -87,8 +87,8 @@ test("the card's corner control (Read the thread first) sits --card-in from the 
   const body = parts(prop(rule(".c-body"), "padding"));
   for (const env of Object.values(SCREENS)) assert.equal(px(body[0], env) + 1, px("var(--card-in)", env), "above it: the inset");
 });
-test("the folded and done lines: the family's corner, their button (dock-bar − dock-btn) / 2 in, no radius past half its height", () => {
-  const r = rule(":is(.dock-fold,.card.is-dock.r-done)"), n = nest(r);
+test("the folded line: the family's corner, their button (dock-bar − dock-btn) / 2 in, no radius past half its height", () => {
+  const r = rule(".dock-fold"), n = nest(r);
   assert.equal(n["--nest-r"], "var(--r-card)");
   assert.equal(prop(r, "border-radius"), "var(--nest-r)");
   for (const [name, env] of Object.entries(SCREENS)) {

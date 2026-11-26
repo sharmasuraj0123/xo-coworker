@@ -28,26 +28,22 @@ test("icon ink margins use the shared glyph proportions", () => {
   assert.equal(tokens.get("--mark-ink"), "calc(2 / 24)");
 });
 
-test("folded asks and completed notices use concentric controls in the same bar", () => {
-  const bars = ":is(.dock-fold,.card.is-dock.r-done)";
+test("folded asks use concentric controls in their bar", () => {
+  const bars = ".dock-fold";
   containsValue(bars, "--nest-r", "var(--r-card)");
   containsValue(bars, "--nest-in", "calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px)");
   containsValue(bars, "border-radius", "var(--nest-r)");
-  containsValue(".tp-done", "min-height", "var(--dock-bar)");
   containsValue(".dock-fold", "min-height", "calc(var(--dock-bar) + 2px)");
-  for (const button of [".tp-done-u", ".df-go"]) {
+  for (const button of [".df-go"]) {
     containsValue(button, "height", "var(--dock-btn)");
     containsValue(button, "border-radius", "calc(var(--nest-r) - var(--nest-in))");
   }
   phoneToken("--dock-bar", "var(--h-hit)");
   phoneToken("--dock-btn", "var(--h-touch)");
-  assert.ok(!valuesFor((selector) => selector.includes(".tp-done"), "white-space").includes("normal"));
-  containsValue(".tp-done>span:not(.tp-done-ic)", "white-space", "nowrap");
 });
 
 test("row edges preserve concentric control and glyph insets", () => {
   assert.equal(tokens.get("--edge-text"), "var(--s-3)");
-  containsValue(".tp-done", "padding", "0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic) * var(--ic-ink))");
   containsValue(".dock-fold", "padding", "0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))");
   containsValue(".hr", "padding", "0 calc(var(--edge-text) - 1px) 0 calc(var(--edge-text) - 1px)");
   containsValue(".ck-tog", "padding", "0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text)");

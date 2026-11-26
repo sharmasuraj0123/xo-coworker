@@ -104,7 +104,7 @@ export function createDock({ scope, el: tdock, view, region }, {
 
           const had = frame.contains(document.activeElement);
           morph(frame, () => {
-            frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span title="${esc(verb)}."><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`;
+            frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="hr hr-ev has-undo k-${how === "back" ? "calm" : "done"}" role="status"><span class="hr-ic ${how === "back" ? "k-calm" : "k-ok"}">${how === "back" ? ICON.rewind : ICON.check}</span><span class="hr-t" title="${esc(verb)}.">${esc(verb)}.</span><span class="hr-s">${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="hr-undo" data-dock-undo>Undo</button></p>`;
             if (had && !frame.contains(document.activeElement)) (/** @type {HTMLElement} */ (frame.querySelector("[data-dock-undo]"))).focus({ preventScroll: true });
           }, { duration: 300 });
           // Keep the receipt for the Undo window and remove it as soon as it is undone.
@@ -127,7 +127,7 @@ export function createDock({ scope, el: tdock, view, region }, {
     const L = goneLine(g);
     const line = document.createElement("article");
     line.className = "card is-dock r-done";
-    line.innerHTML = `<p class="tp-done is-gone" role="status"><span class="tp-done-ic">${ICON.clock}</span><span title="${esc(`${L.head}. ${L.text}`)}"><b>${esc(L.head)}.</b> ${esc(L.text)}</span></p>`;
+    line.innerHTML = `<p class="hr hr-ev k-calm" role="status"><span class="hr-ic k-calm">${ICON.clock}</span><span class="hr-t" title="${esc(`${L.head}. ${L.text}`)}">${esc(L.head)}.</span><span class="hr-s">${esc(L.text)}</span></p>`;
     TD.busy = true;
     dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(line); }, null, { duration: 300 });
     const gen = TD.gen;
