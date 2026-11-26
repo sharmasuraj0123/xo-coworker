@@ -533,6 +533,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _is_api(self) -> bool:
         path = self.path.split("?", 1)[0]
+        if self.command == "GET" and path == "/xo/space.json":
+            return True
         return path == "/api" or path.startswith("/api/") or sign_in_route(self.command, self.path)
 
     def end_headers(self):

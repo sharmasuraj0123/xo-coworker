@@ -4,7 +4,7 @@ import { findHtml } from "../core/platform/dom.js";
 
 /** @type {Record<string, string>} */
 export const PAGE_OF = { home: "#home", artifacts: "#arts", launchpad: "#lpp",
-  scheduled: "#scheduled", shared: "#shared", connectors: "#connectors" };
+  scheduled: "#scheduled", shared: "#shared", connectors: "#connectors", explore: "#explore" };
 /** @param {string} view */
 export const pageEl = (view) => PAGE_OF[view] ? findHtml(PAGE_OF[view]) : null;
 /** @param {string} view */

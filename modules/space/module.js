@@ -5,6 +5,7 @@ import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { secrets, diagnostics } from "./settings.js";
+import { explore } from "./explore.js";
 
 /** @param {string} name @param {string} detail */
 const row = (name, detail) => `<li><b>${esc(name)}</b><p>${esc(detail)}</p></li>`;
@@ -32,8 +33,10 @@ async function connectors(signal) {
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const spacePages = {
   manifest: { id: "xo.space-pages", version: "1.0.0", kernel: "^1.1.0",
-    contributes: ["page:scheduled", "page:shared", "page:connectors", "settings.section:secrets", "settings.section:diagnostics"] },
+    contributes: ["page:scheduled", "page:shared", "page:connectors", "page:explore",
+      "settings.section:secrets", "settings.section:diagnostics"] },
   activate(ctx) {
+    explore(ctx);
     ctx.contribute("settings.section", { id: "secrets", label: "Secrets", icon: "lock", render: secrets });
     ctx.contribute("settings.section", { id: "diagnostics", label: "Server & diagnostics", icon: "server", render: diagnostics });
     for (const [id, read] of Object.entries({ scheduled, shared, connectors })) {

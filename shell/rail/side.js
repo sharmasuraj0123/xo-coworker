@@ -55,6 +55,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       { id: "scheduled", name: "Scheduled", page: true, ic: () => ICON.clock },
       { id: "shared", name: "Shared", page: true, ic: () => ICON.folder },
       { id: "connectors", name: "Connectors", page: true, ic: () => ICON.plug },
+      { id: "explore", name: "Explore", page: true, ic: () => ICON.search },
       { id: "runtimes", name: "Usage & agents", ic: () => ICON.runtime },
       { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
       { set: true, id: "routing", name: "Routing", ic: () => ICON.router },

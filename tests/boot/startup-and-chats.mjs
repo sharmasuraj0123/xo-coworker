@@ -62,7 +62,7 @@ for (const id of ["arts", "lpp", "panel", "pn-h", "pn-count", "pn-x", "pn-rail",
 }
 assert.deepEqual(
   [...document.querySelector("main").children].map((node) => node.id || node.className),
-  ["phonebar", "home", "scheduled", "shared", "connectors", "arts", "lpp", "conv", "drop-veil", "dock",
+  ["phonebar", "home", "scheduled", "shared", "connectors", "explore", "arts", "lpp", "conv", "drop-veil", "dock",
     "panel", "viewer", "toast-wrap", "settings", "stage"],
   "boot preserves the main landmark's region order",
 );
