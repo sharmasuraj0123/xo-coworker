@@ -55,6 +55,8 @@ test("the project header counts all thread states and places Threads before Depl
     threadControls: createThreadControls(), description: () => undefined,
     PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
   });
+  const ws = conversationHeaderHtml("ws", null, needs).who ?? "";
+  assert.match(ws, /<span class="tw-t is-one"><h1 id="conv-title">Workspace<\/h1><\/span>$/, "the Workspace's bar is a project's: its name, no count line");
   const render = createTopHeader({
     location: { view: () => "p:p", parentOf: () => undefined },
     PROJ, conversationHeaderHtml, places: kernel.places, emit: kernel.bus.emit, convThread: () => null,
