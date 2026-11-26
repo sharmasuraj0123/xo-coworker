@@ -57,6 +57,28 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   paint();
   assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:idle"]);
 });
+t("the Workspace rests above your recent chats, says who is at work, and leaves All chats to your chats", () => {
+  const sessions = { one: { role: "plain", agent: "codex", id: "one", state: "idle", created_at: at(0) } };
+  const workspace = { projects: 3, working: 2, coordinator: true };
+  const chats = createChats({ world: { state: { sessions }, act: {}, onEvent() {} }, schedule() {}, workspace: () => workspace });
+  const box = document.createElement("div");
+  const paint = () => { box.innerHTML = chats.items("chats").map((row) => row.html).join(""); };
+  paint();
+  const rows = [...box.querySelectorAll(".chl-row")];
+  assert.equal(rows[0].dataset.go, "ws");
+  assert.ok(rows[0].closest(".chl-pin"));
+  assert.equal(rows[0].querySelector(".chl-a").textContent, "2 working · 3 projects");
+  assert.equal(rows[0].getAttribute("aria-label"), "Workspace: your coordinator across 3 projects, 2 working");
+  workspace.working = 0;
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"] .chl-a').textContent, "Working · 3 projects", "its own turn counts too");
+  workspace.coordinator = false;
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"] .chl-a').textContent, "3 projects");
+  chats.showAll(true);
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"]'), null);
+});
 
 {
   const { document } = await dom('<button id="setup" aria-expanded="false">Folder</button><div id="cs-pop" tabindex="-1" hidden></div>');

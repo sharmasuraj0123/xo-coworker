@@ -10,4 +10,5 @@ export interface ChatControls {
   phone: Pick<MediaQueryList, "matches">;
   chats: Pick<Chats, "search" | "showAll" | "setPref" | "closeSetup" | "renderSetup" | "setupOpen">;
   updateComposer(): void;
+  openWorkspace(): void;
 }

@@ -107,8 +107,14 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
       offered(st.agent).map((m) => row("data-cs-model", m.id, m.name ?? m.id, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
     const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
+    const reach = `${folders.length - 1} ${folders.length === 2 ? "project" : "projects"}`;
+    const workspace = `<div class="iq-list"><button type="button" class="iq-row cs-mrow" data-cs-ws>${xi("layers", "cs-mi")}` +
+      `<span class="cs-mt"><span class="iq-n">Workspace</span>` +
+      `<span class="cs-md">All ${reach}: ask how they're doing, or hand out work.</span></span></button></div>`;
     const lists = {
-      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
+      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Talk to <span>your Workspace, or a new chat</span></h2></header>${workspace}` +
+        `<div class="iq-sec"><p class="iq-lab" id="cs-cwd-l">New chat, in</p><div class="iq-list" role="radiogroup" aria-labelledby="cs-cwd-l">` +
+        `${folders.map((f) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div></div>`,
       mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
         : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
           const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;

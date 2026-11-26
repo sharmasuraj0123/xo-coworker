@@ -2,7 +2,7 @@
 
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { stateMark } from "../../core/ui/icons/icon.js";
+import { stateMark, xi } from "../../core/ui/icons/icon.js";
 import { rtMark } from "../../core/services/runtimes.js";
 
 const RECENT = 3;
@@ -13,10 +13,30 @@ const RECENT = 3;
 
 /** @typedef {{ list: boolean | null, err: string | null, all: boolean, q: string, searching: boolean }} ListState */
 
+/** @typedef {import("./types").WorkspaceSummary} WorkspaceSummary */
+
 /** @typedef {{ rows: ChatRow[], waiting: (row: ChatRow) => boolean, inTurn: (row: ChatRow) => boolean, heldOf: (row: ChatRow) => Hold | null, heldShort: (held: Hold) => string, rowLine: (row: ChatRow) => string, titleFor: (row: ChatRow) => string, world: { act: { sessionBusy?: (id: string) => boolean } }, dayGroup: (iso: string) => string, rowTime: (iso: string) => string }} ListDeps */
 
+/** @param {ListState} C @param {ListDeps & { workspace?: WorkspaceSummary | null }} deps */
+export function chatListItems(C, { workspace = null, ...deps }) {
+  // the Workspace is the one conversation that never ages: it rests above your chats, not among them
+  const items = listItems(C, deps);
+  return workspace && !C.all ? [{ key: "chats-ws", html: workspaceRow(workspace) }, ...items] : items;
+}
+
+/** Its words say how far it reaches and what's moving, where a chat says when it was last used. @param {WorkspaceSummary} w */
+function workspaceRow({ projects, working, coordinator }) {
+  const busy = working ? `${working} working` : coordinator ? "Working" : "";
+  const reach = `${projects} ${projects === 1 ? "project" : "projects"}`;
+  const label = `Workspace: your coordinator across ${reach}${busy ? `, ${busy.toLowerCase()}` : ""}`;
+  return `<ul class="chl-list chl-pin"><li><button type="button" class="chl-row" data-go="ws" aria-label="${label}">` +
+    `<span class="chl-tile">${xi("layers")}</span>` +
+    `<span class="chl-t">Workspace<span class="chl-sub"> · every project, one conversation</span></span>` +
+    `<span class="chl-a">${busy ? `<span class="is-busy">${busy}</span> · ` : ""}${reach}</span></button></li></ul>`;
+}
+
 /** @param {ListState} C @param {ListDeps} deps */
-export function chatListItems(C, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) {
+function listItems(C, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) {
   if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
   if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Your first question starts one. No project needed.</p></div>` }];
   // at rest a few of the latest under the composer; all of them, searchable and by day, a click away

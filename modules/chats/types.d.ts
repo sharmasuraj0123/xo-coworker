@@ -88,7 +88,10 @@ export interface ChatDeps {
   listRoot?: Element;
   transcriptOpen?: () => Readonly<Record<string, boolean>>;
   restore?: (text: string, options?: { force?: boolean }) => boolean;
+  workspace?: () => WorkspaceSummary;
 }
+/** The Workspace as Chats shows it: how many projects it runs, how many threads work, whether its coordinator does. */
+export interface WorkspaceSummary { projects: number; working: number; coordinator: boolean }
 export interface Conversation {
   turnHtml: (turn: Turn, blocks: unknown[], options: { view: string; open?: Record<string, boolean> }) => string;
   turnAv: (turn: Turn, blocks: unknown[]) => string;

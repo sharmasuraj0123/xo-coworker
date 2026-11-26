@@ -69,7 +69,7 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
     const html = CH.blocked(view) ? CH.targetHtml(view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view);
     paintComposerTarget(requireHtml("#target", "button"), html);
     requireHtml("#target", "button").hidden = !html;
-    requireHtml("#target", "button").title = view === "chats" ? "The folder a new chat works in" : "";
+    requireHtml("#target", "button").title = view === "chats" ? "Talk to your Workspace, or pick the folder a new chat works in" : "";
     return true;
   }
 

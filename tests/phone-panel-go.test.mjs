@@ -161,7 +161,9 @@ function handoff(selector, name) {
 }
 
 await until("#side [data-go='p:demo']");
-press("#nv-ws");
+press("#nv-chats");
+await until('#msgs .chl-row[data-go="ws"]');
+press('#msgs .chl-row[data-go="ws"]');
 await paint();
 press("[data-stage-toggle]");
 press("[data-map-mode='tree']");
@@ -173,7 +175,9 @@ await paint();
 addThread("first", "First thread");
 addThread("second", "Second thread");
 press("[data-stage-toggle]");
-press("#nv-ws");
+press("#nv-chats");
+await until('#msgs .chl-row[data-go="ws"]');
+press('#msgs .chl-row[data-go="ws"]');
 assert.equal(stage.hidden, false, "navigation from outside the Stage keeps it open");
 press("#side [data-go='p:demo']");
 const first = '#stage .tg-box [data-go="t:first"]';

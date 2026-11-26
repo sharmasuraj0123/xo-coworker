@@ -200,7 +200,9 @@ async function checkAppShellDock() {
   const appDock = app.getElementById("shd");
   assert.ok(appDock);
   const parent = appDock.parentNode, next = appDock.nextSibling;
-  press("#nv-ws");
+  press("#nv-chats");
+  for (let i = 0; i < 50 && !app.querySelector('#msgs .chl-row[data-go="ws"]'); i++) await new Promise(setImmediate);
+  press('#msgs .chl-row[data-go="ws"]');
   await new Promise(setImmediate);
   press("[data-stage-toggle]");
   press("[data-stg-shell]");

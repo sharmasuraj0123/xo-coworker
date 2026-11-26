@@ -27,8 +27,8 @@ let jumps = 0;
 const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
 const SIDE = createSide({ ...deps, scope });
 
-const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
-assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts"] }, "the default: Home, Chats, Artifacts; Workspace, Launchpad and Settings' pages in More");
+const ids = ["home", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
+assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts"] }, "the default: Home, Chats, Artifacts; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 
 // More's pins from before carry over
@@ -59,19 +59,19 @@ try {
 }
 
 // keep and leave: a place in the bar or in More
-SIDE.pin("ws", true); SIDE.pin("chats", false); SIDE.pin("worktrees", true);
-assert.deepEqual(SIDE.bar().shown, ["home", "arts", "ws", "worktrees"], "Workspace pinned back from More");
+SIDE.pin("launchpad", true); SIDE.pin("chats", false); SIDE.pin("worktrees", true);
+assert.deepEqual(SIDE.bar().shown, ["home", "arts", "launchpad", "worktrees"], "Launchpad pinned back from More");
 assert.ok(!SIDE.isDefault());
 
 // reorder: one step (the grip's ↑ ↓), at the ends it stays; before another (a drop), or to the end
-SIDE.move("arts", -1); assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "ws", "arts", "chats"]);
+SIDE.move("arts", -1); assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "arts", "chats", "launchpad"]);
 SIDE.move("home", -1); assert.equal(SIDE.bar().order[0], "home");
 SIDE.move("keys", 1); assert.equal(SIDE.bar().order.at(-1), "keys");
 SIDE.move("worktrees", 0, "home"); assert.equal(SIDE.bar().order[0], "worktrees");
 SIDE.move("home", 0, ""); assert.equal(SIDE.bar().order.at(-1), "home");
 
 // kept in your shape, not this browser
-assert.deepEqual(mine.layout.side.shown, ["home", "arts", "ws", "worktrees"]);
+assert.deepEqual(mine.layout.side.shown, ["home", "arts", "launchpad", "worktrees"]);
 assert.ok(!store.has("xo-side-bar"));
 
 // what's saved is made whole: an unknown place is dropped, a new one joins at the end, hidden
@@ -106,32 +106,34 @@ assert.equal(edit.textContent, "Edit the sidebar…");
 click(edit);
 assert.equal(pop.getAttribute("role"), "dialog");
 assert.equal(pop.getAttribute("aria-label"), "Edit the sidebar");
-const grip = pop.querySelector('[data-se-grip="ws"]');
-assert.equal(grip.getAttribute("aria-label"), "Move Workspace: up or down arrow");
+const grip = pop.querySelector('[data-se-grip="launchpad"]');
+assert.equal(grip.getAttribute("aria-label"), "Move Launchpad: up or down arrow");
 assert.equal(Boolean(grip.querySelector("svg")), true);
 grip.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
-assert.equal(SIDE.bar().order[0], "ws");
-same(document.activeElement, pop.querySelector('[data-se-grip="ws"]'));
+pop.querySelector('[data-se-grip="launchpad"]').dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
+assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "launchpad", "chats", "arts"]);
+same(document.activeElement, pop.querySelector('[data-se-grip="launchpad"]'));
 const target = pop.querySelector('[data-se="arts"]');
 target.getBoundingClientRect = () => ({ top: 20 });
 Object.defineProperty(target, "offsetHeight", { value: 40 });
 target.dispatchEvent(Object.assign(new window.Event("drop", { bubbles: true, cancelable: true }), {
-  clientY: 21, dataTransfer: { getData: (type) => type === "text/x-xo-place" ? "ws" : "" },
+  clientY: 21, dataTransfer: { getData: (type) => type === "text/x-xo-place" ? "launchpad" : "" },
 }));
-assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "chats", "ws", "arts"]);
-const workspace = pop.querySelector('[data-se-sw="ws"]');
-assert.equal(workspace.getAttribute("role"), "switch");
-assert.equal(workspace.getAttribute("aria-label"), "Keep Workspace in the sidebar");
-assert.equal(workspace.getAttribute("aria-checked"), "false");
-click(workspace);
-assert.equal(pop.querySelector('[data-se-sw="ws"]').getAttribute("aria-checked"), "true");
-assert.equal(document.querySelector("#nv-ws").hidden, false);
+assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "chats", "launchpad", "arts"]);
+const home = pop.querySelector('[data-se-sw="home"]');
+assert.equal(home.getAttribute("role"), "switch");
+assert.equal(home.getAttribute("aria-label"), "Keep Home in the sidebar");
+assert.equal(home.getAttribute("aria-checked"), "false");
+click(home);
+assert.equal(pop.querySelector('[data-se-sw="home"]').getAttribute("aria-checked"), "true");
+assert.equal(document.querySelector("#nv-home").hidden, false);
 click(pop.querySelector("[data-se-reset]"));
 assert.equal(pop.querySelector("[data-se-reset]").hasAttribute("disabled"), true);
 click(pop.querySelector("[data-se-done]"));
 assert.equal(pop.getAttribute("role"), "menu");
-assert.deepEqual([...pop.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent), ["Workspace", "Launchpad", "Runtimes", "Edit the sidebar…"], "by default More holds Workspace beside Launchpad");
-assert.equal(document.querySelector("#nv-ws").hidden, true);
+assert.deepEqual([...pop.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent), ["Launchpad", "Runtimes", "Edit the sidebar…"], "by default More holds Launchpad; the Workspace lives in Chats");
+assert.equal(document.querySelector("#nv-ws"), null);
+assert.equal(document.querySelector("#nv-lp").hidden, true);
 assert.equal(Boolean(document.querySelector("#nv-pins")), false);
 
 pop.querySelector('[role="menuitem"]').focus();

@@ -22,7 +22,7 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 /** @param {Session} a @param {Session} b */
 const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
   const scope = createScope();
   /** @type {ChatState} */
   const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
@@ -45,8 +45,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const titleFor = (s) => titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
   /** @param {string | null | undefined} cwd */
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
-  /** @param {string} t */
-  const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   /** @param {string | null | undefined} agent @param {string} id */
   const modelWord = (agent, id) => { const m = (C.models.get(/** @type {string | null} */ (agent)) || []).find((x) => x.id === id); return m?.name ?? id; };
   /** @param {string | null | undefined} agent */
@@ -130,7 +128,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
+      return `${ICON.thread}<span>New chat${st.cwd ? ` in ${esc(folderName(st.cwd))}` : ""}</span>${ICON.chevron}`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -281,7 +279,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
       const rows = sessions().sort(recentFirst);
       const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
-      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
+      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime, workspace: workspace?.() ?? null });
     },
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm,
     /** @param {string} v */

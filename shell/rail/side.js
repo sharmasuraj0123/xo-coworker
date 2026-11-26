@@ -40,7 +40,6 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     BAR,
     CORE: [
       { id: "home", name: "Home", sel: "#nv-home" },
-      { id: "ws", name: "Workspace", sel: "#nv-ws" },
       { id: "chats", name: "Chats", sel: "#nv-chats" },
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
     ],
