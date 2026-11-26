@@ -11,7 +11,7 @@ import { turnHtml, turnAv } from "./blocks/turn.js";
 
 /** @import { MessageItemsDeps } from "./message-items-types.d.ts" */
 
-/** @import { Control, History, Limit, Message } from "./message-types.d.ts" */
+/** @import { Control, Forward, History, Limit, Message } from "./message-types.d.ts" */
 
 /** @import { RankedNeed } from "../../core/services/decision-types.d.ts" */
 
@@ -33,6 +33,18 @@ const answeredAfter = (list, m) => {
   return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" ||
     (x.who === "turn" && x.turn && x.turn.status !== "running" && Array.from(x.blocks || []).some((b) => b && (b.type === "answer" || b.type === "text") && String(b.text || "").trim())));
 };
+
+/** Who wrote a copied message and where. @param {Message} m @param {Forward} fwd @param {string | null} src @param {(p: string) => string} P */
+function copyHead(m, fwd, src, P) {
+  const coord = m.who === "coord", ws = !src && fwd.via?.[0] === "workspace", lead = m.name ? "from" : coord ? "of" : "in";
+  const by = ws ? "The Workspace coordinator" : coord ? "The coordinator" : m.author === "thread" ? "A thread" : "An agent";
+  /** @param {string} where @param {string} words */
+  const go = (where, words) => `<button type="button" class="rt-go" data-go="${esc(where)}" data-go-msg="${esc(fwd.id)}"`
+    + ` title="Where it was written">${esc(words)}</button>`;
+  const from = src ? `${lead} ${go(`p:${src}`, P(src))}<span class="via"> · copied here by the Workspace</span>`
+    : ws ? `· ${go("ws", "copied from the Workspace")}` : `${m.name ? "from" : "in"} another chat · copied here by the ${go("ws", "Workspace")}`;
+  return { by, from, name: ws ? by : `${by} ${src ? `${coord ? "of" : "in"} ${P(src)}` : "in another chat"}` };
+}
 
 /** @param {MessageItemsDeps} deps */
 export function createMessageItems({
@@ -93,11 +105,9 @@ export function createMessageItems({
         const files = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: "You", at: m.at })), { side: "you" }) : "";
         html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.wrote ?? m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
       } else if (m.who === "coord" || m.who === "agent") {
-        const word = m.who === "coord" ? "coordinator" : "agent", src = m.fwd ? fwdSource(m.fwd) : null;
-        const [name, role] = m.name ? [m.name, m.role || ""] : src ? [`${PROJ(src)} ${word}`, ""] : nameOf(conv, m.who);
-        const from = !m.fwd ? "" : `<span class="m-from">${ICON.arrow}${src
-          ? `<button type="button" class="rt-go" data-go="p:${esc(src)}" data-go-msg="${esc(m.fwd.id)}" title="Where it was written">another project</button><span class="via"> · via the Workspace</span>`
-          : `<span>via the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(m.fwd.id)}" title="Where it was written"><b>Workspace</b></button></span>`}</span>`;
+        const src = m.fwd ? fwdSource(m.fwd) : null, copy = m.fwd ? copyHead(m, m.fwd, src, PROJ) : null;
+        const [name, role] = m.name ? [m.name, m.role || ""] : copy ? [copy.name, ""] : nameOf(conv, m.who);
+        const from = copy ? `<span class="m-from">${copy.from}</span>` : "";
         const av = m.fwd ? `<div class="av av-p">${ICON.project}</div>`
           : m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
         const joined = cont && !m.fwd;
@@ -109,7 +119,7 @@ export function createMessageItems({
         spoke = name;
         if (under) items[items.length - 1].html = items[items.length - 1].html.replace(/^<div class="ev /, '<div class="ev is-lead ');
         html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${m.fwd ? " m-ext" : ""}${joined ? " cont" : ""}${anon ? " m-anon" : ""}${under ? " m-under" : ""}">${joined ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
-          (joined ? "" : `<div class="mh"><b>${esc(name)}</b>${from}${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
+          (joined ? "" : `<div class="mh"><b>${esc(copy && !m.name ? copy.by : name)}</b>${from}${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
           `${m.text ? proseHtml(m.text, conv) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
       } else if (m.who === "turn") {
         const inner = turnHtml(/** @type {Turn} */ (m.turn), /** @type {Block[]} */ (m.blocks), { view: conv, open: transcriptOpen(), hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });

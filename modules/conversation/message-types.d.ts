@@ -57,6 +57,7 @@ export type Message = {
   back?: { id: string; text: string; via?: string[] };
   name?: string | null;
   role?: string;
+  author?: string | null;
   coord?: boolean;
   cause?: string | null;
   lead?: string;
