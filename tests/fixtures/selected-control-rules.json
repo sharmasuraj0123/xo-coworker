@@ -45,7 +45,6 @@
   ".stg-btn.is-on",
   ".tb-cf.is-on",
   ".teach-scope button[aria-checked=\"true\"]",
-  ".tg-now.is-on",
   ".tw-act.lp-btn.is-on",
   ".vw-btn.is-on",
   ".vw-menu .vw-fold[role=menuitemradio][aria-checked=\"true\"]",

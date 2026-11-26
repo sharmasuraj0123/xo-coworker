@@ -55,7 +55,7 @@ export const chatControlsModule = {
     const composer = () => session.composer.say;
     const stop = ctx.use("runControls").stopRun, intel = ctx.use("intelligence");
     /** @param {ChatButtons} buttons */
-    function bindComposerButtons({ scope, target, permissions, sendNow, intelligence, aim, toggleIntelligence }) {
+    function bindComposerButtons({ scope, target, permissions, intelligence, aim, toggleIntelligence }) {
       /** @param {HTMLElement} anchor @param {string} part */
       function setup(anchor, part) {
         chats.toggleSetup(anchor, part);
@@ -68,11 +68,6 @@ export const chatControlsModule = {
         else aim();
       });
       scope.listen(permissions, "click", () => { if (view() === "chats") setup(permissions, "mode"); });
-      scope.listen(sendNow, "click", () => {
-        chats.toggleNow(view());
-        updateComposer();
-        composer().focus();
-      });
       scope.listen(intelligence, "click", () => {
         const active = view();
         if (active === "chats") setup(intelligence, "model");
@@ -113,7 +108,7 @@ export const chatControlsModule = {
 
     bindComposerButtons({
       scope: ctx, target: requireHtml("#target", "button"), permissions: requireHtml("#cs-perm", "button"),
-      sendNow: requireHtml("#send-now", "button"), intelligence: requireHtml("#iq", "button"),
+      intelligence: requireHtml("#iq", "button"),
       updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
     });
     const setup = requireHtml("#cs-pop");

@@ -60,7 +60,6 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
   }
   function chatTargetRender() {
     const view = MK.view;
-    sendNowRender(view);
     const perm = requireHtml("#cs-perm", "button"), ph = CH.isChats(view) && !liveBlock() ? CH.permHtml(view) : "";
     perm.hidden = !ph;
     perm.title = CH.permTitle(view);
@@ -72,14 +71,6 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
     requireHtml("#target", "button").hidden = !html;
     requireHtml("#target", "button").title = view === "chats" ? "The folder a new chat works in" : "";
     return true;
-  }
-
-  /** @param {string} view */
-  function sendNowRender(view) {
-    const b = requireHtml("#send-now", "button");
-    const st = CH.isChats(view) && !liveBlock() ? CH.nowState(view) : null;
-    b.hidden = !st;
-    if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
   }
 
   return { chipRender, sendRender, chatTargetRender };

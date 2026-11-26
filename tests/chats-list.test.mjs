@@ -168,15 +168,10 @@ t("Permission choices have readable explanations and fixed model and mode chips 
   }
 });
 
-t("Send now is a filled capsule and can fit next to the phone composer", () => {
+t("The model chip gives way on a phone: it names the model, its thinking a tap away", () => {
   assert.ok(rules.some(({ sel, declarations: rows }) => sel === ".iq"
     && rows.some(({ p, v }) => p === "flex" && v === "0 1 auto")), "the model chip gives way");
-  style(".tg-now", { "border-radius": "var(--r-pill)", background: "var(--btn-fill)" });
-  assert.ok(!Object.hasOwn(declarations(".tg-now"), "border"), "no rim of its own");
   const phone = "@media (max-width:760px)";
-  style(".tg-now", { height: "var(--h-touch)" }, phone);
-  for (const selector of [".iq .iq-sep", ".iq .iq-e", ".target:not(.cs-perm):has(~.tg-now:not([hidden]))"]) {
-    style(selector, { display: "none" }, phone);
-  }
+  for (const selector of [".iq .iq-sep", ".iq .iq-e"]) style(selector, { display: "none" }, phone);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

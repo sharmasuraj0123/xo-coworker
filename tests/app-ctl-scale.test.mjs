@@ -10,8 +10,7 @@ const rule = (sel) => { const m = new RegExp(`(?:^|[}\\n])${sel.replace(/[.*+?^$
 t("C057 Send and Add files are the composer's control, --comp-ctl: 32, a phone's 36", () => {
   for (const sel of [".send", ".attach"]) assert.match(rule(sel), /width:var\(--comp-ctl\);height:var\(--comp-ctl\)/, sel);
 });
-t("S141 Send now, S047 Done and the picker's head buttons are --h-ctl; S039/S040 Retry and Edit --h-sm", () => {
-  assert.match(rule(".tg-now"), /height:var\(--h-ctl\)/);
+t("S047 Done and the picker's head buttons are --h-ctl; S039/S040 Retry and Edit --h-sm", () => {
   assert.match(rule(".iq-back"), /height:var\(--h-ctl\)/);
   assert.match(rule(".iq-done"), /height:var\(--h-ctl\)/);
   assert.match(rule(".meta-btn"), /height:var\(--h-sm\)/);

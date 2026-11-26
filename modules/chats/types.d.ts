@@ -25,7 +25,8 @@ export interface Prompt {
   status?: string;
   err?: string;
   errTitle?: string;
-  added?: boolean;
+  /** Sent while a turn ran: that turn's id; the prompt waits until it ends. */
+  waits?: string;
 }
 interface PromptBody {
   text: string;
@@ -70,6 +71,8 @@ interface World {
     sessionHeld?: (id: string) => Held | null;
     sessionBusy?: (id: string) => boolean;
     onTurn?: (id: string) => boolean;
+    turnOf?: (id: string) => string | null;
+    sessionState?: (id: string) => string | null;
     takeTrimmed?: (id: string) => boolean;
     loadTurns?: (id: string) => unknown;
     agentHeld?: (id: string | null) => ReturnType<typeof import("../../core/services/world/sessions.js").heldOf>;
@@ -103,7 +106,6 @@ export interface ChatState extends SetupState {
   hist: Map<string, History>;
   local: Map<string, LocalPrompt[]>;
   confirm: Map<string | null, { local: LocalPrompt; sid: string | null; count: number }>;
-  now?: string | null;
   q: string;
   all: boolean;
 }
