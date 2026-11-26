@@ -257,13 +257,12 @@ body.viewer-open .fv~.dock{display:none}
 .stage .ag-list,.stage .ch-list{display:flex;flex-direction:column;gap:4px;padding:0 12px 8px}
 .stage .ag-r,.stage .ch-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:var(--h-row-act);padding:6px 8px;border:0;border-radius:var(--r-lg);background:transparent;transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .stage .ag-r:hover,.stage .ch-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
-/* A list shows --ag-rows rows, or fills the frame that has the rest; its foot fades while more is below */
+/* A list shows --ag-rows rows, or fills the frame that has the rest; it stops at its line, never fading */
 .stage :is(.ag-list,.ch-list)>li{scroll-snap-align:start}
 .stage .fr[data-fr="agents"] .fr-b{max-height:calc(var(--ag-rows,3) * 48px - 4px);margin-bottom:8px;scroll-snap-type:y mandatory}
 .stage .fr[data-fr="agents"] .ag-list,.stage .ch-old .ch-list{padding-bottom:0}
 .stage .fr[data-fr="agents"] .fr-none{padding-bottom:4px}
 .stage .fr.is-grow{container-type:size}
-.stage :is([data-fr="agents"]>.fr-b,.ch-old).is-fade{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--edge-fade)),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - var(--edge-fade)),transparent)}
 .stage .fr.is-grow[data-fr="agents"] .fr-b{max-height:none}
 .stage .ch-old{flex:0 1 auto;min-height:0;margin-bottom:8px;overflow:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .stage .ag-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sunken));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}

@@ -27,6 +27,8 @@ export interface StageState {
   tgMore: Record<string, boolean>;
   resume?: boolean;
   chEmpty?: boolean;
+  agRows?: number;
+  agCap?: number;
 }
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
 interface MapApi {
@@ -56,7 +58,7 @@ export interface ChangesFrame extends Entry {
   theme(theme: string): void;
 }
 export interface FrameState {
-  changes: { folded: boolean };
+  changes: { folded: boolean; h?: number | null };
   agents: { folded: boolean; rows: number | null; h?: number; groups: Record<string, boolean> };
   map: { folded: boolean; h: number };
 }

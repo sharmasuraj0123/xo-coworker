@@ -1,40 +1,48 @@
 // @ts-check
 
+/** @import { FrameState, StageState } from "./panel-types.d.ts" */
+
 // The panel's stack of frames: which show, which fold, which grows, their heights and the lines between them.
 
+/** @type {Array<"agents" | "changes" | "map">} */
 export const ORDER = ["agents", "changes", "map"];
 export const MAP_H = 260, MAP_MIN = 72;
 // Threads is sized in whole rows, never a row cut in half: a row and the gap under it are ROW px
 export const AG_ROWS = 6, ROW = 48;
 // the room Changes needs (its head, one file row, the list's foot, the diff's 120 px and margin) and a frame's head
 export const CH_MIN = 212, HEAD = 40;
+const FRAME_MIN = 96;
 
-/** @typedef {{ el: any, S: any, fr: any, frames: () => string[], view: () => string, map: any, persist: () => void, paint: () => void }} FramesDeps */
+/** @typedef {{ el: HTMLElement, S: StageState, fr: FrameState, frames: () => string[], view: () => string, map: { show(view: string): void, hide(): void }, persist: () => void, paint: () => void }} FramesDeps */
 
 /** @param {FramesDeps} P */
 export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
+  const q = (selector = "") => /** @type {HTMLElement} */ (el.querySelector(selector));
+
+  const lines = () => [.../** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll(".fr-gut"))].filter((line) => !line.hidden).length;
   function layout() {
     // the shape's frames: one it doesn't keep is gone, with the line beside it
     const keep = new Set(frames());
     if (!keep.size) keep.add("agents");
     const on = (/** @type {string} */ id) => keep.has(id);
     for (const id of ORDER) {
-      el.querySelector(`[data-fr="${id}"]`).hidden = !on(id);
+      q(`[data-fr="${id}"]`).hidden = !on(id);
     }
-    el.querySelector('[data-gut="agents|changes"]').hidden = !(on("agents") && (on("changes") || on("map")));
-    el.querySelector('[data-gut="changes|map"]').hidden = !(on("changes") && on("map"));
+    q('[data-gut="agents|changes"]').hidden = !(on("agents") && (on("changes") || on("map")));
+    q('[data-gut="changes|map"]').hidden = !(on("changes") && on("map"));
     for (const id of ORDER) {
-      const f = el.querySelector(`[data-fr="${id}"]`), folded = !!fr[id].folded;
+      const f = q(`[data-fr="${id}"]`), folded = !!fr[id].folded;
       f.classList.toggle("is-folded", folded);
-      f.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(!folded));
-      f.querySelector("[data-fr-fold]").title = folded ? "Open" : "Fold";
+      const fold = /** @type {HTMLElement} */ (f.querySelector("[data-fr-fold]"));
+      fold.setAttribute("aria-expanded", String(!folded));
+      fold.title = folded ? "Open" : "Fold";
     }
     // Changes takes the room that's left, then the Map, else Threads; while Changes is empty, Threads has the room
-    const grow = (S.chEmpty ? ["agents", "changes", "map"] : ["changes", "map", "agents"]).find((id) => on(id) && !fr[id].folded);
+    const grow = (S.chEmpty ? ORDER : [ORDER[1], ORDER[2], ORDER[0]]).find((id) => on(id) && !fr[id].folded);
     for (const id of ORDER) {
-      const f = el.querySelector(`[data-fr="${id}"]`);
+      const f = q(`[data-fr="${id}"]`);
       f.classList.toggle("is-grow", grow === id);
-      const h = id === "map" ? fr.map.h : null;
+      const h = id === "agents" ? null : fr[id].h;
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
     capAgents();
@@ -44,44 +52,51 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
   /** Threads is as tall as its rows, up to its count of them, and never more than the stack has room for. */
   function capAgents() {
     const keep = new Set(frames()), on = (/** @type {string} */ id) => keep.has(id) || (!keep.size && id === "agents");
-    const ag = el.querySelector('[data-fr="agents"]');
+    const ag = q('[data-fr="agents"]');
     let rows = fr.agents.rows || AG_ROWS, cap = 8;
     // the stack's height comes from its resize observer, never a read here, which forced the page's layout
     const room = S.stackH;
     if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
-      const grows = (/** @type {string} */ id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
+      const grows = (/** @type {string} */ id) => q(`[data-fr="${id}"]`).classList.contains("is-grow");
       const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
-      const lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
-      cap = Math.max(1, Math.floor((room - changes - mapH - lines - 44) / ROW));
+            cap = Math.max(1, Math.floor((room - changes - mapH - lines() - 44) / ROW));
       rows = Math.min(rows, cap);
     }
     S.agRows = rows; S.agCap = cap;
-    ag.style.setProperty("--ag-rows", rows);
+    ag.style.setProperty("--ag-rows", String(rows));
   }
 
-  for (const g of el.querySelectorAll("[data-gut]")) {
-    const [a, b] = g.dataset.gut.split("|");
+  for (const g of /** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("[data-gut]"))) {
+
+    const [a, b] = /** @type {typeof ORDER} */ ((g.dataset.gut || "").split("|"));
+
     let acc = 0; // Threads: the drag that isn't a whole row yet
     let past = 0; // how far the pointer went past where the Map stopped growing
     // the frame below the line sizes (dragging down shrinks it); when it's the one growing, the frame above sizes
-    const sized = () => (el.querySelector(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
-    const mapSizes = () => { const m = el.querySelector('[data-fr="map"]'); return !m.hidden && !fr.map.folded && !m.classList.contains("is-grow"); };
+    const sized = () => (q(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
+    const mapSizes = () => { const m = q('[data-fr="map"]'); return !m.hidden && !fr.map.folded && !m.classList.contains("is-grow"); };
     // the Map grows only into the room Changes can spare with Threads' rows as they are on screen
     const mapTop = () => {
-      const shown = (/** @type {string} */ id) => !el.querySelector(`[data-fr="${id}"]`).hidden;
-      const room = S.stackH, lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      const shown = (/** @type {string} */ id) => !q(`[data-fr="${id}"]`).hidden;
+      const room = S.stackH;
       const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const rows = Math.min(S.agRows || 1, Math.max(1, el.querySelectorAll('[data-fr="agents"] .ag-r').length));
-      return room - changes - lines - 44 - rows * ROW;
+      return room - changes - lines() - 44 - rows * ROW;
     };
     const sizeMap = (/** @type {number} */ d) => {
       const h = fr.map.h || MAP_H;
       fr.map.h = Math.max(MAP_MIN, Math.min(640, d > 0 ? Math.max(h, Math.min(h + d, mapTop())) : h + d));
     };
+    // Changes, sized while Threads has the room, leaves the growing frame and the Map theirs
+    const changesTop = () => {
+      const shown = (/** @type {string} */ id) => !q(`[data-fr="${id}"]`).hidden;
+            const mapH = !shown("map") ? 0 : fr.map.folded ? HEAD : fr.map.h || MAP_H;
+      return S.stackH - lines() - FRAME_MIN - mapH;
+    };
     const resize = (/** @type {number} */ dy) => {
       const { id, sign } = sized();
-      const f = el.querySelector(`[data-fr="${id}"]`);
+      const f = q(`[data-fr="${id}"]`);
       if (id === "agents") {
         // a row at a time, once the drag passes half a row; never taller than its rows or the room left
         let d = sign * dy;
@@ -99,6 +114,8 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
         while (acc >= ROW / 2 && rows < top) { rows++; acc -= ROW; }
         while (acc <= -ROW / 2 && rows > 1) { rows--; acc += ROW; }
         if (rows !== was) fr.agents.rows = rows;
+      } else if (id === "changes") {
+        fr.changes.h = Math.max(FRAME_MIN, Math.min(changesTop(), (fr.changes.h || f.getBoundingClientRect().height) + sign * dy));
       } else fr[id].h = Math.max(MAP_MIN, Math.min(640, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
       fr[id].folded = false;
       layout();
@@ -125,7 +142,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       resize(e.key === "ArrowDown" ? step : -step);
       persist();
     });
-    g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.map.h = MAP_H; layout(); persist(); });
+    g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.changes.h = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
   return { layout, capAgents };

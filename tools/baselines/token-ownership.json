@@ -30,7 +30,6 @@
  "--ease-out",
  "--edge-drop-target",
  "--edge-empty-state",
- "--edge-fade",
  "--edge-home-handled",
  "--edge-map-canvas",
  "--edge-panel-flush",

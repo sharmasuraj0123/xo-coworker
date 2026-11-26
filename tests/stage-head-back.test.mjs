@@ -137,18 +137,7 @@ assert.equal(width(), "592px");
 assert.equal(title(), "");
 assert.equal(back(), null);
 
-const threadList = stage.querySelector('[data-fr="agents"] > .fr-b');
-Object.defineProperties(threadList, { clientHeight: { value: 100 }, scrollHeight: { value: 200 } });
-threadList.scrollTop = 20;
-threadList.dispatchEvent(new window.Event("scroll", { bubbles: true }));
-assert.equal(threadList.classList.contains("is-fade"), true);
-threadList.scrollTop = 100;
-threadList.dispatchEvent(new window.Event("scroll", { bubbles: true }));
-assert.equal(threadList.classList.contains("is-fade"), false);
 panel.disposeLayout();
-threadList.scrollTop = 0;
-threadList.dispatchEvent(new window.Event("scroll", { bubbles: true }));
-assert.equal(threadList.classList.contains("is-fade"), false, "the retired Stage releases its scroll listener");
 assert.equal(places.get("panel.page", "shell"), undefined);
 assert.equal(stage.querySelectorAll(".stg-pg").length, 0, "retiring the Stage unmounts its pages");
 console.log("stage head and Back follow the visible page");

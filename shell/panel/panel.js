@@ -67,23 +67,11 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
       const height = Math.round(entry.contentRect.height);
       if (height === S.stackH) return;
       S.stackH = height;
-      if (S.open) { capAgents(); edges(); }
+      if (S.open) capAgents();
     });
     observer.observe(query(".stg-frames"));
     layoutScope.observe(observer);
   }
-  const LISTS = '[data-fr="agents"] > .fr-b, .ch-old';
-  const edge = (/** @type {Element} */ b) => b.classList.toggle("is-fade", b.scrollTop + b.clientHeight < b.scrollHeight - 1);
-  let edgePending = false;
-  function edges() {
-    if (edgePending) return;
-    edgePending = true;
-    layoutScope.frame(() => { edgePending = false; for (const list of el.querySelectorAll(LISTS)) edge(list); });
-  }
-  layoutScope.listen(el, "scroll", (/** @type {Event} */ e) => {
-    const target = /** @type {Element | null} */ (e.target);
-    if (target?.matches?.(LISTS)) edge(target);
-  }, { capture: true, passive: true });
   const body = (/** @type {string} */ id) => query(`[data-fr="${id}"] .fr-b`);
   const filter = () => /** @type {HTMLInputElement} */ (query("[data-tg-q]"));
   // Threads' body: the filter field (kept, never redrawn under your typing) over the list (drawn in place)
@@ -176,7 +164,6 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const cxHost = query(".cx-host"), old = query(".ch-old");
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch, v)); }
-    edges();
     const empty = hd ? !hd.count : !files.changes(v).length;
     if (S.chEmpty !== empty) {
       // files arriving open Changes under Threads; a fold you made since stays
