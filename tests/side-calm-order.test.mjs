@@ -94,7 +94,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   view = "ws";
   sideRender(needs);
   assert.equal(document.getElementById("nv-home").hasAttribute("aria-current"), false);
-  assert.equal(document.getElementById("nv-ws").getAttribute("aria-current"), "page");
+  assert.equal(document.getElementById("nv-chats").getAttribute("aria-current"), "page", "the Workspace is a place in Chats");
   side.dispatchEvent(new window.Event("pointerenter"));
   needs.length = 0;
   sideRender(needs);

@@ -56,7 +56,6 @@
 .prow.is-on{background:var(--row-on);border-color:var(--row-line-hover)}
 .nr-ic,.pr-ic{position:relative;flex:none;display:grid;place-items:center;width:var(--tile-sm);height:var(--tile-sm);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--sb-g1C);border:1px solid var(--sb-g26);color:var(--ink-3)}
 .nr-ic svg{width:var(--ic);height:var(--ic)}
-.nr-xo .xo-mark{width:18px;height:8px}
 .nrow.is-on .nr-ic{color:var(--ink);background:var(--sb-g26)}
 .nr-name{flex:1;min-width:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nrow.is-on .nr-name{color:var(--ink);font-weight:var(--fw-medium)}

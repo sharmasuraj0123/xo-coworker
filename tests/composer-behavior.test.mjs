@@ -91,6 +91,11 @@ function press(selector, pointerType = "mouse") {
   const event = new window.Event("click", { bubbles: true, cancelable: true });
   element(selector).dispatchEvent(Object.assign(event, { detail: 1, pointerType }));
 }
+async function openWorkspace(pointerType = "mouse") {
+  press("#nv-chats", pointerType);
+  await draw();
+  press('#msgs .chl-row[data-go="ws"]', pointerType);
+}
 function submit() {
   element("#composer").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
 }
@@ -103,7 +108,7 @@ await import("../boot.js");
 await draw();
 const say = element("#say");
 assert.equal(say.value, "Home draft");
-press("#nv-ws");
+await openWorkspace();
 assert.equal(say.value, "Workspace draft");
 assert.ok(document.activeElement === element("#scroller"), "a conversation opens on its landmark");
 write("Keep my Workspace draft");
@@ -112,7 +117,7 @@ press("#nv-home");
 assert.equal(say.value, "Home draft");
 phone = true;
 globalThis.innerWidth = 390;
-press("#nv-ws");
+await openWorkspace("touch");
 assert.ok(document.activeElement === element("#scroller"), "touch navigation opens on the conversation landmark");
 assert.equal(say.value, "Keep my Workspace draft");
 

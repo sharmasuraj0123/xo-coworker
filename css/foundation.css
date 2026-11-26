@@ -60,7 +60,6 @@
 .tw-ic{width:var(--tile-sm);height:var(--tile-sm);border-radius:var(--r-sm)}
 .top-who>.tw-ic{margin-block:calc((var(--lh-title) - var(--tile-sm)) / 2)}
 .tw-ic svg{width:var(--ic);height:var(--ic)}
-.tw-xo .xo-mark{width:var(--w-header-xo-mark);height:var(--h-header-xo-mark)}
 .top[data-kind="project"] .top-who{gap:var(--s-3)}
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
 .pj-s{line-height:var(--lh-ui)}

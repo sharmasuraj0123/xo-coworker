@@ -1,0 +1,4 @@
+/* a phone's model chip names the model; its thinking is a tap away in the picker */
+@media (max-width:760px){
+  .iq .iq-sep,.iq .iq-e{display:none}
+}

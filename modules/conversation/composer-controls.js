@@ -60,26 +60,17 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
   }
   function chatTargetRender() {
     const view = MK.view;
-    sendNowRender(view);
     const perm = requireHtml("#cs-perm", "button"), ph = CH.isChats(view) && !liveBlock() ? CH.permHtml(view) : "";
     perm.hidden = !ph;
     perm.title = CH.permTitle(view);
     fixChip(perm, view !== "chats");
     if (markup.get(perm) !== ph) { perm.innerHTML = ph; markup.set(perm, ph); }
     if (!CH.isChats(view)) { requireHtml("#target", "button").hidden = false; return false; }
-    const html = CH.blocked(view) ? CH.targetHtml(view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view);
+    const html = CH.blocked(view) ? CH.targetHtml(view, MK.say.value) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view, MK.say.value);
     paintComposerTarget(requireHtml("#target", "button"), html);
     requireHtml("#target", "button").hidden = !html;
-    requireHtml("#target", "button").title = view === "chats" ? "The folder a new chat works in" : "";
+    requireHtml("#target", "button").title = view === "chats" ? "A new chat, or the Workspace" : "";
     return true;
-  }
-
-  /** @param {string} view */
-  function sendNowRender(view) {
-    const b = requireHtml("#send-now", "button");
-    const st = CH.isChats(view) && !liveBlock() ? CH.nowState(view) : null;
-    b.hidden = !st;
-    if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
   }
 
   return { chipRender, sendRender, chatTargetRender };

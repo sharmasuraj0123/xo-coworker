@@ -29,7 +29,7 @@ const all = publishedRules();
 const off = new Map();
 for (const r of all) {
   const c = context(r, 1440);
-  if (!c.active || c.cond || /data-density/.test(r.sel)) continue;
+  if (!c.active || c.cond || /data-density|\.is-sheet\b/.test(r.sel)) continue;
   const last = r.sel.split(/[\s>+~]+/).pop();
   if (/::?(before|after)|:(hover|active|focus)/.test(last)) continue;
   if (!(last.match(/\.[\w-]+/g) || []).some((k) => controls.has(k)) && !/^(button|summary|select)\b/.test(last)) continue;

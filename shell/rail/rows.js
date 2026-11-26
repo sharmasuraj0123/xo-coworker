@@ -18,7 +18,7 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
   const washes = new Map();
   /** @type {Map<string, number>} */
   let previousNeeds = new Map();
-  let signature = "", ready = false, homeCount = -1, workspaceCount = -1, chatsLive = "";
+  let signature = "", ready = false, homeCount = -1, chatsLive = "";
   /** @param {N[]} needs */
   const sideRender = (needs) => {
     const current = view();
@@ -28,27 +28,24 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
     const hnHtml = n ? `<span class="nv-dot" aria-hidden="true"></span>${n}` : "";
     if (homeCount !== n) { redraw(hn, hnHtml); homeCount = n; }
     requireHtml("#nv-home", "button").setAttribute("aria-label", n ? `Home, ${n} need you` : "Home, nothing needs you");
-    // the Workspace's own coordinator asking: the same amber mark on its row, as a project's row has
-    const wsN = mine.filter((x) => x.t.host && x.t.project === "workspace").length;
-    const wnHtml = wsN ? `<span class="nv-dot" aria-hidden="true"></span>${wsN}` : "";
-    const wn = findHtml("#ws-n");
-    if (workspaceCount !== wsN) { redraw(wn, wnHtml); workspaceCount = wsN; }
-    requireHtml("#nv-ws", "button").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
-    const live = CH.live();
-    if (chatsLive !== live) {
+    // Chats holds the Workspace too: its coordinator asking or working lights the same dot a chat does
+    const asking = mine.some((x) => x.t.host && x.t.project === "workspace");
+    const ws = asking ? "waiting" : world.act.coordinatorBusy("workspace") ? "working" : "";
+    const chat = CH.live(), live = chat === "waiting" || ws === "waiting" ? "waiting" : chat || ws;
+    const who = (chat === live ? "a chat" : "the Workspace") + (live === "waiting" ? " needs you" : " is working");
+    if (chatsLive !== who + live) {
       const chats = requireHtml("#nv-chats", "button");
       requireHtml("#chats-live").className = live ? `nr-live is-${live}` : "nr-live";
-      if (live) chats.setAttribute("aria-label", live === "waiting" ? "Chats, a chat needs you" : "Chats, a chat is working");
+      if (live) chats.setAttribute("aria-label", `Chats, ${who}`);
       else chats.removeAttribute("aria-label");
-      chatsLive = live;
+      chatsLive = who + live;
     }
     requireHtml("#nv-home", "button").classList.toggle("is-on", current === "home");
-    requireHtml("#nv-ws", "button").classList.toggle("is-on", current === "ws");
-    requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current));
+    requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current) || current === "ws");
     requireHtml("#nv-arts", "button").classList.toggle("is-on", current === "artifacts");
     requireHtml("#nv-lp", "button").classList.toggle("is-on", current === "launchpad");
     // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
-    for (const id of ["nv-home", "nv-ws", "nv-chats", "nv-arts", "nv-lp"]) {
+    for (const id of ["nv-home", "nv-chats", "nv-arts", "nv-lp"]) {
       const b = requireHtml("#" + id, "button");
       if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page");
       else b.removeAttribute("aria-current");

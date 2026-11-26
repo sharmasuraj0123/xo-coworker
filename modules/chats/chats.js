@@ -22,7 +22,7 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 /** @param {Session} a @param {Session} b */
 const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
   const scope = createScope();
   /** @type {ChatState} */
   const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
@@ -37,8 +37,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? /** @type {Runtime | null} */ (mainRuntime(world.state.runtimes)) : null) || null;
   /** @param {Runtime | null} rt @param {string} key */
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
-  /** @param {Runtime | null} rt @param {string} key */
-  const offers = (rt, key) => { const f = feature(rt, key); return !!f && (f.support === "native" || f.support === "emulated"); };
 
   const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName });
 
@@ -47,8 +45,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const titleFor = (s) => titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
   /** @param {string | null | undefined} cwd */
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
-  /** @param {string} t */
-  const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   /** @param {string | null | undefined} agent @param {string} id */
   const modelWord = (agent, id) => { const m = (C.models.get(/** @type {string | null} */ (agent)) || []).find((x) => x.id === id); return m?.name ?? id; };
   /** @param {string | null | undefined} agent */
@@ -73,8 +69,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   scope.effect(() => world.subscribe?.(() => {
     titleList.noteSessions();
-    // a "send now" chosen for a turn ends with that turn, wherever you are when it ends
-    if (C.now && !inTurn(session(C.now))) C.now = null;
     const v = view && view();
     if (v && v !== "chats") titleList.stop();
     if (!v || !v.startsWith("c:")) return;
@@ -82,6 +76,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const s = session(sid), h = C.hist.get(sid);
     if (s?.native_id && h && h.tried !== s.native_id) loadChat(sid, { afterTurn: true });
   }));
+  /** A prompt sent while a turn ran waits behind it, as in a thread: or Interrupt, and it reads this now. @param {Session} s @param {import("./types").Prompt} m */
+  const waitingMeta = (s, m) => !m.waits || m.status !== "sent" || !inTurn(s) || (world.act.turnOf?.(s.id) || "turn") !== m.waits ? ""
+    : world.act.sessionState?.(s.id) === "stopping"
+    ? `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`
+    : `<div class="meta"><span>Waiting · it reads this when its current turn ends</span><button type="button" class="meta-btn" data-interrupt title="Stop its current turn so it reads this now (Undo for 3 s)">${ICON.bolt}Interrupt</button></div>`;
   /** @param {string} sid */
   function chatItems(sid) {
     const s = session(sid);
@@ -102,7 +101,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         const meta = m.status === "sending" ? `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`
           : m.status === "held" ? `<div class="meta is-warn"><span>Waiting for your choice below</span></div>`
           : m.status === "failed" ? `<div class="meta is-err"><span title="${esc(m.err || "")}">${esc(m.errTitle || "Not sent")}</span><button type="button" class="meta-btn" data-chat-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-chat-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`
-          : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${inTurn(s) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
+          : waitingMeta(s, m);
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { view: "c:" + sid, open: transcriptOpen?.() ?? world.ui?.tbOpen });
@@ -123,13 +122,16 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
+  /** A new chat works in the first project you @: its folder. @param {string} text */
+  const aimedAt = (text) => [...text.matchAll(/(?:^|\s)@([\w.-]+)/g)]
+    .map((m) => (world.state.projects || []).find((p) => p.id === m[1] && p.kind === "project")).find(Boolean) || null;
   /** @param {string} v */
-  function targetHtml(v) {
+  function targetHtml(v, text = "") {
     if (v === "chats") {
-      const st = setup();
+      const st = setup(), cwd = aimedAt(text);
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
+      return `${ICON.thread}<span>New chat${cwd ? ` in ${esc(cwd.name)}` : ""}</span>${ICON.chevron}`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -138,7 +140,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (inTurn(s)) {
       const rt = runtime(s.agent);
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
-      if (C.now === s.id) return `<span class="tg-t tg-now-on">${ICON.bolt}</span><span>Sends now: <b>stops the turn in progress</b></span>`;
       return `<span class="tg-t">${ICON.thread}</span><span>${steer ? "Adds to the turn in progress" : "Waits for the turn in progress"}</span>`;
     }
     // held back by a gate: a reply waits with what's already waiting, and runs with it
@@ -146,8 +147,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return ""; // the box's own "Reply in this chat…" says it
   }
 
-  /** @param {string} cwd */
-  const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
   /** An open chat's own agent, model, thinking and mode, as the new chat's chips show them (fixed: set when it started). @param {string} v */
   const ownOf = (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.agent ? { agent: s.agent, model: s.model || null, effort: s.effort || null, mode: s.permission_mode || null, cwd: s.cwd } : null; };
   /** @param {string} v */
@@ -183,13 +182,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return `A new chat runs ${rtName(st.agent)} · ${st.model ? modelWord(st.agent, st.model) : "its default model"}${st.effort ? ` · ${EFFORT_WORD[st.effort] || st.effort}` : ""}. Change it`;
   }
 
-  /** "Send now" is its own toggle beside the line, only where the runtime can interrupt a turn. @param {string} v */
-  function nowState(v) {
-    const s = v && v.startsWith("c:") ? session(v.slice(2)) : null;
-    if (!s || !inTurn(s) || !offers(runtime(s.agent), "interrupt")) return null;
-    return { on: C.now === s.id };
-  }
-
   /** @param {string} v @param {string} text */
   async function send(v, text) {
     const sid = v.startsWith("c:") ? v.slice(2) : null;
@@ -198,12 +190,13 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!sid) {
       const st = setup();
       if (!st.agent) { announce("No agent can chat here yet."); return; }
-      local.body = { text, client_id: local.cid, agent: st.agent, ...(st.model ? { model: st.model } : {}), ...(st.effort && effortsFor(st).includes(st.effort) ? { effort: st.effort } : {}), ...(st.mode ? { permission_mode: st.mode } : {}), ...(st.cwd ? { cwd: st.cwd } : {}) };
+      local.body = { text, client_id: local.cid, agent: st.agent, ...(st.model ? { model: st.model } : {}), ...(st.effort && effortsFor(st).includes(st.effort) ? { effort: st.effort } : {}), ...(st.mode ? { permission_mode: st.mode } : {}), ...(aimedAt(text) ? { cwd: aimedAt(text)?.id } : {}) };
     } else {
       const s = session(sid);
       const rt = s ? runtime(s.agent) : null;
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
-      const delivery = s && inTurn(s) ? (C.now === sid && offers(rt, "interrupt") ? "now" : steer ? "add" : null) : null;
+      const delivery = s && inTurn(s) && steer ? "add" : null;
+      if (s && inTurn(s) && !steer) local.waits = world.act.turnOf?.(sid) || "turn";
       local.body = { text, client_id: local.cid, session_id: sid, ...(delivery ? { delivery } : {}) };
       (C.local.get(sid) || /** @type {LocalPrompt[]} */ (C.local.set(sid, []).get(sid))).push(local);
       schedule();
@@ -227,7 +220,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     if (scope.signal.aborted) return;
     local.status = "sent";
-    if (local.body.delivery === "now") C.now = null;
     try {
       if (!sid) {
         const old = /** @type {Partial<Session> | undefined} */ (world.state.sessions[r.session_id]);
@@ -265,7 +257,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     C.confirm.delete(c.sid);
     if (choice === "now") c.local.body = { ...c.local.body, delivery: "now", confirm_stop_runs: c.count };
     else c.local.body = { ...c.local.body, delivery: "add" };
-    C.now = null;
     deliver(c.local, c.sid);
   }
 
@@ -274,9 +265,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       titleList.invalidateEmpty(e.session);
       if (view?.() === "c:" + e.session) void loadChat(e.session, { afterTurn: true });
     }
-    if (e.kind !== "now_became_add") return;
-    for (const list of C.local.values()) for (const l of list) if ((e.wakes || []).includes(`msg:prompt:${l.cid}`)) l.added = true;
-    schedule();
   }));
 
   return {
@@ -292,11 +280,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
       const rows = sessions().sort(recentFirst);
       const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
-      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
+      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime, workspace: workspace?.() ?? null });
     },
-    headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
+    headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm,
     /** @param {string} v */
-    placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
+    placeholder: (v) => (v === "chats" ? "Ask anything, or @ a project to work in it…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
     /** @param {string} v */
     session: (v) => (v && v.startsWith("c:") ? session(v.slice(2)) : null),
     /** @param {string} v */
@@ -312,8 +300,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
     permHtml,
     toggleSetup,
-    /** @param {string} v */
-    toggleNow: (v) => { const sid = v.slice(2); const s = session(sid); if (!s || !offers(runtime(s.agent), "interrupt")) return; C.now = C.now === sid ? null : sid; schedule(); },
     /** @param {string} id */
     retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id && x.status === "failed"); if (l) { deliver(l, sid); return; } } },
     /** A failed message taken back to edit: it leaves the chat and its text is returned. @param {string} id */

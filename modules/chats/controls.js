@@ -7,7 +7,7 @@ import { radioKeys } from "../../core/ui/a11y/keynav.js";
 const LEAD = "--cs-lead";
 
 /** @param {ChatControls} controls */
-export function bindChatControls({ scope, list, scroller, greeting, setup, phone, chats, updateComposer }) {
+export function bindChatControls({ scope, list, scroller, greeting, setup, phone, chats, updateComposer, openWorkspace }) {
   scope.listen(list, "input", ({ target }) => {
     const input = target instanceof Element ? target.closest("input") : null;
     if (input && input === target && input.matches("[data-chl-q]")) chats.search(input.value);
@@ -30,6 +30,7 @@ export function bindChatControls({ scope, list, scroller, greeting, setup, phone
   scope.effect(() => radioKeys(setup));
   scope.listen(setup, "click", ({ target }) => {
     if (!(target instanceof Element)) return;
+    if (target.closest("[data-cs-ws]")) { chats.closeSetup(); openWorkspace(); return; }
     const mode = target.closest("[data-csmode]")?.getAttribute("data-csmode");
     if (mode != null) {
       chats.setPref("mode", mode);
@@ -48,9 +49,7 @@ export function bindChatControls({ scope, list, scroller, greeting, setup, phone
 
   /** @param {Element} target */
   function changeSetup(target) {
-    const cwd = target.closest("[data-cs-cwd]")?.getAttribute("data-cs-cwd");
-    if (cwd != null) {
-      chats.setPref("cwd", cwd);
+    if (target.closest("[data-cs-chat]")) {
       chats.closeSetup();
       return true;
     }

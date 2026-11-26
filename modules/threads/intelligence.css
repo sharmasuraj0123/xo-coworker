@@ -43,7 +43,7 @@
 .iq-now b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .iq-lab{padding:10px var(--s-2) 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .iq-list{display:flex;flex-direction:column;max-height:var(--pop-list-h);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-.iq-row{flex:none;display:flex;align-items:center;gap:var(--s-2);min-width:0;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);cursor:pointer;outline:none}
+.iq-row{flex:none;display:flex;align-items:center;gap:var(--s-2);min-width:0;text-align:start;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);cursor:pointer;outline:none}
 .iq-row:hover{background:var(--hover-fill)}
 .iq-row:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .iq-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
@@ -55,13 +55,17 @@
 .iq-tr{flex:1;min-width:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iq-ck{flex:none;width:14px;height:14px;margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:opacity var(--d-hover) var(--ease),transform var(--d-hover) var(--ease)}
 .iq-row.is-sel .iq-n{color:var(--ink)}
+.iq-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.iq-ic svg{width:var(--ic);height:var(--ic)}
+.iq-row.is-sel .iq-ic{color:var(--ink-2)}
+.iq-go{flex:none;width:var(--ic-sm);height:var(--ic-sm);margin-left:auto;color:var(--ink-4)}
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
 /* a choice that needs its sentence: the mark, the name over what it means */
 .iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}
 .iq-pop.is-sheet .iq-row.cs-mrow{height:auto;min-height:var(--h-hit)}
 .cs-mi{flex:none;width:var(--ic);height:var(--ic);margin-top:calc((var(--lh-ui) - var(--ic)) / 2);color:var(--ink-3)}
 .cs-mrow.is-sel .cs-mi{color:var(--ink)}
-.cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:start}
 .cs-mrow .iq-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .cs-md{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-wrap:pretty}
 .cs-mrow .iq-ck{align-self:center}

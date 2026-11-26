@@ -57,6 +57,28 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   paint();
   assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:idle"]);
 });
+t("the Workspace rests above your recent chats, says who is at work, and leaves All chats to your chats", () => {
+  const sessions = { one: { role: "plain", agent: "codex", id: "one", state: "idle", created_at: at(0) } };
+  const workspace = { projects: 3, working: 2, coordinator: true };
+  const chats = createChats({ world: { state: { sessions }, act: {}, onEvent() {} }, schedule() {}, workspace: () => workspace });
+  const box = document.createElement("div");
+  const paint = () => { box.innerHTML = chats.items("chats").map((row) => row.html).join(""); };
+  paint();
+  const rows = [...box.querySelectorAll(".chl-row")];
+  assert.equal(rows[0].dataset.go, "ws");
+  assert.ok(rows[0].closest(".chl-pin"));
+  assert.equal(rows[0].querySelector(".chl-a").textContent, "2 working · 3 projects");
+  assert.equal(rows[0].getAttribute("aria-label"), "Workspace: your coordinator across 3 projects, 2 working");
+  workspace.working = 0;
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"] .chl-a').textContent, "Working · 3 projects", "its own turn counts too");
+  workspace.coordinator = false;
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"] .chl-a').textContent, "3 projects");
+  chats.showAll(true);
+  paint();
+  assert.equal(box.querySelector('[data-go="ws"]'), null);
+});
 
 {
   const { document } = await dom('<button id="setup" aria-expanded="false">Folder</button><div id="cs-pop" tabindex="-1" hidden></div>');
@@ -77,22 +99,23 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   });
   const anchor = document.getElementById("setup"), pop = document.getElementById("cs-pop");
   const chats = makeChats();
-  await chats.openSetup(anchor, "cwd");
+  await chats.openSetup(anchor, "to");
   assert.equal(pop.hidden, false);
   assert.equal(anchor.getAttribute("aria-expanded"), "true");
-  const option = pop.querySelector('[data-cs-cwd="demo"]');
-  assert.equal(option.getAttribute("aria-checked"), "false");
+  assert.deepEqual([...pop.querySelectorAll(".iq-row")].map((row) => row.textContent), ["ChatAsk anything", "WorkspaceAll 1 project"], "two places: a chat, or the Workspace");
+  assert.equal(pop.querySelector("[data-cs-cwd]"), null, "no folder list: @ a project instead");
+  const option = pop.querySelector("[data-cs-chat]");
+  assert.equal(option.getAttribute("aria-current"), "true");
   option.focus();
-  chats.setPref("cwd", "demo");
   chats.renderSetup();
-  same(document.activeElement, option, "redraw keeps the active folder option");
-  assert.equal(option.getAttribute("aria-checked"), "true");
-  assert.equal(JSON.parse(storage.get("cv-chat-prefs")).cwd, "demo");
+  same(document.activeElement, option, "redraw keeps the active option");
   chats.closeSetup();
   assert.equal(pop.hidden, true);
-  same(document.activeElement, anchor, "closing returns focus to the folder chip");
-  await makeChats().openSetup(anchor, "cwd");
-  assert.equal(pop.querySelector('[data-cs-cwd="demo"]').getAttribute("aria-checked"), "true");
+  same(document.activeElement, anchor, "closing returns focus to the chip");
+  storage.set("cv-chat-prefs", JSON.stringify({ cwd: "demo" }));
+  assert.match(makeChats().targetHtml("chats", "what is in here"), /<span>New chat<\/span>/, "a folder picked before no longer steers a new chat");
+  assert.match(chats.targetHtml("chats", "look at @demo please"), /<span>New chat in Demo project<\/span>/, "@ a project and the chat works in it");
+  assert.match(chats.targetHtml("chats", "mail me@demo or @nope"), /<span>New chat<\/span>/, "only a known project, and only as its own word");
   await chats.openSetup(anchor, "mode");
   const modes = [...pop.querySelectorAll("[data-csmode]")];
   assert.equal(pop.querySelector("h2").textContent, "How much should it do on its own?");
@@ -168,15 +191,10 @@ t("Permission choices have readable explanations and fixed model and mode chips 
   }
 });
 
-t("Send now is a filled capsule and can fit next to the phone composer", () => {
+t("The model chip gives way on a phone: it names the model, its thinking a tap away", () => {
   assert.ok(rules.some(({ sel, declarations: rows }) => sel === ".iq"
     && rows.some(({ p, v }) => p === "flex" && v === "0 1 auto")), "the model chip gives way");
-  style(".tg-now", { "border-radius": "var(--r-pill)", background: "var(--btn-fill)" });
-  assert.ok(!Object.hasOwn(declarations(".tg-now"), "border"), "no rim of its own");
   const phone = "@media (max-width:760px)";
-  style(".tg-now", { height: "var(--h-touch)" }, phone);
-  for (const selector of [".iq .iq-sep", ".iq .iq-e", ".target:not(.cs-perm):has(~.tg-now:not([hidden]))"]) {
-    style(selector, { display: "none" }, phone);
-  }
+  for (const selector of [".iq .iq-sep", ".iq .iq-e"]) style(selector, { display: "none" }, phone);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

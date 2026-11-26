@@ -1,6 +1,6 @@
 // @ts-check
-import { ICON, XO } from "../../core/ui/icons/names.js";
-import { stateMark } from "../../core/ui/icons/icon.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { stateMark, xi } from "../../core/ui/icons/icon.js";
 import { contributedSearch } from "../../shell/places.js";
 import { createJump } from "./jump.js";
 
@@ -18,7 +18,7 @@ function createJumpItems({ D, projects, threadsOf, projectIcon, glyphOf, wordOf 
   /** @param {string} q */
   return function jumpPlaces(q) {
     /** @type {JumpItem[]} */
-    const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }, { v: "launchpad", name: "Launchpad", sub: "Every project's app on the web", icon: ICON.deploy }];
+    const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: xi("layers") }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }, { v: "launchpad", name: "Launchpad", sub: "Every project's app on the web", icon: ICON.deploy }];
     const needN = new Map();
     for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
     const shown = q ? projects().sort((a, b) => Number(needN.has(b.id)) - Number(needN.has(a.id))) : projects();

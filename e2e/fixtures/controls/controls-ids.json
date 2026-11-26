@@ -13,10 +13,6 @@
    "key": "#nv-home",
    "aliases": []
   },
-  "C003": {
-   "key": "#nv-ws",
-   "aliases": []
-  },
   "C004": {
    "key": "#nv-chats",
    "aliases": []
@@ -1055,10 +1051,6 @@
    "key": "#att-input",
    "aliases": []
   },
-  "S141": {
-   "key": "#send-now",
-   "aliases": []
-  },
   "S142": {
    "key": "#pn-x",
    "aliases": []
@@ -1633,10 +1625,6 @@
   "C002": {
    "kind": "C",
    "key": "#nv-home"
-  },
-  "C003": {
-   "kind": "C",
-   "key": "#nv-ws"
   },
   "C004": {
    "kind": "C",

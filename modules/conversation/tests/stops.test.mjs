@@ -48,3 +48,23 @@ test("conversation Stop owns its undo window and ignores a write settling after 
     mock.timers.reset();
   }
 });
+
+test("Interrupt on a plain chat's waiting message stops its turn, with the same undo window as a thread", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  const writes = [], notices = [];
+  const stop = createConversationStops({
+    world: { act: { turnOf: () => "turn", stop: (session) => { writes.push(session); return Promise.resolve({ stopped: true }); } } },
+    Kit: { COMMIT_MS: 100 }, PROJ: () => "Project", announce() {}, schedule() {}, chatOf: () => null,
+    pendingStops: createPendingRunStops(), heraldShow: (notice) => notices.push(notice.text), dismissStops() {}, inUse: () => () => null,
+    running: (view) => ({ kind: "chat", session: String(view).slice(2) }), workingRuns: () => 0,
+  });
+  try {
+    stop.interruptRun("c:s1");
+    assert.deepEqual(notices, ["Interrupting"]);
+    mock.timers.tick(100);
+    assert.deepEqual(writes, ["s1"]);
+  } finally {
+    stop.dispose();
+    mock.timers.reset();
+  }
+});

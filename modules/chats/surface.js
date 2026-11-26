@@ -19,13 +19,19 @@ import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const chatModelModule = {
   manifest: { id: "xo.chat-model", version: "1.0.0", kernel: "^1.1.0", core: true,
-    needs: ["world", "announce", "notices", "navigation", "currentView", "conversationSession", "conversationPresentation"],
+    needs: ["world", "announce", "notices", "navigation", "currentView", "conversationSession", "conversationPresentation",
+      "placeContext", "threadPresentation"],
     optional: ["composer"], provides: ["chats"] },
   activate(ctx) {
     const session = ctx.use("conversationSession"), view = ctx.use("currentView"), { go } = ctx.use("navigation");
     const { turnHtml, turnAv } = ctx.use("conversationPresentation");
+    const world = ctx.use("world"), { projects } = ctx.use("placeContext"), { isBusy } = ctx.use("threadPresentation");
     const chats = createChats({
-      world: ctx.use("world"), announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
+      workspace: () => ({
+        projects: projects().length, working: world.state.threads.filter(isBusy).length,
+        coordinator: !!world.act.coordinatorBusy("workspace"),
+      }),
+      world, announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
       schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#msgs"), transcriptOpen: session.folds.open,
       restore(text, { force = false } = {}) {
         const composer = ctx.optional("composer");
@@ -46,16 +52,17 @@ export const chatModelModule = {
 export const chatControlsModule = {
   manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
     needs: ["world", "projectName", "currentView", "announce", "notices", "conversationSession", "chats",
-      "intelligence", "composer", "runControls"],
+      "intelligence", "composer", "runControls", "navigation"],
     contributes: ["conversation.press:chat-message"] },
   activate(ctx) {
     if (!PHONE) throw new Error("Chat controls need media queries");
     const phone = PHONE, view = ctx.use("currentView"), session = ctx.use("conversationSession");
     const chats = ctx.use("chats"), { updateComposer, putBack, liveBlock, refuse, mentions } = ctx.use("composer");
+    const { go } = ctx.use("navigation");
     const composer = () => session.composer.say;
     const stop = ctx.use("runControls").stopRun, intel = ctx.use("intelligence");
     /** @param {ChatButtons} buttons */
-    function bindComposerButtons({ scope, target, permissions, sendNow, intelligence, aim, toggleIntelligence }) {
+    function bindComposerButtons({ scope, target, permissions, intelligence, aim, toggleIntelligence }) {
       /** @param {HTMLElement} anchor @param {string} part */
       function setup(anchor, part) {
         chats.toggleSetup(anchor, part);
@@ -63,16 +70,11 @@ export const chatControlsModule = {
       }
       scope.listen(target, "click", () => {
         const active = view();
-        if (active === "chats") setup(target, "cwd");
+        if (active === "chats") setup(target, "to");
         else if (active.startsWith("c:")) composer().focus();
         else aim();
       });
       scope.listen(permissions, "click", () => { if (view() === "chats") setup(permissions, "mode"); });
-      scope.listen(sendNow, "click", () => {
-        chats.toggleNow(view());
-        updateComposer();
-        composer().focus();
-      });
       scope.listen(intelligence, "click", () => {
         const active = view();
         if (active === "chats") setup(intelligence, "model");
@@ -113,14 +115,21 @@ export const chatControlsModule = {
 
     bindComposerButtons({
       scope: ctx, target: requireHtml("#target", "button"), permissions: requireHtml("#cs-perm", "button"),
-      sendNow: requireHtml("#send-now", "button"), intelligence: requireHtml("#iq", "button"),
+      intelligence: requireHtml("#iq", "button"),
       updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
     });
+    // what was typed for a new chat goes with you to the Workspace, and stays only there
+    function openWorkspace() {
+      const say = composer(), text = say.value.trim();
+      say.value = "";
+      go("ws", { carry: true, focus: true });
+      if (text) putBack(text);
+    }
     const setup = requireHtml("#cs-pop");
     sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
       close: () => { chats.closeSetup(); updateComposer(); } });
     bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
-      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer });
+      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer, openWorkspace });
     const reply = replyNotices(
       view, ctx.use("projectName"), ctx.use("notices").show, ctx.use("announce"), () => ctx.invalidate("workspace"));
     ctx.effect(() => ctx.use("world").onEvent(reply));

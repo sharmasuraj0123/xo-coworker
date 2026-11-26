@@ -26,7 +26,8 @@ export const cases = [{ name: "coordinator replacement, Stop and retirement", se
   await t.open();
   const row = t.page.locator('#projects [data-go="p:demo"]');
   const send = t.page.locator("#send");
-  await t.page.locator("#nv-ws").click();
+  await t.page.locator("#nv-chats").click();
+  await t.page.locator('#msgs .chl-row[data-go="ws"]').click();
   await t.settle();
   assert.equal(await send.getAttribute("title"), "Send (Enter)");
   await row.click();

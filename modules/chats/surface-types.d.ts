@@ -10,7 +10,6 @@ declare module "../../core/kernel/types" {
 export interface ChatButtons extends Pick<ChatControls, "scope" | "updateComposer"> {
   target: HTMLElement;
   permissions: HTMLElement;
-  sendNow: HTMLElement;
   intelligence: HTMLElement;
   aim(): void;
   toggleIntelligence(view: string, button: HTMLElement): void;

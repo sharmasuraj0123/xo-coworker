@@ -84,6 +84,7 @@ export function createConversationStops({ world, Kit, PROJ, announce, schedule, 
   function interruptRun(view) {
     const run = running(view);
     if (run && run.kind === "thread") stopLive(run, { interrupt: true, runs: workingRuns(run.t) });
+    else if (run && run.kind === "chat") stopLive(run, { interrupt: true });
   }
 
   return { stopsHerald, stopRun, interruptRun, isStopping, dispose: scope.dispose };

@@ -55,6 +55,10 @@
 .chl-a{flex:none;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .chl-a.is-need{color:var(--warn);font-weight:var(--fw-strong)}
 .chl-a.is-busy{color:var(--info)}
+/* the Workspace rests above your chats: its reach where a chat has its time */
+.chl-pin{margin:0 0 var(--s-5)}
+.chl-sub{color:var(--ink-4)}
+.chl-a>.is-busy{color:var(--info)}
 .chl-calm{margin-top:var(--s-3)}
 .cs-pop{max-height:min(var(--h-chat-picker-max),80vh);overflow-y:auto}
 .ch-confirm{
