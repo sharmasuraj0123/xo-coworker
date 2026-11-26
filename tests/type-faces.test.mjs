@@ -61,6 +61,14 @@ test("the reading face provides the metrics for the composer, bubbles and messag
   assert.equal(declarationsFor(".md-h", "font-family").length, 0);
 });
 
+test("a Markdown page reads in chat's face and metrics, its headings and list marks included", () => {
+  const page = new Map(declarationsFor(".vw-doc .cm-xo-page .cm-scroller").map(({ property, value }) => [property, value.trim()]));
+  assert.equal(page.get("font"), "var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read)");
+  for (const property of ["--cap-mid", "--asc", "--desc"]) assert.equal(page.get(property), `var(${property}-read)`, property);
+  assert.equal(declarationsFor(".cm-md-h,.cm-md-h *", "font-family").length, 0, "headings keep the reading face");
+  for (const mark of [".cm-md-bullet", ".cm-md-olnum"]) assert.deepEqual(valuesFor(mark, "color"), valuesFor(".prose li::marker", "color"), mark);
+});
+
 test("the shared type scale retains the reading and interface steps", () => {
   const scale = (prefix, steps) => steps.map((name) => tokens.get(`--${prefix}-${name}`));
   assert.deepEqual(scale("fs", ["meta", "ui", "code", "read", "title", "input", "heading", "display", "hero"]),

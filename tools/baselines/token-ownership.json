@@ -1,6 +1,5 @@
 [
  "--asc",
- "--asc-read",
  "--asc-ui",
  "--blur-drop-veil",
  "--blur-map-label",
@@ -8,7 +7,6 @@
  "--bubble-foot",
  "--bubble-line",
  "--bubble-top",
- "--cap-mid-read",
  "--comp-ctl",
  "--comp-in",
  "--coord-tint",
@@ -19,7 +17,6 @@
  "--danger-fill-press",
  "--danger-line",
  "--desc",
- "--desc-read",
  "--desc-ui",
  "--dock-gap",
  "--dot-map-core",

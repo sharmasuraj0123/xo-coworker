@@ -28,7 +28,10 @@
 
 /* Markdown page typography and editing marks. */
 .vw-doc.is-page{background:var(--surface);container-type:inline-size}
-.vw-doc .cm-xo-page .cm-scroller{font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink-read)}
+.vw-doc .cm-xo-page .cm-scroller{
+  font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink-read);
+  --cap-mid:var(--cap-mid-read);--asc:var(--asc-read);--desc:var(--desc-read)
+}
 /* A wide table or drawing scrolls inside its own box; the page keeps the panel's width. */
 .vw-doc .cm-xo-page .cm-content{
   box-sizing:border-box;min-width:0;max-width:var(--w-md-page);margin:0 auto;
@@ -36,7 +39,7 @@
 }
 .vw-doc .cm-xo-page .cm-activeLine{background:var(--fill-clear)}
 .vw-doc .cm-xo-page .cm-line{padding:var(--md-line-padding,0)}
-.cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--ink)}
+.cm-md-h,.cm-md-h *{font-weight:var(--fw-strong);color:var(--ink)}
 .cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);--md-line-padding:var(--s-2) 0 var(--s-2)}
 .cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);--md-line-padding:var(--s-6) 0 var(--s-1)}
 .cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);--md-line-padding:var(--s-4) 0 0}
@@ -60,8 +63,9 @@
 }
 .cm-md-li.is-task{--md-hang:calc(var(--ic-base) + var(--s-2))}
 .cm-md-li :is(.cm-md-bullet,.cm-md-olnum,.cm-md-task){text-indent:0}
-.cm-md-bullet{display:inline-block;width:var(--md-hang);color:var(--ink-3)}
-.cm-md-olnum{display:inline-block;min-width:var(--md-hang);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.vw-doc .cm-xo-page .cm-md-li+.cm-md-li{padding-top:calc(var(--lh-read) * .25)}
+.cm-md-bullet{display:inline-block;width:var(--md-hang);color:var(--ink-4)}
+.cm-md-olnum{display:inline-block;min-width:var(--md-hang);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .cm-md-gap{line-height:calc(var(--lh-read) / 2)}
 .cm-md-block{margin:var(--s-2) 0;padding:0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
 .cm-md-imath{cursor:text}
