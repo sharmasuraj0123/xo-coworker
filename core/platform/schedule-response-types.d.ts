@@ -70,7 +70,7 @@ export interface ScheduleRuns {
 }
 
 export interface ScheduleApi {
-  schedules(signal?: AbortSignal): Promise<ScheduleList>;
+  schedules(): Promise<ScheduleList>;
   schedule(id: string): Promise<ScheduledJob>;
   scheduleRuns(id: string, query?: Record<string, unknown>): Promise<ScheduleRuns>;
 }

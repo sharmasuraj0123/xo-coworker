@@ -43,7 +43,7 @@ function isSessionFields(value) {
 /** @param {unknown} value @returns {value is Wire.SessionRecord} */
 export function isSession(value) {
   return isResponseObject(value) && typeof value.id === "string" && isSessionFields(value)
-    && [value.title, value.chat_id, value.thread_ts, value.pool, value.cwd, value.native_id, value.retired_at].every(textOrNone)
+    && [value.chat_id, value.thread_ts, value.pool, value.cwd, value.native_id, value.retired_at].every(textOrNone)
     && [value.role, value.preset, value.created_at, value.updated_at].every(optionalText)
     && optionalNumber(value.seq) && optionalNumber(value.epoch);
 }

@@ -21,7 +21,9 @@ export type HeaderDeps<N extends HeaderNeed> = {
   places: Parameters<typeof headerActionsHtml>[0];
   atOf(view: string): Parameters<typeof headerActionsHtml>[1];
   convHost: MessageContext["convHost"];
+  homeParts(needs: N[]): { held: unknown[] };
   projects(): unknown[];
+  doneToday(): unknown[];
   isBusy(thread: HeaderThread): boolean;
   isHeld(thread: HeaderThread): boolean;
   threadCounts(project: string, needs: N[]): ThreadCounts;

@@ -14,8 +14,7 @@ export function headerActionsHtml(places, at) {
   /** @type {Action[]} */
   const actions = places.entries("header.action", at);
   return actions.map((e) =>
-    `<button type="button" class="tw-act" data-header-action="${esc(e.id)}" aria-label="${esc(e.label)}" title="${esc(e.label)}">`
-    + `${hasIcon(e.icon) ? xi(e.icon) : ""}<span>${esc(e.label)}</span></button>`).join("");
+    `<button type="button" class="tw-act" data-header-action="${esc(e.id)}" title="${esc(e.label)}">${hasIcon(e.icon) ? xi(e.icon) : ""}<span>${esc(e.label)}</span></button>`).join("");
 }
 
 /** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {Pick<Places, "get">} places @param {() => At} at */

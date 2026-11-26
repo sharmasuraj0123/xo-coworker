@@ -33,7 +33,6 @@ import { workspaceRendererModule } from "../shell/render.js";
 import { appServicesModule } from "../shell/world.js";
 import { shapeModule } from "../core/services/shape/module.js";
 import { launchpadModule } from "../modules/launchpad/surface.js";
-import { spacePages } from "../modules/space/module.js";
 import { fileSearchModule } from "../modules/search/file-search-module.js";
 import { jumpModule } from "../modules/search/jump-module.js";
 import { changeDataModule } from "../modules/changes/data.js";
@@ -79,7 +78,6 @@ export default await bootShell([
   checklistModule,
   conversationPresentationModule,
   launchpadModule,
-  spacePages,
   intelModule,
   projectIconsModule,
   threadRuntimeModule,

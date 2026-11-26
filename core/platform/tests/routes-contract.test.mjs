@@ -21,7 +21,6 @@ const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl 
 
 const STREAM_OPTIONS = { signal: new AbortController().signal, on() {} };
 const ARGS = {
-  schedules: [[STREAM_OPTIONS.signal]],
   projectTree: [["x", "y"]],
   githubIssue: [["x", "y"]],
   githubPull: [["x", "y"]],

@@ -3,18 +3,20 @@ import assert from "node:assert/strict";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { dockAtTop, watchDock } from "../dock-layout.js";
 
-const { document } = await dom('<main id="app"><div id="scroller"><h1 id="cs-hi"></h1></div>'
+const { document } = await dom('<main id="app"><div id="scroller"><h1 id="cs-hi"></h1><p id="cs-sub"></p></div>'
   + '<div id="drop-veil"></div><div id="dock"><button class="cbar">Compose</button></div></main>');
 const dock = document.querySelector("#dock"), host = document.querySelector("#app");
-const bar = dock.firstElementChild;
+const bar = dock.firstElementChild, scroller = document.querySelector("#scroller");
 bar.focus();
 dockAtTop(true);
-assert.ok(dock.previousElementSibling === document.querySelector("#cs-hi"));
+assert.ok(dock.previousElementSibling === document.querySelector("#cs-sub"));
 assert.ok(document.activeElement === bar);
 assert.ok(dock.classList.contains("is-top"));
+scroller.style.setProperty("--cs-lead", "32px");
 dockAtTop(false);
 assert.ok(dock.previousElementSibling === document.querySelector("#drop-veil"));
-assert.ok(document.querySelector("#cs-hi").hidden);
+assert.ok(document.querySelector("#cs-hi").hidden && document.querySelector("#cs-sub").hidden);
+assert.ok(!scroller.style.getPropertyValue("--cs-lead"));
 
 let resize, observed, room = 0;
 globalThis.ResizeObserver = class {

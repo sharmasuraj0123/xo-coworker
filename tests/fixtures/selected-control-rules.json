@@ -1,5 +1,4 @@
 [
-  "#rail-project-settings [aria-pressed=true]",
   ".ar-kinds button[aria-checked=\"true\"]",
   ".at-list li[aria-selected=\"true\"]",
   ".cp-mode button[aria-checked=\"true\"]",
@@ -20,7 +19,6 @@
   ".mx-down.is-on",
   ".nrow.is-on",
   ".pk-o.is-on",
-  ".project-option [aria-pressed=true]",
   ".prow.is-on",
   ".prow.is-on.busy",
   ".prow.is-on.needs",
@@ -48,7 +46,6 @@
   ".tb-cf.is-on",
   ".teach-scope button[aria-checked=\"true\"]",
   ".tg-now.is-on",
-  ".then [aria-pressed=true]",
   ".tw-act.lp-btn.is-on",
   ".vw-btn.is-on",
   ".vw-menu .vw-fold[role=menuitemradio][aria-checked=\"true\"]",

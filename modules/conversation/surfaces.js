@@ -15,7 +15,7 @@ export const conversationHeaderModule = {
   manifest: { id: "xo.conversation-header", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["conversationHeader"],
     needs: ["world", "placeContext", "threadPresentation", "threadControls", "projectDescriptions", "projectIcons", "launchpad", "stage",
       "messageContext", "threadGroups", "threadMenu", "threadRuntime", "navigationState", "chats", "checklist"],
-    optional: ["threadActions"] },
+    optional: ["threadActions", "home"] },
   activate(ctx) {
     const project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
     const descriptions = ctx.use("projectDescriptions");
@@ -24,6 +24,7 @@ export const conversationHeaderModule = {
       ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), threadControls: ctx.use("threadControls"),
       description: (id) => descriptions.get(id), world: ctx.use("world"), ...project, LP, LW, STAGE: ctx.use("stage"), places: ctx.places,
       emit: ctx.emit, convHost: ctx.use("messageContext").convHost,
+      homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] },
       threadCounts: ctx.use("threadGroups").threadCounts, threadMenuHtml: ctx.use("threadMenu"), rtTag: ctx.use("threadRuntime").rtTag,
       location: ctx.use("navigationState"), CH: ctx.use("chats"), checklistRender: ctx.use("checklist").render,
       tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),

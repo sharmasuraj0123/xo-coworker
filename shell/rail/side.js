@@ -25,17 +25,11 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     fold(on, { quiet = false } = {}) {
       SIDE.folded = !!on;
       writeFold(on);
-      const app = requireHtml("#app");
-      app.classList.toggle("side-folded", SIDE.folded);
-      app.classList.remove("side-peeking");
-      const peekButton = requireHtml("[data-side-peek]", "button");
-      peekButton.setAttribute("aria-expanded", "false");
+      requireHtml("#app").classList.toggle("side-folded", SIDE.folded);
       const b = requireHtml("#side-fold", "button");
       b.setAttribute("aria-expanded", String(!SIDE.folded));
-      b.innerHTML = SIDE.folded ? ICON.pin : ICON.sidebar;
-      b.setAttribute("aria-label", SIDE.folded ? "Pin the sidebar" : "Fold the sidebar");
-      b.title = `${b.getAttribute("aria-label")}${K.hint("sideFold")}`;
-      if (!quiet) (SIDE.folded ? peekButton : b).focus({ preventScroll: true });
+      b.setAttribute("aria-label", SIDE.folded ? "Show the sidebar" : "Fold the sidebar");
+      b.title = `${SIDE.folded ? "Show" : "Fold"} the sidebar${K.hint("sideFold")}`;
       requireHtml("#side-jump", "button").title = `Search and jump${K.hint("jump")}`;
       // the places' names become their tooltips while the words are hidden
       for (const r of $$("#side .nav .nrow").filter(isHtml)) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }
@@ -46,17 +40,13 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     BAR,
     CORE: [
       { id: "home", name: "Home", sel: "#nv-home" },
-      { id: "ws", name: "All projects", sel: "#nv-ws" },
-      { id: "chats", name: "New chat", sel: "#nv-chats" },
+      { id: "ws", name: "Workspace", sel: "#nv-ws" },
+      { id: "chats", name: "Chats", sel: "#nv-chats" },
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
     ],
     PLACES: [
       { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
-      { id: "scheduled", name: "Scheduled", page: true, ic: () => ICON.clock },
-      { id: "shared", name: "Shared", page: true, ic: () => ICON.folder },
-      { id: "connectors", name: "Connectors", page: true, ic: () => ICON.plug },
-      { id: "explore", name: "Explore", page: true, ic: () => ICON.search },
-      { id: "runtimes", name: "Usage & agents", page: true, ic: () => ICON.runtime },
+      { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
       { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
       { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
       { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
@@ -114,18 +104,16 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         let el = p.sel ? findHtml(p.sel) : SIDE.extras.get(id);
         if (!p.sel && on && !el) {
           const t = document.createElement("template");
-          t.innerHTML = `<button type="button" class="nrow" ${p.page ? "data-go" : "data-set-open"}="${p.id}">` +
+          t.innerHTML = `<button type="button" class="nrow" data-set-open="${p.id}">` +
             `<span class="nr-ic">${p.ic?.()}</span><span class="nr-name">${esc(p.name)}</span></button>`;
           const row = t.content.firstElementChild;
           if (row instanceof HTMLElement) { el = row; SIDE.extras.set(id, row); }
         }
         if (!el) continue;
         if (p.sel) el.hidden = !on;
-        if (id === "ws" || id === "chats") continue;
         if (on || p.sel) { if (el.nextElementSibling !== more || el.parentNode !== nav) nav.insertBefore(el, more); }
         if (on && SIDE.folded) el.title = p.name;
       }
-      requireHtml("#nv-home").after(requireHtml("#side-jump"));
       if (!requireHtml("#side-more").hidden) SIDE.drawMore();
     },
     /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with its switch and grip. */
@@ -145,18 +133,10 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       } else {
         pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
         const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set);
-        /** @param {Place} p */
-        const menuRow = p => {
-          const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `${p.page ? "data-go" : "data-set-open"}="${p.id}"`;
+        html = rest.map((p) => {
+          const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
           return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
-            `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`;
-        };
-        const insights = new Set(["runtimes", "explore"]);
-        html = ["Space", "Insights"].map(label => {
-          const rows = rest.filter(p => insights.has(p.id) === (label === "Insights"));
-          if (!rows.length) return "";
-          return `<div role="group" aria-label="${label}"><div class="sm-group">${label}</div>${rows.map(menuRow).join("")}</div>`;
-        }).join("") +
+            `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
           `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;
       }
       if (popHtml !== html) { redraw(pop, html); popHtml = html; }

@@ -36,7 +36,7 @@ export const workspaceRendererModule = {
       if (app.hasAttribute("data-gone") !== gone) app.toggleAttribute("data-gone", gone);
       for (const [id, selector] of Object.entries(PAGE_OF)) requireHtml(selector).hidden = id !== v;
       requireHtml("#conv").hidden = !!page;
-      const title = v === "runtimes" ? "Usage & agents" : page ? v[0].toUpperCase() + v.slice(1) : "";
+      const title = v === "home" ? "Home" : v === "artifacts" ? "Artifacts" : v === "launchpad" ? "Launchpad" : "";
       redraw($("#pb-t"), title ? esc(title) : XO);
       rail.rows(needs);
       if (page) {

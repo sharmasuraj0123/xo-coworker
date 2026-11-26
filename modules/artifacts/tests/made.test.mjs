@@ -22,7 +22,6 @@ const reply = deferred();
 const rows = [
   { id: "a", name: "plan.md", relative_path: "plan.md", project_id: "demo", updated_at: "2026-11-19T12:00:00Z", thread_ts: "t1" },
   { id: "b", kind: "branch", name: "feat/x", git: { branch: "feat/x" }, updated_at: "2026-11-19T11:00:00Z", thread_ts: "t2" },
-  ...["c", "d"].map((id) => ({ id, name: `${id}.txt`, updated_at: "2026-11-18T12:00:00Z" })),
 ];
 globalThis.fetch = async (input) => {
   const path = String(input);
@@ -43,7 +42,7 @@ kernel.register({
   manifest: { id: "test.surfaces", kernel: "^1.1.0", version: "1.0.0", provides: ["navigation", "homeSkeleton"] },
   activate(ctx) {
     ctx.provide("navigation", { go: (view) => went.push(view), back() {} });
-    ctx.provide("homeSkeleton", { skTile: () => '<li class="md-it is-sk"></li>', skBar: () => "", rememberedMade: () => 6 });
+    ctx.provide("homeSkeleton", { skTile: () => '<li class="md-it is-sk"></li>', skBar: () => "", rememberedMade: () => 3 });
     ctx.on("app:open-file", ({ file }) => opened.push(file));
   },
 });
@@ -67,8 +66,7 @@ await t("Home's strip: as many stand-ins as last time while it's read, then the 
   reply.resolve(); await settle();
   section.render(home);
   assert.deepEqual(pending, { tiles: 3, hidden: false });
-  assert.deepEqual([...home.querySelectorAll(".md-it")].map((li) => li.dataset.k), ["a", "b", "c"]);
-  assert.ok(home.querySelector('button[data-go="artifacts"]'));
+  assert.deepEqual([...home.querySelectorAll(".md-it")].map((li) => li.dataset.k), ["a", "b"]);
 });
 await t("⌘K finds made things by name once something is typed", () => {
   assert.deepEqual(jump(""), []);
@@ -89,8 +87,8 @@ await t("selecting a Jump result goes to its thread and opens the file", () => {
 console.log(`\n${passed} passed`);
 
 kernel.bus.emit("app:render");
-assert.equal(document.getElementById("arts-n").textContent, "4");
-assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts, 4");
+assert.equal(document.getElementById("arts-n").textContent, "2");
+assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts, 2");
 const page = places.get("page", "artifacts");
 const gallery = document.createElement("section");
 document.body.append(gallery);

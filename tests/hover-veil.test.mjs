@@ -1,25 +1,37 @@
-// @ts-check
 import assert from "node:assert/strict";
-import test from "node:test";
-import { declarationsFor, publishedRules } from "./lib/css-snapshot.mjs";
-import { bootPage } from "./lib/page.mjs";
+import { readFileSync, readdirSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
+const ROOT = new URL("../", import.meta.url);
+const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
+let passed = 0;
+const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-test("legacy surfaces use a translucent hover fill", () => {
-  const invalid = publishedRules().filter(({ f, sel, declarations }) => f.startsWith("/css/") && sel.includes(":hover")
-    && declarations.some(({ p, v }) => ["background", "background-color"].includes(p) && /^var\(--fill-[12]\)$/.test(v)));
-  assert.deepEqual(invalid, []);
+t("no hover paints a solid --fill-1 or --fill-2", () => {
+  const bad = [];
+  for (const f of readdirSync(new URL("css/", ROOT)).filter((x) => x.endsWith(".css"))) {
+    const css = (f === "app.css" ? sheet(new URL("css/app.css", ROOT)) : read(`css/${f}`)).replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) if (m[1].includes(":hover") && /background(-color)?:var\(--fill-[12]\)/.test(m[2])) bad.push(`${f}: ${m[1].trim()}`);
+  }
+  assert.deepEqual(bad, []);
 });
-
-test("Launchpad rows use the hover veil and share their action column", () => {
-  const raw = (selector, property) => declarationsFor(selector, property).map(({ value }) => value);
-  assert.deepEqual(raw("button.lqp-app:hover", "background-image"), ["linear-gradient(var(--hover-fill),var(--hover-fill))"]);
-  assert.deepEqual(raw(".lqp-off", "grid-template-columns"), ["var(--tile-xl) minmax(0,1fr) auto"]);
-  assert.deepEqual(raw(".lqp-off .lqp-app", "grid-template-columns"), ["subgrid"]);
-  assert.deepEqual(raw(".lqp-off .lqp-app", "grid-column"), ["1/-1"]);
+t("Launchpad's row hover is the veil", () => {
+  assert.match(read("modules/launchpad/page.css"), /button\.lqp-app:hover\{background-image:linear-gradient\(var\(--hover-fill\),var\(--hover-fill\)\)\}/);
 });
-
-test("More has a label and decorative chevron", async () => {
-  const { document } = await bootPage();
-  assert.equal(document.querySelector("#nv-more .nr-name").textContent, "More");
-  assert.ok(document.querySelector('#nv-more .nr-chev[aria-hidden="true"]'));
+t("More shows a chevron, hidden on the folded rail", () => {
+  assert.match(read("index.html"), /id="nv-more"[^>]*>.*<span class="nr-name">More<\/span><span class="nr-chev" aria-hidden="true"><\/span><\/button>/);
+  assert.match(read("shell/sidebar.css"), /\.side-folded :is\([^)]*\.nr-chev[^)]*\)\{display:none\}/);
 });
+t("More lists places, not Settings' pages; the editor still lists every place", () => {
+  const app = read("shell/rail/side.js");
+  for (const id of ["routing", "rules", "worktrees", "keys"]) assert.match(app, new RegExp(`\\{ set: true, id: "${id}"`));
+  for (const id of ["launchpad", "runtimes"]) assert.match(app, new RegExp(`\\{ id: "${id}"`));
+  assert.ok(app.indexOf('{ id: "launchpad"') < app.indexOf('{ id: "runtimes"'), "Launchpad first");
+  assert.match(app, /const rest = b\.order\.filter\(\(id\) => !b\.shown\.includes\(id\)\)\.map\(\(id\) => SIDE\.byId\(id\)\)\.filter\(\(p\) => !p\.set\);/);
+  assert.match(app, /b\.order\.map\(\(id\) => \{ const p = SIDE\.byId\(id\), on = b\.shown\.includes\(id\);/, "the editor maps every place");
+});
+t("Launchpad's not-yet list shares one button column across its rows", () => {
+  const css = read("modules/launchpad/page.css");
+  assert.match(css, /\.lqp-off\{display:grid;grid-template-columns:var\(--tile-xl\) minmax\(0,1fr\) auto;/);
+  assert.match(css, /\.lqp-off \.lqp-app\{grid-column:1\/-1;grid-template-columns:subgrid\}/);
+});
+console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

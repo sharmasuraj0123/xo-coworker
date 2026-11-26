@@ -23,8 +23,6 @@ export function createChatTitles(root, session, searchChanged) {
   const cache = createLru({ max: CHAT_LIST_LIMIT, onEvict: (_, id) => untethered.delete(id) });
   /** @type {ReturnType<typeof createTitleQueue> | undefined} */
   let queue;
-  /** @type {ReturnType<typeof createTitleQueue> | undefined} */
-  let recents;
 
   /** @param {Session} row */
   function entry(row) {
@@ -55,7 +53,7 @@ export function createChatTitles(root, session, searchChanged) {
     if (signal.aborted || row?.native_id !== native || entry(row)) return;
     const title = text ? shortTitle(text) : "";
     cache.set(id, { native, title });
-    if (title && !row.title?.trim()) {
+    if (title) {
       for (const node of root?.querySelectorAll(".chl-row") ?? []) {
         if (node.getAttribute("data-go") !== "c:" + id) continue;
         const label = node.querySelector(".chl-t");
@@ -66,15 +64,6 @@ export function createChatTitles(root, session, searchChanged) {
   }
 
   return {
-    /** @param {Element} host @param {Session[]} rows @param {() => void} changed */
-    observeRecents(host, rows, changed) {
-      recents ??= createTitleQueue(host, {
-        native(id) { const row = session(id); return row && !row.title?.trim() && !entry(row) ? row.native_id : null; },
-        read, settled: changed,
-      }, "[data-go]");
-      recents.sync(rows.map(r => r.id), "");
-    },
-    stopRecents() { recents?.dispose(); recents = undefined; },
     /** @param {Session} row */
     get: (row) => entry(row)?.title,
     /** @param {Session} row @param {string} text */
@@ -94,7 +83,7 @@ export function createChatTitles(root, session, searchChanged) {
     /** @param {Session[]} rows @param {string} query */
     observe(rows, query) {
       queue ??= createTitleQueue(root, {
-        native(id) { const row = session(id); return row && !row.title?.trim() && !entry(row) ? row.native_id : null; },
+        native(id) { const row = session(id); return row && !entry(row) ? row.native_id : null; },
         read,
         settled: searchChanged,
       });

@@ -77,8 +77,6 @@ const { document: page } = await bootPage();
 t("the sidebar offers Jump without a separate project search field", () => {
   const sidebar = page.getElementById("side");
   assert.equal(sidebar.querySelector("#side-jump")?.tagName, "BUTTON");
-  const fields = [...sidebar.querySelectorAll('input:not([type="file"]), [role="searchbox"]')];
-  assert.equal(fields.length, 1);
-  assert.ok(fields[0].closest("#rail-project-picker[popover]"));
+  assert.equal(sidebar.querySelectorAll('input:not([type="file"]), [role="searchbox"]').length, 0);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

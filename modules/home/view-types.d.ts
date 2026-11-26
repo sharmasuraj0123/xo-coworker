@@ -14,7 +14,6 @@ export interface HomeViewNeed extends NextCardNeed {
 export type HomeChoice = "allow" | "deny" | { option: string };
 
 export interface HomeViewDeps<N extends HomeViewNeed> {
-  inbox?: ReturnType<typeof import("./inbox.js").homeInbox>;
   isCurrent: () => boolean;
   selection: ReturnType<typeof createHomeSelection>;
   D: {

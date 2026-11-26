@@ -33,7 +33,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const listHost = listRoot ?? (typeof document === "undefined" ? undefined : document.getElementById("msgs")) ?? undefined;
   const titleList = createChatTitles(listHost, session, () => { if (C.q) schedule(); });
   scope.effect(() => titleList.stop);
-  scope.effect(() => titleList.stopRecents);
   /** @param {string | null} [name] @returns {Runtime | null} */
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? /** @type {Runtime | null} */ (mainRuntime(world.state.runtimes)) : null) || null;
   /** @param {Runtime | null} rt @param {string} key */
@@ -45,7 +44,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   const { loadList, loadChat } = createChatReads(C, { world, sessions, session, schedule, ensureModels, titles: titleList, signal: scope.signal });
   /** @param {Session} s */
-  const titleFor = (s) => s.title?.trim() || titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
+  const titleFor = (s) => titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
   /** @param {string | null | undefined} cwd */
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
   /** @param {string} t */
@@ -119,10 +118,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
-    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"]
-      : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : null;
+    const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${metaHtml(s)}</span></span>` +
-      (st ? `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>` : "");
+      `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
   /** @param {string} v */
@@ -131,7 +129,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return st.cwd ? `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd)))}</span>` : `${ICON.thread}<span>Quick chat</span>`;
+      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -167,7 +165,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const own = ownOf(v);
     if (v !== "chats" && !own) return "";
     const st = own || setup();
-    if (!st.cwd) return "";
     return st.agent && st.mode ? `${xi(MODE_WORDS[st.mode]?.[2] || "lock")}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
   }
   /** The mode chip's title: a new chat's choice, or an open chat's fixed mode and folder. @param {string} v */
@@ -284,16 +281,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   return {
     dispose: scope.dispose, leaveList: titleList.stop,
-    /** @param {Element} [host] */
-    recent(host) {
-      const rows = sessions().sort(recentFirst);
-      const visible = rows.slice(0, 4);
-      if (host && view?.() !== "chats") titleList.observeRecents(host, visible, schedule);
-      else titleList.stopRecents();
-      return { count: rows.length, rows: visible.map((row) => ({
-        id: row.id, title: titleFor(row), state: waiting(row) ? "needs" : inTurn(row) || world.act.sessionBusy?.(row.id) ? "working" : "",
-      })) };
-    },
     /** @param {string} v */
     isChats: (v) => v === "chats" || v?.startsWith("c:") === true,
     /** @param {string} v */
@@ -301,11 +288,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     /** @param {string} v */
     items: (v) => {
       if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
-      if (!C.all) return [];
       const rows = sessions().sort(recentFirst);
-      const searching = !scope.signal.aborted && titleList.observe(rows, C.q.trim().toLowerCase());
-      return chatListItems({ list: C.list, err: C.err, q: C.q, searching },
-        { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
+      const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
+      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
     },
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
     /** @param {string} v */

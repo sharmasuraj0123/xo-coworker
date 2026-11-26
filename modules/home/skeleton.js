@@ -31,7 +31,7 @@ function partShape(value) {
   if (!isRecord(value) || typeof value.id !== "string") return null;
   const { id, hidden, h, kind, n } = value;
   return { id, hidden: hidden === true, h: typeof h === "number" ? h : 0, kind: typeof kind === "string" ? kind : undefined,
-    n: typeof n === "number" && Number.isSafeInteger(n) && n >= 0 ? Math.min(n, 3) : undefined };
+    n: typeof n === "number" && Number.isSafeInteger(n) && n >= 0 ? n : undefined };
 }
 
 /** @param {string} raw @returns {unknown} */

@@ -4,15 +4,15 @@ import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { heldBadge } from "../../core/services/world/held.js";
-import { stateMark, xi } from "../../core/ui/icons/icon.js";
-import { ICON } from "../../core/ui/icons/names.js";
+import { stateMark } from "../../core/ui/icons/icon.js";
+import { ICON, XO } from "../../core/ui/icons/names.js";
 import { headerActionsHtml } from "../../shell/header.js";
 
 /** @import { HeaderDeps, HeaderNeed, HeaderThread } from "./header-types.d.ts" */
 
 /** @template {HeaderNeed} N @param {HeaderDeps<N>} options */
 export function createConversationHeader({
-  threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, projects, isBusy, isHeld,
+  threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
   threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
 }) {
   /** @param {number} n @param {string} word */
@@ -37,13 +37,16 @@ export function createConversationHeader({
     let who;
     let controls = "";
     if (v === "ws") {
-      const count = projects().length;
+      const P0 = homeParts(needs);
+      const asking = new Set(needs.map((n) => n.t.id));
       const working = world.state.threads.filter(isBusy).length;
-      const decisions = needs.filter(n => n.admitted && !n.later).length;
-      const summary = countLine([counted(working, "working"), counted(decisions, "need you")]);
-      who = `<span class="tw-ic" aria-hidden="true">${xi("dashboard")}</span><span class="tw-t"><h1 id="conv-title">All projects</h1>`
-        + `<span class="pj-s">${count} ${count === 1 ? "project" : "projects"}</span></span>`;
-      if (summary) controls = `<button type="button" class="pj-home" data-go="home">${summary}</button>`;
+      const waiting = world.state.threads.filter((x) => isHeld(x) && !asking.has(x.id)).length;
+      const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
+      const done = doneToday().length;
+      const parts = [counted(working, "working"), counted(waiting, "waiting"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
+      const need = hostNeedHtml(v, needs);
+      const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
+      who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
     } else if (v.startsWith("p:")) {
       const pid = v.slice(2);
       const by = threadCounts(pid, needs);

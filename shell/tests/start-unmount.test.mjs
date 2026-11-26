@@ -6,7 +6,7 @@ import { dom } from "../../tests/lib/dom.mjs";
 
 test("shell startup owns its viewport listener, subscription and animation sync", async () => {
   const { document, window } = await dom(
-    '<button id="side-fold"></button><button id="side-jump"><span data-search-icon></span></button><button id="ic-more"></button>'
+    '<button id="side-fold"></button><button id="side-jump"></button><button id="ic-more"></button>'
     + '<button id="nv-more"><span class="nr-chev"></span></button>',
   );
   const viewport = document.createElement("span");

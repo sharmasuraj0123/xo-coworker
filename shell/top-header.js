@@ -34,7 +34,7 @@ export function createTopHeader(deps, scope, schedule) {
       back.hidden = v === "chats";
       if (v !== "chats") { redraw(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
       redraw($("#top-who"), CH.headHtml(v));
-      redraw($("#top-end"), (v.startsWith("c:") ? headerActionsHtml(places, atOf(v)) : "") + STAGE.button(v));
+      redraw($("#top-end"), STAGE.button(v));
       checklistRender(needs);
       return;
     }
@@ -48,7 +48,7 @@ export function createTopHeader(deps, scope, schedule) {
     const { who, controls } = conversationHeaderHtml(v, t, needs);
     if (who != null) redraw($("#top-who"), who);
     const pv = v.startsWith("p:");
-    const endHtml = t ? "" : controls + (pv ? headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
+    const endHtml = t ? "" : (pv ? controls + headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
     redraw($("#top-end"), endHtml);
     LP.ensure(v);
     checklistRender(needs);

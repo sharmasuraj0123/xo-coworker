@@ -2,7 +2,6 @@
 
 import { $$, findHtml, isHtml, requireHtml } from "../../core/platform/dom.js";
 import { focusOpened, pointerFollows } from "../../core/ui/a11y/keynav.js";
-import { ICON } from "../../core/ui/icons/names.js";
 
 /** @import { Side, SideDeps } from "./side-types.d.ts" */
 
@@ -17,29 +16,6 @@ function control(target, selector) {
 /** @param {Events} deps */
 export function listenSide({ scope, side, announce, toggleJump }) {
   const pop = requireHtml("#side-more");
-  const app = requireHtml("#app"), peek = requireHtml("[data-side-peek]", "button");
-  peek.innerHTML = ICON.sidebar;
-  requireHtml(".side-peek [data-go]", "button").innerHTML = ICON.plus;
-  /** @param {boolean} open */
-  function peekSide(open) {
-    if (!side.folded) return;
-    app.classList.toggle("side-peeking", open);
-    peek.setAttribute("aria-expanded", String(open));
-    if (!open) side.closeMore();
-  }
-  scope.listen(peek, "click", () => {
-    peekSide(true);
-    requireHtml("#side-fold", "button").focus({ preventScroll: true });
-  });
-  scope.listen(requireHtml(".side-edge"), "pointerenter", () => peekSide(true));
-  scope.listen(document, "keydown", (event) => {
-    if (/** @type {KeyboardEvent} */ (event).key !== "Escape" || !app.classList.contains("side-peeking") || !pop.hidden) return;
-    peekSide(false);
-    peek.focus({ preventScroll: true });
-  });
-  scope.listen(document, "click", ({ target }) => {
-    if (app.classList.contains("side-peeking") && (!control(target, "#side,.side-peek") || control(target, "[data-go]"))) peekSide(false);
-  });
   scope.listen(requireHtml("#side-fold", "button"), "click", () => side.fold(!side.folded));
   scope.listen(requireHtml("#side-jump", "button"), "click", toggleJump);
   scope.listen(requireHtml("#nv-more", "button"), "click", (event) => {

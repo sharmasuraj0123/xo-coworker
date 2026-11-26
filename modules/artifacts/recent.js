@@ -5,7 +5,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 
 /** @import {GalleryDeps, MadeDeps} from "./page-types.d.ts" */
 
-const RECENT = 3;
+const RECENT = 6;
 
 /** @param {Pick<GalleryDeps, "MS" | "PV" | "syncCards"> & Pick<MadeDeps, "skTile" | "rememberedMade">} options */
 export function createRecentMade({ MS, PV, syncCards, skTile, rememberedMade }) {
@@ -18,9 +18,7 @@ export function createRecentMade({ MS, PV, syncCards, skTile, rememberedMade }) 
     const items = pending ? [] : MS.madeOf(null);
     if (!ready.has(box)) {
       box.innerHTML = '<section class="md-recent" aria-labelledby="md-recent-h" hidden>'
-        + `<header class="hm-lbl"><h2 id="md-recent-h">${ICON.spark}Recently made</h2>`
-        + '<button type="button" data-go="artifacts" aria-label="See all artifacts">See all ›</button></header>'
-        + '<ul class="md-grid is-strip"></ul></section>';
+        + `<h2 class="hm-lbl" id="md-recent-h">${ICON.spark}Recently made</h2><ul class="md-grid is-strip"></ul></section>`;
       ready.add(box);
     }
     const section = box.querySelector(".md-recent");

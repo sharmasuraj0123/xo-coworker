@@ -143,18 +143,19 @@ t("The Chats greeting and composer lead the page without space reserved at the f
   style(".main:has(.dock.is-top)", { "--dock-h": "0px" });
   style(".cs-hi", {
     font: "var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans)",
-    margin: "auto 0 var(--s-2) var(--col-x)",
+    margin: "var(--cs-lead,auto) 0 var(--s-2) var(--col-x)",
   });
 });
 
 t("Recent chats share the search style and align controls with the composer", () => {
-  style('.app[data-conv="chats"] .scroller:has(#msgs:empty)>.column', { height: "0", "margin-bottom": "auto" });
+  style(".chl-more", { padding: "0 var(--halo)", "margin-right": "calc(-1 * var(--halo))", "border-radius": "var(--r)" });
+  style('.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column', { height: "0", "margin-bottom": "auto" });
   assert.ok(!rules.some(({ sel }) => sel.startsWith(".stage .tg-qf")), "the search field is one shared look");
 });
 
 t("The Chats greeting replaces the desktop bar while the phone keeps its menu", () => {
   const chats = '.app:is([data-conv="chats"],[data-conv^="c:"])';
-  style('.app[data-conv="chats"] .top', { display: "none" }, "@media (min-width:761px)");
+  style(chats + " .top", { display: "none" }, "@media (min-width:761px)");
   style(":root:root " + chats + " #top-who", { display: "none" }, "@media (max-width:760px)");
 });
 

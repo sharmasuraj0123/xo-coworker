@@ -72,8 +72,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   const sideRender = createSideRows(scope, { view: () => view,
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
     CH: { isChats: () => false }, D: { needItems: () => needs },
-    projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }, { id: "c", name: "Gamma" }], convThread: () => null,
-    pinned: (id) => id === "a",
+    projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
     isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", folded: () => false,
   });
   const order = () => [...box.children].map((row) => row.dataset.k);
@@ -88,7 +87,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   const [settle] = timers.values();
   assert.equal(settle.duration, 800);
   settle.fn();
-  assert.deepEqual(order(), ["a", "b", "pr-sep", "c"]);
+  assert.deepEqual(order(), ["a", "b"]);
   assert.ok(box.firstElementChild === alpha);
   assert.equal(alpha.getAttribute("aria-label"), "Alpha. 1 needs you: Needs review");
   assert.equal(document.getElementById("nv-home").getAttribute("aria-current"), "page");

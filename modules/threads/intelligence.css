@@ -58,7 +58,7 @@
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
 /* a choice that needs its sentence: the mark, the name over what it means */
 .iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}
-.iq-pop.is-sheet .iq-row.cs-mrow{height:auto;min-height:var(--h-row-act)}
+.iq-pop.is-sheet .iq-row.cs-mrow{height:auto;min-height:var(--h-hit)}
 .cs-mi{flex:none;width:var(--ic);height:var(--ic);margin-top:calc((var(--lh-ui) - var(--ic)) / 2);color:var(--ink-3)}
 .cs-mrow.is-sel .cs-mi{color:var(--ink)}
 .cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -98,7 +98,7 @@
 .iq-mv-acts{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;padding:0 4px 4px}
 .iq-mv-acts .iq-rl{margin:0 auto 0 0;padding:0;display:inline-flex;align-items:center;gap:4px}
 .iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:15px 15px max(22px,env(safe-area-inset-bottom));transform-origin:50% 100%;animation:sheet-up var(--d-sheet) var(--ease)}
-.iq-pop.is-sheet .iq-row{height:var(--h-row-act)}
+.iq-pop.is-sheet .iq-row{height:var(--h-hit)}
 .iq-pop.is-sheet .iq-route{margin:0}
 .iq-pop.is-sheet .iq-route button{flex:1 1 auto;height:var(--h-lg);padding:0 6px}
 

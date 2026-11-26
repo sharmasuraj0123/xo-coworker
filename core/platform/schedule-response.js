@@ -66,11 +66,7 @@ const isRuns = (value) => isResponseObject(value) && typeof value.job_id === "st
 
 /** @type {import("./schedule-response-types").ScheduleApi} */
 export const scheduleApi = {
-  schedules: signal => requestChecked("/schedules", isList, { signal }),
+  schedules: () => requestChecked("/schedules", isList),
   schedule: (id) => requestChecked(`/schedules/${encodeURIComponent(id)}`, isJob),
   scheduleRuns: (id, query = {}) => requestChecked(`/schedules/${encodeURIComponent(id)}/runs`, isRuns, { query }),
 };
-
-/** @param {string} id @param {Record<string,unknown>} definition @param {AbortSignal} signal */
-export const saveAgentSchedule = (id, definition, signal) => requestChecked(id ? "/schedules/" + encodeURIComponent(id) : "/schedules",
-  isJob, { method: id ? "PUT" : "POST", body: { ...definition, kind: "agent" }, signal });

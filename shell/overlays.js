@@ -3,11 +3,6 @@
 // The page's hidden layers: Settings over the main area, then Create a project, the sheets and the popovers.
 
 export const PAGE_REGIONS = `
-      <section class="space-page" id="scheduled" aria-label="Scheduled" tabindex="-1" hidden></section>
-      <section class="space-page" id="shared" aria-label="Shared" tabindex="-1" hidden></section>
-      <section class="space-page" id="connectors" aria-label="Connectors" tabindex="-1" hidden></section>
-      <section class="space-page" id="explore" aria-label="Explore" tabindex="-1" hidden></section>
-      <section class="space-page" id="usage-agents" aria-label="Usage and agents" tabindex="-1" hidden></section>
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
       <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
 `;
@@ -52,9 +47,7 @@ export const SETTINGS = `
       <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
     </div>
     <div class="set-page" role="tabpanel" id="set-p-appearance" aria-labelledby="set-t-appearance" data-page="appearance" hidden><header class="set-ph"><h2>Appearance</h2><p class="set-intro">How XO looks on this device.</p></header>
-      <div class="set-row"><div class="set-l"><b id="mode-l">Mode</b><span>Dark, light, or system. Only on this device.</span></div>
-        <button type="button" class="gear is-ic" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
-        <div class="rt-seg is-paid" id="mode-seg" role="radiogroup" aria-labelledby="mode-l"></div></div>
+      <div class="set-row"><div class="set-l"><b id="mode-l">Mode</b><span>Dark, light, or whichever your system is set to. Only on this device.</span></div><div class="rt-seg is-paid" id="mode-seg" role="radiogroup" aria-labelledby="mode-l"></div></div>
       <div class="set-row is-stack"><div class="set-l"><b id="flavour-l">Flavour</b><span>The tint of every surface, line and word, in dark and in light. Status colours and the XO mark stay as they are. Only on this device.</span></div><div class="set-choices fl-grid" id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"></div></div>
       <div class="set-row"><div class="set-l"><b id="bubbles-l">Chat bubbles</b><span>Messages in bubbles, as in a messaging app. Off, an agent's reply reads as a full-width document, with room for its math, code, charts and diagrams. Only on this device.</span></div><button type="button" class="switch" id="bubbles-tog" role="switch" aria-checked="false" aria-labelledby="bubbles-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
     </div>
