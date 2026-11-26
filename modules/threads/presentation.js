@@ -29,9 +29,8 @@ export const threadGroupsModule = {
     provides: ["threadGroups"] },
   activate(ctx) {
     const { D, askShort } = ctx.use("decisionPresentation");
-    const { convProject, PROJ } = ctx.use("placeContext");
     ctx.provide("threadGroups", createThreadGroups({
-      world: ctx.use("world"), D, MAP: ctx.use("mapAgents"), convProject, PROJ,
+      world: ctx.use("world"), D, MAP: ctx.use("mapAgents"), convProject: ctx.use("placeContext").convProject,
       askShort, threadMark: ctx.use("threadRuntime").threadMark, isBusy, isHeld,
     }));
   },

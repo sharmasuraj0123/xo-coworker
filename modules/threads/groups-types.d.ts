@@ -38,7 +38,6 @@ export interface ThreadGroupDeps<N extends ThreadNeed> {
   D: { needItems: () => N[] };
   MAP: { agents: (view: string) => MapAgent[] };
   convProject: (view: string) => string | null | undefined;
-  PROJ?: (project: string) => string;
   askShort: (need: N) => string;
   threadMark: (thread: ThreadInfo) => string;
   isBusy: (thread: ThreadInfo) => boolean;
