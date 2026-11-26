@@ -7,7 +7,7 @@ export const PAGE_OF = { home: "#home", artifacts: "#arts", launchpad: "#lpp" };
 /** @param {string} view */
 export const pageEl = (view) => PAGE_OF[view] ? findHtml(PAGE_OF[view]) : null;
 /** @param {string} view */
-export const panelPlace = (view) => /^(?:ws$|[pt]:)/.test(view);
+export const panelPlace = (view) => /^(?:ws$|chats$|[ptc]:)/.test(view);
 /** @param {string} view */
 export const sessionOf = (view) => view === "home" ? "ws" : view;
 /** @param {string} chat */
@@ -44,7 +44,7 @@ export function createPlaceContext(world) {
   function panelName(view) {
     const project = atOf(view).project;
     if (project && project !== "workspace") return PROJ(project);
-    return project === "workspace" || view === "ws" ? "Workspace" : "Your projects";
+    return project === "workspace" || view === "ws" ? "Workspace" : view === "chats" || view.startsWith("c:") ? "Chats" : "Your projects";
   }
   /** @param {() => string} activeView */
   function mountNames(activeView) {

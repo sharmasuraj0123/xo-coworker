@@ -24,6 +24,7 @@ export interface StageState {
   under: Page | null;
   tq?: string;
   tqOpen?: boolean;
+  chatty?: boolean;
   tgMore: Record<string, boolean>;
   resume?: boolean;
   chEmpty?: boolean;
@@ -83,6 +84,7 @@ export interface StageDeps {
   frames?(): string[];
   agents?: (view: string) => Agent[];
   threads?: ((view: string) => Group[]) | null;
+  chats?: { is(view: string): boolean; groups(view: string, filter?: string): Group[] | null; note(): string } | null;
   shell?: ((on: boolean, host?: HTMLElement, view?: string) => void) | null;
   owns?(event: Event): boolean;
   at(): At;

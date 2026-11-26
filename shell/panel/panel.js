@@ -27,8 +27,8 @@ const FOLD_IC = ICON.chevron;
 const FILES_IC = ICON.folder;
 
 /** @param {StageDeps} deps */
-export function createStage({ mapControls, files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, shell = null, owns = () => false,
-  at, places }) {
+export function createStage({ mapControls, files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, chats = null, shell = null,
+  owns = () => false, at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
   const layoutScope = createScope();
   /** @type {Partial<FrameState>} */
@@ -50,7 +50,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
   el.setAttribute("aria-label", "Panel: threads, changes and map");
   /** @type {Record<string, string>} */
   const FRAME_IC = { agents: "threads", changes: "changes", map: "map" };
-  const frame = (/** @type {string} */ id, /** @type {string} */ title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
+  const frame = (/** @type {string} */ id, /** @type {string} */ title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}<span class="fr-w">${title}</span>${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (/** @type {string} */ a, /** @type {string} */ b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
@@ -108,7 +108,9 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
       layout(); paint(); onChange?.();
     },
   });
-  const activeFrames = () => frames().filter((id) => id === "agents" || (id === "map" ? binding.map : binding.changes));
+  const chatsAt = (v = view()) => !!chats?.is(v);
+  // Chats has no Changes or Map: its panel is your chats
+  const activeFrames = () => frames().filter((id) => id === "agents" || (!chatsAt() && (id === "map" ? binding.map : binding.changes)));
 
   function persist() { write(KEY, JSON.stringify({ open: S.open || !!S.resume })); write(FR_KEY, JSON.stringify(fr)); }
 
@@ -135,6 +137,19 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const q = filter(); q.focus({ preventScroll: true }); q.select();
   }
 
+  /** The first frame names what it lists: Chats on a chat, else Threads. @param {boolean} chatty */
+  function nameFrame(chatty) {
+    S.chatty = chatty;
+    const what = chatty ? "chats" : "threads", q = filter(), find = query("[data-tg-find]");
+    query('[data-fr="agents"] .fr-w').textContent = chatty ? "Chats" : "Threads";
+    query('[data-fr="agents"] .fr-ic').outerHTML = xi(chatty ? "chat" : "threads", "fr-ic");
+    find.title = `Filter ${what} (/)`; find.setAttribute("aria-label", `Filter ${what}`);
+    q.placeholder = `Filter ${what}`; q.setAttribute("aria-label", chatty ? "Filter chats by title, model or folder" : "Filter threads by title, summary or branch");
+    q.value = ""; S.tq = ""; S.tqOpen = false;
+    for (const b of /** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("[data-open-files], [data-stg-shell]"))) b.hidden = chatty;
+    layout();
+  }
+
   function paint() {
     PG.reflect();
     if (!S.open) return;
@@ -149,11 +164,14 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     set("head", query(".stg-t"), PG.titleHtml());
     const covered = !!S.page;
     titleActions.sync(v, S.page?.name);
-    const tg = threads?.(v);
-    const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
+    const chatty = chatsAt(v);
+    if (S.chatty !== chatty) nameFrame(chatty);
+    const tq = (S.tq || "").trim().toLowerCase();
+    const tg = chatty ? chats?.groups(v, tq) ?? null : threads?.(v), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = query(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
-    if (!covered) set("agents", query(".tg-box"), tg ? threadsHtml(tg, tq, { folds: fr.agents.groups, more: S.tgMore }) : agentsHtml(ag, v));
+    const lists = { folds: fr.agents.groups, more: S.tgMore, noun: chatty ? "chat" : "thread", none: chatty && !tg ? chats?.note() : "" };
+    if (!covered) set("agents", query(".tg-box"), tg || chatty ? threadsHtml(tg || [], tq, lists) : agentsHtml(ag, v));
     // the threads, not the coordinator's row: the same count as the header's Threads
     const agentCount = query('[data-fr-n="agents"]');
     const count = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));

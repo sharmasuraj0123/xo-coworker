@@ -27,9 +27,6 @@
 .pj-need .pj-k{color:inherit;font-weight:var(--fw-strong)}
 .pj-need:hover{color:color-mix(in srgb,var(--warn) 78%,var(--ink))}
 
-.pj-home{max-width:100%;padding:0;text-align:left;border-radius:var(--r-sm);transition:color var(--d-hover) var(--ease)}
-@media (min-width:761px){.pj-home{min-height:var(--h-sm)}}
-.pj-home:hover{color:var(--ink)}
 .wsh-home{padding:0;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
 .wsh-home:hover{color:var(--ink);text-decoration-color:currentColor}
 .tw-h{flex:1;min-width:0;font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);letter-spacing:var(--tr-15);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

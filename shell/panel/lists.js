@@ -5,27 +5,27 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { ARC } from "../../core/ui/icons/icon.js";
 import { esc, since } from "../../core/platform/index.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
-/** @import { Agent, Change, Group, Row } from "./list-types.d.ts" */
+/** @import { Agent, Change, Group, ListOptions, Row } from "./list-types.d.ts" */
 
 const FOLD_IC = ICON.chevron;
 
 /** Waiting and Done show their first few, then "Show N more". @type {Record<string, number>} */
-export const SHOW = { needs: Infinity, working: Infinity, waiting: 5, done: 5 };
+export const SHOW = { needs: Infinity, working: Infinity, waiting: 5, done: 5, recent: 10 };
 export const FILTER_AT = 12;
 
-/** @param {Group[]} groups @param {string} q @param {{ folds: Record<string, boolean>, more: Record<string, unknown> }} options */
-export function threadsHtml(groups, q = "", { folds, more: shownMore }) {
+/** @param {Group[]} groups @param {string} q @param {ListOptions} options */
+export function threadsHtml(groups, q = "", { folds, more: shownMore, noun = "thread", none = "" }) {
   if (q) {
     const words = q.split(/\s+/);
     groups = groups.map((x) => ({ ...x, rows: x.rows.filter((r) => matchesThread(r, words)) })).filter((x) => x.rows.length);
-    if (!groups.length) return `<p class="fr-none tg-none">No thread matches “${esc(q)}”. <button type="button" class="tg-clear" data-tg-clear>Clear the filter</button></p>`;
+    if (!groups.length) return `<p class="fr-none tg-none">No ${noun} matches “${esc(q)}”. <button type="button" class="tg-clear" data-tg-clear>Clear the filter</button></p>`;
   }
-  if (!groups || !groups.length) return `<p class="fr-none">No ${"threads"} here yet.</p>`;
+  if (!groups || !groups.length) return `<p class="fr-none">${esc(none || `No ${noun}s here yet.`)}</p>`;
   /** @param {Row} r */
   const row = (r) => {
     const mark = r.state === "working" ? ARC : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
     return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
-      `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
+      `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.icon ?? (r.coord ? ICON.project : ICON.threadOne)}${mark}</span>` +
       `<span class="ag-t"><b>${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
       `<span class="ag-tm"><span class="ag-when">${r.since ? `<span class="elapsed" data-since="${r.since}">${since(r.since)}</span>` : esc(r.at || "")}</span>${r.mark ? `<span class="ag-mk">${r.mark}</span>` : ""}</span></button></li>`;
   };

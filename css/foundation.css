@@ -61,12 +61,10 @@
 .top-who>.tw-ic{margin-block:calc((var(--lh-title) - var(--tile-sm)) / 2)}
 .tw-ic svg{width:var(--ic);height:var(--ic)}
 .top[data-kind="project"] .top-who{gap:var(--s-3)}
-/* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
+/* the count line: whole-pixel line, figures a shade brighter than their words */
 .pj-s{line-height:var(--lh-ui)}
 .top[data-kind="project"] .tw-t{gap:var(--s-1)}
 .pj-k{color:var(--ink-2);font-weight:var(--fw-medium);font-variant-numeric:tabular-nums}
-.pj-c{white-space:nowrap}
-.pj-d{color:var(--ink-4)}
 .tw-t h1{font-size:var(--fs-title);font-weight:var(--fw-strong);letter-spacing:var(--tr-15)}
 @media (max-width:760px){
   .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:var(--s-3)}

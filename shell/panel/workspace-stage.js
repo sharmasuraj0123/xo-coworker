@@ -13,10 +13,10 @@ export const stageModule = {
   manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["placeContext", "shape", "world", "currentView", "navigation", "mapAgents", "threadGroups",
       "shellDock", "announce", "launchpad", "conversationSession"],
-    optional: ["files", "shellPanel", "mapControls"], provides: ["stage"], contributes: ["panel.page", "workspace.paint:stage"] },
+    optional: ["files", "shellPanel", "mapControls", "chats"], provides: ["stage"], contributes: ["panel.page", "workspace.paint:stage"] },
   activate(ctx) {
     const place = ctx.use("placeContext"), shape = ctx.use("shape"), view = ctx.use("currentView");
-    const session = ctx.use("conversationSession"), files = () => ctx.optional("files");
+    const session = ctx.use("conversationSession"), files = () => ctx.optional("files"), CH = () => ctx.optional("chats");
     const go = createPanelThreadOpener({ view, world: ctx.use("world"), go: ctx.use("navigation").go,
       panelConversation: () => session.panel()?.C, showMsg: session.showMsg });
     const at = () => place.atOf(view());
@@ -26,6 +26,7 @@ export const stageModule = {
       files: { changes: (where) => files()?.tree.changes(where) ?? [] }, openFiles: () => files()?.page.show({ focus: true }),
       viewer: { open: (file, from) => files()?.viewer.open(file, from) }, announce: ctx.use("announce"),
       agents: ctx.use("mapAgents").agents, threads: ctx.use("threadGroups").panelThreads, owns: ctx.use("shellDock").owns,
+      chats: { is: (v) => !!CH()?.isChats(v), groups: (v, q) => CH()?.groups(v, q) ?? null, note: () => CH()?.listNote() ?? "" },
       shell: (on, host, where) => ctx.optional("shellPanel")?.panelShell(on, host, where), onChange: () => ctx.invalidate("workspace"),
       places: { ...ctx.places, contribute: ctx.contribute },
     });

@@ -65,7 +65,7 @@ export function createTitleQueue(root, { native, read, settled }) {
   function syncRows() {
     if (!observer || !root) return;
     const rows = new Map();
-    for (const row of root.querySelectorAll(".chl-row")) {
+    for (const row of root.querySelectorAll('[data-go^="c:"]')) {
       const id = idOf(row);
       const key = native(id);
       if (key && attempted.get(id)?.native !== key) rows.set(row, key);
