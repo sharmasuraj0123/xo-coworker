@@ -38,7 +38,8 @@ const opt = (inner, sel, attrs) => `<button type="button" class="iq-opt${sel ? "
 const optsHtml = (key, rows) => `<div class="iq-opts" data-key="${key}" role="radiogroup" aria-labelledby="iq-hh">${rows}</div>`;
 
 /** @param {string} name @param {string} [desc] */
-const named = (name, desc) => `<span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-d">${esc(desc)}</span>` : ""}`;
+const named = (name, desc) => (desc ? `<span class="iq-stack"><span class="iq-n">${esc(name)}</span>` +
+  `<span class="iq-d">${esc(desc)}</span></span>` : `<span class="iq-n">${esc(name)}</span>`);
 
 /** @typedef {{ world: IntelWorld, catalogState: ViewOptions["catalogState"], WAIT: string }} PageDeps */
 
@@ -65,7 +66,7 @@ export function createIntelPages(P, { world, catalogState, WAIT }) {
   function runtimePage(s, rc) {
     const kind = kindOf(s), wait = !!(P.busy || P.saving), cur = kind === "thread" ? P.rt || rc.on : rc.on;
     const rows = rc.list.map((o) => rtRow(o, cur === o.id, wait)).join("");
-    const line = kind === "thread" ? ""
+    const line = kind === "thread" ? "Another runtime picks this work up in a new, linked thread."
       : kind === "project" && rc.on === "auto" ? "On Auto its coordinator picks a runtime for each new thread."
       : "It moves at its next pause, on that runtime's default model.";
     return optsHtml("opts-rt", rows) + (line ? `<p class="iq-rl">${line}</p>` : "");

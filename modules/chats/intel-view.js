@@ -72,9 +72,7 @@ export function createIntelView(P, { pop, world, simple, catalogState, draftOf, 
     const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
     /** @param {string} head @param {string} body */
     const show = (head, body) => { redraw(pop, head + body); place(); };
-    const rtSub = kind === "thread" ? "Continuing elsewhere starts a linked thread"
-      : kind === "project" ? "For its coordinator and its new threads" : "For the Workspace coordinator";
-    if (page === "rt" && rc.multi) return show(pageHead("Runtime", rtSub), runtimePage(s, rc));
+    if (page === "rt" && rc.multi) return show(pageHead("Runtime", ""), runtimePage(s, rc));
     if (page === "model" && models) return show(pageHead("Model", on ? `On ${on}` : ""), modelPage(kind, d, wait));
     if (page === "think" && efs.length) return show(pageHead("Thinking", `How long ${nameOf(d.model)} thinks first`), thinkPage(efs, d, wait));
     if (page === "route" && kind === "workspace") return show(pageHead("Routing", "Who reads a new message first"), routingHtml(s, c));

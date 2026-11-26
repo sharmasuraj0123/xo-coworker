@@ -113,8 +113,10 @@
 .iq-opt .iq-n{min-width:0}
 .iq-opt.is-sel .iq-n{color:var(--ink)}
 .iq-opt.is-sel .iq-ck{opacity:1;transform:none}
-.iq-d{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+/* a choice with a line saying what it is for: the line sits under its name */
+.iq-opt:has(.iq-stack){height:auto;min-height:var(--menu-row);padding-block:var(--s-1)}
+.iq-stack{flex:1;min-width:0;display:flex;flex-direction:column}
+.iq-d{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .iq-s{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .iq-s.is-warn{color:var(--warn-text)}
 .iq-s+.iq-ck{margin-left:0}
