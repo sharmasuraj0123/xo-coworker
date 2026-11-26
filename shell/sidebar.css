@@ -10,6 +10,14 @@
 .space-page ul{list-style:none;padding:0}
 .space-page li{padding:var(--s-3);border-bottom:var(--hair) solid var(--line)}
 .space-page li p{color:var(--ink-3)}
+.space-graph{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);align-items:center;margin-block:var(--s-4)}
+.space-graph strong,.space-graph .btn{padding:var(--s-2);border-radius:var(--r);background:var(--fill-2);overflow-wrap:anywhere}
+.space-graph ul{border-inline-start:var(--hair) solid var(--line)}
+.space-graph li{border:0;position:relative;padding-inline-start:var(--s-4)}
+.space-graph li::before{content:"";position:absolute;inset-inline-start:0;top:50%;width:var(--s-4);border-top:var(--hair) solid var(--line)}
+.space-graph small{display:block;color:var(--ink-3)}
+.space-page form{display:grid;gap:var(--s-2);margin-block:var(--s-3)}
+.space-page form label{display:grid;gap:var(--s-1)}
 [data-project-list]{anchor-name:--project-list}
 #rail-project-picker{position:fixed;position-anchor:--project-list;inset:auto;margin:var(--s-2);
   left:anchor(right);bottom:anchor(bottom);width:min(var(--side-w),90vw);max-height:70dvh;overflow:auto;

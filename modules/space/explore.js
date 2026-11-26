@@ -3,10 +3,12 @@ import { readSpaceMap } from "../../core/platform/explore-response.js";
 import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { graphView } from "./graph.js";
 
 /** @param {import("../../core/kernel/types").ModuleContext} ctx */
 export function explore(ctx) {
   let lens = "Graph";
+  let node = "";
   /** @type {import("../../core/platform/explore-types").SpaceMap | undefined} */
   let map;
   let error = "", loading = false;
@@ -15,19 +17,23 @@ export function explore(ctx) {
     const buttons = ["Graph", "Tree", "Timeline"].map(name =>
       `<button class="btn" data-lens="${name}" aria-pressed="${name === lens}">${name}</button>`).join("");
     let content = `<p role="status">${esc(error || "Loading…")}</p>`;
-    if (map) {
-      const { groups, leaves, ties, milestones } = map;
-      const labels = new Map([...groups, ...leaves].map(n => [n.id, n.label]));
+    if (map && lens === "Graph") content = graphView(map, node);
+    else if (map) {
+      const { groups, leaves, milestones } = map;
       const items = lens === "Timeline" ? milestones.map(m => `<li><time>${esc(m.d)}</time> ${esc(m.t)}</li>`)
-        : lens === "Tree" ? groups.map(g => `<li><details><summary>${esc(g.label)}</summary><ul>`
-          + leaves.filter(n => n.group === g.id).map(n => `<li>${esc(n.label)}</li>`).join("") + "</ul></details></li>")
-        : ties.map(e => `<li>${esc(labels.get(e.s) || e.s)} → ${esc(labels.get(e.t) || e.t)} · ${esc(e.label)}</li>`);
+        : groups.map(g => `<li><details><summary>${esc(g.label)}</summary><ul>`
+          + leaves.filter(n => n.group === g.id).map(n => `<li>${esc(n.label)}</li>`).join("") + "</ul></details></li>");
       content = items.length ? `<ul>${items.join("")}</ul>` : "<p>No entries.</p>";
     }
     redraw(host, `<h1>Explore</h1><div role="group" aria-label="View">${buttons}</div>${content}`);
   }
   ctx.contribute("page", { id: "explore", mount(host) {
+    ctx.listen(host, "change", ({target}) => {
+      if (target instanceof HTMLSelectElement && target.hasAttribute("data-graph-select")) { node = target.value; paint(host); }
+    });
     ctx.listen(host, "click", ({target}) => {
+      const nextNode = target instanceof Element && target.closest("[data-node]")?.getAttribute("data-node");
+      if (nextNode) { node = nextNode; paint(host); host.querySelector("select")?.focus(); return; }
       const next = target instanceof Element && target.closest("[data-lens]")?.getAttribute("data-lens");
       if (next) { lens = next; paint(host); }
     });
