@@ -250,7 +250,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .lim-ts .rt-go{display:inline;text-align:left;font:inherit;color:var(--ink)}
 .lim-ts .rt-go b{font-weight:var(--fw-medium)}
 .lim-stay{margin-left:8px;font-size:var(--fs-meta);color:var(--ink-4)}
-.lim-ban{display:flex;flex-direction:column;gap:8px;margin:8px 0;padding:14px 16px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--warn) 6%,var(--surface));border:1px solid transparent}
+.lim-ban{display:flex;flex-direction:column;gap:8px;margin:8px 0;padding:14px 16px;border-radius:var(--r-block);background:color-mix(in srgb,var(--warn) 6%,var(--surface));border:1px solid transparent}
 .lim-h{display:flex;align-items:flex-start;gap:8px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .lim-h svg{flex:none;--ic:15px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--warn)}
 .lim-h em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-3)}

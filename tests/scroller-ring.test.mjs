@@ -174,17 +174,17 @@ t("C045: the checklist's toggle draws its ring inside it, on the bar's inner cor
   const toggle = {
     flex: "1", "min-width": "0", display: "flex", "align-items": "center", gap: "12px",
     height: "var(--h-ctl)", padding: "0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text)",
-    "border-radius": "var(--r-lg-in)",
+    "border-radius": "var(--r-block-in)",
   };
   assert.ok(exact(".ck-tog").some((rule) => Object.entries(toggle).every(([p, v]) => has(rule, p, v))));
-  assert.ok(inRule(".ckbar", "border-radius", "var(--r-lg)"));
+  assert.ok(inRule(".ckbar", "border-radius", "var(--r-block)"));
   assert.ok(valuesFor(".ckbar", "border").some((variants) =>
     [variants].flat().every((value) => value.startsWith("1px solid"))));
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
   assert.ok(exact(".md-code").length);
   assert.ok(exact(".md-code").every(({ declarations }) => declarations.every(({ p }) => !p.startsWith("overflow"))));
-  const pre = { margin: "0", padding: "12px 16px", "overflow-x": "auto", "border-radius": "0 0 var(--r-lg-in) var(--r-lg-in)" };
+  const pre = { margin: "0", padding: "12px 16px", "overflow-x": "auto", "border-radius": "0 0 var(--r-block-in) var(--r-block-in)" };
   assert.ok(exact(".md-code pre").some((rule) => Object.entries(pre).every(([p, v]) => has(rule, p, v))));
   const header = { display: "flex", "align-items": "center", "justify-content": "space-between", "min-height": "34px" };
   assert.ok(exact(".md-code-head").some((rule) => Object.entries(header).every(([p, v]) => has(rule, p, v))));
