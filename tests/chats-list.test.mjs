@@ -170,7 +170,7 @@ t("The Chats greeting and composer stand in the middle, with nothing listed unde
 
 t("The Chats greeting replaces the desktop bar but for the panel's button, while the phone keeps its menu", () => {
   const chats = '.app:is([data-conv="chats"],[data-conv^="c:"])';
-  style(chats + " .top", { position: "absolute", background: "none", "pointer-events": "none" }, "@media (min-width:761px)");
+  style(chats + " .top", { position: "absolute", background: "none", "border-bottom": "0", "pointer-events": "none" }, "@media (min-width:761px)");
   style(chats + " .top>:not(.top-end)", { display: "none" }, "@media (min-width:761px)");
   style(chats + " .top-end", { "pointer-events": "auto" }, "@media (min-width:761px)");
   style(":root:root " + chats + " #top-who", { display: "none" }, "@media (max-width:760px)");

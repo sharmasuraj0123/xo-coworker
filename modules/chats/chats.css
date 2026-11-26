@@ -2,7 +2,7 @@
 .main:has(.dock.is-top){--dock-h:0px}
 /* the greeting is Chats' title: no bar over it, only the panel's button (a phone keeps its menu button) */
 @media (min-width:761px){
-  .app:is([data-conv="chats"],[data-conv^="c:"]) .top{position:absolute;inset:0 0 auto;background:none;pointer-events:none}
+  .app:is([data-conv="chats"],[data-conv^="c:"]) .top{position:absolute;inset:0 0 auto;background:none;border-bottom:0;pointer-events:none}
   .app:is([data-conv="chats"],[data-conv^="c:"]) .top>:not(.top-end){display:none}
   .app:is([data-conv="chats"],[data-conv^="c:"]) .top-end{pointer-events:auto}
 }
