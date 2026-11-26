@@ -9,6 +9,7 @@ import { explore } from "./explore.js";
 import { checkSharing, pollConnection, runJob } from "../../core/platform/space-actions-response.js";
 import { readUsage, readSources } from "../../core/platform/space-usage-response.js";
 import { scheduleEditor, bindSchedules } from "./schedule-editor.js";
+import { copyText, COPY_REFUSED } from "../../core/platform/clipboard.js";
 
 /** @param {string} id @param {string} text */
 const action = (id, text) => `<button type="button" class="btn" data-action="${esc(id)}">${esc(text)}</button>`;
@@ -26,8 +27,13 @@ async function scheduled(signal) {
 
 /** @param {AbortSignal} signal */
 async function shared(signal) {
-  const { repos } = await readSharing(signal);
-  return Object.entries(repos).filter(([, repo]) => repo.shared).map(([name, repo]) => row(name, repo.project || "Shared with this Space"));
+  const { repos, own_workspace_id: workspace } = await readSharing(signal);
+  const rows = Object.entries(repos).filter(([, repo]) => repo.shared).map(([name, repo]) =>
+    row(name, repo.project || "Shared with this Space", repo.project
+      ? `<button class="btn" data-go="p:${esc(repo.project)}">Open project</button>` : ""));
+  if (workspace) rows.unshift(row("Your workspace", workspace,
+    `<button class="btn" data-invite="${esc(workspace)}">Copy invite</button>`));
+  return rows;
 }
 
 /** @param {AbortSignal} signal */
@@ -85,6 +91,13 @@ export const spacePages = {
         if (id === "scheduled") bindSchedules(ctx, host, () => load(host));
         ctx.listen(host, "click", async ({ target }) => {
           if (!(target instanceof Element) || working || pending) return;
+          const workspace = target.closest("[data-invite]")?.getAttribute("data-invite");
+          if (workspace) {
+            const copied = await copyText(`To share your project with me, open Project settings → Share project and enter ${workspace}.`);
+            const status = host.querySelector("[data-result]");
+            if (!ctx.signal.aborted && status) status.textContent = copied ? "Invite copied." : COPY_REFUSED;
+            return;
+          }
           if (target.closest("[data-refresh]")) { await load(host); return; }
           const key = target.closest("[data-action]")?.getAttribute("data-action");
           if (!key) return;

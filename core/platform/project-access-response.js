@@ -2,7 +2,7 @@
 import { isResponseObject } from "./http.js";
 import { requestChecked } from "./response.js";
 
-/** @typedef {{members:{can_revoke:boolean}[],blockers:{message:string}[]}} ProjectMembers */
+/** @typedef {{members:{can_revoke:boolean,workspace_id:string}[],blockers:{message:string}[]}} ProjectMembers */
 
 /** @typedef {ProjectMembers & {project_id:string,can_remove:boolean,repo:string|null,peers:unknown[]}} ProjectAccess */
 
@@ -10,7 +10,8 @@ import { requestChecked } from "./response.js";
 function access(data) {
   return isResponseObject(data) && typeof data.project_id === "string" && typeof data.can_remove === "boolean"
     && (data.repo === null || typeof data.repo === "string") && Array.isArray(data.peers)
-    && Array.isArray(data.members) && data.members.every(m => isResponseObject(m) && typeof m.can_revoke === "boolean")
+    && Array.isArray(data.members) && data.members.every(m =>
+      isResponseObject(m) && typeof m.can_revoke === "boolean" && typeof m.workspace_id === "string")
     && Array.isArray(data.blockers) && data.blockers.every(b => isResponseObject(b) && typeof b.message === "string");
 }
 
@@ -18,10 +19,10 @@ function access(data) {
 export const projectAccess = (id, signal) => requestChecked(`/xo-projects/${encodeURIComponent(id)}/removal`, access, { signal });
 
 /** @param {string} id @param {string} workspace @param {AbortSignal} signal */
-export function shareProject(id, workspace, signal) {
+export function shareProject(id, workspace, signal, revoke = false) {
   /** @param {unknown} value @returns {value is {ok:true,repo:string}} */
   const shared = value => isResponseObject(value) && value.ok === true && typeof value.repo === "string";
-  return requestChecked(`/xo-projects/${encodeURIComponent(id)}/share`, shared,
+  return requestChecked(`/xo-projects/${encodeURIComponent(id)}/${revoke ? "revoke" : "share"}`, shared,
     { method: "POST", body: { workspace_id: workspace }, signal });
 }
 

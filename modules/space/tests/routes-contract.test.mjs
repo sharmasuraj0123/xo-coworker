@@ -28,6 +28,7 @@ const payloads = {
   "/api/xo-projects/sample/commits": { project_id: "sample", branch: "main", path: "/example", behind: 2 },
   "/api/xo-projects/sample/apply": { project_id: "sample", applied: 2 },
   "/api/xo-projects/sample/share": { ok: true, repo: "example/sample" },
+  "/api/xo-projects/sample/revoke": { ok: true, repo: "example/sample" },
   "/api/secrets": { items: [{ key: "EXAMPLE", preview: "discard-me" }] },
   "/api/secrets/EXAMPLE": { key: "EXAMPLE", deleted: true },
   "/api/doctor": { checks: [{ id: "folders", findings: [] }] },
@@ -62,6 +63,7 @@ assert.equal((await configureConnection("github", true, signal)).enabled, true);
 assert.equal((await projectSync("sample", signal)).behind, 2);
 assert.equal((await applySharedCommits("sample", signal)).applied, 2);
 assert.equal((await shareProject("sample", "recipient", signal)).repo, "example/sample");
+assert.equal((await shareProject("sample", "recipient", signal, true)).repo, "example/sample");
 assert.equal((await saveAgentSchedule("", {name: "Sample"}, signal)).id, "sample");
 assert.equal((await saveAgentSchedule("sample", {name: "Sample"}, signal)).name, "Sample");
 assert.match(scheduleEditor(job), /2026-01-01T17:30:00.000\+05:30/);

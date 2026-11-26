@@ -4,9 +4,10 @@ import { requestChecked } from "./response.js";
 
 /** @typedef {{project?:string|null,shared?:boolean}} Repo */
 
-/** @param {unknown} data @returns {data is {repos:Record<string, Repo>,cadence?:string}} */
+/** @param {unknown} data @returns {data is {repos:Record<string, Repo>,own_workspace_id?:string|null}} */
 function isSharing(data) {
-  return isResponseObject(data) && isResponseObject(data.repos) && Object.values(data.repos).every(repo =>
+  return isResponseObject(data) && (data.own_workspace_id == null || typeof data.own_workspace_id === "string")
+    && isResponseObject(data.repos) && Object.values(data.repos).every(repo =>
     isResponseObject(repo) && (repo.project == null || typeof repo.project === "string")
     && (repo.shared === undefined || typeof repo.shared === "boolean"));
 }

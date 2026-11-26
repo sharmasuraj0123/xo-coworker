@@ -40,6 +40,9 @@ export function projectSettings(ctx, pins) {
         allowed = data.can_remove && !data.blockers.length && !data.peers.length && !data.members.some(m => m.can_revoke);
         redraw(access, (repo ? `<a href="https://github.com/${esc(repo)}" target="_blank" rel="noopener noreferrer">${esc(repo)}</a>` : "")
           + `<p>Sharing · ${data.peers.length} peers</p>`
+          + data.members.map(member => member.can_revoke
+            ? `<details><summary>${esc(member.workspace_id)}</summary><form data-revoke="${esc(member.workspace_id)}">`
+              + '<button type="submit">Confirm revoke access</button></form></details>' : `<p>${esc(member.workspace_id)}</p>`).join("")
           + (repo ? '<details><summary>Share project</summary><form data-share><label>Recipient workspace ID'
             + '<input name="workspace" required autocomplete="off"></label><button type="submit">Share</button></form></details>' : "")
           + data.blockers.map(b => `<p>${esc(b.message)}</p>`).join("")
@@ -68,20 +71,20 @@ export function projectSettings(ctx, pins) {
   }
   ctx.listen(panel, "submit", async event => {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement) || !form.matches("[data-share]")) return;
+    if (!(form instanceof HTMLFormElement) || !form.matches("[data-share],[data-revoke]")) return;
     event.preventDefault();
-    const id = selected, recipient = requireHtml("input", "input", form).value.trim();
+    const id = selected, recipient = form.dataset.revoke ?? requireHtml("input", "input", form).value.trim();
     if (!recipient || !id || busy) return;
     busy = true;
     const submit = requireHtml("button", "button", form);
     submit.disabled = true;
     try {
-      await shareProject(id, recipient, ctx.signal);
+      await shareProject(id, recipient, ctx.signal, form.hasAttribute("data-revoke"));
     } catch (error) {
       if (!ctx.signal.aborted && selected === id) {
         let message = form.querySelector("[role=status]");
         if (!message) { message = document.createElement("p"); message.setAttribute("role", "status"); form.append(message); }
-        message.textContent = requestFailureMessage(error, "Could not share project");
+        message.textContent = requestFailureMessage(error, "Could not change project access");
       }
       return;
     } finally { busy = false; submit.disabled = false; }
