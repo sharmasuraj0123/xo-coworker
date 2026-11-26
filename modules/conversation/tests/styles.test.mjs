@@ -31,3 +31,8 @@ const waves = declarationsFor((selector) => /^:root\[data-msgx\] /.test(selector
   .filter(({ value }) => /\bmx-(shimmer|await|doing)\b/.test(value));
 assert.equal(waves.length, 4);
 for (const { value } of waves) assert.match(value, /\bmx-(shimmer|await|doing) var\(--d-loop\)/);
+
+const flash = declarations.filter((entry) => /\.mx-flash/.test(entry.context.at(-1)?.selector ?? ""));
+assert.ok(!flash.some(({ property }) => property === "box-shadow"), "the reply flash draws no halo that spills onto the action row");
+const rowEdge = flash.find(({ context, property }) => property === "bottom" && /:has\(>\.mb>\.mx-actrow\)::before$/.test(context.at(-1)?.selector ?? ""));
+assert.equal(rowEdge?.value, "0", "a message with an action row flashes down to its own edge, not over the row");
