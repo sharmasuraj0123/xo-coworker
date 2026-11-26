@@ -58,11 +58,13 @@
   --accent-hover:#96DC58;
   --accent-press:#74C02F;
   --accent-rgb:131,214,58;
+  --go:#83D63A; --go-fill:#83D63A; --go-rgb:131,214,58;   /* done, allowed, added: the flavour's own green */
   --err:#D7373F; --err-ink:var(--dark-err-ink);
   --warn:#F5A623; --info:#75ADF1; --violet:#BF8DFF;
   --live-h:254; --live-l:.74; --live-c:.115;   /* the working dots: three hues around the flavour's own (css/flavours.css); Stone's is the info blue's */
   --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
   --mark-x:#E1E1E1; --mark-o:#83D63A;
+  --mx-you:#314E1C;
   --bubble:#232323; --bubble-line:#303030; --bubble-top:#262626; --bubble-foot:#1F1F1F;   /* theirs in the bubble view: lit from above */
   --lbx-scrim:rgba(12,12,12,.94); --checker:rgb(128 128 128 / .2);
   --term-bg:#111111;
@@ -101,18 +103,19 @@
   --ring-room:6px;
   --s-keycap-block:var(--gap-control-tight); --s-keycap-inline:var(--inset-badge); --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
   --on-agent:#0B0B0C; /* Dark ink maintains contrast on agent colours. */
-  --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3); --fill-theme-track-on:var(--switch-on);
+  --knob:#FFFFFF; --knob-go:color-mix(in srgb,var(--accent-fill) 50%,var(--on-ink)); --track:var(--sb-bg-3);
+  --fill-theme-track-on:var(--switch-on);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
   --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
   --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink)); --ink-project-attention:initial;
   --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
-  --ok-text:var(--accent); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
+  --ok-text:var(--go); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* Coordinator names and marks use the same violet in every view. */
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
-  --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
+  --work:var(--info); --need:var(--warn); --danger:var(--err);
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --sans-read:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -128,7 +131,8 @@
   --tr-code:.1em;
   --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
   --ink-read:var(--ink);
-  --ok-fill:color-mix(in srgb,var(--accent-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--accent-fill) 22%,transparent); --ok-fill-press:color-mix(in srgb,var(--accent-fill) 28%,transparent);
+  --ok-fill:color-mix(in srgb,var(--go-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--go-fill) 22%,transparent);
+  --ok-fill-press:color-mix(in srgb,var(--go-fill) 28%,transparent);
   --measure-min:480px; --measure:max(calc(100% - var(--s-12)), min(100%, var(--measure-min)));   /* outside a view's column: its own box */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
   /* the dock family (every decision card, its folded and done lines, the composer) shares one corner; its controls sit --card-in from the edge */
@@ -289,18 +293,19 @@
   --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD; --line-view:var(--line-soft);
   --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E; --on-ink:#FFFFFF; --ink-hi:#000000;
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
+  --go:#3D7A17; --go-fill:#83D63A; --go-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323; --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
   --live-l:.53; --live-c:.15;
   --mark-x:#151515; --mark-o:#83D63A;
-  --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
+  --knob-go:var(--accent); --track:#E2E2E2; --switch-on:color-mix(in srgb,var(--accent-fill) 85%,var(--ink)); --map-dot:#B9B9B6;
   --fill-map-canvas:var(--canvas); --edge-map-canvas:var(--line-soft); --ink-map-grid:var(--line); --ink-map-connection:var(--fill-4);
   --fill-theme-track-on:var(--track); --fill-switch-knob:var(--knob); --ink-switch-knob:initial;
   --shadow-switch-track:inset 0 0 0 var(--hair) rgba(var(--black-rgb),.04);
   --shadow-switch-knob:0 1px 2px rgba(var(--black-rgb),.18),0 0 0 .5px rgba(var(--black-rgb),.06);
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:rgba(var(--accent-rgb),.8);
   --warn-text:#8A4B0B; --need-text:#5E3507; --ink-project-attention:var(--need-text); --add-text:#2F5A12; --del-text:#9B1C22;
-  --danger-text:#9B1C22; --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
-  --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
+  --danger-text:#9B1C22; --ok-text:color-mix(in srgb,var(--go) 80%,var(--ink)); --danger-ink:var(--err-ink);
+  --mx-you:#BBE78D; --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);

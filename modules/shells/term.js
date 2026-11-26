@@ -32,7 +32,7 @@ export function themeFromCss(el = document.documentElement) {
     foreground: v("--ink", light ? "#1E1E1E" : "#E1E1E1"),
     cursor: v("--accent-fill", "#83D63A"),
     cursorAccent: v("--canvas", "#141414"),
-    selectionBackground: light ? "rgba(72,118,32,.25)" : "rgba(131,214,58,.28)",
+    selectionBackground: v("--fill-selection", light ? "rgba(72,118,32,.25)" : "rgba(131,214,58,.28)"),
     // the ANSI colours, tuned per theme to read on its canvas
     ...(light ? {
       black: "#1E1E1E", red: "#C9252D", green: "#487620", yellow: "#8A4B0B", blue: "#0851A7", magenta: "#6D33B8", cyan: "#0B7285", white: "#BBBBBB",

@@ -38,7 +38,7 @@
 .tw-mini .xo-mark{display:block;width:30px;height:12px}
 .tw-xo .xo-mark{display:block;width:22px;height:9px}
 .badge{flex:none;display:inline-flex;align-items:center;align-self:center;gap:8px;height:var(--h-ctl);padding:0 var(--s-3);border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent);color:var(--st-text,var(--st,var(--ink-3)))}
-.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn);--st-text:var(--warn-text)}.st-done{--st:var(--accent);--st-text:var(--ok-text)}.st-failed{--st:var(--err-ink);--st-text:var(--danger-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
+.st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn);--st-text:var(--warn-text)}.st-done{--st:var(--go);--st-text:var(--ok-text)}.st-failed{--st:var(--err-ink);--st-text:var(--danger-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
 
 /* the Now shelf: at most three, needs-you first, never grows */
 
@@ -58,7 +58,7 @@
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color var(--d-in) var(--ease),background var(--d-in) var(--ease)}
 .ckbar.m-needs{background:color-mix(in srgb,var(--warn) 5%,var(--surface))}
 .ckbar.m-fresh{background:color-mix(in srgb,var(--accent-fill) 4%,var(--surface))}
-.ckbar.m-done{background:color-mix(in srgb,var(--accent-fill) 3%,var(--surface))}
+.ckbar.m-done{background:color-mix(in srgb,var(--go-fill) 3%,var(--surface))}
 .ckbar.m-failed{background:color-mix(in srgb,var(--err) 5%,var(--surface))}
 
 .ck-row{display:flex;align-items:center;gap:4px;transition:background-color var(--d-hover) var(--ease)}
@@ -69,11 +69,11 @@
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:2px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
-.sg.s-done{background:var(--accent-fill)}
+.sg.s-done{background:var(--go-fill)}
 .sg.s-doing{background:var(--info)}
 /* the landing (Plan F's one flourish): a step that just finished fills left to right in green, like ink */
 .sg.s-done.is-pop{position:relative;overflow:hidden;background:var(--fill-3);animation:none}
-.sg.s-done.is-pop::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
+.sg.s-done.is-pop::after{content:"";position:absolute;inset:0;background:var(--go-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
 @keyframes seg-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 /* a step allowed: its segment lights up (a brightening, not a bounce past its own size) */
 @keyframes seg-pop{from{opacity:.35}}
@@ -82,7 +82,7 @@
 .ck-now>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ck-m{flex:none;display:grid;place-items:center;width:var(--ic-sm);height:1lh}
 .ck-m svg{width:var(--ic-sm);height:var(--ic-sm)}
-.ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn)}.ck-m.is-red{color:var(--err-ink)}
+.ck-m.is-ok{color:var(--go)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn)}.ck-m.is-red{color:var(--err-ink)}
 .ck-now[data-mode="fresh"]{color:var(--ink)}
 .ck-now[data-mode="fresh"] .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 /* the chevron centres on the row (as an inline glyph it sat on the text baseline, 3 px high) */
@@ -101,7 +101,7 @@
 .ck-list>li:last-child{margin-bottom:12px}
 .ckbar.is-open .ck-list{opacity:1}
 .ck{display:flex;align-items:flex-start;gap:8px;font-size:var(--fs-ui);color:var(--ink-2)}
-.ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--accent)}
+.ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--go)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
 .ck-todo .ck-m{color:var(--ink-4)}
 
@@ -134,14 +134,14 @@
 .wsh-stats dd{margin-top:4px;font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);font-variant-numeric:tabular-nums}
 .wsh-stats dd small{font-size:var(--fs-ui);font-weight:var(--fw-medium);color:var(--ink-4)}
 .wsh-stats dd.is-amber{color:var(--warn)}
-.wsh-stats dd.is-green{color:var(--accent)}
+.wsh-stats dd.is-green{color:var(--go)}
 .wsh-next{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;margin-top:16px;padding:0 14px;border-radius:var(--r-lg);background:var(--fill-1);border:1px solid var(--line-soft);text-align:left;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .wsh-next:hover{background:var(--surface)}
 .wsh-next:active{transform:scale(.99)}
 .wn-k{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
 .wn-t{flex:1;min-width:0;font-size:var(--fs-ui);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wsh-calm{display:flex;align-items:center;gap:8px;margin-top:16px;color:var(--ink-3)}
-.wsh-calm svg{width:var(--ic);height:var(--ic);color:var(--accent)}
+.wsh-calm svg{width:var(--ic);height:var(--ic);color:var(--go)}
 
 .day{display:flex;align-items:center;gap:12px;margin:24px 0 22px;color:var(--ink-4);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .day::before,.day::after{content:"";flex:1;height:1px;background:var(--fill-2)}
@@ -164,7 +164,7 @@
 .meta.is-warn{color:var(--warn)}
 .sent{display:inline-flex;align-items:center;gap:4px;color:var(--ink-3);animation:fade var(--d-in) var(--ease)}
 .sent b{font-weight:var(--fw-medium);color:var(--ink-2)}
-.sent svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
+.sent svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--go)}
 .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 
@@ -234,7 +234,7 @@
   --code-tag:color-mix(in srgb,var(--err-ink) 80%,var(--ink));
   --code-pun:var(--ink-3);
   --code-var:color-mix(in srgb,var(--warn) 70%,var(--ink));
-  --code-add:var(--accent); --code-add-bg:color-mix(in srgb,var(--accent-fill) 10%,transparent);
+  --code-add:var(--go); --code-add-bg:color-mix(in srgb,var(--go-fill) 10%,transparent);
   --code-del:var(--err-ink); --code-del-bg:color-mix(in srgb,var(--err) 10%,transparent);
 
 }
@@ -268,7 +268,7 @@ code.hl{color:var(--code-ink)}
 .tc-top b{flex:1;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tc-st{flex:none;font-size:var(--fs-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .st-needs .tc-st{color:var(--warn)}
-.st-done .tc-st{color:var(--accent)}
+.st-done .tc-st{color:var(--go)}
 .st-failed .tc-st{color:var(--err-ink)}
 .tc-segs{display:flex;gap:2px;width:100%}
 .tc-segs .sg{flex:1;width:auto;max-width:64px}

@@ -27,12 +27,12 @@ button.hr:active{transform:scale(.97)}
 .hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
 .hr:has(>:is(.hr-go,.hr-undo)){padding-right:calc(var(--note-in) - 1px)}
 /* its state tints the glass, read from its icon: green for done or a reply, red for a stop or no connection, amber while it waits */
-.hr:has(>.hr-ic:is(.k-ok,.k-ping)){--state:var(--accent)}
+.hr:has(>.hr-ic:is(.k-ok,.k-ping)){--state:var(--go)}
 .hr:has(>.hr-ic.k-stopped){--state:var(--err-ink)}
 .hr-conn.k-wait{--state:var(--warn)}
 .hr-ic{flex:none;display:grid;place-items:center}
 .hr-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
-.hr-ic:is(.k-ok,.k-ping){color:var(--accent)}
+.hr-ic:is(.k-ok,.k-ping){color:var(--go)}
 .hr-ic.k-stopped{color:var(--err-ink)}
 .hr-ic.k-calm{color:var(--ink-3)}
 .hr-ic.k-found{color:var(--coord)}

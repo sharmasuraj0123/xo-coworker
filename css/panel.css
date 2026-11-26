@@ -431,7 +431,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .gh-sep{margin-inline:var(--s-1);color:var(--ink-4);opacity:.7}
 .gh-i{display:inline-flex;align-items:center;gap:calc(var(--s-1) / 2);margin-inline-start:var(--s-2);color:var(--ink-4)}
 .gh-i svg{width:var(--ic-sm);height:var(--ic-sm)}
-.gh-i.is-ok{color:var(--accent)}.gh-i.is-err{color:var(--err-ink)}.gh-i.is-run,.gh-i.is-info{color:var(--info)}.gh-i.is-warn{color:var(--warn)}
+.gh-i.is-ok{color:var(--go)}.gh-i.is-err{color:var(--err-ink)}.gh-i.is-run,.gh-i.is-info{color:var(--info)}.gh-i.is-warn{color:var(--warn)}
 .gh-cm svg{width:var(--ic-xs);height:var(--ic-xs)}
 .gh-av{flex:none;width:var(--ic);height:var(--ic);margin-inline-end:var(--s-1);border-radius:50%;background:var(--fill-2);box-sizing:border-box;border:1px solid var(--line-soft);object-fit:cover}
 .gh-av.is-lg{width:var(--h-sm);height:var(--h-sm);margin:0}
@@ -456,7 +456,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .gh-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1);margin:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .gh-meta .badge{height:var(--h-sm);gap:var(--s-1);padding:0 var(--s-2)}
 .gh-meta .badge svg{width:var(--ic-xs);height:var(--ic-xs)}
-.gh-st.is-open{--st:var(--accent);--st-text:var(--ok-text)}.gh-st.is-merged{--st:var(--ink-2)}.gh-st.is-closed{--st:var(--ink-4)}
+.gh-st.is-open{--st:var(--go);--st-text:var(--ok-text)}.gh-st.is-merged{--st:var(--ink-2)}.gh-st.is-closed{--st:var(--ink-4)}
 .gh-cm{display:inline-flex;align-items:center;gap:calc(var(--s-1) / 2)}
 .gh-acts{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-1)}
 .gh-acts .btn svg{width:var(--ic);height:var(--ic)}

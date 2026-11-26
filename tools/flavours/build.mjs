@@ -9,7 +9,7 @@ export { FLAVOURS };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** Greys that are XO's own mark: they stay as Stone has them. */
+/** XO's own mark: it stays as Stone has it. */
 const KEEP = new Set(["--mark-x", "--mark-o"]);
 
 // ── OKLCH ────────────────────────────────────────────────────────────────────
@@ -27,11 +27,12 @@ function fromOklch(L, C, H) {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3, m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3, s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
   return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s];
 }
+const hexOf = (rgb) => "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 const inGamut = (rgb) => rgb.every((v) => v >= -1e-4 && v <= 1 + 1e-4);
 /** How far words follow their surfaces when a flavour moves those toward them (dark lifted, light dimmed). */
 const INK_LIFT = 0.8;
 export function tint(rgb, look, dark) {
-  const { hue, chroma, lift = 0, ink = 1, canvas } = look;
+  const { chroma, lift = 0, ink = 1, canvas } = look;
   const L0 = toOklab(rgb)[0];
   const word = dark ? L0 >= 0.5 : L0 < 0.5;
   const toward = dark ? Math.max(0, lift) : Math.min(0, lift);
@@ -42,14 +43,34 @@ export function tint(rgb, look, dark) {
     const r = (Y(L0) + 0.05) / (Y(canvas) + 0.05), kept = Lof(r * (Y(canvas + lift) + 0.05) - 0.05);
     L = L0 > canvas ? Math.max(L, kept) : Math.min(L, kept);
   }
-  let lo = 0, hi = word ? chroma * ink : chroma;
-  if (inGamut(fromOklch(L, hi, hue))) lo = hi;
-  else for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (inGamut(fromOklch(L, mid, hue))) lo = mid; else hi = mid; }
-  return fromOklch(L, lo, hue).map((v) => Math.round(gam(Math.min(1, Math.max(0, v))) * 255));
+  const hue = word ? look.inkHue ?? look.hue : look.hue;
+  return oklchRgb(L, word ? look.inkChroma ?? chroma * ink : chroma, hue);
 }
+/** sRGB at an OKLCH point, chroma cut back until it fits. */
+export function oklchRgb(L, C, H) {
+  let lo = 0, hi = C;
+  if (inGamut(fromOklch(L, hi, H))) lo = hi;
+  else for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (inGamut(fromOklch(L, mid, H))) lo = mid; else hi = mid; }
+  return fromOklch(L, lo, H).map((v) => Math.round(gam(Math.min(1, Math.max(0, v))) * 255));
+}
+const rgbOf = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+export const oklchOf = (hex) => { const [L, a, b] = toOklab(rgbOf(hex)); return [L, Math.hypot(a, b), ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360]; };
+const lum = (rgb) => { const c = rgb.map((v) => lin(v / 255)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+export const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+/** Coolors' contrast fix: keep hue and chroma, step lightness away from the backgrounds until it reads at min on all. */
+export function fix(hex, bgs, min, dark) {
+  const [L0, C, H] = oklchOf(hex);
+  for (let i = 0; i <= 200; i++) {
+    const L = Math.min(1, Math.max(0, L0 + (dark ? i : -i) * 0.005)), rgb = oklchRgb(L, C, H);
+    if ((typeof bgs === "function" ? bgs(rgb) : bgs).every((bg) => ratio(rgb, bg) >= min) || L === 0 || L === 1) return hexOf(rgb);
+  }
+  return hex;
+}
+const mixHex = (a, b, p) => hexOf(rgbOf(a).map((v, i) => Math.round(v * p + rgbOf(b)[i] * (1 - p))));
+const over = (hex, under, p) => rgbOf(hex).map((v, i) => v * p + under[i] * (1 - p));
+const shift = (hex, dL) => { const [L, C, H] = oklchOf(hex); return hexOf(oklchRgb(Math.min(1, Math.max(0, L + dL)), C, H)); };
 
 // ── tokens.css ───────────────────────────────────────────────────────────────
-const hexOf = (rgb) => "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
 function greyOf(value) {
   let m = /^#([0-9a-f]{6})$/i.exec(value);
   if (m) { const [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)); return r === g && g === b ? { rgb: [r, g, b], out: hexOf } : null; }
@@ -98,8 +119,55 @@ const SEL = {
 };
 
 /** A flavour's look in each mode: light takes the dark look without its lift, then its own light settings. */
-export const looks = (f) => { const dark = { hue: f.hue, chroma: f.chroma, lift: f.lift || 0, ink: f.ink ?? 1 }; return { dark, light: { ...dark, lift: 0, ...(f.light || {}) } }; };
+const STONE_CANVAS = { dark: 0.1913, light: 0.9851 };
+/** A palette flavour's look in a mode: its greys take the background's hue, chroma and lightness, its words the text's hue and chroma. */
+function paletteLook(p, mode) {
+  const [L, C, H] = oklchOf(p.bg), [, Ci, Hi] = oklchOf(p.fg), lift = L - STONE_CANVAS[mode];
+  return { hue: H, chroma: Math.min(C, 0.06), lift: +(mode === "light" ? Math.min(0, lift) : lift).toFixed(4), inkHue: Hi, inkChroma: Math.min(Ci, 0.03), ...(p.look || {}) };
+}
+export const looks = (f) => {
+  if (f.dark) return { dark: paletteLook(f.dark, "dark"), light: paletteLook(f.light, "light") };
+  const dark = { hue: f.hue, chroma: f.chroma, lift: f.lift || 0, ink: f.ink ?? 1 }; return { dark, light: { ...dark, lift: 0, ...(f.light || {}) } };
+};
 const Lof = (hex) => toOklab([1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)))[0];
+
+/** Words that must read (4.5:1) and the placeholder (3:1), stepped until they do on every surface the flavour drew. */
+const INKS = [["--ink", 4.5], ["--ink-2", 4.5], ["--ink-3", 4.5], ["--ink-4", 4.5], ["--ink-5", 3]];
+/** A palette flavour's accent, status hues, bubble and words on tints, each fixed on its own surfaces until it passes. */
+export function paletteColours(p, base, dark) {
+  const v = (k) => base[k], surf = ["--canvas", "--surface", "--float", "--sunken"].map((k) => rgbOf(v(k)));
+  const out = [];
+  for (const [k, min] of INKS) out.push([k, fix(v(k), surf, min, dark)]);
+  const ink = out[0][1], onInk = v("--on-ink");
+  const card = rgbOf(v("--surface")), canvas = rgbOf(v("--canvas")), hover = over(dark ? "#FFFFFF" : "#000000", card, dark ? 0.06 : 0.065);
+  const tinted = (rgb) => [card, canvas].map((u) => rgb.map((c, i) => c * 0.12 + u[i] * 0.88));
+  const text = (hex, extra = []) => fix(hex, (rgb) => [...surf, hover, ...tinted(rgb), ...extra], 4.5, dark), mark = (hex) => fix(hex, surf, 3, dark);
+  // a fill with words on it: the words are whichever ink reads better, the fill steps away from them until both pass
+  const filled = (hex) => {
+    const f = mark(hex), on = ratio(rgbOf(f), rgbOf(onInk)) >= ratio(rgbOf(f), rgbOf(ink)) ? onInk : ink;
+    return [fix(f, [rgbOf(on)], 4.5, on === ink ? !dark : dark), on];
+  };
+  const accent = text(p.accent), [fill, fillInk] = filled(p.accent);
+  const go = text(p.go), [goFill] = filled(p.go), err = mark(p.err), errInk = text(p.err), warn = text(p.warn);
+  const rgb = (hex) => rgbOf(hex).join(",");
+  out.push(
+    ["--accent", accent], ["--accent-fill", fill], ["--accent-ink", fillInk], ["--accent-hover", shift(fill, dark ? 0.04 : -0.04)], ["--accent-press", shift(fill, -0.05)], ["--accent-rgb", rgb(accent)],
+    ["--go", go], ["--go-fill", goFill], ["--go-rgb", rgb(go)],
+    ["--info", text(p.info)], ["--warn", warn], ["--violet", text(p.violet)], ["--err", err], ["--err-ink", errInk],
+    ["--warn-text", text(p.warn, [over(warn, card, 0.2), over(warn, canvas, 0.12)])],
+    ["--need-text", text(mixHex(p.warn, ink, 0.4), [over(warn, canvas, 0.12)])],
+    ["--ok-text", text(go, [over(goFill, card, 0.28)])],
+    ["--danger-ink", text(errInk, [over(errInk, card, 0.26), over(err, card, 0.14)])],
+    ["--danger-text", text(mixHex(errInk, ink, 0.7), [over(err, card, 0.14)])],
+    ["--add-text", text(mixHex(go, ink, 0.7), [over(go, card, 0.08)])],
+    ["--del-text", text(mixHex(errInk, ink, 0.7), [over(err, card, 0.1)])],
+    ["--live-h", String(Math.round(oklchOf(p.accent)[2]))],
+  );
+  // the user's bubble: the accent's hue, deep in dark and pale in light, with the words on it at 7:1
+  const [, C, H] = oklchOf(p.accent), you = hexOf(oklchRgb(dark ? 0.39 : 0.885, Math.min(C, dark ? 0.09 : 0.11), H));
+  out.push(["--mx-you", fix(you, [rgbOf(ink)], 7, !dark)]);
+  return out;
+}
 
 export function flavourBlocks(f, s = stone()) {
   const L = looks(f);
@@ -110,6 +178,14 @@ export function flavourBlocks(f, s = stone()) {
   const uniq = (list) => [...new Map(list).entries()];
   // light inherits whatever the dark root sets and light doesn't, so its block is taken from the two merged
   const main = { dark: re(uniq(s.main.dark), L.dark, true), light: re(uniq([...s.main.dark, ...s.main.light]), L.light, false), inverse: re(uniq(s.main.inverse), L.dark, true) };
+  if (f.dark) {
+    const on = (mode, list) => ({ ...Object.fromEntries(list), ...Object.fromEntries(main[mode]) });
+    const dk = paletteColours(f.dark, on("dark", s.main.dark), true), lt = paletteColours(f.light, on("light", [...s.main.dark, ...s.main.light]), false);
+    const put = (mode, list) => { const m = new Map(main[mode]); for (const [k, x] of list) m.set(k, x); main[mode] = [...m]; };
+    put("dark", dk); put("light", lt);
+    // the toast and the lightbox stay dark in light mode: they take the dark palette's words and colours
+    put("inverse", dk.filter(([k]) => /^--(ink(-\d)?|accent(-rgb)?|go(-rgb)?|err-ink)$/.test(k)));
+  }
   const set = new Set([...main.dark, ...main.light].map(([k]) => k));
   // under prefers-contrast every key the flavour sets is said again, so the contrast values still win
   const hc = (list, look, dark) => uniq(list.filter(([k]) => set.has(k) || greyOf(list.find(([x]) => x === k)[1])).map(([k, v]) => { const g = !KEEP.has(k) && greyOf(v); return [k, g ? g.out(tint(g.rgb, look, dark)) : v]; }));
@@ -117,7 +193,7 @@ export function flavourBlocks(f, s = stone()) {
 }
 
 /** What a flavour's swatch is painted from, in each mode: Stone's value wherever the flavour leaves it. */
-const SWATCH = ["--canvas", "--surface", "--line", "--ink", "--ink-3"];
+const SWATCH = ["--canvas", "--surface", "--line", "--ink", "--ink-3", "--accent-fill"];
 function swatches(f, s) {
   const stoneOf = { dark: Object.fromEntries(s.main.dark), light: Object.fromEntries([...s.main.dark, ...s.main.light]) };
   const b = f ? flavourBlocks(f, s) : { main: { dark: [], light: [] } };
@@ -131,10 +207,10 @@ export function source(s = stone()) {
   let out = GENERATED;
   for (const f of FLAVOURS) {
     const b = flavourBlocks(f, s);
-    out += `\n/* ${f.name}: ${JSON.stringify(looks(f)).replace(/"/g, "")} */\n`;
+    out += `\n/* ${f.name}: ${JSON.stringify(looks(f), (k, v) => (typeof v === "number" ? +v.toFixed(3) : v)).replace(/"/g, "")} */\n`;
     for (const w of ["dark", "light", "inverse"]) out += block(SEL[w](f.id), b.main[w]);
     // the working dots take the flavour's own hue in each mode; a flavour without one keeps Stone's
-    for (const w of ["dark", "light"]) { const k = looks(f)[w]; if (k.chroma) out += block(SEL[w](f.id), [["--live-h", String(k.hue)]]); }
+    if (!f.dark) for (const w of ["dark", "light"]) { const k = looks(f)[w]; if (k.chroma) out += block(SEL[w](f.id), [["--live-h", String(k.hue)]]); }
     if (f.primary === "ink") out += block(`:root[data-flavour="${f.id}"]`, PRI_INK);
     const hc = ["dark", "light", "inverse"].map((w) => block(SEL[w](f.id), b.contrast[w], "  ")).join("");
     if (hc) out += `@media (prefers-contrast: more){\n${hc}}\n`;

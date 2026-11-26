@@ -5,12 +5,12 @@
 .b:active,.b.pressed{background:var(--btn-fill-press);transform:scale(.97);transition-duration:var(--d-press)}
 .b-l{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px}
 .b svg{width:var(--ic);height:var(--ic)}
-.b-done svg{color:var(--accent)}
+.b-done svg{color:var(--go)}
 .b-allow,.b-done{background:var(--ok-fill)}
 .b-allow:hover,.b-done:hover{background:var(--ok-fill-hover)}
 .b-allow:active,.b-done:active,.b-allow.pressed,.b-done.pressed{background:var(--ok-fill-press)}
-.b-allow svg{color:var(--accent)}
-.b-allow.arming::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(var(--accent-rgb),.7);transform-origin:left;animation:arm var(--d-in) linear both}
+.b-allow svg{color:var(--go)}
+.b-allow.arming::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(var(--go-rgb),.7);transform-origin:left;animation:arm var(--d-in) linear both}
 @keyframes arm{from{transform:scaleX(0)}to{transform:scaleX(1);opacity:0}}
 .b-back svg,.b-reply svg{color:var(--ink-3)}
 .b-go{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
@@ -77,7 +77,7 @@
 .rs.r-destructive{background:color-mix(in srgb,var(--err-ink) 40%,transparent)}
 .rs.is-cur{height:6px;background:var(--ink);border-radius:3px}
 .rs.r-destructive.is-cur{background:var(--err-ink)}
-.rs.s-allow{background:var(--accent-fill);animation:seg-pop var(--d-long) var(--ease)}
+.rs.s-allow{background:var(--go-fill);animation:seg-pop var(--d-long) var(--ease)}
 .rs.s-back{background:transparent;box-shadow:inset 0 0 0 1.2px var(--ink-3)}
 .rs.s-later{background:transparent;box-shadow:inset 0 0 0 1.2px var(--ink-4)}
 .rs.s-gone{opacity:.25}
@@ -173,7 +173,7 @@
 .chg figcaption{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-bottom:1px solid var(--line-faint);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4)}
 .chg figcaption svg{width:var(--ic-sm);height:var(--ic-sm)}
 .chg pre{margin:0;padding:10px 12px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
-.dl-add{display:inline-block;width:100%;color:var(--add-text);background:rgba(var(--accent-rgb),.08)}
+.dl-add{display:inline-block;width:100%;color:var(--add-text);background:rgba(var(--go-rgb),.08)}
 .dl-del{display:inline-block;width:100%;color:var(--del-text);background:var(--danger-wash)}
 .r-destructive .chg{background:color-mix(in srgb,var(--err) 6%,var(--fill-1))}
 .ev-msgs{list-style:none;display:grid;gap:4px}
@@ -255,12 +255,12 @@
 
 .stamp svg{width:100%;height:100%;border-radius:50%;background:var(--stamp-bg)}
 .stamp-svg .sk{stroke-dasharray:60;stroke-dashoffset:60}
-.stamp-allow{color:var(--accent)}
+.stamp-allow{color:var(--go)}
 .stamp-back{color:var(--ink-2)}
 .card.st-allow .stamp-allow,.card.st-back .stamp-back{animation:stamp var(--d-long) var(--ease) forwards}
 .card.st-allow .stamp-allow .sk,.card.st-back .stamp-back .sk{animation:draw var(--d-sheet) var(--ease) var(--d-press) forwards}
 @keyframes stamp{0%{opacity:0;transform:scale(.8)}35%,60%{opacity:1;transform:none}100%{opacity:0;transform:scale(.98)}}
-.card.st-allow{background:color-mix(in srgb,var(--accent-fill) 5%,var(--float))}
+.card.st-allow{background:color-mix(in srgb,var(--go-fill) 5%,var(--float))}
 .card.st-allow .card-in{opacity:.25;transition:opacity var(--d-hover) var(--ease)}
 .card.st-back .card-in{opacity:.25;transform:translateX(6px);transition:opacity var(--d-hover) var(--ease),transform var(--d-out)}
 .card-in.out-allow{animation:ci-up var(--d-out) var(--ease) forwards}
@@ -283,13 +283,13 @@
 .done{align-items:center;justify-content:center;text-align:center;gap:8px;padding:34px 20px 30px}
 .done-ring{width:72px;height:72px;margin-bottom:8px;animation:ring-in var(--d-long) var(--ease) var(--d-press) both}
 .done-ring svg{width:100%;height:100%}
-.done-ring{color:var(--accent)}
+.done-ring{color:var(--go)}
 .done-ring .sk{animation:draw var(--d-long) var(--ease) var(--d-sheet) forwards}
 @keyframes ring-in{from{opacity:0;transform:scale(.7)}}
 .done h3{font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28)}
 .done p{font-size:var(--fs-ui);color:var(--ink-3)}
-.done-freed{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--accent-fill) 9%,var(--surface));color:var(--ink-2)!important;font-size:var(--fs-ui)!important}
-.done-freed svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
+.done-freed{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--go-fill) 9%,var(--surface));color:var(--ink-2)!important;font-size:var(--fs-ui)!important}
+.done-freed svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--go)}
 
 /* #114 the vigilance card */
 .vig .c-body{padding:24px 22px 14px}
@@ -312,7 +312,7 @@
 body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast{pointer-events:auto;display:flex;align-items:center;gap:12px;max-width:min(520px,100%);min-height:var(--tile-xl);padding:5px 5px 5px 13px;border-radius:var(--r-lg);background:var(--toast-bg);border:1px solid var(--line-strong);box-shadow:var(--e2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:sheet-in var(--d-move) var(--ease)}
 .toast.bye{animation:sheet-out var(--dur-base) var(--ease) forwards}
-.t-ic{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:50%;background:rgba(var(--accent-rgb),.16);color:var(--accent)}
+.t-ic{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:50%;background:rgba(var(--go-rgb),.16);color:var(--go)}
 .t-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
 .t-back .t-ic{background:var(--fill-4);color:var(--ink-2)}
 .t-m{min-width:0;font-size:var(--fs-ui);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

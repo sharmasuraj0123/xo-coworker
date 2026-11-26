@@ -191,7 +191,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-v{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4)}
 .rt-v.rt-paid{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--warn)} /* informational: the account is on paid usage now */
 .rt-pill{margin-left:auto;align-self:center;flex:none;display:inline-flex;align-items:center;height:var(--h-sm);padding:0 10px;border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);background:var(--fill-2);color:var(--ink-3)}
-.rt-pill.t-ok{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.rt-pill.t-ok{background:color-mix(in srgb,var(--go) 12%,transparent);color:var(--go)}
 .rt-pill.t-warn{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .rt-pill.t-bad{background:var(--danger-tint);color:var(--err-ink)}
 .rt-sub{font-size:var(--fs-ui);color:var(--ink-3)}

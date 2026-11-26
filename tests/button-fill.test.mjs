@@ -41,7 +41,7 @@ function tintSteps(name, color, expected) {
 
 test("neutral, positive and destructive fills have their intended opacity steps", () => {
   tintSteps("btn", "ink", [[14, 18, 22], [7, 10, 13], [14, 18, 22]]);
-  tintSteps("ok", "accent-fill", [[16, 22, 28]]);
+  tintSteps("ok", "go-fill", [[16, 22, 28]]);
   tintSteps("danger", "err-ink", [[14, 20, 26], [10, 15, 20], [14, 20, 26]]);
 });
 
