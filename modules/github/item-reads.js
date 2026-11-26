@@ -52,7 +52,7 @@ export function createItemReads(api, current, paint, announce) {
   const failure = (project, key) => key && failed === id(project, key) ? `<p class="fr-none">${FAILED}</p>` : "";
   return {
     show, hide, failure,
-    clear() { hide(); details.clear(); },
+    clear() { hide(); details.clear(); unsupported.clear(); },
     get: (/** @type {string} */ project, /** @type {string} */ key) => details.get(id(project, key)) || null,
   };
 }

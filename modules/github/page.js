@@ -185,7 +185,7 @@ export function createGhPage({ stage, api, view, projectOf, work = () => {}, ann
     const nIssues = issuesOf(d).filter((i) => i.state === "open").length;
     /** @param {string} k @param {string} glyph @param {string} word @param {number} n */
     const tab = (k, glyph, word, n) => `<button type="button" class="fr-t${G.tab === k ? " is-on" : ""}" role="tab" aria-selected="${G.tab === k}" data-gh-tab="${k}">${glyph}${word}<span class="fr-n">${n || ""}</span></button>`;
-    const tabs = prs ? `<div class="fr-views" role="tablist" aria-label="Issues or pull requests">${tab("issues", IC.open, "Issues", nIssues)}${tab("prs", IC.pr, "Pull requests", prs.filter((p) => p.state === "open").length)}</div>`
+    const tabs = prs ? `<div class="fr-views" role="tablist" aria-label="Issues or pull requests">${tab("issues", IC.open, "Issues", nIssues)}${tab("prs", IC.pr, "Pull requests", d.pulls?.open_total ?? prs.filter((p) => p.state === "open").length)}</div>`
       : `<h2 class="fr-title">${IC.open}Issues<span class="fr-n">${nIssues || ""}</span></h2>`;
     return `<header class="fr-h gh-h">${tabs}<div class="fr-a"><a class="fr-ib" href="https://github.com/${esc(repo)}/${G.tab === "prs" ? "pulls" : "issues"}" target="_blank" rel="noopener" title="Open on GitHub" aria-label="Open on GitHub">${IC.ext}</a>` +
       `<button type="button" class="fr-ib" data-gh-refresh title="Read GitHub again" aria-label="Read GitHub again"${G.busy ? ' aria-busy="true"' : ""}>${IC.sync}</button></div></header>` +

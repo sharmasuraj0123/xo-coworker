@@ -270,4 +270,36 @@ await githubPage({ pulls: false, item: "i1", failure: { status: 404, detail: { c
   assert.equal(shown, 0, "a late read cannot open the panel after disposal");
 }
 
+{
+  const { document, window } = await dom("<div id='panel'></div>");
+  const panel = document.getElementById("panel");
+  const pages = new Map();
+  const { ApiError } = await import("../core/platform/http.js");
+  let served = false;
+  const gh = createGhPage({
+    api: {
+      githubIssues: async () => ({ repo: "o/r", state: "ok", issues: [] }),
+      githubStatus: async () => ({ valid: true }),
+      githubPulls: async () => {
+        if (!served) throw new ApiError(404, "http_404", "Not Found");
+        return { open_total: 29, pulls: [{ number: 7, title: "x", state: "open", head: "a", base: "main", additions: 1, deletions: 2 }] };
+      },
+    },
+    stage: { page(name, config) { pages.set(name, config); }, show() {} },
+    view: () => "p:demo",
+    projectOf: () => "demo",
+  });
+  pages.get("github").mount(panel);
+  await pages.get("github").onShow();
+  assert.equal(panel.querySelector('[data-gh-tab="prs"]') === null, true, "no pull request tab while Space has no route");
+  served = true;
+  panel.querySelector("[data-gh-refresh]").dispatchEvent(new window.Event("click", { bubbles: true }));
+  await settle();
+  const tab = panel.querySelector('[data-gh-tab="prs"]');
+  assert.equal(tab !== null, true, "Read GitHub again finds a route Space has added since, without a reload");
+  assert.equal(tab.textContent.includes("29"), true, "the tab counts every open pull request, not only the ones listed");
+  passed++; console.log("  ok  pull requests appear once Space serves them, counted by open_total");
+  gh.dispose();
+}
+
 console.log(`${passed} passed`);
