@@ -160,10 +160,6 @@ step("import lifetimes", () => {
 });
 
 step("conformance", () => checkConformance(ROOT, BASE_DIR, { update: UPDATE, base: flags["conformance-base"], notes }));
-step("places", () => {
-  const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
-  return r.status === 0 ? null : (r.stderr || r.stdout).trim();
-});
 
 if (!FAST) step("production build", () => {
   const result = run(process.execPath, ["tools/build/check.mjs"]);

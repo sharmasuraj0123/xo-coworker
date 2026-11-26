@@ -44,5 +44,5 @@ Each module declares the range it was written for (`"kernel": "^1"`), and `regis
 
 ## Known limits
 
-- Places are defined at runtime by `shell/places.js`; `architecture/places.md` is generated from it.
+- Places are defined at runtime by `shell/places.js`, which is also their catalogue.
 - `when(at)` is called on every read, so keep it cheap.
