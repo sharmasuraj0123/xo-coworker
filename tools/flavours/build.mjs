@@ -110,7 +110,6 @@ export function stone(root = ROOT) {
 }
 
 /** A flavour whose main actions are the ink: its hover the ink at its highest, its press a quarter toward the canvas. */
-export const PRI_INK = [["--pri-fill", "var(--ink)"], ["--pri-fill-hover", "var(--ink-hi)"], ["--pri-fill-press", "color-mix(in srgb,var(--ink) 76%,var(--canvas))"], ["--pri-ink", "var(--on-ink)"]];
 
 const SEL = {
   dark: (id) => `:root:not([data-theme="light"])[data-flavour="${id}"]`,
@@ -211,7 +210,6 @@ export function source(s = stone()) {
     for (const w of ["dark", "light", "inverse"]) out += block(SEL[w](f.id), b.main[w]);
     // the working dots take the flavour's own hue in each mode; a flavour without one keeps Stone's
     if (!f.dark) for (const w of ["dark", "light"]) { const k = looks(f)[w]; if (k.chroma) out += block(SEL[w](f.id), [["--live-h", String(k.hue)]]); }
-    if (f.primary === "ink") out += block(`:root[data-flavour="${f.id}"]`, PRI_INK);
     const hc = ["dark", "light", "inverse"].map((w) => block(SEL[w](f.id), b.contrast[w], "  ")).join("");
     if (hc) out += `@media (prefers-contrast: more){\n${hc}}\n`;
   }

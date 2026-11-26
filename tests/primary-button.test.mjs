@@ -2,7 +2,6 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FLAVOURS } from "../core/ui/flavours.js";
 import { resolveValue, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
 test("primary actions default to the accent colours", () => {
@@ -13,21 +12,9 @@ test("primary actions default to the accent colours", () => {
   ]) assert.equal(roles.get(role), accent, role);
 });
 
-test("only ink-primary flavours switch all four primary action roles", () => {
-  const expected = FLAVOURS.filter((flavour) => flavour.primary === "ink").map((flavour) => flavour.id);
-  assert.ok(expected.length > 0 && expected.length < FLAVOURS.length);
-  const overrides = stylesheetRows.filter((row) => row.property === "--pri-fill"
-    && row.context.at(-1)?.selector !== ":root");
-  const selectors = expected.map((flavour) => ':root[data-flavour="' + flavour + '"]');
-  assert.deepEqual(overrides.map((row) => row.context.at(-1).selector), selectors);
-  for (const selector of selectors) {
-    const roles = new Map(stylesheetRows.filter((row) => row.property && row.context.at(-1)?.selector === selector)
-      .map((row) => [row.property, row.value.trim()]));
-    assert.equal(roles.get("--pri-fill"), "var(--ink)");
-    assert.equal(roles.get("--pri-fill-hover"), "var(--ink-hi)");
-    assert.equal(roles.get("--pri-fill-press"), "color-mix(in srgb,var(--ink) 76%,var(--canvas))");
-    assert.equal(roles.get("--pri-ink"), "var(--on-ink)");
-  }
+test("no flavour swaps its primary actions to ink: Send and the rest take the flavour's own accent", () => {
+  assert.deepEqual(stylesheetRows.filter((row) => row.property?.startsWith("--pri-") && row.context.at(-1)?.selector !== ":root")
+    .map((row) => row.context.at(-1).selector), []);
 });
 
 test("main actions use primary roles while Send on a card and picker Done use ink", () => {
