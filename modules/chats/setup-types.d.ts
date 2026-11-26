@@ -15,4 +15,5 @@ export interface SetupDependencies {
   runtime: (name: string | null) => Runtime | null;
   feature: (runtime: Runtime | null, key: string) => Feature | null;
   cliName: (name: string | null) => string;
+  projectIcon?: (id: string) => string;
 }

@@ -21,7 +21,7 @@ export const chatModelModule = {
   manifest: { id: "xo.chat-model", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "announce", "notices", "navigation", "currentView", "conversationSession", "conversationPresentation",
       "placeContext", "threadPresentation"],
-    optional: ["composer"], provides: ["chats"] },
+    optional: ["composer", "projectIcons"], provides: ["chats"] },
   activate(ctx) {
     const session = ctx.use("conversationSession"), view = ctx.use("currentView"), { go } = ctx.use("navigation");
     const { turnHtml, turnAv } = ctx.use("conversationPresentation");
@@ -31,6 +31,7 @@ export const chatModelModule = {
         projects: projects().length, working: world.state.threads.filter(isBusy).length,
         coordinator: !!world.act.coordinatorBusy("workspace"),
       }),
+      projectIcon: (id) => ctx.optional("projectIcons")?.projectIcon(id) ?? "",
       world, announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
       schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#msgs"), transcriptOpen: session.folds.open,
       restore(text, { force = false } = {}) {

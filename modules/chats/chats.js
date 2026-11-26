@@ -22,7 +22,7 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 /** @param {Session} a @param {Session} b */
 const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen, workspace, projectIcon }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
   const scope = createScope();
   /** @type {ChatState} */
   const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
@@ -38,7 +38,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** @param {Runtime | null} rt @param {string} key */
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
 
-  const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName });
+  const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName, projectIcon });
 
   const { loadList, loadChat } = createChatReads(C, { world, sessions, session, schedule, ensureModels, titles: titleList, signal: scope.signal });
   /** @param {Session} s */
