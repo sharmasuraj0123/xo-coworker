@@ -38,10 +38,9 @@ t("Settings › Appearance offers the mode (dark, light, system) and every flavo
   assert.match(html, /id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"/);
   assert.match(read("tools/flavours/build.mjs"), /import \{ FLAVOURS \} from "\.\.\/\.\.\/core\/ui\/flavours\.js";/);
 });
-t("the chosen flavour and setting wear the accent's ring, not just a tint", () => {
-  const rule = /\.set-choice\.is-on\{([^}]*)\}/.exec(read("modules/settings/configuration.css"))[1];
-  assert.match(rule, /border-color:var\(--accent-fill\)/);
-  assert.match(rule, /box-shadow:inset 0 0 0 calc\(var\(--stroke-focus\) - var\(--hair\)\) var\(--accent-fill\)/);
+t("the chosen flavour's preview wears the accent's ring, not just a tint", () => {
+  const rule = /\.fl-opt\.is-on \.fl-sw\{([^}]*)\}/.exec(read("modules/settings/configuration.css"))?.[1] ?? "";
+  assert.match(rule, /box-shadow:inset 0 0 0 var\(--hair\) var\(--sw-line\),0 0 0 var\(--stroke-focus\) var\(--accent-fill\)/);
 });
 t("a flavour never changes the XO mark", () => {
   const set = [...read("css/flavours.css").matchAll(/(--[\w-]+):/g)].map((m) => m[1]);
