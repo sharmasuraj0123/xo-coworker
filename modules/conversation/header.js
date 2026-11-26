@@ -4,8 +4,8 @@ import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { heldBadge } from "../../core/services/world/held.js";
-import { stateMark } from "../../core/ui/icons/icon.js";
-import { ICON, XO } from "../../core/ui/icons/names.js";
+import { stateMark, xi } from "../../core/ui/icons/icon.js";
+import { ICON } from "../../core/ui/icons/names.js";
 import { headerActionsHtml } from "../../shell/header.js";
 
 /** @import { HeaderDeps, HeaderNeed, HeaderThread } from "./header-types.d.ts" */
@@ -46,7 +46,7 @@ export function createConversationHeader({
       const parts = [counted(working, "working"), counted(waiting, "waiting"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
       const need = hostNeedHtml(v, needs);
       const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
-      who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
+      who = `<span class="tw-ic" aria-hidden="true">${xi("layers")}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
     } else if (v.startsWith("p:")) {
       const pid = v.slice(2);
       const by = threadCounts(pid, needs);
