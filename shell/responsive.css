@@ -60,7 +60,7 @@
   .wsh-stats>div:nth-child(n+3){border-top:1px solid var(--line-faint)}
   .wsh-stats dd{font-size:var(--fs-heading)}
   .wsh-stats>div+div{padding-left:12px}
-  .cbar{padding:var(--cbar-fade) 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+  .cbar{padding:var(--cbar-fade) 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent var(--cbar-clear),var(--canvas) 26px)}
   .herald{left:var(--gut-min);right:var(--gut-min)}
   .composer{box-shadow:var(--e-composer-compact)}
   /* The dock notice aligns with the viewport gutter on phones. */

@@ -414,7 +414,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .tp-thead{--hg:var(--s-4)}
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}
-.stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
+.stage .tp .cbar{background:linear-gradient(to bottom,transparent var(--cbar-clear),var(--sunken) var(--s-8))}
 /* its ⋯ in the panel's head, there only while the thread shows */
 .stage .tp-acts{display:inline-flex}
 .stage:not([data-stg-page="thread"]) .tp-acts{display:none}

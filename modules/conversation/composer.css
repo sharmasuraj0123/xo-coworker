@@ -1,7 +1,8 @@
 /* ── the dock: one calm labelled line + (in a thread) its decision + the hero composer ── */
 .dock{position:absolute;left:0;bottom:0;z-index:5;pointer-events:none}
-/* #25 the composer sits on a full-width glass bar with a soft horizontal shadow */
-.cbar{position:relative;padding:var(--cbar-fade) 0 18px;background:linear-gradient(to bottom,transparent,var(--canvas) 34px)}
+/* the bar under the composer: dark fades items out above the box, light keeps them clear to its top */
+.cbar{position:relative;padding:var(--cbar-fade) 0 18px;
+  background:linear-gradient(to bottom,transparent var(--cbar-clear),var(--canvas) 34px)}
 /* a thread that isn't here offers no message box; the line above it (the herald) stays for what's said */
 .app[data-gone] .composer{display:none}
 .app[data-gone]{--cbar-fade:0px}
