@@ -26,8 +26,8 @@ t("census: the line is placed by the stack alone, never against one thing docked
     [".herald", "calc(100% - var(--cbar-fade) + var(--dock-gap))"],
     ["body:not(.stage-covers) .dock.is-stacked>.herald", "calc(100% + var(--dock-gap))"],
     [".tp .dock.is-stacked>.herald", "calc(100% + var(--dock-gap))"],
-    [".dock.is-top>.herald", "auto"],
-  ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked; under the stack when the dock leads its page");
+    [".dock.is-top>.herald", "var(--dock-gap)"],
+  ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked; --dock-gap over the page's foot when the dock leads it");
   const bars = values(".cbar", "padding");
   assert.ok(bars.length >= 2, "the bar's rules: the dock's, a phone's");
   for (const p of bars) assert.ok(p === "0" || p.startsWith("var(--cbar-fade) "), `the bar's top room is --cbar-fade: ${p}`);
