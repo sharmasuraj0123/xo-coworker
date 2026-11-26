@@ -98,7 +98,7 @@ export function createAct(ctx) {
     coordinatorHeld: (project) => notNearLimit(ctx.heldOfSession(ctx.coordinatorOf(ctx.chatIdOf(project)))),
     /** What a session held back by a gate waits for, or null (a plain chat's). @param {string} sessionId */
     sessionHeld: (sessionId) => ctx.heldOfSession(state.sessions[sessionId] || null),
-    sentAt: ctx.sentAt,
+    sentAt: ctx.sentAt, poolOf: ctx.poolOf,
     /** A session read, taken in the stream's order: sent = sentAt() before the request. @param {Session} s @param {import("./types").Sent} [sent] */
     noteSession: (s, sent) => { if (!scope.signal.aborted && s?.id) { ctx.noteSession(s, sent || ctx.sentAt()); ctx.soon(); } },
     /** Is a session on a turn now (its status, or work seen since it said queued)? @param {string} sessionId */

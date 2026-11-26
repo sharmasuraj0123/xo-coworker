@@ -1,5 +1,5 @@
 // @ts-check
-import { heldOf, queuedButWorking, statusLater, readSub, sessionBusy } from "../../world/sessions.js";
+import { heldOf, queuedButWorking, statusLater, readSub, sessionBusy, mainRuntime } from "../../world/sessions.js";
 import { BUSY, COORD } from "../config.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Session} Session */
@@ -46,6 +46,14 @@ export function installSessions(ctx) {
   ctx.agentPool = (agent) => {
     const rt = agent ? state.runtimes?.find((x) => x.name === agent) : null;
     return (rt && rt.health && rt.health.pool) || (rt && rt.cli && rt.cli.account ? `${agent}:${rt.cli.account}` : null);
+  };
+  /** The pool a message runs in: a session's own, else a project's coordinator's or its default runtime's, else the main runtime's. */
+  ctx.poolOf = ({ sessionId = null, project = null }) => {
+    const s = sessionId ? state.sessions[sessionId] : project ? ctx.coordinatorOf(ctx.chatIdOf(project)) : null;
+    if (s) return s.pool || ctx.agentPool(s.agent);
+    const chat = project ? ctx.chatIdOf(project) : null;
+    const policy = (chat && state.chatPolicy[chat]?.effective) || state.policy?.effective || null;
+    return ctx.agentPool((project && policy?.default) || mainRuntime(state.runtimes)?.name || null);
   };
   /** A thread's agent at work: its session's newest status, and the session list's or this view's `busy`, whichever came later. */
   ctx.threadBusy = (r, now, runsBy) => {
