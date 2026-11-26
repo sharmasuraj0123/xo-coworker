@@ -70,3 +70,7 @@ export const scheduleApi = {
   schedule: (id) => requestChecked(`/schedules/${encodeURIComponent(id)}`, isJob),
   scheduleRuns: (id, query = {}) => requestChecked(`/schedules/${encodeURIComponent(id)}/runs`, isRuns, { query }),
 };
+
+/** @param {string} id @param {Record<string,unknown>} definition @param {AbortSignal} signal */
+export const saveAgentSchedule = (id, definition, signal) => requestChecked(id ? "/schedules/" + encodeURIComponent(id) : "/schedules",
+  isJob, { method: id ? "PUT" : "POST", body: { ...definition, kind: "agent" }, signal });

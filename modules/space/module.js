@@ -8,6 +8,7 @@ import { secrets, diagnostics } from "./settings.js";
 import { explore } from "./explore.js";
 import { checkSharing, pollConnection, runJob } from "../../core/platform/space-actions-response.js";
 import { readUsage, readSources } from "../../core/platform/space-usage-response.js";
+import { scheduleEditor, bindSchedules } from "./schedule-editor.js";
 
 /** @param {string} id @param {string} text */
 const action = (id, text) => `<button type="button" class="btn" data-action="${esc(id)}">${esc(text)}</button>`;
@@ -20,7 +21,7 @@ async function scheduled(signal) {
   const { jobs } = await scheduleApi.schedules(signal);
   return jobs.map(job => row(job.name, [job.running ? "Running" : job.enabled ? "Enabled" : "Paused",
     job.description, job.next_run && "Next run " + job.next_run].filter(Boolean).join(" · "),
-  job.running ? "" : action(job.id, "Run now")));
+  (job.running ? "" : action(job.id, "Run now")) + (job.kind === "agent" ? scheduleEditor(job) : "")));
 }
 
 /** @param {AbortSignal} signal */
@@ -75,9 +76,11 @@ export const spacePages = {
           html = `<p role="status">${esc(requestFailureMessage(error, title + " unavailable"))}</p>`;
         } finally { pending = false; last = Date.now(); }
         if (!ctx.signal.aborted) redraw(host, `<h1>${title}</h1>${html}<button type="button" class="btn" data-refresh>Refresh</button>`
-          + (id === "shared" ? action("shared", "Check now") : "") + `<p role="status" data-result>${esc(notice)}</p>`);
+          + (id === "shared" ? action("shared", "Check now") : id === "scheduled" ? scheduleEditor() : "")
+          + `<p role="status" data-result>${esc(notice)}</p>`);
       }
       ctx.contribute("page", { id, mount(host) {
+        if (id === "scheduled") bindSchedules(ctx, host, () => load(host));
         ctx.listen(host, "click", async ({ target }) => {
           if (!(target instanceof Element) || working || pending) return;
           if (target.closest("[data-refresh]")) { await load(host); return; }
@@ -97,7 +100,7 @@ export const spacePages = {
         });
       }, render(host) {
         if (!host.firstChild) redraw(host, `<h1>${title}</h1><p role="status">Loading…</p>`);
-        if (Date.now() - last > 30000) void load(host);
+        if (!host.querySelector("details[open]") && Date.now() - last > 30000) void load(host);
       } });
     }
   },
