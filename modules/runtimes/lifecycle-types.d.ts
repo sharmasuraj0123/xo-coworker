@@ -37,6 +37,10 @@ export interface RowView {
   menu: RowAction[];
   version?: string | null;
 }
+export interface Settling {
+  what: string;
+}
+export type Settle = (name: string, what?: string) => void;
 export interface Remote {
   running?: boolean;
   url?: string | null;
@@ -46,6 +50,7 @@ export interface Remote {
 export interface RowParts {
   flow?: Flow | null;
   job?: JobView | null;
+  settling?: string;
   err?: string;
   remote?: Remote | null;
   menuOpen?: boolean;

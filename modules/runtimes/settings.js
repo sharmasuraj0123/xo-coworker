@@ -47,7 +47,8 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root, 
   let menuFor = null;
   /** @param {Runtime} rt @param {PaidRow[]} paidRows */
   const cardHtml = (rt, paidRows) => rowHtml(rt, {
-    flow: life.flow(rt.name), job: life.job(rt.name), err: life.err(rt.name), remote: life.remote(rt.name), menuOpen: menuFor === rt.name,
+    flow: life.flow(rt.name), job: life.job(rt.name), settling: life.settling(rt.name), err: life.err(rt.name),
+    remote: life.remote(rt.name), menuOpen: menuFor === rt.name,
     extra: onPaid(paidRows, rt.name) ? `<span class="rt-v rt-paid">On paid usage</span>` : "",
   });
   function listHtml() {
@@ -106,8 +107,9 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root, 
     const seg = ["", ...allowed].map((n) => `<button type="button" role="radio" aria-checked="${picked === n}" ` +
       `data-rtd-default="${esc(n)}"${rovingTab(picked === n)}${busy}>${n ? esc(rtName(n)) : "Auto"}</button>`).join("");
 
-    /** @param {keyof RuntimePolicy} f @param {string} label @param {string} sub @param {string} ctl */
-    const row = (f, label, sub, ctl) => `<div class="set-row rt-def"><div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
+    /** A choice of several sits under its words, a switch beside them. @param {keyof RuntimePolicy} f @param {string} label @param {string} sub @param {string} ctl */
+    const row = (f, label, sub, ctl, col = true) => `<div class="set-row rt-def${col ? " is-col" : ""}">` +
+      `<div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
     return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Defaults</h3>` +
       `<p class="set-lead">Each thread runs on one runtime for its whole life. A project or a thread picks its own in the composer, beside its model.</p>` +
       `<div class="rt-defs">` +
@@ -115,7 +117,7 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root, 
       row("allowed", "Runtimes XO may use", "Work never goes to a runtime you turn off: no thread starts or moves there.",
         `<div class="rt-checks" role="group" aria-labelledby="rtd-allowed">${names.map((/** @type {string} */ n) => `<label class="rt-check"><input type="checkbox" data-rtd-allowed="${esc(n)}"${allowed.includes(n) ? " checked" : ""}${busy}><span>${esc(rtName(n))}</span></label>`).join("")}</div>`) +
       row("fallback", "Start elsewhere at a limit", "When a runtime can't take work, a new thread may start on another one. <strong>It goes to another provider without asking you.</strong>",
-        `<button type="button" class="switch" role="switch" aria-checked="${!!p.fallback}" aria-labelledby="rtd-fallback" data-rtd-fallback${busy}><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`) +
+        `<button type="button" class="switch" role="switch" aria-checked="${!!p.fallback}" aria-labelledby="rtd-fallback" data-rtd-fallback${busy}><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`, false) +
       `<div class="set-row rt-def is-col"><div class="set-l"><label for="rtd-pref"><b id="rtd-preferences">How coordinators choose</b></label><span>In your words, read when a coordinator on Auto picks a runtime for a new thread.</span>${note("preferences")}</div>` +
       `<div class="field"><textarea id="rtd-pref" rows="2" maxlength="${PREF_MAX}" data-rtd-pref placeholder="Refactors and tests on Codex, UI work on Claude Code.">${esc(R.pref != null ? R.pref : p.preferences || "")}</textarea></div></div>` +
       `</div></section>`;

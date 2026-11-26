@@ -5,6 +5,11 @@ import { test } from "node:test";
 import { createScope } from "../../../core/kernel/scope.js";
 import { ApiError } from "../../../core/platform/http.js";
 import { createLifecycle } from "../lifecycle.js";
+import { rowHtml } from "../rows.js";
+
+/** @import { Runtime } from "../../../core/services/runtime-types" */
+
+/** @import { SignInEvent } from "../../../core/platform/sign-in-types" */
 
 /** @param {Record<string, Function>} calls */
 function setup(calls) {
@@ -61,4 +66,45 @@ test("a job the Space forgot in a restart reads as lost", async (t) => {
   t.mock.timers.tick(1000); await flush();
   assert.equal(life.job("codex")?.status, "failed");
   assert.equal(life.job("codex")?.lost, true);
+});
+
+/** @param {string} name @param {Partial<NonNullable<Runtime["lifecycle"]>>} lc @returns {Runtime} */
+const rt = (name, lc) => ({ name, health: {}, lifecycle: { name, state: "ready", installed: true, signed_in: true, actions: [], ...lc } });
+/** @param {string} html */
+const words = (html) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+/** @param {ReturnType<typeof createLifecycle>} life @param {Runtime} r */
+const row = (life, r) => words(rowHtml(r, { flow: life.flow(r.name), job: life.job(r.name), settling: life.settling(r.name) }));
+
+test("a sign-in that ends holds the row until the Space's runtimes show it signed in", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  /** @type {SignInEvent[]} */
+  const frames = [{ type: "auth_url", url: "https://cursor.com/login" }, { type: "done", returncode: 0 }];
+  const { scope, life, said } = setup({ signInStream: async (_n, o) => { for (const ev of frames) o.on(ev); } });
+  t.after(() => scope.dispose());
+  await life.signIn("cursor");
+  assert.deepEqual(said, ["Cursor signed in."]);
+  const stale = rt("cursor", { signed_in: false, actions: ["sign_in"] });
+  life.sync([stale]);
+  assert.doesNotMatch(row(life, stale), /Not signed in/, "the read taken before the Space recorded the sign-in");
+  assert.match(row(life, stale), /Finishing the sign-in…/);
+  const now = rt("cursor", { actions: ["sign_in", "sign_out"] });
+  life.sync([now]);
+  assert.equal(life.settling("cursor"), "");
+  assert.match(row(life, now), /Signed in\./);
+});
+
+test("a finished job reads as running until the runtimes show it; past the wait, the Space's word stands", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const answers = [job("done")];
+  const { scope, life } = setup({ runtimeAction: async () => job("running"), runtimeJob: async () => answers.shift() });
+  t.after(() => scope.dispose());
+  await life.run("codex", "update");
+  t.mock.timers.tick(1000); await flush();
+  const stale = rt("codex", { needs_update: true, update: "0.9", actions: ["update"] });
+  life.sync([stale]);
+  assert.match(row(life, stale), /Updating to 0\.9…/);
+  assert.doesNotMatch(row(life, stale), /Update to 0\.9/);
+  t.mock.timers.tick(15000); await flush();
+  assert.equal(life.settling("codex"), "");
+  assert.match(row(life, stale), /Update to 0\.9/);
 });

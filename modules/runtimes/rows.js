@@ -34,6 +34,18 @@ function elapsed(ms) {
   return h ? `${h}:${String(m).padStart(2, "0")}:${r}` : `${m}:${r}`;
 }
 
+/** Whether the Space's runtime already shows what a sign-in or job just did. @param {Runtime} rt @param {string} [what] */
+export function landed(rt, what) {
+  const lc = rt.lifecycle;
+  if (!lc || !what) return true;
+  if (what === "sign_in") return lc.signed_in;
+  if (what === "sign_out") return !lc.signed_in;
+  if (what === "install") return lc.installed;
+  if (what === "uninstall") return !lc.installed;
+  if (what === "update") return !lc.needs_update;
+  return true;
+}
+
 /** @param {string} id @param {string} label @param {Partial<RowAction>} [o] @returns {RowAction} */
 const act = (id, label, o = {}) => ({ id, label, ...o });
 /** @param {string} key @param {[string, string]} pill @param {string} line @param {Partial<RowView>} [o] @returns {RowView} */
@@ -76,10 +88,12 @@ function failedView(rt, j, now) {
 }
 
 /** A row's words, its next step as buttons and the rest in its menu. @param {Runtime} rt @param {RowParts} parts */
-function rowView(rt, { flow = null, job = null, now = Date.now() } = {}) {
+function rowView(rt, { flow = null, job = null, settling = "", now = Date.now() } = {}) {
   const n = rtName(rt.name), lc = rt.lifecycle || null, h = rt.health || {};
   const offers = (/** @type {string} */ a) => !!lc && lc.actions.includes(a);
-  const running = job && job.status === "running" ? job.action : (lc && RUNNING[lc.state]) || null;
+  const after = flow || landed(rt, settling) ? "" : settling;
+  if (after === "sign_in") return view("finishing", SIGNING, "Finishing the sign-in…", { busy: true });
+  const running = job && job.status === "running" ? job.action : (lc && RUNNING[lc.state]) || after || null;
   if (running) {
     const [doing] = DOING[running] || ["Working"];
     const to = running === "update" && lc && lc.update ? ` to ${lc.update}` : "";
@@ -189,8 +203,8 @@ function meterHtml(w) {
 
 /** A runtime's row: state, next step, menu, sign-in or job, usage and remote control. @param {Runtime} rt @param {RowParts} o */
 export function rowHtml(rt, o = {}) {
-  const { flow = null, job = null, err = "", remote = null, menuOpen = false, extra = "", now = Date.now() } = o;
-  const v = rowView(rt, { flow, job, now }), n = rt.name, name = rtName(n), h = rt.health || {};
+  const { flow = null, job = null, settling = "", err = "", remote = null, menuOpen = false, extra = "", now = Date.now() } = o;
+  const v = rowView(rt, { flow, job, settling, now }), n = rt.name, name = rtName(n), h = rt.health || {};
   const ver = rt.lifecycle?.version || h.cli_version || rt.cli?.version || null;
   const settled = v.key === "in" || v.key === "legacy", hl = healthOf(rt, now);
   const fix = hl.fix ? ` <span class="rt-fix">${esc(hl.fix).replace(/`([^`]+)`/g, "<code>$1</code>")}</span>` : "";

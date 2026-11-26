@@ -126,6 +126,14 @@ await t("a refused save keeps the draft on screen and says why beside the field"
   assert.notEqual(note()?.textContent, "Saved");
   assert.equal(page().querySelector("#rtd-preferences").closest(".set-l").querySelector(".rt-ferr")?.textContent, "Too long.", "why, beside the field");
 });
+await t("a choice of several sits under its words, so the card's controls share one left edge; the switch stays beside its words", async () => {
+  const { world } = await space();
+  mount(world);
+  await settle();
+  const rowOf = (/** @type {string} */ id) => page().querySelector(`#${id}`).closest(".rt-def");
+  for (const id of ["rtd-default", "rtd-allowed", "rtd-preferences"]) assert.ok(rowOf(id).classList.contains("is-col"), id);
+  assert.ok(!rowOf("rtd-fallback").classList.contains("is-col"), "the switch");
+});
 scope.dispose();
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();

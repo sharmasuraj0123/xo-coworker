@@ -2,9 +2,9 @@
 import { ApiError, missingRoute } from "../../core/platform/http.js";
 import { rtName } from "../../core/services/runtimes.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
-import { PASTE, REMOTE, deviceCode } from "./rows.js";
+import { PASTE, REMOTE, deviceCode, landed } from "./rows.js";
 
-/** @import { Flow, JobView, Remote, LifecycleDeps } from "./lifecycle-types" */
+/** @import { Flow, JobView, Remote, LifecycleDeps, Settling, Settle } from "./lifecycle-types" */
 
 /** @import { Job, JobAction } from "../../core/platform/lifecycle-types" */
 
@@ -13,14 +13,15 @@ import { PASTE, REMOTE, deviceCode } from "./rows.js";
 /** @import { Runtime } from "../../core/services/runtime-types" */
 
 const JOB_POLL_MS = 1000;
+const SETTLE_MS = 15000;
 /** @type {Record<string, string>} */
 const DONE = { install: "installed", update: "updated", uninstall: "uninstalled", sign_out: "signed out" };
 const RUNS = ["installing", "updating", "uninstalling", "failed"];
 
-/** @typedef {LifecycleDeps & { notify: () => void, errs: Map<string, string> }} Part */
+/** @typedef {LifecycleDeps & { notify: () => void, errs: Map<string, string>, settling: Map<string, Settling>, settle: Settle }} Part */
 
 /** One sign-in per runtime, its CLI's frames turned into what the row shows. @param {Part} p */
-function signIns({ api, refresh, announce, scope, notify, errs }) {
+function signIns({ api, refresh, announce, scope, notify, errs, settle }) {
   /** @type {Map<string, Flow>} */
   const flows = new Map();
   const { signal } = scope;
@@ -51,14 +52,14 @@ function signIns({ api, refresh, announce, scope, notify, errs }) {
     if (flows.has(name) || signal.aborted) return;
     /** @type {Flow} */
     const f = { phase: "starting", ctl: new AbortController(), lines: [] };
-    flows.set(name, f); errs.delete(name); notify();
+    flows.set(name, f); errs.delete(name); settle(name); notify();
     const mine = () => !signal.aborted && flows.get(name) === f;
     let ended = false;
     /** @param {boolean} ok @param {string} words */
     const end = (ok, words) => {
       if (ended || !mine()) return;
       ended = true; flows.delete(name); f.ctl.abort();
-      if (ok) announce(words); else errs.set(name, words);
+      if (ok) { announce(words); settle(name, "sign_in"); } else errs.set(name, words);
       notify(); refresh();
     };
     const on = frames(name, f, end);
@@ -104,7 +105,7 @@ function viewOf(j, at, live = true) {
 }
 
 /** One job per runtime: started here or found running, read once a second until it ends; a failure stays until the next. @param {Part} p */
-function jobsOf({ api, refresh, announce, scope, notify, errs }) {
+function jobsOf({ api, refresh, announce, scope, notify, errs, settle, settling }) {
   /** @type {Map<string, JobView>} */
   const jobs = new Map();
   const { signal } = scope;
@@ -120,7 +121,7 @@ function jobsOf({ api, refresh, announce, scope, notify, errs }) {
         if (!ours(name, id) || !now) return;
         jobs.set(name, { ...viewOf(j, now.at), open: now.open });
         if (j.status === "running") { notify(); scope.timeout(tick, JOB_POLL_MS); return; }
-        if (j.status === "done") announce(`${rtName(name)} ${DONE[j.action] || "done"}.`);
+        if (j.status === "done") { announce(`${rtName(name)} ${DONE[j.action] || "done"}.`); settle(name, j.action); }
         notify(); refresh();
       } catch (error) {
         const now = jobs.get(name);
@@ -149,7 +150,7 @@ function jobsOf({ api, refresh, announce, scope, notify, errs }) {
   /** An uninstall that sessions run on returns those sessions unless forced. @param {string} name @param {JobAction} action */
   async function run(name, action, { force = false } = {}) {
     if (signal.aborted || jobs.get(name)?.status === "running") return null;
-    errs.delete(name);
+    errs.delete(name); settle(name);
     jobs.set(name, { action, status: "running", log: [], at: Date.now() }); notify();
     try {
       const j = await api.runtimeAction(name, action, { force });
@@ -171,6 +172,7 @@ function jobsOf({ api, refresh, announce, scope, notify, errs }) {
     for (const rt of rts || []) {
       const lc = rt.lifecycle;
       if (lc && lc.job && RUNS.includes(lc.state)) void adopt(rt.name, lc.job, lc.state === "failed");
+      if (landed(rt, settling.get(rt.name)?.what)) settle(rt.name);
     }
   }
   /** @param {string} name */
@@ -230,13 +232,23 @@ export function createLifecycle(deps) {
   const listeners = new Set();
   const notify = () => { if (!deps.scope.signal.aborted) for (const fn of [...listeners]) fn(); };
   deps.scope.effect(() => () => listeners.clear());
-  const part = { ...deps, notify, errs: new Map() };
+  /** @type {Map<string, Settling>} */
+  const settling = new Map();
+  /** What just finished, held until the Space's runtimes show it. @param {string} name @param {string} [what] */
+  const settle = (name, what) => {
+    if (!what) { if (settling.delete(name)) notify(); return; }
+    const s = { what };
+    settling.set(name, s);
+    deps.scope.timeout(() => { if (settling.get(name) === s) { settling.delete(name); notify(); } }, SETTLE_MS);
+  };
+  const part = { ...deps, notify, errs: new Map(), settling, settle };
   const s = signIns(part), j = jobsOf(part), r = remotesOf(part);
   return {
     signIn: s.signIn, cancelSignIn: s.cancelSignIn, sendCode: s.sendCode, opened: s.opened,
     run: j.run, retry: j.retry, sync: j.sync, toggleLog: j.toggleLog, readRemotes: r.readRemotes, setRemote: r.setRemote,
     flow: (name = "") => s.flows.get(name) || null,
     job: (name = "") => j.jobs.get(name) || null,
+    settling: (name = "") => settling.get(name)?.what || "",
     err: (name = "") => part.errs.get(name) || "",
     remote: (name = "") => r.remotes.get(name) || null,
     /** @param {() => void} fn */
