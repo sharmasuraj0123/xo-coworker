@@ -59,7 +59,7 @@ export function rememberHome() {
   const parts = [.../** @type {HTMLCollectionOf<HTMLElement>} */ (body.children)].map((el) => {
     /** @type {HomePart} */
     const p = { id: el.id, hidden: el.hidden, h: el.offsetHeight };
-    if (el.id === "hm-next") p.kind = el.querySelector(".next, .in-panel, .calm") ? "card" : el.querySelector(".calm-line") ? "calm" : "none";
+    if (el.id === "hm-next") p.kind = el.querySelector(".next, .hm-in-panel, .calm") ? "card" : el.querySelector(".calm-line") ? "calm" : "none";
     if (el.id === "hm-made") {
       const sec = /** @type {HTMLElement | null} */ (el.querySelector(".md-recent"));
       p.n = sec && el.querySelector(".is-sk") ? (prev?.parts.find((x) => x.id === "hm-made")?.n ?? 0) : sec && !sec.hidden ? el.querySelectorAll(".md-it").length : 0;

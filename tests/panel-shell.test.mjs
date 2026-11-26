@@ -148,6 +148,8 @@ const hidesShellButton = (width) => rules.some(({ sel, at, declarations }) => se
   && declarations.some(({ p, v }) => p === "display" && v === "none"));
 assert.equal(hidesShellButton(760), true);
 assert.equal(hidesShellButton(761), false);
+const foreignInPanel = rules.filter(({ sel }) => /\.in-panel(?![\w-])/.test(sel) && !sel.includes(".shd")).map(({ f, sel }) => `${f} ${sel}`);
+assert.deepEqual(foreignInPanel, [], "only the shell dock styles its in-panel state");
 
 await checkAppShellDock();
 
