@@ -18,6 +18,21 @@ function access(data) {
 export const projectAccess = (id, signal) => requestChecked(`/xo-projects/${encodeURIComponent(id)}/removal`, access, { signal });
 
 /** @param {string} id @param {AbortSignal} signal */
+export function projectSync(id, signal) {
+  /** @param {unknown} data @returns {data is {project_id:string,branch:string,path:string,behind:number|null}} */
+  const current = data => isResponseObject(data) && data.project_id === id && typeof data.branch === "string"
+    && typeof data.path === "string" && (data.behind === null || Number.isInteger(data.behind));
+  return requestChecked(`/xo-projects/${encodeURIComponent(id)}/commits`, current, { query: { limit: 1 }, signal });
+}
+
+/** @param {string} id @param {AbortSignal} signal */
+export function applySharedCommits(id, signal) {
+  /** @param {unknown} data @returns {data is {project_id:string,applied:number}} */
+  const applied = data => isResponseObject(data) && data.project_id === id && Number.isInteger(data.applied);
+  return requestChecked(`/xo-projects/${encodeURIComponent(id)}/apply`, applied, { method: "POST", signal });
+}
+
+/** @param {string} id @param {AbortSignal} signal */
 export function removeProject(id, signal) {
   /** @param {unknown} data @returns {data is {project_id:string,removed:true}} */
   const confirmed = data => isResponseObject(data) && data.project_id === id && data.removed === true;

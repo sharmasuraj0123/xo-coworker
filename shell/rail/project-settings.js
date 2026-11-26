@@ -1,7 +1,7 @@
 // @ts-check
 import { requireHtml } from "../../core/platform/dom.js";
 import { latest, cancelLatest } from "../../core/platform/latest.js";
-import { projectAccess, removeProject } from "../../core/platform/project-access-response.js";
+import { projectAccess, projectSync, applySharedCommits, removeProject } from "../../core/platform/project-access-response.js";
 import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -13,7 +13,8 @@ export function projectSettings(ctx, pins) {
   const panel = requireHtml("#rail-project-settings"), key = Symbol("project settings");
   const name = ctx.use("placeContext").PROJ, navigate = ctx.use("navigation"), view = ctx.use("currentView");
   let selected = "", busy = false, allowed = false;
-  const close = () => { cancelLatest(key); selected = ""; allowed = false; };
+  const syncKey = Symbol("project sync");
+  const close = () => { cancelLatest(key); cancelLatest(syncKey); selected = ""; allowed = false; };
   ctx.listen(panel, "beforetoggle", (event) => { if ("newState" in event && event.newState === "closed") close(); });
   ctx.on("app:render", () => { if (selected && view() !== "p:" + selected) panel.hidePopover(); });
   ctx.effect(() => () => { if (selected) panel.hidePopover(); close(); });
@@ -24,10 +25,11 @@ export function projectSettings(ctx, pins) {
     allowed = false;
     redraw(panel, `<h2>${esc(name(id))}</h2><p>${esc(id)}</p><button type="button" data-project-icon>Change icon</button>`
       + `<button type="button" data-pin aria-pressed="${pins.pinned(id)}">Pin to sidebar</button>`
-      + '<section data-access aria-live="polite">Reading project access…</section>'
+      + '<section data-sync aria-live="polite"></section><section data-access aria-live="polite">Reading project access…</section>'
       + '<button type="button" data-launch>Launchpad</button><button type="button" data-set-open="worktrees">Worktrees</button>'
       + '<button type="button" data-set-open="rules">Rules</button>');
     panel.showPopover();
+    void sync(id);
     const access = requireHtml("[data-access]", "section", panel);
     try {
       await latest(key, signal => projectAccess(id, signal), { signal: ctx.signal, commit(data) {
@@ -45,12 +47,38 @@ export function projectSettings(ctx, pins) {
       access.textContent = requestFailureMessage(error, "Project access unavailable");
     }
   }
+  /** @param {string} id */
+  async function sync(id) {
+    const host = requireHtml("[data-sync]", "section", panel);
+    try {
+      await latest(syncKey, signal => projectSync(id, signal), { signal: ctx.signal, commit(data) {
+        const status = data.behind === null ? "Sync status unavailable" : data.behind === 0 ? "In sync" : `${data.behind} commits to apply`;
+        redraw(host, `<p>${esc(data.path)} · ${esc(data.branch)}</p><p>${esc(status)}</p>`
+          + (data.behind && data.behind > 0 ? '<button type="button" data-apply>Apply commits</button>' : ""));
+      } });
+    } catch (error) {
+      if (!ctx.signal.aborted && selected === id && !(error instanceof Error && error.name === "AbortError")) {
+        host.textContent = requestFailureMessage(error, "Project sync unavailable");
+      }
+    }
+  }
   ctx.listen(panel, "input", () => {
     requireHtml("[data-remove]", "button", panel).disabled = busy || requireHtml("[data-confirm]", "input", panel).value !== selected;
   });
   ctx.listen(panel, "click", async ({ target }) => {
     if (!(target instanceof Element) || !selected) return;
-    if (target.closest("[data-pin]")) {
+    if (target.closest("[data-apply]") && !busy) {
+      const id = selected;
+      busy = true;
+      requireHtml("[data-apply]", "button", panel).disabled = true;
+      try {
+        await applySharedCommits(id, ctx.signal);
+        if (selected === id) await sync(id);
+      } catch (error) {
+        if (!ctx.signal.aborted && selected === id) requireHtml("[data-sync]", "section", panel).textContent =
+          requestFailureMessage(error, "Could not apply shared commits");
+      } finally { busy = false; }
+    } else if (target.closest("[data-pin]")) {
       pins.toggle(selected);
       requireHtml("[data-pin]", "button", panel).setAttribute("aria-pressed", String(pins.pinned(selected)));
     } else if (target.closest("[data-launch],[data-project-icon],[data-set-open]")) {
