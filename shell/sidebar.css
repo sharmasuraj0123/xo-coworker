@@ -13,6 +13,9 @@
 .recent-dot{width:var(--s-1);height:var(--s-1);border-radius:var(--r-pill);background:var(--info)}
 .recent-dot.needs{background:var(--warn)}
 .space-page{overflow:auto;padding:var(--s-6);margin-inline:auto;width:min(100%,var(--col-max))}
+.main:has(.space-page:not([hidden])) .dock{display:none}
+.space-page > * + *{margin-block-start:var(--s-3)}
+.space-page [role=group]{display:flex;gap:var(--s-1)}
 .space-page ul{list-style:none;padding:0}
 .space-page li{padding:var(--s-3);border-bottom:var(--hair) solid var(--line)}
 .space-page li p{color:var(--ink-3)}
