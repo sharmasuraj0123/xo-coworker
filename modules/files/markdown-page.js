@@ -3,6 +3,7 @@
 // Markdown as a page you type in: the same CodeMirror editor as Source, drawn as a document you type straight into.
 
 import { createBlockField } from "./markdown-blocks.js";
+import { breakParagraph, createFlowField } from "./markdown-flow.js";
 import { createTableWidget } from "./markdown-table.js";
 import { createMarkdownWidgets } from "./markdown-widgets.js";
 import { createImageWidget } from "./markdown-figures.js";
@@ -54,12 +55,20 @@ export function pageView(CM, { images = null, askAbout = null } = {}) {
     return true;
   };
 
+  /** @param {EditorView} view */
+  const newParagraph = (view) => {
+    const spec = view.state.readOnly ? null : breakParagraph(syntaxTree, view.state);
+    if (spec) view.dispatch(spec);
+    return Boolean(spec);
+  };
+
   /** @param {Mark} m */
   const mark = (m) => command((view) => toggleMark(CM, view.state, m));
 
   /** @param {LineStyle} s */
   const style = (s) => command((view) => setLineStyle(view.state, s));
   const keys = Prec.high(keymap.of([
+    { key: "Enter", run: newParagraph },
     { key: "Mod-b", run: mark("bold") },
     { key: "Mod-i", run: mark("italic") },
     { key: "Mod-e", run: mark("code") },
@@ -74,7 +83,8 @@ export function pageView(CM, { images = null, askAbout = null } = {}) {
   ]));
 
   return [
-    blocks, notes, inlinePlugin, keys, formatBar(CM, askAbout), insertBar(CM), restingCaret(CM), EditorView.exceptionSink.of(reportFailure),
+    blocks, createFlowField(CM, blocks), notes, inlinePlugin, keys, formatBar(CM, askAbout), insertBar(CM), restingCaret(CM),
+    EditorView.exceptionSink.of(reportFailure),
     EditorView.editorAttributes.of({ class: "cm-xo-page" }),
   ];
 }
