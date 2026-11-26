@@ -34,7 +34,7 @@ export function createTopHeader(deps, scope, schedule) {
       back.hidden = v === "chats";
       if (v !== "chats") { redraw(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
       redraw($("#top-who"), CH.headHtml(v));
-      redraw($("#top-end"), STAGE.button(v));
+      redraw($("#top-end"), (v.startsWith("c:") ? headerActionsHtml(places, atOf(v)) : "") + STAGE.button(v));
       checklistRender(needs);
       return;
     }
