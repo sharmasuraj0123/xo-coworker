@@ -65,7 +65,7 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
       } else if (m.who === "you") {
         out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
         if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
-      } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom });
+      } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom, space: m.space, fwd: m.fwd });
       else if (t && m.who === "agent" && /^✓\s/.test(m.text)) {
         out.push({ key: base.key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
       }

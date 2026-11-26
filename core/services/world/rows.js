@@ -27,6 +27,15 @@ function forwarded(value) {
 const isReaction = (value) => isRecord(value) && typeof value.emoji === "string" && !!value.emoji
   && (value.by == null || typeof value.by === "string") && (value.at == null || typeof value.at === "string");
 
+/** A Space notice's percent: extra.advisory's, else the first "N%" in its words. @param {MessageRow} row */
+function spaceNotice(row) {
+  if (row.author_kind !== "system" || row.author_id !== "space-advisory") return null;
+  const a = isRecord(row.extra?.advisory) ? row.extra.advisory : null;
+  const said = /(\d+(?:\.\d+)?)\s*%/.exec(String(row.text ?? ""));
+  const percent = typeof a?.percent === "number" ? a.percent : said ? Number(said[1]) : null;
+  return { percent };
+}
+
 /** @param {MessageRow} row */
 export function uiMsg(row) {
   /** @type {"you" | "system" | "coord" | "agent"} */
@@ -52,6 +61,7 @@ export function uiMsg(row) {
     reactions: Array.isArray(x.reactions) ? x.reactions.filter(isReaction) : [],
     continuedIn: textOrNull(x.continued_in),
     continuedFrom: textOrNull(x.continued_from),
+    space: spaceNotice(row),
   };
 }
 

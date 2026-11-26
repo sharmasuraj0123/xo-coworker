@@ -174,10 +174,11 @@
 .meta-btn svg{width:var(--ic-xs);height:var(--ic-xs)}
 .route-row{display:flex;align-items:center;gap:8px;margin-top:6px;padding-right:4px;font-size:var(--fs-meta);color:var(--ink-3);animation:msg-in var(--d-in) var(--ease)}
 .route-row b{color:var(--ink-2);font-weight:var(--fw-strong)}
-.route-row.is-copy{margin-top:var(--s-3)}
-.route-row.is-copy::after{content:"";flex:1;height:1px;margin-left:var(--s-1);background:var(--fill-2)}
-.route-row.is-copy>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:760px){.route-row.is-copy .via{display:none}}
+.m-from{display:inline-flex;align-items:center;gap:var(--s-1);white-space:nowrap;font-size:var(--fs-meta);color:var(--ink-4)}
+.m-from>svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
+.m-from .rt-go{color:var(--ink-2)}
+.av-p{color:var(--ink-2)}
+@media (max-width:760px){.m-from .via{display:none}}
 /* your words passed on into a thread (if1 #7): the same bubble, set slightly apart as a copy */
 .m-you.is-relay .bubble{background:transparent;border:1px dashed var(--line-strong)}
 .m.is-flash .bubble{animation:msg-flash 1.6s var(--ease)}
@@ -307,6 +308,13 @@ code.hl{color:var(--code-ink)}
 
 .ev-t{min-width:0;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
 .ev time{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.ev-space{align-items:flex-start;padding:var(--s-2) var(--s-3);border-radius:var(--r-lg);background:var(--warn-subtle);color:var(--ink-2)}
+.ev-space .ev-ic{height:var(--lh-ui);color:var(--warn)}
+.ev-space .ev-t{white-space:normal}
+.ev-space b{color:var(--ink);font-weight:var(--fw-strong)}
+.ev-space .ev-n{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
+.ev-space.is-hot{background:var(--err-subtle)}
+.ev-space.is-hot .ev-ic{color:var(--err-ink)}
 
 .typing{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding-bottom:8px;animation:msg-in var(--d-in) var(--ease)}
 .av-w{position:relative}
