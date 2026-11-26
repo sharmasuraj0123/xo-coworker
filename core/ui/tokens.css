@@ -267,7 +267,7 @@
   --ic-link:1em; --ic-link-thread:.86em; --ic-link-arrow:.62em; --offset-link-icon-half:.5em; --offset-link-arrow-half:.31em;
   --offset-link-arrow-run:1.5px; --offset-link-arrow-rise:-1.5px; --offset-link-underline:3px; --opacity-link-press:.7;
   --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:var(--r-tight); --size-inline-link-code:.9em;
-  --dock-gap:var(--s-3); --cbar-fade:30px;
+  --dock-gap:var(--s-3); --cbar-fade:30px; --cbar-clear:0px;
   --edge-fade:var(--s-8);
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-grip:3; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
@@ -306,9 +306,9 @@
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
   --herald-bg:rgba(255,255,255,.92); --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
   --fill-drop-veil:color-mix(in srgb,var(--surface) 55%,transparent);
-  --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
-  --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
-  --e-composer-compact:var(--e-composer-idle); --line-composer-focus:var(--line-hover);
+  --e-composer-idle:0 0 0 .5px rgba(var(--black-rgb),.04),0 1px 3px rgba(var(--black-rgb),.06),0 4px 32px rgba(var(--black-rgb),.13);
+  --e-composer-focused:0 0 0 .5px rgba(var(--black-rgb),.05),0 1px 3px rgba(var(--black-rgb),.07),0 6px 36px rgba(var(--black-rgb),.16);
+  --e-composer-compact:var(--e-composer-idle); --line-composer-focus:var(--line-hover); --cbar-clear:var(--cbar-fade);
   --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
   --lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02);
   --lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08);
