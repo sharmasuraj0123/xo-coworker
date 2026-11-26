@@ -11,3 +11,5 @@
   body.viewer-open:not(.stage-open):not(.panel-open) .main{--rp:var(--vw)}
 }
 @keyframes panel-in{from{opacity:0;transform:translateX(var(--slide-panel-in))}}
+.stage .fr-term:not([hidden]){display:flex;flex-direction:column;height:100%;min-height:0}
+.stage .fr-term>.shd.in-panel{border-top:0}

@@ -28,6 +28,9 @@ export interface StageState {
   tgMore: Record<string, boolean>;
   resume?: boolean;
   chEmpty?: boolean;
+  term?: boolean;
+  termOn?: boolean;
+  termShut?: boolean;
   agRows?: number;
   agCap?: number;
 }
@@ -86,6 +89,7 @@ export interface StageDeps {
   threads?: ((view: string) => Group[]) | null;
   chats?: { is(view: string): boolean; groups(view: string, filter?: string): Group[] | null; note(): string } | null;
   shell?: ((on: boolean, host?: HTMLElement, view?: string) => void) | null;
+  shellReady?(): boolean;
   owns?(event: Event): boolean;
   at(): At;
   places: Pick<Kernel["places"], "get" | "entries" | "watch" | "has" | "contribute">;

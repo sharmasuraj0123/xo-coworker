@@ -28,7 +28,7 @@ const FILES_IC = ICON.folder;
 
 /** @param {StageDeps} deps */
 export function createStage({ mapControls, files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, chats = null, shell = null,
-  owns = () => false, at, places }) {
+  shellReady = () => false, owns = () => false, at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
   const layoutScope = createScope();
   /** @type {Partial<FrameState>} */
@@ -88,7 +88,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     });
   }
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
-  body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
+  body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div><div class="fr-term" hidden></div>`;
   const binding = bindPanelFrames({
     places, mapControls, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host") },
     options: {
@@ -109,8 +109,11 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     },
   });
   const chatsAt = (v = view()) => !!chats?.is(v);
+  // the Workspace has no changes of its own: Changes' place holds its shell
+  const termAt = (v = view()) => v === "ws" && !!shell && shellReady();
   // Chats has no Changes or Map: its panel is your chats
-  const activeFrames = () => frames().filter((id) => id === "agents" || (!chatsAt() && (id === "map" ? binding.map : binding.changes)));
+  const activeFrames = () => frames().filter((id) => id === "agents" ||
+    (!chatsAt() && (id === "map" ? binding.map : view() === "ws" ? termAt() : binding.changes)));
 
   function persist() { write(KEY, JSON.stringify({ open: S.open || !!S.resume })); write(FR_KEY, JSON.stringify(fr)); }
 
@@ -135,6 +138,31 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     if (fr.agents.folded) { fr.agents.folded = false; persist(); layout(); }
     S.tqOpen = true; paint();
     const q = filter(); q.focus({ preventScroll: true }); q.select();
+  }
+
+  /** Changes' frame is the Terminal on the Workspace. @param {boolean} term */
+  function nameTerm(term) {
+    S.term = term;
+    query('[data-fr="changes"] .fr-w').textContent = term ? "Terminal" : "Changes";
+    query('[data-fr="changes"] .fr-ic').outerHTML = xi(term ? "terminal" : "changes", "fr-ic");
+    query('[data-fr-n="changes"]').hidden = term;
+    query(".fr-term").hidden = !term;
+    const shellButton = query("[data-stg-shell]");
+    if (shellButton) shellButton.hidden = term || !!S.chatty;
+    termShow(false);
+    S.termShut = false;
+    layout();
+  }
+
+  /** The Workspace shell in the Terminal frame while it shows. @param {boolean} on */
+  function termShow(on) {
+    if (!!S.termOn === on) return;
+    S.termOn = on;
+    const host = query(".fr-term");
+    if (on) host.replaceChildren();
+    shell?.(on, on ? host : undefined, "ws");
+    const reopen = `<button type="button" class="tg-clear" data-term-open>Open it</button>`;
+    if (!on && S.termShut) redraw(host, `<p class="fr-none">The Workspace shell is closed. ${reopen}</p>`);
   }
 
   /** The first frame names what it lists: Chats on a chat, else Threads. @param {boolean} chatty */
@@ -166,6 +194,9 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     titleActions.sync(v, S.page?.name);
     const chatty = chatsAt(v);
     if (S.chatty !== chatty) nameFrame(chatty);
+    const term = termAt(v);
+    if (!!S.term !== term) nameTerm(term);
+    termShow(term && !covered && !fr.changes.folded && !S.termShut);
     const tq = (S.tq || "").trim().toLowerCase();
     const tg = chatty ? chats?.groups(v, tq) ?? null : threads?.(v), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = query(".tg-q");
@@ -177,12 +208,12 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const count = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
     if (agentCount.textContent !== count) agentCount.textContent = count;
     // Changes: Space's list and diff where it has /changes, else today's list
-    if (!fr.changes.folded && !covered) changes?.paint();
-    const hd = changes?.head();
+    if (!fr.changes.folded && !covered && !term) changes?.paint();
+    const hd = term ? null : changes?.head();
     const cxHost = query(".cx-host"), old = query(".ch-old");
-    cxHost.hidden = !hd; old.hidden = !!hd;
-    if (!hd && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch, v)); }
-    const empty = hd ? !hd.count : !files.changes(v).length;
+    cxHost.hidden = !hd; old.hidden = !!hd || term;
+    if (!hd && !covered && !term) { const ch = files.changes(v); set("changes", old, changesHtml(ch, v)); }
+    const empty = !term && (hd ? !hd.count : !files.changes(v).length);
     if (S.chEmpty !== empty) {
       // files arriving open Changes under Threads; a fold you made since stays
       if (S.chEmpty === true && !empty && fr.changes.folded) { fr.changes.folded = false; persist(); }
@@ -238,6 +269,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     titleActions.leave();
     if (S.page) dropPages();
     if (!S.open) return;
+    termShow(false);
     S.open = false;
     if (S.full) setFull(false);
     el.hidden = true;
@@ -305,6 +337,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
       binding.map.setMode(mode); paint(); return;
     }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(entryInput(e)); else openFiles && openFiles(); return; }
+    if (t.closest("[data-term-open]")) { S.termShut = false; paint(); return; }
     if (t.closest("[data-follow]")) { binding.changes?.toggleFollow(); paint(); return; }
     const ch = closest("[data-change]"), rel = ch?.dataset.change;
     if (rel) { viewer.open({ path: rel, name: rel.split("/").pop(), project: ch?.dataset.changeProject, rel }, ch); return; }
@@ -366,8 +399,11 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
       (query(".tg-box [data-go]") || query('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
       f.classList.remove("is-flash"); void f.offsetWidth; f.classList.add("is-flash");
     },
-    get isShell() { return S.page?.name === "shell"; },
-    shellOff: () => setShell(false),
+    get isShell() { return S.page?.name === "shell" || !!S.termOn; },
+    shellOff() {
+      if (S.page?.name === "shell" || !S.termOn) { setShell(false); return; }
+      S.termShut = true; termShow(false);
+    },
     page: PG.page, show, back, dropPages, closePage: PG.closePage, requestClose,
     leave() { titleActions.leave(); dropPages(); },
     get slot() { return query(".stg-pa"); },
@@ -377,7 +413,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     reshape() { layout(); paint(); },
     /** A changed file's chip: the panel opens (if closed) on that file's diff; false when it can't. @param {string} path */
     showChange(path) {
-      if (!frames().includes("changes") || !binding.changes?.head() || !binding.changes.select(path)) return false;
+      if (termAt() || !frames().includes("changes") || !binding.changes?.head() || !binding.changes.select(path)) return false;
       fr.changes.folded = false;
       if (S.page) dropPages();
       if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
@@ -386,7 +422,9 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     /** You sent the agent a message: following resumes. @param {string} v */
     resumeFollow(v) { binding.changes?.resume(v); },
     /** The file chosen in the panel's Changes for a view, while the panel shows it. @param {string} v */
-    chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? binding.changes?.chosen(v) ?? null : null; },
+    chosen(v) {
+      return S.open && !fr.changes.folded && !termAt(v) && frames().includes("changes") ? binding.changes?.chosen(v) ?? null : null;
+    },
     /** The app's theme switched: drawn diffs follow. @param {string} t */
     theme: binding.theme,
     /** The place's name for the title bar (app.js knows the names). @param {(v: string) => string} fn */

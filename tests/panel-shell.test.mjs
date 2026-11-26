@@ -205,13 +205,13 @@ async function checkAppShellDock() {
   press('#msgs .chl-row[data-go="ws"]');
   await new Promise(setImmediate);
   press("[data-stage-toggle]");
-  press("[data-stg-shell]");
-  assert.ok(appDock.closest("#stage .stg-page"), "the app moves its existing Shells dock into the Stage page");
+  await new Promise(setImmediate);
+  assert.ok(appDock.closest("#stage .fr-term"), "on the Workspace the app moves its existing Shells dock into the panel's Terminal");
   assert.equal(appDock.hidden, false);
   assert.equal(app.querySelectorAll("#shd").length, 1);
-  press("[data-stg-shell]");
-  same(appDock.parentNode, parent, "closing the Stage Shells page restores the dock's parent");
-  same(appDock.nextSibling, next, "closing the Stage Shells page restores the dock's position");
+  press('[data-fr-fold="changes"]');
+  same(appDock.parentNode, parent, "folding the Terminal restores the dock's parent");
+  same(appDock.nextSibling, next, "folding the Terminal restores the dock's position");
   assert.equal(appDock.hidden, true);
 
   press('[data-fr-fold="map"]');

@@ -27,7 +27,8 @@ export const stageModule = {
       viewer: { open: (file, from) => files()?.viewer.open(file, from) }, announce: ctx.use("announce"),
       agents: ctx.use("mapAgents").agents, threads: ctx.use("threadGroups").panelThreads, owns: ctx.use("shellDock").owns,
       chats: { is: (v) => !!CH()?.isChats(v), groups: (v, q) => CH()?.groups(v, q) ?? null, note: () => CH()?.listNote() ?? "" },
-      shell: (on, host, where) => ctx.optional("shellPanel")?.panelShell(on, host, where), onChange: () => ctx.invalidate("workspace"),
+      shell: (on, host, where) => ctx.optional("shellPanel")?.panelShell(on, host, where),
+      shellReady: () => !!ctx.optional("shellPanel") && ctx.use("shellDock").enabled, onChange: () => ctx.invalidate("workspace"),
       places: { ...ctx.places, contribute: ctx.contribute },
     });
     stage.names = place.panelName;
