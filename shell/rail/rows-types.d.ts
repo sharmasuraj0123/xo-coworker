@@ -22,7 +22,7 @@ export interface SideRowsDeps<N extends SideNeed> {
     state: { threads: SideThread[] };
     act: { coordinatorBusy: (project: string) => unknown; coordinatorHeld?: (project: string) => Hold | null };
   };
-  CH: { isChats: (view: string) => boolean };
+  CH: { isChats: (view: string) => boolean; live: () => "waiting" | "working" | "" };
   D: { needItems: () => N[] };
   projects: () => { id: string; name: string }[];
   convThread: (view: string) => { project: string } | null | undefined;

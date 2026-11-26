@@ -55,7 +55,7 @@ await t("a project that goes away leaves the order", () => {
 });
 
 await t("the sidebar waits for the pointer to leave, then moves the urgent row and keeps its identity", async () => {
-  const nav = ["home", "ws", "chats", "arts", "lp", "more"].map((place) => `<button id="nv-${place}"><span id="${place}-n"></span></button>`).join("");
+  const nav = ["home", "ws", "chats", "arts", "lp", "more"].map((place) => `<button id="nv-${place}"><span id="${place}-n"></span></button>`).join("") + '<span id="chats-live"></span>';
   const { document, window } = await dom(`<aside id="side"><nav class="nav">${nav}</nav><div id="projects"></div></aside>`);
   const side = document.getElementById("side"), box = document.getElementById("projects");
   const matches = side.matches.bind(side);
@@ -71,7 +71,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   let view = "home";
   const sideRender = createSideRows(scope, { view: () => view,
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
-    CH: { isChats: () => false }, D: { needItems: () => needs },
+    CH: { isChats: () => false, live: () => "" }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
     isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", folded: () => false,
   });

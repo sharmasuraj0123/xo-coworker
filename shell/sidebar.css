@@ -1,6 +1,15 @@
 
 
 .nav{padding:var(--s-1) var(--s-3) 0}
+/* the nav above Projects: flat rows, bare glyphs on the same axis as the project glyphs, names on the names' */
+.side .nav .nrow{--nav-ic-in:calc((var(--tile-sm) - var(--ic)) / 2);gap:calc(var(--nav-ic-in) + var(--s-3));
+  padding-left:calc(var(--nest-in) + var(--nav-ic-in) - var(--hair))}
+:root:root .side .nav .nrow .nr-ic{width:var(--ic);height:var(--ic);
+  background:none;border:0;border-radius:0;box-shadow:none;color:var(--ink-3)}
+:root:root .side .nav .nrow:is(:hover,.is-on) .nr-ic{color:var(--ink)}
+.nr-live:is(.is-working,.is-waiting){flex:none;width:var(--ic-tiny);height:var(--ic-tiny);
+  mask:var(--mask-dot);background:var(--info)}
+.nr-live.is-waiting{background:var(--warn)}
 .side .gear,.side-plus{border-radius:var(--r)}
 .side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
 .side :is(.gear,.side-plus):focus-visible{border-radius:var(--r)}
@@ -65,6 +74,9 @@
 .sm-row:hover .sm-pin,.sm-row:focus-within .sm-pin,.sm-pin[aria-pressed="true"]{opacity:1}
 .sm-pin[aria-pressed="true"]{color:var(--ink-2)}
 @media (min-width:761px){
+  .app:not(.side-folded) .side .nav .nrow{min-height:var(--h-touch)}
+  .side-folded .side .nav .nrow{padding:0;gap:0}
+  .side-folded .nr-live{position:absolute;top:var(--s-1);right:var(--s-1)}
   .app.side-folded{--side-w:var(--side-rail-w)}
   .side-folded .side-top{flex-direction:column;justify-content:center;height:auto;gap:var(--s-1);padding:var(--s-3) 0 var(--s-2)}
   .side-folded :is(.brand,.side-label,.nr-name,.nr-chev,.nr-q,.pr-main,.sh-n,.gear-t){display:none}

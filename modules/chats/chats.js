@@ -283,6 +283,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     dispose: scope.dispose, leaveList: titleList.stop,
     /** @param {string} v */
     isChats: (v) => v === "chats" || v?.startsWith("c:") === true,
+    /** @returns {"waiting" | "working" | ""} whether a direct chat waits on you, else whether one is working */
+    live: () => { const all = sessions(); return all.some(waiting) ? "waiting" : all.some(inTurn) ? "working" : ""; },
     /** @param {string} v */
     open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
     /** @param {string} v */

@@ -18,7 +18,7 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
   const washes = new Map();
   /** @type {Map<string, number>} */
   let previousNeeds = new Map();
-  let signature = "", ready = false, homeCount = -1, workspaceCount = -1;
+  let signature = "", ready = false, homeCount = -1, workspaceCount = -1, chatsLive = "";
   /** @param {N[]} needs */
   const sideRender = (needs) => {
     const current = view();
@@ -34,6 +34,14 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
     const wn = findHtml("#ws-n");
     if (workspaceCount !== wsN) { redraw(wn, wnHtml); workspaceCount = wsN; }
     requireHtml("#nv-ws", "button").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
+    const live = CH.live();
+    if (chatsLive !== live) {
+      const chats = requireHtml("#nv-chats", "button");
+      requireHtml("#chats-live").className = live ? `nr-live is-${live}` : "nr-live";
+      if (live) chats.setAttribute("aria-label", live === "waiting" ? "Chats, a chat needs you" : "Chats, a chat is working");
+      else chats.removeAttribute("aria-label");
+      chatsLive = live;
+    }
     requireHtml("#nv-home", "button").classList.toggle("is-on", current === "home");
     requireHtml("#nv-ws", "button").classList.toggle("is-on", current === "ws");
     requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current));
