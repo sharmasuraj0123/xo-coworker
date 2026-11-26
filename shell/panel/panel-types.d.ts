@@ -58,7 +58,7 @@ export interface ChangesFrame extends Entry {
   theme(theme: string): void;
 }
 export interface FrameState {
-  changes: { folded: boolean; h?: number | null };
+  changes: { folded: boolean; size?: number | null };
   agents: { folded: boolean; rows: number | null; h?: number; groups: Record<string, boolean> };
   map: { folded: boolean; h: number };
 }

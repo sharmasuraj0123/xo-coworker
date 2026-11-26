@@ -11,7 +11,7 @@ export const MAP_H = 260, MAP_MIN = 72;
 export const AG_ROWS = 6, ROW = 48;
 // the room Changes needs (its head, one file row, the list's foot, the diff's 120 px and margin) and a frame's head
 export const CH_MIN = 212, HEAD = 40;
-const FRAME_MIN = 96;
+const FRAME_MIN = 96, THREADS_MIN = 4 * ROW;
 
 /** @typedef {{ el: HTMLElement, S: StageState, fr: FrameState, frames: () => string[], view: () => string, map: { show(view: string): void, hide(): void }, persist: () => void, paint: () => void }} FramesDeps */
 
@@ -42,7 +42,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
     for (const id of ORDER) {
       const f = q(`[data-fr="${id}"]`);
       f.classList.toggle("is-grow", grow === id);
-      const h = id === "agents" ? null : fr[id].h;
+      const h = id === "agents" ? null : id === "changes" ? fr.changes.size : fr.map.h;
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
     capAgents();
@@ -88,11 +88,11 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       const h = fr.map.h || MAP_H;
       fr.map.h = Math.max(MAP_MIN, Math.min(640, d > 0 ? Math.max(h, Math.min(h + d, mapTop())) : h + d));
     };
-    // Changes, sized while Threads has the room, leaves the growing frame and the Map theirs
+    // Changes, sized while Threads has the room, leaves Threads its head, filter and two rows, and the Map its room
     const changesTop = () => {
       const shown = (/** @type {string} */ id) => !q(`[data-fr="${id}"]`).hidden;
             const mapH = !shown("map") ? 0 : fr.map.folded ? HEAD : fr.map.h || MAP_H;
-      return S.stackH - lines() - FRAME_MIN - mapH;
+      return S.stackH - lines() - THREADS_MIN - mapH;
     };
     const resize = (/** @type {number} */ dy) => {
       const { id, sign } = sized();
@@ -115,7 +115,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
         while (acc <= -ROW / 2 && rows > 1) { rows--; acc += ROW; }
         if (rows !== was) fr.agents.rows = rows;
       } else if (id === "changes") {
-        fr.changes.h = Math.max(FRAME_MIN, Math.min(changesTop(), (fr.changes.h || f.getBoundingClientRect().height) + sign * dy));
+        fr.changes.size = Math.max(FRAME_MIN, Math.min(changesTop(), (fr.changes.size || f.getBoundingClientRect().height) + sign * dy));
       } else fr[id].h = Math.max(MAP_MIN, Math.min(640, (fr[id].h || f.getBoundingClientRect().height) + sign * dy));
       fr[id].folded = false;
       layout();
@@ -142,7 +142,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       resize(e.key === "ArrowDown" ? step : -step);
       persist();
     });
-    g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.changes.h = null; fr.map.h = MAP_H; layout(); persist(); });
+    g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.changes.size = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
   return { layout, capAgents };
