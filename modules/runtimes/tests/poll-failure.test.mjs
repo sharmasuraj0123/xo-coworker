@@ -5,6 +5,8 @@ import { test } from "node:test";
 import { createScope } from "../../../core/kernel/scope.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createRuntimeSettings } from "../settings.js";
+import { createLifecycle } from "../lifecycle.js";
+import { api } from "../../../core/platform/api.js";
 
 test("a rejected runtime poll is reported and keeps the previous cards", async (context) => {
   const { document } = await dom('<section id="settings"><div data-page="runtimes"><div class="set-live"></div></div></section>');
@@ -25,7 +27,8 @@ test("a rejected runtime poll is reported and keeps the previous cards", async (
   const scope = createScope();
   context.after(scope.dispose);
   const root = /** @type {HTMLElement} */ (document.querySelector("#settings"));
-  createRuntimeSettings({ world, announce() {}, scope, root }).open();
+  const life = createLifecycle({ api, refresh() {}, announce() {}, scope });
+  createRuntimeSettings({ world, announce() {}, scope, root, life, uninstall() {} }).open();
   const card = document.querySelector(".rt-card");
   assert.ok(card?.textContent.includes("Codex"));
   await new Promise((resolve) => setImmediate(resolve));

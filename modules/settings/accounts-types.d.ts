@@ -32,37 +32,6 @@ export interface GitHubFlow {
   until?: number;
 }
 
-export interface Agent {
-  name: string;
-  health?: { installed?: boolean, logged_in?: boolean } | null;
-  default?: boolean;
-}
-
-export interface AgentFlow {
-  phase: string;
-  ctl: AbortController;
-  abortable: boolean;
-  url?: string;
-  code?: string;
-  log?: string;
-  opened?: boolean;
-  session?: string;
-}
-
-export interface SignInEvent {
-  type: string;
-  session_id?: string;
-  url?: string;
-  line?: string;
-  returncode?: number;
-  error?: string;
-}
-
-export type SignIn =
-  | { route: "claude-code", kind: "paste", cancel: true }
-  | { route: "antigravity", kind: "paste", cancel?: false }
-  | { route: "codex", kind: "device", cancel?: false };
-
 export interface GithubAccountState {
   gh: GitHubStatus | null;
   flow: GitHubFlow | null;
@@ -78,23 +47,10 @@ export interface GithubAccountOptions {
   bus?: Pick<Bus, "on" | "emit">;
 }
 
-export interface AccountsState {
-  rts: Agent[] | null;
-  rtErr: string;
-  f: Record<string, AgentFlow>;
-  e: Record<string, string>;
-  missing: Record<string, boolean>;
-}
-
 export interface AccountControls {
   scope: AccountsScope;
   box: () => Element | null;
-  state: AccountsState;
   github: ReturnType<typeof import("./github-account.js").createGithubAccount>;
-  agentIn(runtime: string, force: boolean): Promise<void>;
-  agentCancel(runtime: string): void;
-  agentCode(runtime: string, code: string): Promise<void>;
-  draw(): void;
   focus(selector: string): void;
   announce(message: string): void;
 }

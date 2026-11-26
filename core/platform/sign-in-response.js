@@ -1,10 +1,10 @@
 // @ts-check
 
-import { ApiError, coderHeaders, exchange, isResponseObject } from "./http.js";
-import { checkedResponse } from "./response.js";
+import { ApiError, coderHeaders, isResponseObject, urlOf } from "./http.js";
+import { checkedResponse, requestChecked } from "./response.js";
 import { readJsonEvents } from "./sse.js";
 
-/** @import {SignInRoute, CodeRoute, SignInReply, CodeReply, SignInEvent, StreamOptions} from "./sign-in-types.d.ts" */
+/** @import {SignInReply, CodeReply, SignInEvent, StreamOptions} from "./sign-in-types.d.ts" */
 
 /** @param {unknown} value @returns {value is SignInEvent} */
 function isFrame(value) {
@@ -32,10 +32,14 @@ function isReply(value) {
 /** @param {unknown} value @returns {value is CodeReply} */
 const isCodeReply = (value) => isReply(value) && typeof value.session_id === "string";
 
-/** @param {SignInRoute} route @param {StreamOptions} options */
-async function signInStream(route, { force = false, signal, on }) {
+const enc = encodeURIComponent;
+/** @param {string} name */
+const signInPath = (name) => `chat/runtimes/${enc(name)}/sign-in`;
+
+/** A runtime's sign-in, its CLI's frames as they come; closing it stops the CLI. @param {string} name @param {StreamOptions} options */
+async function signInStream(name, { signal, on }) {
   signal.throwIfAborted();
-  const path = `connect/${route}${force ? "?force=1" : ""}`;
+  const path = urlOf("/" + signInPath(name));
   let res;
   try {
     res = await fetch(path, {
@@ -51,17 +55,15 @@ async function signInStream(route, { force = false, signal, on }) {
   await readJsonEvents(res, (frame) => on(checkedResponse(frame, isFrame, `POST /${path}`)), signal);
 }
 
-/** @param {CodeRoute} route @param {string} sessionId @param {string} code */
-async function signInCode(route, sessionId, code) {
-  const path = `connect/${route}/callback`;
-  const reply = await exchange(path, "POST", { session_id: sessionId, code });
-  return checkedResponse(reply, isCodeReply, `POST /${path}`);
+/** @param {string} name @param {string} sessionId @param {string} code */
+async function signInCode(name, sessionId, code) {
+  const path = `/${signInPath(name)}/callback`;
+  return requestChecked(path, isCodeReply, { method: "POST", body: { session_id: sessionId, code } });
 }
 
-/** @param {"claude-code"} route */
-async function signInCancel(route) {
-  const path = `connect/${route}`;
-  return checkedResponse(await exchange(path, "DELETE"), isReply, `DELETE /${path}`);
+/** @param {string} name */
+async function signInCancel(name) {
+  return requestChecked(`/${signInPath(name)}`, isReply, { method: "DELETE" });
 }
 
 export const signInApi = { signInStream, signInCode, signInCancel };

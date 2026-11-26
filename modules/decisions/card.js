@@ -8,7 +8,8 @@ import { inlineText, renderInline } from "../../core/ui/markdown/inline.js";
 import * as Kit from "./kit.js";
 import { EFFORT, evidenceFor, estLine } from "./rank.js";
 import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
-import { detailsHtml, optHtml, itemDetailsHtml, limitHtml, waitingDetailsHtml } from "./cards/evidence.js";
+import { detailsHtml, optHtml, itemDetailsHtml, limitHtml, waitingDetailsHtml, runtimeUsesHtml } from "./cards/evidence.js";
+import { sessionThreads } from "../../core/services/runtimes.js";
 import { paidHtml } from "./cards/paid.js";
 
 /** @import { CardDeps, CardItem, CardNeed, Action, Option, Question, ScopeParts, Strip } from "./card-types.d.ts" */
@@ -30,6 +31,13 @@ function cardTitle(n) {
 /** @param {ReturnType<typeof headOf>} head @param {(text: string) => string} format @param {(verb: string) => string} [verbFormat] */
 function headingText(head, format, verbFormat = String) {
   return (head.verb ? verbFormat(head.verb) + " " : "") + format(head.text);
+}
+
+/** @param {CardNeed["ask"]["item"]} it @param {CardDeps["world"]["state"]} state */
+function usesHtml(it, state) {
+  const ra = it?.detail?.runtime_action;
+  if (!ra?.runtime || ra.action !== "uninstall") return "";
+  return runtimeUsesHtml(ra.runtime, sessionThreads(it?.detail?.sessions, state));
 }
 
 /** @param {CardDeps} options */
@@ -128,7 +136,7 @@ export function createDecisionCard({ world, PROJ, F, teach, noSecret }) {
     return `<${h} class="c-h" id="${idp}-h">${title}</${h}>` +
       (line ? `<p class="c-line" id="${idp}-why">${esc(line)}</p>` : "") +
       (it && it.parked ? `<p class="c-park">${ICON.pause}<span>Parked: the agent was told to wait; an answer wakes it</span></p>` : "") +
-      stripHtml(/** @type {Strip | null} */ (stripOf(n))) + (it && it.limit ? limitHtml(/** @type {import('./cards/evidence-types.d.ts').LimitItem} */ (it)) : paidHtml(it));
+      stripHtml(/** @type {Strip | null} */ (stripOf(n))) + (it && it.limit ? limitHtml(/** @type {import('./cards/evidence-types.d.ts').LimitItem} */ (it)) : paidHtml(it) + usesHtml(it, world.state));
   }
 
   /** @param {CardNeed} n */

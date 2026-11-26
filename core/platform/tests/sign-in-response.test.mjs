@@ -6,13 +6,13 @@ import { api } from "../api.js";
 
 const session_id = "fixture-login";
 const claude = { type: "session", session_id };
-const codex = { type: "installing", package: "@openai/codex" };
+const codex = { type: "stdout", line: "Enter ABCD-EFGH at https://auth.openai.com/device" };
 const antigravity = { type: "done", returncode: 0, ok: true };
 
-/** @type {[import("../sign-in-types.d.ts").SignInRoute, object, object][]} */
+/** @type {[string, object, object][]} */
 const streams = [
-  ["claude-code", claude, { ...claude, session_id: false }],
-  ["codex", codex, { ...codex, package: 2 }],
+  ["claude_code", claude, { ...claude, session_id: false }],
+  ["codex", codex, { ...codex, line: 2 }],
   ["antigravity", antigravity, { ...antigravity, returncode: false }],
 ];
 
@@ -21,12 +21,12 @@ for (const [route, good, malformed] of streams) {
     const reports = mock.method(console, "error", () => {});
     const frames = [good, malformed].map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join("");
     const fetches = mock.method(globalThis, "fetch", async (url, options) => {
-      assert.equal(url, `connect/${route}?force=1`);
+      assert.equal(url, `api/chat/runtimes/${route}/sign-in`);
       assert.equal(options.method, "POST");
       return new Response(frames, { headers: { "Content-Type": "text/event-stream" } });
     });
     const seen = [];
-    await api.signInStream(route, { signal: new AbortController().signal, force: true, on: (frame) => seen.push(frame) });
+    await api.signInStream(route, { signal: new AbortController().signal, on: (frame) => seen.push(frame) });
     assert.deepEqual(seen, [good]);
     assert.equal(reports.mock.callCount(), 1);
     assert.equal(reports.mock.calls[0].arguments[0].code, "bad_answer");
@@ -36,11 +36,11 @@ for (const [route, good, malformed] of streams) {
 
 /** @type {[string, string, () => Promise<unknown>, object, object][]} */
 const writes = [
-  ["POST", "connect/claude-code/callback", () => api.signInCode("claude-code", session_id, "sample-code"),
+  ["POST", "api/chat/runtimes/claude_code/sign-in/callback", () => api.signInCode("claude_code", session_id, "sample-code"),
     { ok: true, message: "Code sent to CLI", session_id }, { ok: true, message: "Code sent to CLI", session_id: null }],
-  ["POST", "connect/antigravity/callback", () => api.signInCode("antigravity", session_id, "sample-code"),
+  ["POST", "api/chat/runtimes/antigravity/sign-in/callback", () => api.signInCode("antigravity", session_id, "sample-code"),
     { ok: true, message: "Code sent", session_id }, { ok: "true", message: "Code sent", session_id }],
-  ["DELETE", "connect/claude-code", () => api.signInCancel("claude-code"),
+  ["DELETE", "api/chat/runtimes/claude_code/sign-in", () => api.signInCancel("claude_code"),
     { ok: true, message: "No active session", session_id: null }, { ok: true, message: "No active session", session_id: {} }],
 ];
 

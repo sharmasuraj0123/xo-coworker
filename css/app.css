@@ -64,6 +64,7 @@
 @import url("../modules/map/graph.css");
 @import url("../modules/map/cursors.css");
 @import url("../modules/map/controls.css");
+@import url("../modules/runtimes/runtimes.css");
 
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
 /* a phone: the head clears the notch, the tools reach touch size */
@@ -195,7 +196,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-pill.t-warn{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
 .rt-pill.t-bad{background:var(--danger-tint);color:var(--err-ink)}
 .rt-sub{font-size:var(--fs-ui);color:var(--ink-3)}
-.rt-acct{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
 .rt-why{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);max-width:62ch}
 .rt-fix{color:var(--ink-3)}
 .rt-fix code,.rt-why code{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);padding:2px 6px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink)}

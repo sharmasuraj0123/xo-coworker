@@ -25,7 +25,7 @@ export type DecisionPanelState = Omit<PanelState, "items"> & {
 type Card = ReturnType<typeof createDecisionCard>;
 type NeedWorld = Parameters<typeof createNeedItems>[0]["world"];
 export type DecisionControllerDeps = Pick<DecisionQueueDeps, "onUndone" | "onSent" | "onNotSent"> & {
-  world: DecisionQueueDeps["world"] & NeedWorld;
+  world: DecisionQueueDeps["world"] & NeedWorld & { state: import("../../core/services/runtime-types").SessionsState };
   P: ReturnType<typeof createPacing>;
   PROJ(id: string): string;
   announce(message: string): void;

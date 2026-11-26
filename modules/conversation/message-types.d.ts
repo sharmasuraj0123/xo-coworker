@@ -84,6 +84,8 @@ export type Message = {
   undo?: unknown;
   until?: number;
   refused?: boolean;
+  setup?: { by: string; model?: string; effort?: string } | null;
+  hopRow?: Hop;
 };
 
 export type ProjectionThread = {
@@ -100,6 +102,9 @@ export type ProjectionThread = {
   limits?: Limit[];
   movedTo?: Move | null;
   movedFrom?: Move | null;
+  activity?: string | null;
+  session?: { agent?: string | null; model?: string | null; effort?: string | null } | null;
+  frozen?: boolean;
 };
 
 type Receipt = {

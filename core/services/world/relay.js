@@ -22,7 +22,12 @@ export function hopLine(h, project, onward = null) {
     case "brief": return `${via.includes("workspace") ? "Forwarded by the Workspace, via the project" : `From ${from}`}${state}`;
     case "relay": return h.from_role === "project-coordinator" && h.to_role === "thread" && (h.message_ids || []).length ? `The ${project} coordinator passed on your message${state}` : `${up(from)} wrote to ${to}${forThread}${state}`;
     case "ask": return `${up(from)} asked ${to}${forThread}${state}`;
-    case "status": return `${up(from)} reported back to ${to}${state}`;
+    case "status": {
+      const wake = String(h.wake_id || "");
+      if (wake.startsWith("result:")) return `${up(from)} handed its result back to ${to}`;
+      if (wake.startsWith("idle:")) return `${up(from)} went quiet with its task open · ${to} was told`;
+      return `${up(from)} reported back to ${to}${state}`;
+    }
     case "answer": return `${up(from)} answered ${to}`;
     default: return "";
   }
@@ -48,6 +53,9 @@ export function sharedFileRoute(thread, path) {
   if (cwd && cwd.split("/").pop() === thread.project) return { project: thread.project, rel: p };
   return none;
 }
+
+/** A thread handing its round's result back to its coordinator. @param {Hop | null | undefined} h */
+export const isResult = (h) => !!h && h.kind === "status" && String(h.wake_id || "").startsWith("result:");
 
 /** @type {Record<string, string>} */
 const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": "workspace" };

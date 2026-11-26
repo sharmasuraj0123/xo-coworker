@@ -5,18 +5,18 @@
 /** @import {SettingsState, PaidRow} from "./settings-types" */
 
 import { esc, reportFailure } from "../../core/platform/util.js";
-import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "../../core/services/runtimes.js";
+import { clockWords, rtName, isInstalled, allowedOf, defaultOf, errorField } from "../../core/services/runtimes.js";
 import { once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";
-import { rovingTab } from "../../core/ui/a11y/keynav.js";
+import { rovingTab, menuKeys, focusOpened } from "../../core/ui/a11y/keynav.js";
 import { MODES, MODE_NAME, MODE_SUB, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "../../core/services/world/paid.js";
 import { receipts } from "./receipts.js";
+import { rowHtml } from "./rows.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
 /** @returns {RuntimePolicy} */
 const blank = () => ({ allowed: null, default: null, preferences: null, fallback: null });
-const pct = (/** @type {number} */ u) => `${Math.round(u * 100)}%`;
 const POLICY = "runtime-policy";
 
 /** @param {RuntimePolicy | null | undefined} policy @param {Runtime[] | null | undefined} rts */
@@ -28,7 +28,7 @@ export function usualOf(policy, rts) {
 }
 
 /** @param {import("./settings-types").RuntimeSettingsDeps} deps */
-export function createRuntimeSettings({ world, announce, scope: lifetime, root }) {
+export function createRuntimeSettings({ world, announce, scope: lifetime, root, life, uninstall }) {
   const { signal } = lifetime;
   /** @type {SettingsState} */
   const R = { err: null, saved: receipts(lifetime, 1600, () => { if (onScreen()) draw(); }), saving: null, pref: null, next: null };
@@ -43,35 +43,21 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root }
   const rts = () => world.state.runtimes || [];
   const installed = () => rts().filter(isInstalled);
 
+  /** @type {string | null} */
+  let menuFor = null;
   /** @param {Runtime} rt @param {PaidRow[]} paidRows */
-  function cardHtml(rt, paidRows = []) {
-    const h = rt.health || {}, hl = healthOf(rt);
-    const ver = h.cli_version || (rt.cli && rt.cli.version);
-    const acct = h.logged_in ? `Logged in${h.account ? ` as <span class="rt-acct">${esc(h.account)}</span>` : ""}` : "";
-    const wins = windowsOf(rt);
-    const meters = wins.map((w) => {
-      const tone = w.state === "closed" ? "bad" : w.state === "warn" || w.state === "paid" ? "warn" : "ok";
-      const word = w.state === "closed" ? "At limit" : w.state === "paid" ? "Paid usage" : w.utilization != null ? `${pct(w.utilization)} used` : w.state === "warn" ? "Near limit" : "Open";
-      const reset = w.resetsAt ? `${w.state === "closed" ? "Opens" : "Resets"} ${resetWords(w.resetsAt)}` : "";
-      return `<li class="rt-w t-${tone}"><span class="rt-wn">${esc(w.name)}</span>` +
-        (w.utilization != null || w.state === "closed" ? `<span class="rt-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round((w.utilization ?? 1) * 100)}" aria-label="${esc(w.name)}: ${esc(word)}"><i style="--u:${w.utilization ?? 1}"></i></span>` : `<span class="rt-bar is-none"></span>`) +
-        `<span class="rt-wu">${esc(word)}</span><span class="rt-wr">${esc(reset)}</span></li>`;
-    }).join("");
-    const trouble = hl.tone === "off" || hl.tone === "bad";
-    return `<li class="rt-card${trouble ? " is-down" : ""}">` +
-      `<div class="rt-hd"><b>${esc(rtName(rt.name))}</b>${ver ? `<span class="rt-v">${esc(ver)}</span>` : ""}${rt.default ? `<span class="rt-v">XO's own</span>` : ""}${onPaid(paidRows, rt.name) ? `<span class="rt-v rt-paid">On paid usage</span>` : ""}<span class="rt-pill t-${hl.tone}">${esc(hl.word)}</span></div>` +
-      (acct ? `<p class="rt-sub">${acct}</p>` : "") +
-      (hl.why || hl.fix ? `<p class="rt-why">${esc(hl.why)}${hl.fix ? ` <span class="rt-fix">${fixHtml(hl.fix)}</span>` : ""}</p>` : "") +
-      (meters ? `<ul class="rt-ws" aria-label="${esc(rtName(rt.name))}'s usage">${meters}</ul>` : "") + `</li>`;
-  }
-  const fixHtml = (/** @type {string} */ s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+  const cardHtml = (rt, paidRows) => rowHtml(rt, {
+    flow: life.flow(rt.name), job: life.job(rt.name), err: life.err(rt.name), remote: life.remote(rt.name), menuOpen: menuFor === rt.name,
+    extra: onPaid(paidRows, rt.name) ? `<span class="rt-v rt-paid">On paid usage</span>` : "",
+  });
   function listHtml() {
     if (!world.state.runtimes) return `<p class="set-note"><i class="spin" aria-hidden="true"></i> Reading…</p>`;
     if (!rts().length) return `<p class="set-empty"><b>No runtimes.</b> XO didn't list any agent runtime on this server.</p>`;
     const at = rts().map((r) => r.health && r.health.checked_at).filter(Boolean).sort().pop();
     const pr = paidRows();
     return `<ul class="rt-list">${rts().map((r) => cardHtml(r, pr)).join("")}</ul>` +
-      `<p class="rt-checked">${at ? `Checked at ${esc(clockWords(at))}. ` : ""}Read again every 30 seconds while this page is open.</p>`;
+      `<p class="rt-checked">${at ? `Checked at ${esc(clockWords(at))}. ` : ""}Read again every 30 seconds while this page is open, ` +
+      "and at once when one is installed or signs in.</p>";
   }
 
   const space = () => ({ ...blank(), ...((world.state.policy && world.state.policy.space) || {}) });
@@ -109,18 +95,23 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root }
     const p = shown(), names = installed().map((r) => r.name);
     if (names.length < 2 && !p.allowed) return "";
     const allowed = allowedOf(p, rts());
-    const usual = usualOf(p, rts());
+    const usual = usualOf({ ...p, default: null }, rts());
+    const picked = p.default && allowed.includes(p.default) ? p.default : "", auto = !picked && !!usual;
     const note = (/** @type {keyof RuntimePolicy} */ f) => (R.err && R.err.field === f ? `<p class="rt-ferr" role="alert">${esc(R.err.text)}</p>`
       : R.saving === f ? `<span class="rt-saved is-saving" role="status">Saving…</span>`
         : R.saved.says(f, fieldNow(f)) ? `<span class="rt-saved" role="status">Saved</span>` : "");
-    const busy = busyAttrs(POLICY);
+    const busy = busyAttrs(POLICY), lead = "Where new work runs when its coordinator doesn't choose.";
+    const usualSub = auto ? `${lead} On Auto that's ${esc(rtName(usual))} now: the Space's own runtime, ` +
+      "else the first one signed in. Pick one to keep it." : lead;
+    const seg = ["", ...allowed].map((n) => `<button type="button" role="radio" aria-checked="${picked === n}" ` +
+      `data-rtd-default="${esc(n)}"${rovingTab(picked === n)}${busy}>${n ? esc(rtName(n)) : "Auto"}</button>`).join("");
+
     /** @param {keyof RuntimePolicy} f @param {string} label @param {string} sub @param {string} ctl */
     const row = (f, label, sub, ctl) => `<div class="set-row rt-def"><div class="set-l"><b id="rtd-${f}">${label}</b><span>${sub}</span>${note(f)}</div>${ctl}</div>`;
     return `<section class="set-sec" aria-labelledby="rtsp-h"><h3 id="rtsp-h">Defaults</h3>` +
       `<p class="set-lead">Each thread runs on one runtime for its whole life. A project or a thread picks its own in the composer, beside its model.</p>` +
       `<div class="rt-defs">` +
-      row("default", "Usual runtime", "Where new work runs when its coordinator doesn't choose.",
-        `<div class="rt-seg" role="radiogroup" aria-labelledby="rtd-default">${allowed.map((/** @type {string} */ n, /** @type {number} */ i) => `<button type="button" role="radio" aria-checked="${usual === n}" data-rtd-default="${esc(n)}"${rovingTab(usual === n, i === 0 && !allowed.some((name) => name === usual))}${busy}>${esc(rtName(n))}</button>`).join("")}</div>`) +
+      row("default", "Usual runtime", usualSub, `<div class="rt-seg" role="radiogroup" aria-labelledby="rtd-default">${seg}</div>`) +
       row("allowed", "Runtimes XO may use", "Work never goes to a runtime you turn off: no thread starts or moves there.",
         `<div class="rt-checks" role="group" aria-labelledby="rtd-allowed">${names.map((/** @type {string} */ n) => `<label class="rt-check"><input type="checkbox" data-rtd-allowed="${esc(n)}"${allowed.includes(n) ? " checked" : ""}${busy}><span>${esc(rtName(n))}</span></label>`).join("")}</div>`) +
       row("fallback", "Start elsewhere at a limit", "When a runtime can't take work, a new thread may start on another one. <strong>It goes to another provider without asking you.</strong>",
@@ -206,13 +197,67 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root }
     cancelRefresh = lifetime.timeout(refresh, REFRESH_MS);
   }
 
+  const menuButton = (name = "") => live.querySelector(`[data-rt-act="menu"][data-rt="${CSS.escape(name)}"]`);
+
+  function setMenu(name = /** @type {string | null} */ (null), focus = false) {
+    if (menuFor === name) return;
+    const was = menuFor;
+    menuFor = name;
+    drawList();
+    const back = focus && was ? menuButton(was) : null;
+    if (name) focusOpened(/** @type {HTMLElement | null} */ (live.querySelector(".rt-menu")));
+    else if (back instanceof HTMLElement) back.focus();
+  }
+  lifetime.effect(() => menuKeys(live, { close: () => setMenu(null, true) }));
+  lifetime.listen(document, "pointerdown", (e) => {
+    if (menuFor && !(e.target instanceof Element && e.target.closest(".rt-more"))) setMenu(null);
+  });
+  /** @param {HTMLElement} b */
+  function rowAct(b) {
+    const name = b.dataset.rt || "", id = b.dataset.rtAct;
+    if (!name || !id) return;
+    if (id === "menu") { setMenu(menuFor === name ? null : name); return; }
+    if (b.getAttribute("aria-disabled") === "true") return;
+    if (menuFor) setMenu(null);
+    switch (id) {
+      case "open": { const f = life.flow(name); if (f?.code) copy(f.code); life.opened(name); return; }
+      case "sign_in": void life.signIn(name); return;
+      case "cancel": life.cancelSignIn(name); return;
+      case "install": case "update": case "sign_out": void life.run(name, id); return;
+      case "retry": life.retry(name); return;
+      case "uninstall": uninstall(name, menuButton(name)); return;
+      case "log": life.toggleLog(name); return;
+      case "rc_on": case "rc_off": void life.setRemote(name, id === "rc_on");
+    }
+  }
+  /** @param {string} code */
+  function copy(code) {
+    navigator.clipboard?.writeText(code).then(() => announce("Code copied."), (error) => {
+      if (!(error instanceof DOMException && error.name === "NotAllowedError")) reportFailure(error);
+    });
+  }
+  lifetime.listen(live, "submit", (e) => {
+    const form = e.target instanceof Element ? e.target.closest("form[data-rt-form]") : null;
+    if (!(form instanceof HTMLFormElement)) return;
+    e.preventDefault();
+    const input = form.querySelector('input[name="code"]');
+    if (input instanceof HTMLInputElement && form.dataset.rtForm) void life.sendCode(form.dataset.rtForm, input.value.trim());
+  });
   lifetime.listen(live, "click", (e) => {
     const target = e.target instanceof Element ? e.target : null;
+    const ra = target?.closest("[data-rt-act]");
+    if (ra instanceof HTMLElement) { if (ra.dataset.rtAct !== "open") e.preventDefault(); rowAct(ra); return; }
     const pd = target?.closest("[data-paid-val]");
     if (pd instanceof HTMLElement && pd.dataset.paidScope && pd.dataset.paidVal) { choosePaid(pd.dataset.paidScope, pd.dataset.paidPool || "", pd.dataset.paidVal); return; }
     if (target?.matches("[data-rtd-allowed]") && isPending(POLICY)) { e.preventDefault(); return; }
     const d = target?.closest("[data-rtd-default]");
-    if (d && !isPending(POLICY)) { const n = (/** @type {HTMLElement} */ (d)).dataset.rtdDefault; if (n !== usualOf(space(), rts())) put({ default: n === defaultOf({ default: null }, rts()) ? null : n }, "default", `New work runs on ${rtName(n)} unless its coordinator chooses.`); return; }
+    if (d && !isPending(POLICY)) {
+      const n = (/** @type {HTMLElement} */ (d)).dataset.rtdDefault || null;
+      const auto = rtName(usualOf({ ...space(), default: null }, rts()));
+      const words = n ? `New work runs on ${rtName(n)} unless its coordinator chooses.` : `Auto: new work runs on ${auto} now.`;
+      if (n !== (space().default || null)) put({ default: n }, "default", words);
+      return;
+    }
     const f = target?.closest("[data-rtd-fallback]");
     if (f && !isPending(POLICY)) { const on = !space().fallback; put({ fallback: on }, "fallback", on ? "A new thread may start on another runtime at a limit." : "A new thread waits for its runtime at a limit."); }
   });
@@ -240,8 +285,14 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root }
     const ok = await put({ preferences: v.trim() || null }, "preferences", "Saved. Coordinators read it when they choose.");
     if (ok && R.pref === v) { R.pref = null; draw(); }
   }
-  let sig = "";
+  let sig = "", rtSig = "";
+  lifetime.effect(() => life.subscribe(() => {
+    if (onScreen()) drawList();
+  }));
   lifetime.effect(() => world.subscribe?.(() => {
+    const list = world.state.runtimes;
+    const nextRt = JSON.stringify(list || null);
+    if (nextRt !== rtSig) { rtSig = nextRt; life.sync(list); if (onScreen()) drawList(); }
     if (!onScreen()) return;
     const st = world.state;
     const rows = paidRows().map((r) => [r.pool, r.name, r.plan, r.possible, r.inUse, r.credits, r.why, r.state, r.note]);
@@ -255,7 +306,7 @@ export function createRuntimeSettings({ world, announce, scope: lifetime, root }
       if (signal.aborted) return;
       R.err = null;
       draw();
-      refresh();
+      refresh().then(() => life.readRemotes(world.state.runtimes), reportFailure);
       const redrawOpen = () => { if (onScreen() && R.pref == null) draw(); };
       const reportLive = (/** @type {unknown} */ error) => { if (!signal.aborted) reportFailure(error); };
       world.act.loadPolicies?.().then(redrawOpen, reportLive);

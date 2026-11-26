@@ -2,8 +2,9 @@
 
 import { uiMsg } from "../../core/services/world/rows.js";
 import { threadAnchors, waitsForTurn, pageFloor, inPage } from "../../core/services/world/conversation.js";
-import { forwardOrigin, hopLine, relayedInto, hopNotes } from "../../core/services/world/relay.js";
+import { forwardOrigin, hopLine, relayedInto, hopNotes, isResult } from "../../core/services/world/relay.js";
 import { turnSegments, segmentTurn } from "./blocks/turn.js";
+import { setupOf } from "./handoff.js";
 
 /** @import { Hop } from "../../core/services/world/hop-types.d.ts" */
 
@@ -65,7 +66,11 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
       } else if (m.who === "you") {
         out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
         if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
-      } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom, space: m.space, fwd: m.fwd });
+      } else if (m.who === "system") {
+        const setup = t && m.role === "xo" ? setupOf(m.text) : null;
+        const { passedOn, continuedIn, continuedFrom, space, fwd } = m;
+        out.push({ ...base, who: "system", passedOn, continuedIn, continuedFrom, space, fwd, setup });
+      }
       else if (t && m.who === "agent" && /^✓\s/.test(m.text)) {
         out.push({ key: base.key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
       }
@@ -85,6 +90,7 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
       for (const d of D.notSent().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
     }
     if (t) for (const c of st.controls[t.id] || []) {
+      if (c.action === "setup") continue;
       const at = Date.parse(c.at) || 0;
       const note = c.action !== "steer" ? out.find((x) => x.who === "system" && !x.ctl && !x.continuedIn && !x.continuedFrom && !x.passedOn && /interrupt|stop/i.test(x.text || "") && Math.abs((x.at || 0) - at) < 15000) : null;
       if (note) { note.who = "control"; note.ctl = c; continue; }
@@ -115,6 +121,14 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
         if (note) note.lead = c.key;
       }
     }
+    if (t && st.hops) {
+      for (const hp of st.hops.values()) {
+        if (hp.thread_ts !== t.id || !isResult(hp) || noted.has(hp.id)) continue;
+        noted.add(hp.id);
+        const at = Date.parse(hp.at || hp.created_at || "") || 0;
+        out.push({ key: `back:${hp.id}`, at, seq: hp.seq ?? null, who: "handback", hopRow: hp });
+      }
+    }
     if (t && shape.on("xo:thread/hops") && st.hops) {
       for (const hp of st.hops.values()) {
         if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
@@ -125,7 +139,7 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
     if (t && t.sessionId && st.turns) {
       /** @type {{seq: number, at: number, who: string}[]} */
       const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: /** @type {number} */ (m.seq), at: m.at, who: /** @type {string} */ (m.who) }))
-        .concat(out.filter((x) => x.seq != null && /^(hopn|relay|ctl|hop):/.test(x.key)).map((x) => ({ seq: /** @type {number} */ (x.seq), at: x.at, who: x.who })));
+        .concat(out.filter((x) => x.seq != null && /^(hopn|relay|ctl|hop|back):/.test(x.key)).map((x) => ({ seq: /** @type {number} */ (x.seq), at: x.at, who: x.who })));
       const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
       const tail = says.reduce((a, m) => (m.seq > a ? m.seq : a), 0) + 0.5;
       for (const tu of st.turns.list((x) => x.session === t.sessionId)) {

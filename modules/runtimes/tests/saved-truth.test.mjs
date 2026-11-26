@@ -9,6 +9,9 @@ await dom(PAGE);
 const RT = await import("../settings.js");
 let passed = 0;
 const scope = createScope();
+const { createLifecycle } = await import("../lifecycle.js");
+const { api } = await import("../../../core/platform/api.js");
+const life = createLifecycle({ api, refresh() {}, announce() {}, scope });
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 await t("a receipt says Saved only beside what XO took", () => {
@@ -43,7 +46,7 @@ async function space() {
   return { world, saves };
 }
 const page = () => document.querySelector('[data-page="runtimes"] .set-live');
-const mount = (world) => RT.createRuntimeSettings({ world, announce() {}, scope, root: document.querySelector("#settings") }).open();
+const mount = (world) => RT.createRuntimeSettings({ world, announce() {}, scope, root: document.querySelector("#settings"), life, uninstall() {} }).open();
 const pref = () => page().querySelector("[data-rtd-pref]");
 const note = () => page().querySelector("#rtd-preferences").closest(".set-l").querySelector(".rt-saved");
 const type = (/** @type {string} */ text) => { const f = pref(); f.value = text; f.dispatchEvent(new Event("input", { bubbles: true })); };

@@ -1,7 +1,7 @@
 // @ts-check
 import { isResponseObject } from "./http.js";
 
-/** @import { Policies, Router, RouterModel, Runtime, RuntimeModel } from "./runtime-response-types" */
+/** @import { Policies, Router, RouterModel, Runtime, RuntimeModel, Lifecycle } from "./runtime-response-types" */
 
 /** @param {unknown} value */
 const string = (value) => typeof value === "string";
@@ -46,8 +46,15 @@ const isFeature = (value) => isResponseObject(value) && optional(value.values, s
 const hasFeatures = (value) => isResponseObject(value) && optional(value.features, (features) => isResponseObject(features)
   && Object.values(features).every(isFeature));
 
+/** @param {unknown} value @returns {value is Lifecycle} */
+export const isLifecycle = (value) => isResponseObject(value) && string(value.name) && string(value.state)
+  && boolean(value.installed) && boolean(value.signed_in) && strings(value.actions)
+  && nullable(value.job, string) && nullable(value.version, string) && optional(value.needs_update, boolean)
+  && nullable(value.update, string);
+
 /** @param {unknown} value @returns {value is Runtime} */
 const isRuntime = (value) => isResponseObject(value) && string(value.name) && optional(value.default, boolean)
+  && nullable(value.lifecycle, isLifecycle)
   && nullable(value.cli, isCli) && nullable(value.health, isHealth) && optional(value.features, hasFeatures)
   && nullable(value.error, (error) => string(error) || isRuntimeError(error));
 

@@ -1,7 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
+import { rtMark, rtName } from "../core/services/runtimes.js";
 import { ORIGIN, sourcePath } from "../tools/conformance/css-publication.mjs";
 import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
 
@@ -9,12 +9,13 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 t("each runtime its company's mark; Codex is OpenAI's", () => {
-  assert.equal(markOf("claude_code"), "claude");
-  assert.equal(markOf("codex"), "openai");
-  assert.equal(markOf("antigravity"), "antigravity");
-  assert.equal(markOf("cursor"), "cursor");
-  assert.equal(markOf("grok_build"), "grok");
-  assert.equal(markOf("something_new"), null);
+  const mark = (/** @type {string} */ n) => (rtMark(n) || "").match(/agm-(\w+)/)?.[1] ?? null;
+  assert.equal(mark("claude_code"), "claude");
+  assert.equal(mark("codex"), "openai");
+  assert.equal(mark("antigravity"), "antigravity");
+  assert.equal(mark("cursor"), "cursor");
+  assert.equal(mark("grok_build"), "grok");
+  assert.equal(mark("something_new"), null);
 });
 t("alone, the mark says its name (role img, aria-label, title)", () => {
   assert.equal(rtMark("codex"), '<i class="agm agm-openai" role="img" aria-label="Codex" title="Codex"></i>');

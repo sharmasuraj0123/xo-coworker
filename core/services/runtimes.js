@@ -3,7 +3,7 @@ import { esc } from "../platform/util.js";
 import { clockWords, untilWords } from "../platform/time.js";
 export { clockWords, untilWords };
 
-/** @import {Runtime as Row, RuntimePolicy, RuntimeError, UsageItem, RuntimeHealth} from "./runtime-types" */
+/** @import {Runtime as Row, RuntimePolicy, RuntimeError, UsageItem, RuntimeHealth, SessionThread, SessionsState} from "./runtime-types" */
 
 /** @typedef {Row | null | undefined} Rt @typedef {RuntimePolicy | null | undefined} Policy */
 
@@ -19,8 +19,6 @@ export const rtName = (name) => NAME[/** @type {string} */ (name)] || String(nam
 
 /** @type {Record<string, string>} */
 const MARK = { claude_code: "claude", codex: "openai", antigravity: "antigravity", cursor: "cursor", grok_build: "grok" };
-/** @param {string} name */
-export const markOf = (name) => MARK[name] || null;
 /** The mark as HTML, its name on hover and for screen readers, or null; withName writes the name beside it. @param {string} name @param {{ withName?: boolean, lead?: boolean }} [o] */
 export function rtMark(name, { withName = false, lead = false } = {}) {
   const m = MARK[name];
@@ -28,8 +26,36 @@ export function rtMark(name, { withName = false, lead = false } = {}) {
   const n = esc(rtName(name));
   return withName ? `<span class="agm-n"><i class="agm agm-${m}" aria-hidden="true"></i>${n}</span>` : `<i class="agm agm-${m}${lead ? " is-lead" : ""}" role="img" aria-label="${n}" title="${n}"></i>`;
 }
+/** The sessions a runtime action would stop, by thread title and project. @param {unknown} sessions @param {SessionsState} st */
+export function sessionThreads(sessions, st) {
+  const ids = Array.isArray(sessions) ? sessions.filter((s) => typeof s === "string") : [];
+  const projects = st.projects || [];
+  return ids.map((s) => {
+    const t = st.threads.find((x) => x.sessionId === s);
+    const where = t && (projects.find((p) => p.id === t.project)?.name || t.project);
+    if (t) return /** @type {SessionThread} */ ({ id: s, title: t.title, where: where || "", go: `t:${t.id}` });
+    const p = projects.find((x) => x.sessionId === s);
+    if (p) return { id: s, title: `${p.name}'s coordinator`, where: "", go: `p:${p.id}` };
+    return { id: s, title: "A session XO doesn't list", where: s.slice(0, 8), go: null };
+  });
+}
+/** How people say a thinking effort. @type {Record<string, string>} */
+export const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
+/** A model id as people read it: "gpt-6.1-terra" is "GPT-6.1 Terra" (shown only). @param {string | null | undefined} id */
+export function modelWord(id) {
+  const parts = String(id || "").trim().replace(/^claude-/i, "").split(/[-_\s]+/).filter((p) => p && !/^\d{8}$/.test(p));
+  /** @type {string[]} */
+  const out = [];
+  for (const p of parts) {
+    const last = out[out.length - 1];
+    if (/^\d+(\.\d+)*$/.test(p) && last && /^GPT$/.test(last)) out[out.length - 1] = `${last}-${p}`;
+    else if (/^\d+(\.\d+)*$/.test(p) && last && /\d$/.test(last)) out[out.length - 1] = `${last}.${p}`;
+    else out.push(/^gpt$/i.test(p) ? "GPT" : /^\d/.test(p) ? p : p.charAt(0).toUpperCase() + p.slice(1));
+  }
+  return out.join(" ");
+}
 /** @param {string} id */
-export const windowName = (id) => WINDOW[id] || String(id || "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+export const windowName =(id) => WINDOW[id] || String(id || "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 
 /** @param {Rt} rt @returns {RuntimeHealth} */
 const healthOfRt = (rt) => (rt && rt.health) || {};

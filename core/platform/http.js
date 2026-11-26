@@ -34,7 +34,7 @@ export function captureCoderToken() {
 export const coderHeaders = () => (coderToken ? { "Coder-Session-Token": coderToken } : {});
 
 export class ApiError extends Error {
-  /** @param {number} status @param {string} code @param {string} message @param {Record<string, unknown>} [extra] storm's feature, count, sentence, what, confirm, summary, current */
+  /** @param {number} status @param {string} code @param {string} message @param {Record<string, unknown>} [extra] storm's feature, count, sentence, what, confirm, summary, current; a runtime's sessions, job, install */
   constructor(status, code, message, extra = {}) {
     super(message);
     this.status = status;
@@ -84,7 +84,7 @@ export async function requestJson(path, { method = "GET", body, signal, query, t
 }
 
 /** @param {string} url @param {string} method @param {unknown} [body] @param {AbortSignal} [signal] @param {Record<string, string> | null} [extra] @returns {Promise<unknown>} */
-export async function exchange(url, method, body, signal, extra = null) {
+async function exchange(url, method, body, signal, extra = null) {
   signal?.throwIfAborted();
   return fetchBody(url, {
     method,
@@ -154,7 +154,7 @@ function errorOf(status, statusText, raw) {
   /** @type {Record<string, unknown>} */
   const extra = {};
   if (isResponseObject(d)) {
-    for (const key of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) {
+    for (const key of ["feature", "count", "sentence", "what", "confirm", "summary", "current", "sessions", "job", "install"]) {
       if (Object.hasOwn(d, key)) extra[key] = d[key];
     }
   }

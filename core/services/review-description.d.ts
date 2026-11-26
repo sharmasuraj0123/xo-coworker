@@ -16,6 +16,8 @@ export interface ReviewDetail {
   schedule?: string;
   job?: { agent?: string; model?: string };
   first_task?: string;
+  runtime_action?: { runtime?: string; action?: string; force?: boolean };
+  sessions?: string[];
 }
 
 export interface ReviewDescription extends Pick<ReviewRecord, "options" | "title" | "risk" | "origin" | "parked" | "risk_reasons"> {
