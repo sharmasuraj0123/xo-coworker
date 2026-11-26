@@ -18,10 +18,14 @@
 .project-option{display:flex;align-items:center}
 .project-option [aria-pressed=true]{color:var(--accent)}
 [data-header-action="project-settings"]{anchor-name:--project-settings}
+[data-header-action="project-settings"] span{position:absolute;clip-path:inset(50%);overflow:hidden}
 #rail-project-settings{position:fixed;position-anchor:--project-settings;inset:auto var(--s-3) auto auto;top:anchor(bottom);
-  margin-top:var(--s-2);padding:var(--s-3);width:min(var(--menu-w),90vw);border-radius:var(--r-xl);color:var(--ink);
+  margin-top:var(--s-2);padding:var(--s-2);width:min(var(--w-stage-default),90vw);border-radius:var(--r-xl);color:var(--ink);
   border:var(--hair) solid var(--line);background:var(--float);box-shadow:var(--e2)}
 #rail-project-settings:popover-open{display:grid;gap:var(--s-2)}
+#rail-project-settings section{padding:var(--s-3);border-radius:var(--r-lg);background:var(--fill-1);overflow-wrap:anywhere}
+#rail-project-settings h2{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
+#rail-project-settings [aria-pressed=true]{color:var(--accent)}
 #rail-project-settings button{text-align:left;padding:var(--s-2);border-radius:var(--r)}
 #rail-project-settings button:hover{background:var(--row-hover)}
 .side > .nrow{margin-inline:var(--s-3);width:auto}

@@ -23,11 +23,12 @@ export function projectSettings(ctx, pins) {
     if (busy) return;
     selected = id;
     allowed = false;
-    redraw(panel, `<h2>${esc(name(id))}</h2><p>${esc(id)}</p><button type="button" data-project-icon>Change icon</button>`
-      + `<button type="button" data-pin aria-pressed="${pins.pinned(id)}">Pin to sidebar</button>`
+    redraw(panel, `<section><h2>${esc(name(id))}</h2><button type="button" data-project-icon>Change icon</button>`
+      + `<button type="button" data-pin aria-pressed="${pins.pinned(id)}">Pin to sidebar</button></section>`
       + '<section data-sync aria-live="polite"></section><section data-access aria-live="polite">Reading project access…</section>'
-      + '<button type="button" data-launch>Launchpad</button><button type="button" data-set-open="worktrees">Worktrees</button>'
-      + '<button type="button" data-set-open="rules">Rules</button>');
+      + '<section><h2>Tools for this project</h2><button type="button" data-launch>Launchpad</button>'
+      + '<button type="button" data-set-open="worktrees">Worktrees</button>'
+      + '<button type="button" data-set-open="rules">Rules</button></section>');
     panel.showPopover();
     void sync(id);
     const access = requireHtml("[data-access]", "section", panel);
