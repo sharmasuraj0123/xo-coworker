@@ -10,3 +10,9 @@ test("Artifacts carries no count", () => {
   assert.ok(row);
   assert.deepEqual([...row.children].map((el) => el.className), ["nr-ic", "nr-name"]);
 });
+
+test("More wears the ⋯ glyph, not a dashboard", async () => {
+  const { drawSidebarControls } = await import("../shell/frame-icons.js");
+  drawSidebarControls();
+  assert.equal(document.querySelector("#ic-more svg")?.getAttribute("data-xi"), "more");
+});

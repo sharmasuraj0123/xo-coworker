@@ -2,7 +2,6 @@
 
 import { $$, requireHtml } from "../core/platform/dom.js";
 import { esc } from "../core/platform/util.js";
-import { xi } from "../core/ui/icons/icon.js";
 import { ICON, XO } from "../core/ui/icons/names.js";
 
 export function drawPlaceIcons() {
@@ -35,6 +34,6 @@ export function drawFrameIcons() {
 export function drawSidebarControls() {
   requireHtml("#side-fold", "button").innerHTML = ICON.sidebar;
   requireHtml("#side-jump", "button").innerHTML = ICON.search;
-  requireHtml("#ic-more").innerHTML = xi("dashboard");
+  requireHtml("#ic-more").innerHTML = ICON.more;
   requireHtml("#nv-more .nr-chev").innerHTML = ICON.right;
 }
