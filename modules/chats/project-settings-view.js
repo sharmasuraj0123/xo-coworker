@@ -91,7 +91,7 @@ export function threadsHtml(m) {
     `${m.allowed.includes(n) ? " checked" : ""}${m.busy ? " disabled" : ""}><span>${esc(rtName(n))}</span></label>`;
   const checks = `<div class="rt-checks" role="group" aria-labelledby="ps-allowed">${m.installed.map(check).join("")}</div>`;
   const allowedSub = m.own.allowed
-    ? `Only these, for this project. <button type="button" class="ps-link" data-ps-allowed-space>Use the Space's</button>`
+    ? `Only these, for this project. <button type="button" class="cp-link" data-ps-allowed-space>Use the Space's</button>`
     : "The Space's, until you change one here. Work never goes to a runtime that is off.";
   const fb = (/** @type {boolean | null} */ v) => (v ? "On" : "Off");
   const fallback = seg("fallback", [choice("", space(fb(m.spaceFallback)), m.own.fallback == null),

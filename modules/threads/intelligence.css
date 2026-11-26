@@ -46,7 +46,7 @@
 .iq-row{flex:none;display:flex;align-items:center;gap:var(--s-2);min-width:0;text-align:start;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);cursor:pointer;outline:none}
 .iq-row:hover{background:var(--hover-fill)}
 .iq-row:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
-.iq-row:focus-visible,.iq-item:focus-visible,.iq-opt:focus-visible,.iq-hb:focus-visible{outline:none;
+.iq-row:focus-visible,.iq-item:focus-visible,.iq-hb:focus-visible{outline:none;
   box-shadow:inset 0 0 0 2px var(--focus)}
 /* a choice that waits while a save or a move is out: it keeps focus, says it can't change, doesn't answer hover */
 .iq-row[aria-disabled="true"]{cursor:default}
@@ -117,6 +117,7 @@
   font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 /* the models: names in one column, what each is for in the next, so the lines start together */
 .iq-opts.is-cols{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s-3);max-height:none;padding-top:0}
+.iq-opt:focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
 .iq-opts.is-cols .iq-opt{display:grid;grid-column:1/-1;grid-template-columns:subgrid;gap:inherit}
 .iq-s{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .iq-s.is-warn{color:var(--warn-text)}

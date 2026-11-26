@@ -61,6 +61,7 @@ try {
   await settle();
   assert.equal(box.querySelector("#ps-title")?.textContent, "New threads");
   assert.equal(box.querySelector('[data-ps-page="threads"]')?.getAttribute("aria-current"), "page");
+  assert.ok(box.querySelector('[data-ps-page="threads"]')?.classList.contains("is-on"), "the shared selected row");
 
   click('[data-ps-fallback="on"]');
   await settle();

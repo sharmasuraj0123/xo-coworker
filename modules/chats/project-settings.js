@@ -40,6 +40,7 @@ export function createProjectSettings({ world, writes, PROJ, iconOf }) {
   function draw() {
     if (!d.open || !S.project) return;
     for (const b of d.querySelectorAll("[data-ps-page]")) {
+      b.classList.toggle("is-on", b.getAttribute("data-ps-page") === S.page);
       if (b.getAttribute("data-ps-page") !== S.page) b.removeAttribute("aria-current");
       else b.setAttribute("aria-current", "page");
     }

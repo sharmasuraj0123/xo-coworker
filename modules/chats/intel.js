@@ -148,8 +148,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, onProject 
     pop.hidden = false; pop.classList.remove("is-out");
     if (opts.rt) lookAt(opts.rt); else render();
     anchor?.setAttribute("aria-expanded", "true");
-    if (opts.rt) pop.querySelector(`[data-lrt="${CSS.escape(opts.rt)}"]`)?.focus({ preventScroll: true });
-    else pop.focus({ preventScroll: true });
+    const first = opts.rt ? pop.querySelector('[data-mvm][tabindex="0"]') || pop.querySelector("[data-mv-cancel]") : null;
+    (first instanceof HTMLElement ? first : pop).focus({ preventScroll: true });
     await loadModels(s);
   }
   function close({ restore = true, apply = true } = {}) {
