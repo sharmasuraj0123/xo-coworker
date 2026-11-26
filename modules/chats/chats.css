@@ -1,19 +1,14 @@
 /* Chats with one agent share the conversation composer. */
 .main:has(.dock.is-top){--dock-h:0px}
 /* the greeting is Chats' title: no bar over it (a phone keeps its menu button) */
-@media (min-width:761px){.app:is([data-conv="chats"],[data-conv^="c:"]) .top{display:none}}
+@media (min-width:761px){.app[data-conv="chats"] .top{display:none}}
 .app[data-conv="chats"] .scroller{display:flex;flex-direction:column}
 .app[data-conv="chats"] .scroller>*{flex:none}
-/* at rest the greeting and composer stand in the middle, the few latest hanging under them; all of them flow from the top */
-.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column{height:0;margin-bottom:auto}
+.app[data-conv="chats"] .scroller:has(#msgs:empty)>.column{height:0;margin-bottom:auto}
 .cs-hi{
-  width:var(--col-w); margin:var(--cs-lead,auto) 0 var(--s-2) var(--col-x); text-align:center;
+  width:var(--col-w); margin:auto 0 var(--s-2) var(--col-x); text-align:center;
   font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans); letter-spacing:var(--tr-28); color:var(--ink);
   text-wrap:balance
-}
-.cs-sub{
-  width:var(--col-w); margin:0 0 var(--s-6) var(--col-x); text-align:center;
-  font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans); color:var(--ink-3); text-wrap:balance
 }
 /* a dock that leads its page (.is-top) sits in the flow: no foot room, no fade, its notices in the gap under it */
 .dock.is-top{position:relative;right:auto;bottom:auto;margin-bottom:var(--s-10)}
@@ -21,14 +16,7 @@
 .dock.is-top>.herald{top:calc(100% + (var(--s-10) - var(--h-ctl)) / 2);bottom:auto}
 .chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-1);scroll-margin-top:var(--s-4)}
 .chl-k{margin:0;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.chl-more{
-  flex:none; height:var(--h-ctl); padding:0 var(--halo); margin-right:calc(-1 * var(--halo)); border-radius:var(--r);
-  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans); color:var(--ink-3);
-  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)
-}
-.chl-more:hover{background:var(--hover-fill);color:var(--ink)}
 .chl-top>.chl-q{flex:0 1 50%;margin-left:auto;height:var(--h-lg);border-radius:var(--r-lg)}
-.chl-n{font-variant-numeric:tabular-nums}
 .chl{display:flex;flex-direction:column;gap:var(--s-5);margin:0 0 var(--s-6)}
 :root #msgs>div.chl-top:not(#_){margin-bottom:0}
 :root #msgs>div.chl-top+div.chl:not(#_){margin-top:0}

@@ -4,6 +4,7 @@ import { requireHtml } from "../../core/platform/dom.js";
 import { convOfChat } from "../../shell/place-context.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { createHomeController } from "./controller.js";
+import { homeInbox } from "./inbox.js";
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const homeModule = {
@@ -14,6 +15,7 @@ export const homeModule = {
     const view = ctx.use("currentView"), el = requireHtml("#home");
     ctx.effect(() => () => el.replaceChildren());
     const home = createHomeController({
+      inbox: homeInbox(ctx, () => view() === "home" && ctx.use("world").state.loaded),
       ...ctx.use("decisionPresentation"), scope: ctx, host: el, places: ctx.places, world: ctx.use("world"), announce: ctx.use("announce"),
       convOfChat, isBusy: ctx.use("threadPresentation").isBusy, PROJ: ctx.use("placeContext").PROJ,
       threadMark: ctx.use("threadRuntime").threadMark, noun: ctx.use("conversationPresentation").noun, SV: ctx.use("shapeView"),

@@ -91,7 +91,7 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
     const efforts = effortsFor(st);
     const effort = efforts.includes(/** @type {string} */ (st.effort)) ? st.effort : null;
     const modes = st.modes;
-    const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
+    const folders = [{ id: "", name: "Quick chat" }, ...world.state.projects.filter((p) => p.kind === "project")];
     /** @param {string} attr @param {string} id @param {string} name @param {string} desc @param {boolean} on @param {boolean} first */
     const row = (attr, id, name, desc, on, first) => `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, first)} ${attr}="${esc(id)}"${desc ? ` title="${esc(desc)}"` : ""}><span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-tr">${esc(desc)}</span>` : ""}${CHECK}</div>`;
     const agents = rts.length > 1 ? `<div class="iq-sec"><p class="iq-lab" id="cs-agent-l">Agent</p><div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
@@ -108,7 +108,10 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
     const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
     const lists = {
-      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
+      cwd: () => '<header class="iq-h"><h2 id="cs-hh">Chat scope</h2></header>'
+        + '<button type="button" class="iq-row" data-chat-workspace>All projects</button>'
+        + '<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">'
+        + folders.map(f => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("") + '</div>',
       mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
         : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
           const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;

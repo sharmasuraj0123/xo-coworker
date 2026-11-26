@@ -2,12 +2,12 @@
 import { sheetGesture } from "../../shell/gestures.js";
 import { ownLayer } from "../../shell/layers.js";
 
-import { PHONE } from "../../core/platform/viewport.js";
 import { sessionOf } from "../../shell/place-context.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { replyNotices } from "./reply-notices.js";
 import { createChats } from "./chats.js";
+import { copyText, COPY_REFUSED } from "../../core/platform/clipboard.js";
 import { bindChatControls } from "./controls.js";
 import { cliName } from "../../core/services/world/conn.js";
 import { chatOrder } from "../../core/services/world/conversation.js";
@@ -46,11 +46,10 @@ export const chatModelModule = {
 export const chatControlsModule = {
   manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
     needs: ["world", "projectName", "currentView", "announce", "notices", "conversationSession", "chats",
-      "intelligence", "composer", "runControls"],
-    contributes: ["conversation.press:chat-message"] },
+      "intelligence", "composer", "runControls", "navigation"],
+    contributes: ["conversation.press:chat-message", "header.action:copy-chat"] },
   activate(ctx) {
-    if (!PHONE) throw new Error("Chat controls need media queries");
-    const phone = PHONE, view = ctx.use("currentView"), session = ctx.use("conversationSession");
+    const view = ctx.use("currentView"), session = ctx.use("conversationSession");
     const chats = ctx.use("chats"), { updateComposer, putBack, liveBlock, refuse, mentions } = ctx.use("composer");
     const composer = () => session.composer.say;
     const stop = ctx.use("runControls").stopRun, intel = ctx.use("intelligence");
@@ -117,13 +116,28 @@ export const chatControlsModule = {
       updateComposer, aim: () => mentions.aim(session.composer), toggleIntelligence: (v, chip) => intel.toggle(sessionOf(v), chip),
     });
     const setup = requireHtml("#cs-pop");
+    const go = ctx.use("navigation").go;
+    ctx.listen(setup, "click", ({ target }) => {
+      if (!(target instanceof Element) || !target.closest("[data-chat-workspace]")) return;
+      const field = composer(), draft = field.value;
+      chats.closeSetup();
+      go("ws");
+      if (view() !== "ws") return;
+      if (draft) putBack(draft);
+      else field.focus();
+    });
     sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
       close: () => { chats.closeSetup(); updateComposer(); } });
-    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
-      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer });
+    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, setup, updateComposer });
     const reply = replyNotices(
       view, ctx.use("projectName"), ctx.use("notices").show, ctx.use("announce"), () => ctx.invalidate("workspace"));
     ctx.effect(() => ctx.use("world").onEvent(reply));
     ctx.contribute("conversation.press", pressEntry("chat-message", handleMessageAction));
+    ctx.contribute("header.action", { id: "copy-chat", label: "Copy visible conversation", icon: "copy",
+      when: at => at.view?.startsWith("c:") === true, async onPress() {
+        const text = requireHtml("#msgs").innerText.trim();
+        const copied = text && await copyText(text);
+        if (!ctx.signal.aborted) ctx.use("announce")(copied ? "Conversation copied." : text ? COPY_REFUSED : "No messages to copy.");
+      } });
   },
 };

@@ -4,27 +4,11 @@ import { radioKeys } from "../../core/ui/a11y/keynav.js";
 
 /** @import { ChatControls } from "./controls-types.d.ts" */
 
-const LEAD = "--cs-lead";
-
 /** @param {ChatControls} controls */
-export function bindChatControls({ scope, list, scroller, greeting, setup, phone, chats, updateComposer }) {
+export function bindChatControls({ scope, list, setup, chats, updateComposer }) {
   scope.listen(list, "input", ({ target }) => {
     const input = target instanceof Element ? target.closest("input") : null;
     if (input && input === target && input.matches("[data-chl-q]")) chats.search(input.value);
-  });
-  scope.listen(list, "click", ({ target }) => {
-    if (!(target instanceof Element)) return;
-    const button = target.closest("[data-chl-all]");
-    if (!button) return;
-    const all = button.getAttribute("data-chl-all") === "1";
-    if (all) scroller.style.setProperty(LEAD, getComputedStyle(greeting).marginTop);
-    else scroller.style.removeProperty(LEAD);
-    chats.showAll(all);
-    scope.frame(() => scope.frame(() => {
-      const to = all && !phone.matches ? "[data-chl-q]" : "[data-chl-all]";
-      const field = list.querySelector(".chl-top")?.querySelector(to);
-      if (field instanceof HTMLElement) field.focus({ preventScroll: true });
-    }));
   });
 
   scope.effect(() => radioKeys(setup));

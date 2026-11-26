@@ -1,6 +1,6 @@
 // @ts-check
 import {
-  document, assert, initialChats, setImmediate, flushFrames, window, xi, ICON, modelReads, visibleChatTitles,
+  document, assert, initialChats, setImmediate, flushFrames, window, ICON, modelReads, visibleChatTitles,
   chatTitleSignal, chatTitleRead, promptCount, retireChat, setTimeout, clipboard,
 } from "./environment.mjs";
 await import("../../modules/home/skeleton.js");
@@ -62,7 +62,8 @@ for (const id of ["arts", "lpp", "panel", "pn-h", "pn-count", "pn-x", "pn-rail",
 }
 assert.deepEqual(
   [...document.querySelector("main").children].map((node) => node.id || node.className),
-  ["phonebar", "home", "arts", "lpp", "conv", "drop-veil", "dock", "panel", "viewer", "toast-wrap", "settings", "stage"],
+  ["phonebar", "home", "scheduled", "shared", "connectors", "explore", "usage-agents", "arts", "lpp", "conv", "drop-veil", "dock",
+    "panel", "viewer", "toast-wrap", "settings", "stage"],
   "boot preserves the main landmark's region order",
 );
 assert.ok(document.querySelector("#main").nextElementSibling === document.querySelector("#shd"), "Shells follows the main landmark in the app");
@@ -97,10 +98,11 @@ assert.equal(scrollPane.querySelectorAll(".region-ring").length, 0);
 scrollPane.remove();
 
 assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
+assert.ok(document.querySelector('[data-set="diagnostics"]'), "Space pages activates and contributes diagnostics");
 assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
 const expectedIcon = document.createElement("span");
-expectedIcon.innerHTML = xi("dashboard");
-assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the dashboard icon");
+expectedIcon.innerHTML = ICON.more;
+assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the ellipsis icon");
 expectedIcon.innerHTML = ICON.right;
 assert.equal(document.querySelector("#nv-more .nr-chev").innerHTML, expectedIcon.innerHTML, "More shows the right chevron");
 assert.equal(document.querySelector("#home").hidden, false, "boot starts on Home");
@@ -175,7 +177,23 @@ flushFrames();
 await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
 await new Promise(setImmediate);
+assert.ok(!document.querySelector(".chl-row"), "New chat leaves the composer clear of history");
+const scopeDraft = document.querySelector("#say");
+scopeDraft.setSelectionRange = (start, end) => { scopeDraft.selectionStart = start; scopeDraft.selectionEnd = end; };
+scopeDraft.value = "Workspace draft";
+press("#target");
+press("[data-chat-workspace]");
+flushFrames();
+assert.equal(document.querySelector("#app").dataset.conv, "ws");
+assert.match(scopeDraft.value, /Workspace draft/);
+press("#nv-chats");
+flushFrames();
+press("[data-chat-history]");
+flushFrames();
+await new Promise(setImmediate);
 const secondChat = document.querySelector('.chl-row[data-go="c:second-plain-chat"]');
+assert.equal(document.querySelector('.side-recents [data-go="c:plain-chat"]').textContent.trim(), "Draft ideas");
+assert.equal(document.querySelector('.side-recents [data-go="ws"]'), null);
 assert.ok(visibleChatTitles.has(secondChat), "the mounted Chats list observes a row that needs its title");
 assert.equal(chatTitleSignal, undefined);
 visibleChatTitles.get(secondChat)([{ target: secondChat, isIntersecting: true }]);
@@ -187,7 +205,7 @@ chatTitleRead.resolve(Response.json({ messages: [] }));
 await new Promise(setImmediate);
 press("#nv-chats");
 flushFrames();
-press('.chl-row[data-go="c:plain-chat"]');
+press('.side-recents [data-go="c:plain-chat"]');
 const chatComposer = document.querySelector("#say");
 chatComposer.value = "Keep this prompt";
 chatComposer.dispatchEvent(new window.Event("input", { bubbles: true }));
@@ -231,6 +249,8 @@ assert.equal(chatComposer.selectionStart, chatComposer.value.length);
 assert.ok(document.activeElement === chatComposer);
 
 press("#nv-ws");
+assert.equal(document.querySelector("#conv-title").textContent, "All projects");
+assert.doesNotMatch(document.querySelector("#top-who").textContent, /idle|All quiet/);
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
 assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 2 projects/);

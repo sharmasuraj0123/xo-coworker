@@ -3,6 +3,7 @@ import type { Sent } from "../../core/services/storm/types.d.ts";
 import type { Runtime } from "../../core/services/runtime-types.d.ts";
 export type { Runtime } from "../../core/services/runtime-types.d.ts";
 export interface Session {
+  title?: string | null;
   id: string;
   role?: string;
   state?: string;

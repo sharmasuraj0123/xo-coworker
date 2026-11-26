@@ -426,7 +426,7 @@
  },
  "modules/chats/chats.js": {
   "functionLines": 1,
-  "lineLength": 36
+  "lineLength": 35
  },
  "modules/chats/effort.js": {
   "lineLength": 1
@@ -455,7 +455,7 @@
   "lineLength": 1
  },
  "modules/chats/setup.js": {
-  "lineLength": 21
+  "lineLength": 19
  },
  "modules/chats/types.d.ts": {
   "lineLength": 1
@@ -505,7 +505,7 @@
   "lineLength": 2
  },
  "modules/conversation/header.js": {
-  "lineLength": 9
+  "lineLength": 6
  },
  "modules/conversation/history.css": {
   "lineLength": 5
@@ -1007,7 +1007,7 @@
   "lineLength": 8
  },
  "shell/rail/rows.js": {
-  "lineLength": 7
+  "lineLength": 6
  },
  "shell/rail/side.js": {
   "functionLines": 1,
@@ -1017,7 +1017,7 @@
   "lineLength": 6
  },
  "shell/sidebar.css": {
-  "lineLength": 16
+  "lineLength": 15
  },
  "shell/sideorder.js": {
   "lineLength": 2,
@@ -1033,9 +1033,6 @@
   "sourceRead": 1
  },
  "tests/flavours.test.mjs": {
-  "sourceRead": 1
- },
- "tests/hover-veil.test.mjs": {
   "sourceRead": 1
  },
  "tests/lib/cascade.mjs": {

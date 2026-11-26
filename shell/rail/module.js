@@ -2,23 +2,45 @@
 import { requireHtml } from "../../core/platform/dom.js";
 import { createSide } from "./side.js";
 import { createSideRows } from "./rows.js";
+import { projectPicker } from "./projects.js";
+import { projectSettings } from "./project-settings.js";
+import { esc } from "../../core/platform/util.js";
+import { reconcile } from "../../core/ui/redraw.js";
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const railModule = {
   manifest: { id: "xo.rail", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["shape", "announce", "currentView", "world", "chats", "decisionPresentation",
-      "placeContext", "threadPresentation", "projectIcons"],
+      "placeContext", "threadPresentation", "projectIcons", "navigation"], contributes: ["header.action:project-settings"],
     optional: ["jump"], provides: ["rail"] },
   activate(ctx) {
     const jump = requireHtml("#jump");
     const side = createSide({ scope: ctx, shape: ctx.use("shape"), announce: ctx.use("announce"), render: () => ctx.emit("app:render"),
       toggleJump() { const surface = ctx.optional("jump"); if (jump.hidden) surface?.open(); else surface?.close(); } });
     const { D, askShort } = ctx.use("decisionPresentation"), place = ctx.use("placeContext");
+    const picker = projectPicker(ctx, place.projects, () => ctx.emit("app:render"));
+    projectSettings(ctx, picker);
     const rows = createSideRows(ctx, {
       view: ctx.use("currentView"), world: ctx.use("world"), CH: ctx.use("chats"), D,
-      projects: place.projects, convThread: place.convThread,
+      projects: place.projects, convThread: place.convThread, pinned: picker.pinned,
       ...ctx.use("threadPresentation"), askShort, projectIcon: ctx.use("projectIcons").projectIcon, folded: () => side.folded,
     });
-    ctx.provide("rail", { side, rows });
+    const chats = ctx.use("chats"), recent = requireHtml(".side-recents");
+    const list = requireHtml(".side-recents nav"), history = requireHtml("[data-chat-history]", "button");
+    ctx.listen(history, "click", () => chats.showAll(true));
+    for (const button of document.querySelectorAll('[data-go="chats"]:not([data-chat-history])')) {
+      ctx.listen(button, "click", () => chats.showAll(false));
+    }
+    ctx.provide("rail", { side, rows(needs) {
+      rows(needs);
+      picker.paint();
+      const data = chats.recent(list);
+      recent.hidden = !data.count;
+      requireHtml("[data-total]", "span", history).textContent = String(data.count);
+      reconcile(list, data.rows.map(({ id, title, state }) => ({
+        key: id, html: `<button type="button" class="nrow" data-go="c:${esc(id)}"><span class="nr-name">${esc(title)}</span>`
+          + (state ? `<i class="recent-dot ${state}" aria-label="${state === "needs" ? "Needs you" : "Working"}"></i>` : "") + "</button>",
+      })));
+    } });
   },
 };

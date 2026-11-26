@@ -74,7 +74,7 @@
   --fill-drop-veil:rgb(0 0 0 / .32);
   --comp-bg:var(--float); --line-composer-focus:var(--line-strong);
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
-  --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
+  --black-rgb:0,0,0;
   --edge-sidebar-active:rgba(var(--black-rgb),.06); --shadow-switch-track:inset 0 0 0 var(--hair) var(--sb-line);
   --fill-switch-knob:var(--ink-2); --ink-switch-knob:var(--sb-side); --shadow-switch-knob:none;
   --e-composer-idle:0 8px 24px var(--shadow-ink),0 1px 0 rgba(255,255,255,.04) inset; --e-composer-focused:var(--e-composer-idle);
@@ -142,10 +142,10 @@
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
   --r-note:calc(var(--r) + var(--s-2));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
+  --side-w:256px;
   --halo:8px; --cell-in:4px;
   --halo-row:12px;
   --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
-  --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
   /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
   --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */

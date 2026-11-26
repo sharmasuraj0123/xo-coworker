@@ -26,10 +26,27 @@ const scope = createScope();
 let jumps = 0;
 const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
 const SIDE = createSide({ ...deps, scope });
+SIDE.apply();
+assert.equal(document.querySelector("#nv-chats .nr-name").textContent, "New chat");
+assert.equal(document.querySelector("#nv-ws .nr-name").textContent, "All projects");
+assert.equal(document.querySelector("#side-jump").previousElementSibling.id, "nv-home");
+assert.equal(document.querySelector("#nv-ws").nextElementSibling.id, "projects");
+assert.equal(document.querySelector("#nv-arts [data-rail-count]"), null);
+SIDE.fold(true);
+const peek = document.querySelector("[data-side-peek]");
+assert.ok(peek, "folded navigation has a peek button");
+peek.click();
+assert.equal(peek.getAttribute("aria-expanded"), "true");
+assert.equal(SIDE.folded, true, "peeking preserves the saved fold preference");
+document.querySelector("#side-fold").click();
+assert.equal(SIDE.folded, false, "pinning docks the open sheet");
 
-const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
+const ids = ["home", "ws", "chats", "arts", "launchpad", "scheduled", "shared", "connectors", "explore", "runtimes",
+  "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
+SIDE.drawMore();
+assert.deepEqual([...document.querySelectorAll("#side-more [role=group]")].map(el => el.getAttribute("aria-label")), ["Space", "Insights"]);
 
 // More's pins from before carry over
 store.set("xo-side-pins", JSON.stringify(["rules", "gone"]));
@@ -107,7 +124,7 @@ click(edit);
 assert.equal(pop.getAttribute("role"), "dialog");
 assert.equal(pop.getAttribute("aria-label"), "Edit the sidebar");
 const grip = pop.querySelector('[data-se-grip="ws"]');
-assert.equal(grip.getAttribute("aria-label"), "Move Workspace: up or down arrow");
+assert.equal(grip.getAttribute("aria-label"), "Move All projects: up or down arrow");
 assert.equal(Boolean(grip.querySelector("svg")), true);
 grip.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
 assert.equal(SIDE.bar().order[0], "ws");
@@ -121,7 +138,7 @@ target.dispatchEvent(Object.assign(new window.Event("drop", { bubbles: true, can
 assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "chats", "ws", "arts"]);
 const workspace = pop.querySelector('[data-se-sw="ws"]');
 assert.equal(workspace.getAttribute("role"), "switch");
-assert.equal(workspace.getAttribute("aria-label"), "Keep Workspace in the sidebar");
+assert.equal(workspace.getAttribute("aria-label"), "Keep All projects in the sidebar");
 assert.equal(workspace.getAttribute("aria-checked"), "false");
 click(workspace);
 assert.equal(pop.querySelector('[data-se-sw="ws"]').getAttribute("aria-checked"), "true");

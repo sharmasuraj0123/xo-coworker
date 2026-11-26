@@ -89,7 +89,7 @@ t("custom chords, symbol shortcuts and Files keys dispatch through the live list
   K.resetAll();
   assert.equal(press(editor, "?"), false);
   assert.equal(press(page, "?"), true);
-  assert.equal(press(page, "mod+b"), true);
+  assert.equal(press(page, K.binding("treeFold")), true);
   assert.equal(press(page, "mod+p"), true);
   assert.deepEqual(calls.splice(0), ["keys", "keys", "treeFold", "files"]);
 });

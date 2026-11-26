@@ -29,6 +29,9 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 // or that of the one named, gives the ring's room on every side; "inset": its controls draw their ring inside them;
 // "inner": the content inside it carries its own room; "text": it holds text or one field, no control)
 const SCROLLERS = {
+  ".side-recents": ["room", "recent chat rows"],
+  ".space-page": ["room", "Space page actions"],
+  "#rail-project-picker": ["room", "project search and pin controls"],
   ".rn-strip": ["room", "the running sub-agents' chips (C047)"],
   ".projects": ["room", "the sidebar's projects (C008: 2 px above the first row cut its ring)"],
   ".mp-legend": ["room", "the Map's agents (none above the first row cut its ring)"],
