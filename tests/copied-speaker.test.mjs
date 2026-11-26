@@ -44,7 +44,7 @@ assert.ok(from, "the header says where it came from");
 assert.equal(from.querySelector("button").getAttribute("data-go-msg"), "cmsg_1");
 assert.match(from.textContent, /another project · via the Workspace/);
 assert.equal(message.firstElementChild.classList.contains("av-p"), true, "a copy wears the project mark, not the chat's own");
-assert.match(rich, /:root:not\(\[data-msgx\]\) \.m-ext\{border:var\(--hair\) solid var\(--line\);border-radius:var\(--r-card\);background:var\(--surface\)\}/);
+assert.match(rich, /:root:not\(\[data-msgx\]\) \.m-ext\{border:var\(--hair\) solid var\(--line\);border-radius:var\(--r-block\);background:var\(--surface\)\}/);
 assert.match(bubbles, /:root\[data-msgx\] \.m-ext \.mh\{display:flex;/);
 assert.match(css, /@media \(max-width:760px\)\{\.m-from \.via\{display:none\}\}/);
 console.log("copied-speaker: ok");

@@ -7,7 +7,8 @@ import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs"
 test("the inner corner radius is the outer radius minus its stroke", () => {
   const innerRadius = resolveValue("var(--r-lg-in)");
   assert.deepEqual(innerRadius, resolveValue("calc(var(--r-lg) - 1px)"));
-  assert.deepEqual(valuesFor(".ck-tog", "border-radius"), [innerRadius]);
+  assert.ok(stylesheetRows.some((row) => row.property === "--r-block-in" && row.value === "calc(var(--r-block) - var(--hair))"));
+  assert.deepEqual(valuesFor(".ck-tog", "border-radius"), ["var(--r-block-in)"]);
   const duplicate = stylesheetRows.filter((row) => row.property !== "--r-lg-in"
     && /^calc\(var\(--r-lg\) - (?:1px|var\(--hair\))\)$/.test(row.value ?? ""));
   assert.deepEqual(duplicate, []);

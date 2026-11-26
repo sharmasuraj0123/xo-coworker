@@ -12,7 +12,7 @@
 /* ── one picture: bare, 12 px corners, a 1 px hairline drawn over it (it never shifts the layout) ── */
 .mx-one,.mx-tile{position:relative;display:block;padding:0;border:0;overflow:hidden;cursor:zoom-in;
   background:var(--mx-tint,color-mix(in srgb,var(--ink) 6%,transparent));transition:background-color var(--d-in) var(--ease)}
-.mx-one{flex:none;width:min(100%,var(--mx-w));aspect-ratio:var(--mx-r);border-radius:var(--r-lg)}
+.mx-one{flex:none;width:min(100%,var(--mx-w));aspect-ratio:var(--mx-r);border-radius:var(--r-block)}
 /* loaded: the tint has done its job; a transparent picture sits on the quiet media fill, not its own average */
 .mx-one.is-in,.mx-tile.is-in{background-color:color-mix(in srgb,var(--ink) 6%,transparent)}
 .mx-one::after,.mx-album::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
@@ -40,7 +40,7 @@
 .is-err{cursor:pointer}
 
 /* ── an album: justified rows 2 px apart, clipped once at 12 with the hairline once; tiles are square ── */
-.mx-album{position:relative;display:flex;flex-direction:column;gap:2px;flex:none;width:min(100%,var(--mx-w));border-radius:var(--r-lg);overflow:hidden;isolation:isolate}
+.mx-album{position:relative;display:flex;flex-direction:column;gap:2px;flex:none;width:min(100%,var(--mx-w));border-radius:var(--r-block);overflow:hidden;isolation:isolate}
 .mx-row{display:flex;gap:2px;aspect-ratio:var(--mx-r)}
 .mx-tile{flex:var(--mx-g) 1 0;min-width:0}
 .mx-tile:focus-visible{z-index:3;outline:none}

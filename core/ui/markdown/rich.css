@@ -11,8 +11,8 @@
 :root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
 :root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
 /* words from another project or the Workspace sit in a card whose header says where they came from */
-:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-card);background:var(--surface)}
-:root:not([data-msgx]) .m-ext>.av{margin:var(--s-2) 0 0 var(--s-4)}
+:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-block);background:var(--surface)}
+:root:not([data-msgx]) .m-ext>.av{margin:var(--s-2) 0 0 var(--s-4);background:none;border-color:var(--fill-clear)}
 :root:not([data-msgx]) .m-ext>.mb{padding-bottom:var(--s-4)}
 :root:not([data-msgx]) .m-ext>.mb>.mh{margin-bottom:var(--s-3);border-bottom:var(--hair) solid var(--line);
   padding:var(--s-2) var(--s-4) var(--s-2) calc(var(--s-4) + var(--tile))}
@@ -82,16 +82,16 @@
 @media (max-width:760px){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}}
 @media (hover:none){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
 
-:root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);box-shadow:none}
+:root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--fill-1);box-shadow:none}
 :root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
 :root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}
 :root:not([data-msgx]) .tcard:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-:root:not([data-msgx]) .tc-open{gap:4px;padding:0 16px 12px;border-radius:var(--r-lg-in)}
+:root:not([data-msgx]) .tc-open{gap:4px;padding:0 16px 12px;border-radius:var(--r-block-in)}
 /* the band: full width, flush with the card's top, its progress 16 px in on each side (the text column) */
-:root:not([data-msgx]) .tc-segs{order:-1;width:calc(100% + 32px);margin:0 -16px 8px;padding:12px 16px;gap:4px;border-radius:var(--r-lg-in) var(--r-lg-in) 0 0;background:color-mix(in srgb,var(--st) 10%,transparent);transition:background var(--d-hover) var(--ease)}
+:root:not([data-msgx]) .tc-segs{order:-1;width:calc(100% + 32px);margin:0 -16px 8px;padding:12px 16px;gap:4px;border-radius:var(--r-block-in) var(--r-block-in) 0 0;background:color-mix(in srgb,var(--st) 10%,transparent);transition:background var(--d-hover) var(--ease)}
 :root:not([data-msgx]) .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st) 14%,transparent)}
-:root:not([data-msgx]) .tc-segs .sg{max-width:none;height:6px;border-radius:3px}
-:root:not([data-msgx]) .tc-segs.is-empty::before{content:"";flex:1;height:6px;border-radius:3px;background:color-mix(in srgb,var(--st) 24%,transparent)}
+:root:not([data-msgx]) .tc-segs .sg{max-width:none;height:6px;border-radius:var(--r-pill)}
+:root:not([data-msgx]) .tc-segs.is-empty::before{content:"";flex:1;height:6px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--st) 24%,transparent)}
 /* the title on the text edge (the band already says the state: no glyph before it), where it stands on the right */
 :root:not([data-msgx]) .tc-top{gap:16px}
 :root:not([data-msgx]) .tc-top>.g{display:none}
@@ -128,7 +128,7 @@
 /* Charts identify each series with its swatch and label. */
 :root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
 :root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
-.md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--mc-bg);font-variant-numeric:tabular-nums}
+.md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
 .mc-title{font:var(--fw-strong) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink)}
 .mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .mc-key{display:inline-flex;align-items:center;gap:8px}
@@ -162,7 +162,7 @@
 .mc-tip strong{font-weight:var(--fw-medium)}
 @media (max-width:760px){.mc-frame{grid-template-rows:auto 168px 24px auto}.md-chart{padding:12px 12px 8px}}
 
-.md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+.md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
 /* its natural width at most; never under 80 % of it (a phone scrolls the card sideways rather than shrink the words) */
 .md-diagram>svg{display:block;width:100%;max-width:var(--dg-w,100%)!important;min-width:calc(var(--dg-w,0px) * .8);height:auto;margin:0 auto}
 .md-diagram>svg .node>rect:not([rx]),.md-diagram>svg .node>rect[rx="0"]{rx:var(--r);ry:var(--r)}
