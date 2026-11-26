@@ -20,6 +20,8 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
   const q = (selector = "") => /** @type {HTMLElement} */ (el.querySelector(selector));
 
   const lines = () => [.../** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll(".fr-gut"))].filter((line) => !line.hidden).length;
+
+  const grows = (id = "") => q(`[data-fr="${id}"]`).classList.contains("is-grow");
   function layout() {
     // the shape's frames: one it doesn't keep is gone, with the line beside it
     const keep = new Set(frames());
@@ -37,11 +39,13 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       fold.setAttribute("aria-expanded", String(!folded));
       fold.title = folded ? "Open" : "Fold";
     }
-    // Changes takes the room that's left, then the Map, else Threads; while Changes is empty, Threads has the room
-    const grow = (S.chEmpty ? ORDER : [ORDER[1], ORDER[2], ORDER[0]]).find((id) => on(id) && !fr[id].folded);
+    // until a line is dragged, Threads and Changes share the room evenly; after, the sized one keeps its size
+    const open = (id = ORDER[0]) => on(id) && !fr[id].folded;
+    const even = !fr.agents.rows && !fr.changes.size && open("agents") && open("changes");
+    const grow = (S.chEmpty ? ORDER : [ORDER[1], ORDER[2], ORDER[0]]).find(open);
     for (const id of ORDER) {
       const f = q(`[data-fr="${id}"]`);
-      f.classList.toggle("is-grow", grow === id);
+      f.classList.toggle("is-grow", grow === id || (even && id !== "map"));
       const h = id === "agents" ? null : id === "changes" ? fr.changes.size : fr.map.h;
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
@@ -57,8 +61,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
     // the stack's height comes from its resize observer, never a read here, which forced the page's layout
     const room = S.stackH;
     if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
-      const grows = (/** @type {string} */ id) => q(`[data-fr="${id}"]`).classList.contains("is-grow");
-      const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
+        const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
             cap = Math.max(1, Math.floor((room - changes - mapH - lines() - 44) / ROW));
       rows = Math.min(rows, cap);
@@ -74,7 +77,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
     let acc = 0; // Threads: the drag that isn't a whole row yet
     let past = 0; // how far the pointer went past where the Map stopped growing
     // the frame below the line sizes (dragging down shrinks it); when it's the one growing, the frame above sizes
-    const sized = () => (q(`[data-fr="${b}"]`).classList.contains("is-grow") ? { id: a, sign: 1 } : { id: b, sign: -1 });
+    const sized = () => (grows(a) && grows(b) ? !S.chEmpty : grows(b)) ? { id: a, sign: 1 } : { id: b, sign: -1 };
     const mapSizes = () => { const m = q('[data-fr="map"]'); return !m.hidden && !fr.map.folded && !m.classList.contains("is-grow"); };
     // the Map grows only into the room Changes can spare with Threads' rows as they are on screen
     const mapTop = () => {
@@ -98,6 +101,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       const { id, sign } = sized();
       const f = q(`[data-fr="${id}"]`);
       if (id === "agents") {
+        if (grows("agents")) S.agRows = Math.max(1, Math.round(q('[data-fr="agents"] .fr-b').getBoundingClientRect().height / ROW));
         // a row at a time, once the drag passes half a row; never taller than its rows or the room left
         let d = sign * dy;
         if (past && Math.sign(d) !== Math.sign(past)) { const back = Math.sign(d) * Math.min(Math.abs(d), Math.abs(past)); past += back; d -= back; if (!d) return; }

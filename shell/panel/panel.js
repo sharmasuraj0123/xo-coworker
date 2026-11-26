@@ -19,7 +19,7 @@ import { bindPanelFrames } from "./frame-bindings.js";
 /** @import { FrameState, StageDeps, StageState } from "./panel-types.d.ts" */
 
 const KEY = "xo-stage";
-const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first
+const FR_KEY = "xo-stage-frames-4"; // Threads and Changes even, the Map folded at first
 const PANEL_IC = ICON.panel;
 const FULL_IC = ICON.full;
 const UNFULL_IC = ICON.unfull;

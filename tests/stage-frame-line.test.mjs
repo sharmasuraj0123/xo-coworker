@@ -19,7 +19,10 @@ const height = () => parseFloat(changes.style.height);
 
 assert.equal(el.querySelector('[data-fr="agents"]').classList.contains("is-grow"), true);
 assert.equal(changes.style.height, "", "a height an older build saved is not applied");
+const growing = () => ["agents", "changes", "map"].filter((id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow"));
+assert.deepEqual(growing(), ["agents", "changes"], "by default Threads and Changes share the room evenly; the Map stays folded");
 press("ArrowUp", 4);
+assert.deepEqual(growing(), ["agents"], "once the line moves, Changes keeps its size and Threads has the rest");
 const raised = height();
 assert.ok(raised > FRAME_MIN, "dragging up gives Changes room");
 press("ArrowDown");
@@ -29,10 +32,13 @@ assert.equal(height(), 600 - 2 - 4 * 48 - 40, "up stops where Threads keeps its 
 press("ArrowDown", 60);
 assert.equal(height(), FRAME_MIN, "down stops at Changes' least room");
 line.dispatchEvent(new window.Event("dblclick"));
-assert.equal(changes.style.height, "", "a double-click hands Changes back its own height");
+assert.deepEqual(growing(), ["agents", "changes"], "a double-click goes back to the even split");
 
 const { declarationsFor } = await import("./lib/css-snapshot.mjs");
 const raw = (selector, property) => declarationsFor(selector, property).map((row) => row.value);
 assert.deepEqual(raw('.stage .fr.is-grow[data-fr="agents"]', "min-height"), ["calc(4 * var(--s-12))"], "Threads never drops under two rows");
 assert.deepEqual(raw('.stage .fr[data-fr="changes"]:not(.is-folded)', "flex-shrink"), ["1"], "a sized Changes gives way first");
+S.chEmpty = false;
+layout();
+assert.deepEqual(growing(), ["agents", "changes"], "with files in Changes the split is even too");
 console.log("the Threads|Changes line moves both ways within limits");
