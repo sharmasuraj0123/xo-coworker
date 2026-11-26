@@ -58,10 +58,7 @@
 .vw-btn span{display:none}
 .vw-btn svg{width:var(--ic);height:var(--ic)}
 .vw-btn:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));border:0;color:var(--ink)}
-.vw-seg{height:var(--h-ctl);padding:3px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.vw-seg button{height:var(--h-sm);padding:0 8px;border-radius:calc(var(--r-sm) - 4px);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .vw-x{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm)}
-.vw-seg button{display:inline-flex;align-items:center;gap:var(--s-1)}
 .vw-seg button svg{display:none;width:var(--ic);height:var(--ic)}
 @container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:var(--h-sm);padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
 /* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */

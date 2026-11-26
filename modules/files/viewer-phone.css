@@ -2,7 +2,7 @@
   .fl-link{min-height:var(--h-touch)}
   .fl-up{width:var(--h-touch);height:var(--h-touch)}
   .vw-seg{height:var(--h-lg);padding:var(--hair)}
-  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r-sm) - var(--r-segment-inset))}
+  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r) - var(--r-segment-inset))}
   @container flpv (max-width:520px){.vw-seg button{width:var(--h-touch)}}
 }
 
