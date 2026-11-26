@@ -33,8 +33,7 @@
 .shd-tab-list[aria-selected="true"]{background:var(--fill-3)}
 .shd-tab svg{width:var(--ic-sm);height:var(--ic-sm)}
 .shd-tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.shd-c{display:grid;place-items:center;min-width:var(--s-5);height:var(--h-shell-count);padding:0 var(--s-shell-count-inline);
-  border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3);font-size:var(--fs-meta);font-variant-numeric:tabular-nums}
+.shd-c{color:var(--ink-4);font-size:var(--fs-meta);font-variant-numeric:tabular-nums}
 .shd-tx{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:var(--s-1);border-radius:var(--r-sm);
   color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .shd-tx:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
@@ -47,6 +46,7 @@
 .shd-dot.d-ended{background:var(--fill-clear);box-shadow:inset 0 0 0 var(--stroke-shell-ended) var(--ink-4)}
 @keyframes shd-pulse{50%{opacity:.35}}
 .shd-acts{flex:none;display:flex;align-items:center;gap:var(--s-1);min-width:0}
+.shd.in-panel :is(.shd-where,.shd-act>span:not(.spin)){display:none}
 .shd-where{max-width:var(--w-shell-location);margin-right:var(--s-shell-row-inset);font-size:var(--fs-meta);color:var(--ink-4);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .shd-act{display:inline-flex;align-items:center;gap:var(--s-1);height:var(--h-ctl);padding:0 var(--s-shell-control-inset) 0 var(--s-2);

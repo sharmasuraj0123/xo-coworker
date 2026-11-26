@@ -141,6 +141,10 @@ assert.deepEqual(calls, beforeDispose, "a retained dock and pending open cannot 
 const rules = publishedRules();
 const propertiesFor = (selector) => Object.fromEntries(rules.filter(({ sel }) => sel === selector)
   .flatMap(({ declarations }) => declarations.map(({ p, v }) => [p, v])));
+assert.deepEqual(propertiesFor(".shd-c"), { color: "var(--ink-4)", "font-size": "var(--fs-meta)", "font-variant-numeric": "tabular-nums" },
+  "the shell count reads like the panel's counts, a plain number");
+assert.deepEqual(propertiesFor(".shd.in-panel :is(.shd-where,.shd-act>span:not(.spin))"), { display: "none" },
+  "in the panel, whose title names the place, the dock doesn't say where and its actions are icons, so the shell's tab has the room");
 assert.deepEqual(propertiesFor(".stg-body>*"), { "grid-area": "1/1", "min-width": "0", "min-height": "0" });
 assert.deepEqual(propertiesFor(".stage.is-covered .stg-frames"), { visibility: "hidden", "content-visibility": "hidden" });
 const hidesShellButton = (width) => rules.some(({ sel, at, declarations }) => sel === ".stg-shell-b"
