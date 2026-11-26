@@ -328,6 +328,11 @@ t("storm: held by the usage limit is Waiting, never Working or replying, on an o
   // the older backend's session, still queued once its pool is open: held for a reason it doesn't name, never Working
   assert.equal(world.thread("old").busy, false);
   assert.deepEqual(world.thread("old").held, { for: null, until: null, why: null, asked: false });
+  // near the limit, the coordinator's queued wake is background work: nobody waits on it, so it shows no hold
+  be.push("session", { session_id: "cse_co", seq: 24, data: { status: "queued", waiting: { for: "near_limit", until: null, pool, why: "pool warn" } } });
+  await settle();
+  assert.equal(world.act.coordinatorHeld("demo"), null);
+  assert.equal(world.act.replying("demo"), false);
   // a newer backend's frame holds it again, saying why (here the founder)
   be.push("session", { session_id: "cse_new", seq: 22, data: { status: "queued", reason: "held by the founder", waiting: { for: "founder", until: null, pool: null, why: "held by the founder" } } });
   await settle();

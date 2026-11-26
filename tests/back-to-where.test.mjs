@@ -28,3 +28,6 @@ for (const view of ["t:B", "t:A"]) {
 nav.go("t:A", { row: "cmsg_a" });
 nav.go("p:y", { from: "t:A" });
 assert.ok(pill.at(-1) === null);
+nav.go("ws");
+nav.back();
+assert.equal(location.view(), "chats", "the Workspace's Back goes to Chats, where it lives");

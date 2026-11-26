@@ -28,11 +28,14 @@ export function createTopHeader(deps, scope, schedule) {
     top.dataset.kind = t ? "thread" : "project";
     top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
     const back = requireHtml("#top-back", "button");
-    back.hidden = !t;
+    /** @param {string} name */
+    const backTo = (name) => { redraw(back, `${ICON.back}<span>${esc(name)}</span>`); back.setAttribute("aria-label", `Back to ${name}`); back.title = "Back (Esc)"; };
+    back.hidden = !t && v !== "ws";
+    if (v === "ws") backTo("Chats");
     if (CH.isChats(v)) {
       top.dataset.kind = v === "chats" ? "project" : "thread";
       back.hidden = v === "chats";
-      if (v !== "chats") { redraw(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
+      if (v !== "chats") backTo("Chats");
       redraw($("#top-who"), CH.headHtml(v));
       redraw($("#top-end"), STAGE.button(v));
       checklistRender(needs);
@@ -40,10 +43,7 @@ export function createTopHeader(deps, scope, schedule) {
     }
     if (t) {
       const to = location.parentOf(v) || "p:" + t.project;
-      const name = to === "home" ? "Home" : to === "ws" ? "Workspace" : PROJ(to.slice(2));
-      redraw(back, `${ICON.back}<span>${esc(name)}</span>`);
-      back.setAttribute("aria-label", `Back to ${name}`);
-      back.title = "Back (Esc)";
+      backTo(to === "home" ? "Home" : to === "ws" ? "Workspace" : PROJ(to.slice(2)));
     }
     const { who, controls } = conversationHeaderHtml(v, t, needs);
     if (who != null) redraw($("#top-who"), who);

@@ -19,7 +19,7 @@ export function wireGlobalKeys({ view, capturing, SH, jump, IQ, CREATE, keys, GL
       if (LAYERS.escape()) return;
       const current = view();
       if (current.startsWith("t:")) back();
-      else if (current.startsWith("c:")) go("chats");
+      else if (current.startsWith("c:") || current === "ws") go("chats");
       return;
     }
     if (K.typing(e) || e.metaKey || e.ctrlKey || e.altKey) return; // typing, even in Pierre's editor (a shadow root)

@@ -28,6 +28,9 @@ export function publishStreamRun(ctx, record) {
   ctx.soon();
 }
 
+/** @param {import("../world/held.js").Hold | null} h */
+const notNearLimit = (h) => (h && h.for !== "near_limit" ? h : null);
+
 /** @param {Ctx} ctx */
 export function createAct(ctx) {
   const { state, watched, trimmed, scope } = ctx;
@@ -91,8 +94,8 @@ export function createAct(ctx) {
       if (state.awaiting[project]) return true;
       return ctx.onTurn(s);
     },
-    /** What a chat's coordinator, held back by a gate, waits for, or null. @param {string} project */
-    coordinatorHeld: (project) => ctx.heldOfSession(ctx.coordinatorOf(ctx.chatIdOf(project))),
+    /** What a chat's coordinator waits for, or null: near the limit only its background wakes wait. @param {string} project */
+    coordinatorHeld: (project) => notNearLimit(ctx.heldOfSession(ctx.coordinatorOf(ctx.chatIdOf(project)))),
     /** What a session held back by a gate waits for, or null (a plain chat's). @param {string} sessionId */
     sessionHeld: (sessionId) => ctx.heldOfSession(state.sessions[sessionId] || null),
     sentAt: ctx.sentAt,

@@ -37,7 +37,7 @@ export function createNavigation({ location, bus, say, scroller, pageEl, convThr
   }
   function back() {
     const v = location.view();
-    if (v.startsWith("c:")) go("chats", { from: "t:", remember: false });
+    if (v.startsWith("c:") || v === "ws") go("chats", { from: "t:", remember: false });
     else if (v.startsWith("t:")) go(location.parentOf(v) || "p:" + convThread(v)?.project, { from: v, remember: false });
   }
   return {
