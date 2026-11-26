@@ -86,6 +86,25 @@ export function healthOf(rt, now = Date.now()) {
   if (h.limit === "warn") return { key: "warn", word: "Near limit", tone: "warn", why: "", fix: "" };
   return { key: "usable", word: "Usable", tone: "ok", why: "", fix: "" };
 }
+/** @import {LivePools} from "./runtime-types" */
+const ADMITTING = new Set(["open", "warn"]);
+/** Its health with the live pool's limit and windows. @template {Row} R @param {R} rt @param {LivePools} pools @returns {R} */
+function withPool(rt, pools) {
+  const h = rt && rt.health, p = h && h.pool ? pools[h.pool] : null;
+  if (!h || !p || !p.state) return rt;
+  const windows = p.windows || h.windows;
+  const same = h.limit === p.state && (h.resets_at ?? null) === (p.resets_at ?? null);
+  if (same && JSON.stringify(windows) === JSON.stringify(h.windows)) return rt;
+  const admits = ADMITTING.has(p.state), works = h.installed !== false && h.logged_in !== false && !h.error;
+  const why = admits ? null : `its usage limit is ${p.state}${p.resets_at ? ` until ${p.resets_at}` : ""}`;
+  const gate = works ? { usable: admits, why_not: why } : {};
+  return { ...rt, health: { ...h, limit: p.state, resets_at: p.resets_at ?? null, windows, ...gate } };
+}
+/** The same array when no runtime's limit differs. @template {Row} R @param {R[]} rts @param {LivePools} pools */
+export function withPools(rts, pools) {
+  const out = rts.map((r) => withPool(r, pools));
+  return out.every((r, i) => r === rts[i]) ? rts : out;
+}
 /** @param {Rt} rt */
 export const usable = (rt) => !!rt && healthOfRt(rt).usable !== false && isInstalled(rt);
 
