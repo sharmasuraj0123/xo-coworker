@@ -52,7 +52,7 @@ export function createMessageItems({
     const items = [];
     let day = "", prev = /** @type {Message | null} */ (null), above = /** @type {Message | null} */ (null);
     const named = !!convThread(conv);
-    let spoke = null;
+    let spoke = null, notices = 0;
     const lastYou = [...list].reverse().find((m) => m.who === "you");
     const lastQueued = [...list].reverse().find((m) => m.queued);
     const chosen = STAGE.chosen(conv);
@@ -119,6 +119,15 @@ export function createMessageItems({
         html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}${said ? " has-said" : ""}">${turnAv(/** @type {Turn} */ (m.turn), m.blocks)}<div class="mb">${inner}</div></div>`;
       } else if (m.who === "card") {
         html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(/** @type {string} */ (m.thread), needs)}</div></div>`;
+      } else if (m.who === "system" && m.space) {
+        const hot = m.space.percent != null && m.space.percent >= 90;
+        const again = prev?.space ? notices + 1 : 1;
+        if (again > 1) items.pop();
+        notices = again;
+        html = `<div class="ev ev-space${hot ? " is-hot" : ""}" role="status"><span class="ev-ic">${ICON.warn}</span>` +
+          `<span class="ev-t"><b>Space advisory</b>${m.fwd ? `<span class="via"> · via the Workspace</span>` : ""}` +
+          ` · ${esc(m.text || "")}</span>` +
+          `${again > 1 ? `<span class="ev-n">updated ${again}×</span>` : ""}<time>${clock(m.at)}</time></div>`;
       } else if (m.who === "system" && m.back) {
         const b = m.back, q = b.text.replace(/\s+/g, " ").trim(), via = (b.via || []).find((v) => v !== "workspace" && v !== "project" && world.project(v));
         html = `<div class="ev ev-sys ev-back"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Your earlier message <button type="button" class="rt-go" data-go="p:${esc(convProject(conv))}" data-go-msg="${esc(b.id)}" title="Where you wrote it">“${esc(q.length > 40 ? q.slice(0, 39) + "…" : q)}”</button> came back${via ? ` via ${esc(PROJ(via))}` : ""}</span><time>${clock(m.at)}</time></div>`;
