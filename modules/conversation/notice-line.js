@@ -23,7 +23,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     }
     const current = notice();
     const h = current && current.until > Date.now() ? current : null;
-    const c = h ? null : connLine(world.state, box === findHtml("#herald") ? connDest() : { thread: true });
+    const c = h ? null : connLine(world.state, connDest(composerNow().view));
     let html;
     if (h) {
       const ic = h.kind === "stopped" ? `<span class="hr-ic k-stopped">${ICON.close}</span>` : h.kind === "sent" ? `<i class="dash" aria-hidden="true"></i>` : h.kind === "ping" ? `<span class="hr-ic k-ping"><i class="hr-dot"></i></span>` : h.kind === "calm" || h.kind === "halt" ? `<span class="hr-ic k-calm">${h.kind === "halt" ? ICON.stop : ICON.pause}</span>` : h.kind === "rec" ? `<span class="hr-ic k-calm">${ICON.router}</span>` : `<span class="hr-ic k-ok">${ICON.check}</span>`;

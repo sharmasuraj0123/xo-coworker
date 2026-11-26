@@ -88,6 +88,7 @@ export interface Ctx {
   onTurn: (s: Session | null) => boolean;
   heldOfSession: (s: Session | null, runs?: StoredRun[] | null) => ReturnType<typeof import("../world/sessions.js").heldOf>;
   agentPool: (agent: string | null | undefined) => string | null;
+  poolOf: (to: { sessionId?: string | null; project?: string | null }) => string | null;
   threadBusy: (r: StoredThread, now: Session | null, runsBy: Map<string, StoredRun[]>) => boolean;
   noteSession: (s: Session, sent?: Sent) => void;
 
@@ -105,6 +106,8 @@ export interface Ctx {
   loadThreads: (p: Project) => Promise<void>;
   loadStatus: () => Promise<void>;
   poolsSig: () => string;
+  joinPools: () => void;
+  runtimesRead?: WorldState["runtimes"];
   refreshRuntimes: () => Promise<void> | null;
   loadRuntimes: () => Promise<void>;
   loadPaid: () => Promise<void>;

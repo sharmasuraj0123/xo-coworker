@@ -3,6 +3,7 @@ export interface StatusPool {
   state?: string | null;
   resets_at?: string | null;
   reason?: string | null;
+  windows?: Record<string, import("./runtime-response-types.d.ts").UsageWindow | null>;
 }
 
 export interface EngineStatus {

@@ -1,6 +1,7 @@
 // @ts-check
 import { currentPools, mainRuntime } from "./sessions.js";
 import { heldClock } from "./held.js";
+import { rtName } from "../runtimes.js";
 
 /** @import { Runtime } from "../runtime-types.d.ts" */
 
@@ -43,8 +44,8 @@ function offLine(w, pid) {
     : { kind: "off", text: "The router is off", sub: "chats using it refuse new messages · replies in threads still work" };
 }
 
-/** @param {Connection | null} w @param {{pid?: string | null, thread?: boolean}} [opts] */
-export function connLine(w, { pid = null, thread = false } = {}) {
+/** pool: where the message runs (null: none); left out, any pool counts. @param {Connection | null} w @param {{pid?: string | null, thread?: boolean, pool?: string | null}} [opts] */
+export function connLine(w, { pid = null, thread = false, pool } = {}) {
   if (!w) return null;
   if (STORM_DOWN.has(w.statusCode) || STORM_DOWN.has(w.errorCode)) return { kind: "down", text: "XO's chat engine isn't running", sub: "retrying · nothing you write is lost" };
   if (w.error || w.statusError || w.conn === "down") return { kind: "down", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
@@ -55,9 +56,10 @@ export function connLine(w, { pid = null, thread = false } = {}) {
   }
   const off = thread ? null : offLine(w, pid);
   if (off) return off;
-  const pools = currentPools(w.pools, rts);
+  const pools = currentPools(w.pools, rts).filter((p) => pool === undefined || (!!pool && p.pool === pool));
   const closed = pools.find((p) => p.state === "closed");
-  if (closed) return { kind: "wait", text: `Paused until ${heldClock(closed.resets_at)}`, sub: "usage limit · running work finishes, new work waits" };
+  const rt = closed && closed.pool && closed.pool.includes(":") ? `${rtName(closed.pool.split(":")[0])}'s ` : "";
+  if (closed) return { kind: "wait", text: `Paused until ${heldClock(closed.resets_at)}`, sub: `${rt}usage limit · new work here waits` };
   const paid = pools.find((p) => p.state === "paid");
   if (paid) return paid.reason === "paid_asked" || paid.reason == null
     ? { kind: "wait", text: "Paused for your choice", sub: "before paid usage · it's in Needs you" }

@@ -51,6 +51,6 @@ export const space = {
       resets_at: "resets_at" in d ? text(d.resets_at) ?? null : old?.resets_at,
       reason: "reason" in d ? text(d.reason) ?? null : old?.reason };
     if (ctx.poolsSeen && fresh) ctx.refreshRuntimes();
-    if (ctx.poolsSig() !== sig) ctx.soon(); else ctx.emit();
+    if (ctx.poolsSig() !== sig) { ctx.joinPools(); ctx.soon(); } else ctx.emit();
   },
 };

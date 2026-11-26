@@ -13,6 +13,6 @@ export interface NoticeLineDeps {
   MK: Composer;
   composerNow(): Composer;
   panelHost(): HTMLElement | null;
-  connDest(): Parameters<typeof connLine>[1];
+  connDest(view?: string): Parameters<typeof connLine>[1];
   placeRegion(): HTMLElement | null;
 }
