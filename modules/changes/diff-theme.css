@@ -10,13 +10,13 @@ diffs-container{
   --diffs-bg-context-override:var(--fill-1);
   --diffs-bg-buffer-override:var(--fill-1);
   /* a change: a low tint of green or red per line, one step stronger on the words that changed */
-  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--fill-1));
-  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--fill-1));
-  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--fill-1));
+  --diffs-bg-addition-override:color-mix(in srgb,var(--go-fill) 9%,var(--fill-1));
+  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--go-fill) 24%,var(--fill-1));
+  --diffs-bg-addition-number-override:color-mix(in srgb,var(--go-fill) 12%,var(--fill-1));
   --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--fill-1));
   --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--fill-1));
   --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--fill-1));
-  --diffs-addition-color-override:var(--accent);
+  --diffs-addition-color-override:var(--go);
   --diffs-deletion-color-override:var(--err-ink);
   --diffs-modified-color-override:var(--info);
   --diffs-fg-number-override:var(--ink-4);

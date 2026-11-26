@@ -23,7 +23,7 @@ button .spin,.btn .spin{color:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.g-working,.spin{animation:none}}
 .g-needs_reply,.g-needs_approval,.g-paused{color:var(--warn)}
-.g-done{color:var(--accent)}
+.g-done{color:var(--go)}
 .g-failed{color:var(--err-ink)}
 .g-stopped,.g-resolved,.g-held,.g-idle{color:var(--ink-4)}
 .badge.st-working{--st:var(--ink-2)}

@@ -38,18 +38,29 @@ t("Settings › Appearance offers the mode (dark, light, system) and every flavo
   assert.match(html, /id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"/);
   assert.match(read("tools/flavours/build.mjs"), /import \{ FLAVOURS \} from "\.\.\/\.\.\/core\/ui\/flavours\.js";/);
 });
-t("a flavour never changes a status hue, the accent or the XO mark", () => {
-  const fixed = ["--accent", "--accent-fill", "--accent-hover", "--accent-press", "--accent-rgb", "--warn", "--info", "--violet", "--err", "--err-ink", "--coord", "--mark-x", "--mark-o", "--go", "--work", "--need", "--danger"];
+t("a flavour never changes the XO mark", () => {
   const set = [...read("css/flavours.css").matchAll(/(--[\w-]+):/g)].map((m) => m[1]);
-  assert.deepEqual(set.filter((k) => fixed.includes(k)), []);
+  assert.deepEqual(set.filter((k) => ["--mark-x", "--mark-o"].includes(k)), []);
 });
-
-t("a flavour only re-tints what is grey in that mode (a colour light sets over dark's grey stays light's)", () => {
+t("a flavour sets its own accent, done green, status hues and your bubble, and they stay apart", () => {
+  const near = [];
+  for (const f of FLAVOURS) for (const [mode, list] of Object.entries(flavourBlocks(f).main).filter(([m]) => m !== "inverse")) {
+    const p = Object.fromEntries(list);
+    for (const k of ["--accent", "--accent-fill", "--go", "--go-fill", "--info", "--warn", "--err", "--violet", "--mx-you"]) assert.ok(p[k], `${f.id} ${mode} sets ${k}`);
+    for (const [a, b] of [["--accent", "--go"], ["--go", "--info"], ["--go", "--warn"], ["--warn", "--err"]]) {
+      const x = color(p[a], p), y = color(p[b], p), d = Math.hypot(...x.map((v, i) => v - y[i]));
+      if (d < 30) near.push(`${f.id} ${mode} ${a} ~ ${b} (${d.toFixed(0)})`);
+    }
+  }
+  assert.deepEqual(near, []);
+});
+t("a flavour only re-tints what is grey in that mode, beside its own palette (a colour light sets over dark's grey stays light's)", () => {
   const grey = (v) => /^#([0-9A-F]{2})\1\1$/i.test(v) || /^rgba\((\d+),\1,\1,[\d.]+\)$/.test(v.replace(/\s+/g, ""));
+  const own = new Set(["--accent", "--accent-fill", "--accent-ink", "--accent-hover", "--accent-press", "--accent-rgb", "--go", "--go-fill", "--go-rgb", "--info", "--warn", "--violet", "--err", "--err-ink", "--warn-text", "--need-text", "--ok-text", "--danger-ink", "--danger-text", "--add-text", "--del-text", "--live-h", "--mx-you"]);
   const odd = [];
   for (const f of FLAVOURS) {
     const b = flavourBlocks(f);
-    for (const [mode, list] of [["dark", b.main.dark], ["light", b.main.light]]) for (const [k] of list) if (!grey(stone[mode][k])) odd.push(`${f.id} ${mode} ${k}: Stone has ${stone[mode][k]}`);
+    for (const [mode, list] of [["dark", b.main.dark], ["light", b.main.light]]) for (const [k] of list) if (!own.has(k) && !grey(stone[mode][k])) odd.push(`${f.id} ${mode} ${k}: Stone has ${stone[mode][k]}`);
   }
   assert.deepEqual(odd, []);
 });
@@ -99,7 +110,7 @@ const oklchRgb = (L, C, H) => {
 const live = (props, d) => oklchRgb(+props["--live-l"], +props["--live-c"], +props["--live-h"] + d);
 // words on a fill: [words, fill, what the fill sits on]
 const FILLED = [
-  ["--ink", "--btn-fill", "--surface"], ["--ink", "--btn-fill-press", "--surface"], ["--accent", "--ok-fill", "--surface"], ["--ink", "--ok-fill-press", "--surface"],
+  ["--ink", "--btn-fill", "--surface"], ["--ink", "--btn-fill-press", "--surface"], ["--ink", "--accent-subtle", "--surface"], ["--ink", "--mx-you", "--canvas", 7], ["--ok-text", "--ok-fill", "--surface"], ["--ink", "--ok-fill-press", "--surface"],
   ["--danger-ink", "--danger-fill", "--surface"], ["--danger-ink", "--danger-tint", "--surface"], ["--danger-text", "--danger-tint", "--surface"], ["--del-text", "--danger-wash", "--surface"],
   ["--warn-text", "--need-tint-2", "--surface"], ["--warn-text", "--need-tint", "--canvas"], ["--coord", "--coord-tint", "--surface", 3],
   ["--info", "--hover-fill", "--surface"], ["--ink", "--bubble", "--canvas"], ["--ink", "--bubble-top", "--canvas"], ["--ink", "--bubble-foot", "--canvas"],
@@ -112,7 +123,7 @@ for (const [id, mode, props] of palettes) {
       const bg = layer(`var(${fill})`, color(`var(${on})`, props), props), r = ratio(color(`var(${fg})`, props), bg);
       if (r < min) low.push(`${fg} on ${fill} over ${on} ${r.toFixed(2)} < ${min}`);
     }
-    for (const [st, words] of [["--warn", "--warn-text"], ["--info", "--info"], ["--accent", "--ok-text"], ["--err-ink", "--danger-ink"], ["--ink-4", "--ink-3"]]) for (const on of ["--surface", "--canvas"]) {
+    for (const [st, words] of [["--warn", "--warn-text"], ["--info", "--info"], ["--go", "--ok-text"], ["--err-ink", "--danger-ink"], ["--ink-4", "--ink-3"]]) for (const on of ["--surface", "--canvas"]) {
       const under = color(`var(${on})`, props), bg = layer(`color-mix(in srgb,var(${st}) 12%,transparent)`, under, props), r = ratio(color(`var(${words})`, props), bg);
       if (r < 4.5) low.push(`badge ${words} on ${st} over ${on} ${r.toFixed(2)} < 4.5`);
     }

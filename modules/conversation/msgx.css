@@ -71,8 +71,7 @@
 .msgs.mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 .msgs.mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
-:root{--mx-you:oklch(.39 .084 134);--mx-you-ink:var(--ink);--mx-you-hi:var(--mx-lift)}
-:root[data-theme="light"]{--mx-you:oklch(.875 .125 130)}
+:root{--mx-you-ink:var(--ink);--mx-you-hi:var(--mx-lift)}
 
 :root{--mx-lift:0 2px 3px -2px rgba(0,0,0,.14)}
 :root[data-theme="light"]{--mx-lift:0 2px 3px -2px rgba(0,0,0,.10)}
@@ -254,7 +253,7 @@
 }
 @keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-done{position:relative;overflow:hidden;background:var(--info);animation:none}
-:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
+:root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--go-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next{position:relative;overflow:hidden}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-next::after{content:"";position:absolute;inset:0;background:var(--fill-3);transform-origin:right center;animation:mx-seg-light var(--d-land) var(--ease) var(--d-out) both}
 @keyframes mx-seg-light{from{transform:scaleX(1)}to{transform:scaleX(0)}}

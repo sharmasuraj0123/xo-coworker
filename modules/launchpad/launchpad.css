@@ -63,7 +63,7 @@
 .lq-go:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .lq-go svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-ro{color:var(--ink)}
-.lp-new{display:inline-block;margin-left:var(--s-1);padding:0 var(--s-1);border-radius:var(--r-xs);background:var(--ok-fill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--accent)}
+.lp-new{display:inline-block;margin-left:var(--s-1);padding:0 var(--s-1);border-radius:var(--r-xs);background:var(--accent-subtle);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink)}
 
 button.lq-row{transition:background var(--d-hover) var(--ease)}
 button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}

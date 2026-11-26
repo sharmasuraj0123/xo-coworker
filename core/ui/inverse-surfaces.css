@@ -11,6 +11,7 @@
   --ink:var(--dark-ink); --ink-2:var(--dark-ink-2); --ink-3:var(--dark-ink-3); --ink-4:var(--dark-ink-4); --ink-5:var(--dark-ink-5);
   --on-ink:var(--dark-on-ink); --ink-hi:var(--dark-ink-hi);
   --accent:var(--dark-accent); --accent-rgb:131,214,58; --err-ink:var(--dark-err-ink);
+  --go:var(--dark-accent); --go-rgb:131,214,58;
   --hover-fill:var(--dark-hover-fill); --press-fill:var(--dark-press-fill);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,var(--palette-transparent));
   --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,var(--palette-transparent));

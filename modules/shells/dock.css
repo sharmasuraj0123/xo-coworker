@@ -40,7 +40,7 @@
 .shd-tx:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .shd-tx svg{width:var(--ic-xs);height:var(--ic-xs)}
 .shd-dot{flex:none;width:var(--ic-shell-status);height:var(--ic-shell-status);mask:var(--mask-dot);background:var(--ink-4)}
-.shd-dot.d-on{background:var(--accent-fill);box-shadow:var(--shadow-shell-running)}
+.shd-dot.d-on{background:var(--go-fill);box-shadow:var(--shadow-shell-running)}
 .shd-dot.d-away{background:var(--ink-3)}
 /* Use a quiet dot for a running shell without viewers. */
 .shd-dot.d-wait{background:var(--warn);animation:shd-pulse var(--d-shell-wait) var(--ease-loop) infinite}
@@ -120,5 +120,5 @@
 .shl-err{margin-top:var(--s-shell-control-inset);font-size:var(--fs-meta);color:var(--err-ink)}
 
 @layer tokens{
-:where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
+:where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--go-rgb),.16)}
 }

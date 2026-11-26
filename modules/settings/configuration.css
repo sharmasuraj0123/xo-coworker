@@ -47,7 +47,8 @@
   background:var(--sw-ink); box-shadow:0 var(--s-2) 0 0 var(--sw-ink-3)
 }
 .fl-sw{
-  background-image:radial-gradient(circle at var(--s-3) var(--s-3),var(--accent-fill) 0 var(--s-1),var(--fill-clear) var(--offset-swatch))
+  background-image:radial-gradient(circle at var(--s-3) var(--s-3),var(--sw-accent-fill) 0 var(--s-1),
+    var(--fill-clear) var(--offset-swatch))
 }
 .fl-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);text-align:left}
 .fl-opt.is-on .fl-n{color:var(--ink)}

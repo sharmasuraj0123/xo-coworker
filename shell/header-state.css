@@ -6,7 +6,7 @@
 .top[data-state="stop"]::before{opacity:.8;
   background:linear-gradient(90deg,var(--fill-clear),var(--err-ink) 20%,var(--err-ink) 80%,var(--fill-clear))}
 .top[data-state="done"]::before{opacity:.55;
-  background:linear-gradient(90deg,var(--fill-clear),var(--accent-fill) 20%,var(--accent-fill) 80%,var(--fill-clear))}
+  background:linear-gradient(90deg,var(--fill-clear),var(--go-fill) 20%,var(--go-fill) 80%,var(--fill-clear))}
 .top[data-state="busy"]::before{opacity:.8;
   background:linear-gradient(90deg,var(--fill-clear) 0%,color-mix(in srgb,var(--info) 35%,var(--fill-clear)) 30%,var(--info) 50%,
     color-mix(in srgb,var(--info) 35%,var(--fill-clear)) 70%,var(--fill-clear) 100%) 0 0/50% 100% no-repeat;

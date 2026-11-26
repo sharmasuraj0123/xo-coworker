@@ -11,9 +11,9 @@ import { STONE, FLAVOURS } from "../../core/ui/flavours.js";
 /** @param {PreferenceScope} scope @param {import("./appearance-types.d.ts").AppearanceDeps} deps */
 export function wireAppearance(scope, { THEME, deviceSaid }) {
   const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
-  const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
+  const LOOKS = [[STONE.id, STONE.name, "XO's own"], ...FLAVOURS.map((f) => [f.id, f.name, `After ${f.after}`])];
   requireHtml("#mode-seg").innerHTML = MODES.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-mode="${v}">${esc(n)}</button>`).join("");
-  requireHtml("#flavour-seg").innerHTML = LOOKS.map(([v, n]) => `<button type="button" class="set-choice fl-opt" role="radio" aria-checked="false" data-flavour="${v}"><span class="fl-sw" data-sw="${v}" aria-hidden="true"></span><span class="fl-n">${esc(n)}</span></button>`).join("");
+  requireHtml("#flavour-seg").innerHTML = LOOKS.map(([v, n, after]) => `<button type="button" class="set-choice fl-opt" role="radio" aria-checked="false" data-flavour="${v}" title="${esc(after)}"><span class="fl-sw" data-sw="${v}" aria-hidden="true"></span><span class="fl-n">${esc(n)}</span></button>`).join("");
   for (const group of [requireHtml("#mode-seg"), requireHtml("#flavour-seg")]) scope.effect(() => radioKeys(group));
   function lookSync() {
     for (const [id, now] of [["#mode-seg", THEME.pref()], ["#flavour-seg", THEME.flavour()]]) {

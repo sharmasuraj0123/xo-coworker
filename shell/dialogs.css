@@ -26,7 +26,7 @@
 .cp-note>span{min-width:0;overflow-wrap:anywhere}
 .cp-note code{font-size:var(--fs-meta);color:var(--ink-3)}
 .cp-note b{font-weight:var(--fw-medium);color:var(--ink-2)}
-.cp-note[data-tone="ok"]>svg{color:var(--accent)}
+.cp-note[data-tone="ok"]>svg{color:var(--go)}
 .cp-code{padding:0 5px;border-radius:calc(var(--r-xs) - 2px);background:var(--fill-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);letter-spacing:var(--tr-code);color:var(--ink)!important}
 .cp-link{display:inline;padding:0;font:inherit;font-weight:var(--fw-medium);color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-hover);text-underline-offset:2px;cursor:pointer;transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease)}
 .cp-link:hover:not(:disabled){color:var(--ink);text-decoration-color:currentColor}

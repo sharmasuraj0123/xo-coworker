@@ -381,7 +381,6 @@
  "[\"core/ui/inverse-surfaces.css\",\"@media (prefers-contrast: more)\",\":root[data-theme=\\\"light\\\"] :is(.toast,.lbx)\"]",
  "[\"modules/artifacts/cards.css\",\"@layer tokens\",\":root[data-theme=\\\"light\\\"] :where(.md-pin)\"]",
  "[\"modules/conversation/msgx.css\",\":root\",\"--mx-lift\",\"0 2px 3px -2px rgba(0,0,0,.14)\"]",
- "[\"modules/conversation/msgx.css\",\":root\",\"--mx-you\",\"oklch(.39 .084 134)\"]",
  "[\"modules/home/skeleton.css\",\"@layer tokens\",\":root[data-theme=\\\"light\\\"] :where(.hm-sk .sk-card)\"]",
  "[\"modules/map/controls.css\",\"@layer tokens\",\":root[data-theme=\\\"light\\\"] :where(.dg-mode button[aria-pressed=\\\"true\\\"])\"]",
  "[\"modules/map/controls.css\",\"@layer tokens\",\":root[data-theme=\\\"light\\\"] :where(.dg-sep)\"]",
@@ -394,5 +393,5 @@
  "[\"modules/map/cursors.css\",\":root\",\"--offset-map-tag-below\",\"31px\"]",
  "[\"modules/map/cursors.css\",\":root\",\"--w-map-tag-max\",\"250px\"]",
  "[\"modules/map/graph.css\",\":root\",\"--map-dot-hover\",\"1.35\"]",
- "[\"modules/shells/dock.css\",\"@layer tokens\",\":where(.shd-dot.d-on)\",\"--shadow-shell-running\",\"0 0 0 3px rgba(var(--accent-rgb),.16)\"]"
+ "[\"modules/shells/dock.css\",\"@layer tokens\",\":where(.shd-dot.d-on)\",\"--shadow-shell-running\",\"0 0 0 3px rgba(var(--go-rgb),.16)\"]"
 ]
