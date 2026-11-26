@@ -66,7 +66,7 @@ export interface IntelState {
   mv: IntelMove | null;
   full: boolean;
   draft: Draft | null;
-  page: "root" | "rt" | "model" | "think" | "route";
+  page: "root" | "rt" | "route";
   saving?: boolean;
   saveErr?: string | null;
   dms?: RouterModel[];

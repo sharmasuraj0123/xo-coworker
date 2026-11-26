@@ -5,7 +5,7 @@ import { redraw } from "../../core/ui/redraw.js";
 import { xi, stateMark } from "../../core/ui/icons/icon.js";
 import { rtName, rtMark } from "../../core/services/runtimes.js";
 import { EFFORT_WORD, EFFORT_HINT } from "./effort.js";
-import { createIntelPages, PIPS, PROJECT, item, pips, pageHead } from "./intel-pages.js";
+import { createIntelPages, PIPS, PROJECT, item, pageHead } from "./intel-pages.js";
 
 /** @import { IntelCurrent, IntelModel, IntelMove, IntelState, Routing, ViewOptions } from "./intel-types.js" */
 
@@ -17,7 +17,7 @@ export function createIntelView(P, { pop, world, simple, catalogState, draftOf, 
   } = catalogState;
   // wait: a change is out, so the choice on screen is the one being sent and can't change under it
   const WAIT = ' aria-disabled="true"';
-  const { runtimePage, modelPage, thinkPage } = createIntelPages(P, { world, catalogState, WAIT });
+  const { runtimePage, modelList, thinkHtml } = createIntelPages(P, { world, catalogState, WAIT });
   /** @param {IntelModel} m @param {string} s @param {string | null} name @param {boolean} sel @param {string | null | undefined} selEffort @param {{row: string}} attrs */
   function modelRow(m, s, name, sel, selEffort, attrs, first = false, wait = false) {
     return `<div class="iq-row${sel ? " is-sel" : ""}" role="radio" aria-checked="${sel}" tabindex="${sel || first ? 0 : -1}"${wait ? WAIT : ""} ${attrs.row}="${esc(m.id)}" title="${esc(m.description || "")}"><span class="iq-n">${esc(m.name)}</span>${m.description ? `<span class="iq-tr">${esc(m.description)}</span>` : ""}${CHECK}</div>`;
@@ -68,13 +68,11 @@ export function createIntelView(P, { pop, world, simple, catalogState, draftOf, 
     }
     const r = running(s), d = draftOf(s), page = P.page || "root";
     const wait = P.saving ? WAIT : "";
-    const rc = runtimeChoice(s), on = rtName(runtimeOf(s));
+    const rc = runtimeChoice(s);
     const efs = d.auto ? [] : effortsOf(modelOf(d.model), s).filter((e) => PIPS[e]);
     /** @param {string} head @param {string} body */
     const show = (head, body) => { redraw(pop, head + body); place(); };
     if (page === "rt" && rc.multi) return show(pageHead("Runtime", ""), runtimePage(s, rc));
-    if (page === "model" && models) return show(pageHead("Model", on ? `On ${on}` : ""), modelPage(kind, d, wait));
-    if (page === "think" && efs.length) return show(pageHead("Thinking", `How long ${nameOf(d.model)} thinks first`), thinkPage(efs, d, wait));
     if (page === "route" && kind === "workspace") return show(pageHead("Routing", "Who reads a new message first"), routingHtml(s, c));
     /** @param {string | null} m @param {string | null} e */
     const nowWords = (m, e) => `<b>${esc(m ? nameOf(m) : "its default model")}${e ? ` · ${esc(effortWord(e))}` : ""}</b>`;
@@ -91,12 +89,10 @@ export function createIntelView(P, { pop, world, simple, catalogState, draftOf, 
     const rows = [];
     const rtWords = rc.on === "auto" ? "Auto" : `${rtMark(/** @type {string} */ (rc.on)) || ""}${esc(rtName(rc.on))}`;
     if (rc.multi) rows.push(item("rt", "Runtime", rtWords, P.busy ? WAIT : ""));
-    const modelWords = !models ? `<i class="spin" aria-hidden="true"></i>Reading…` : d.auto ? "Auto" : esc(nameOf(d.model) || "Default");
-    rows.push(item("model", "Model", modelWords, models ? wait : WAIT));
-    const depth = PIPS[/** @type {string} */ (d.effort)] || 0;
-    if (efs.length) rows.push(item("think", "Thinking", `${pips(depth)}${esc(effortWord(d.effort) || "Default")}`, wait));
     if (kind === "workspace") rows.push(item("route", "Routing", esc(routeWord(c)), wait));
-    html += `<div class="iq-items" data-key="items" role="group" aria-labelledby="iq-hh">${rows.join("")}</div>`;
+    if (rows.length) html += `<div class="iq-items" data-key="items" role="group" aria-labelledby="iq-hh">${rows.join("")}</div>`;
+    html += !models ? `<p class="iq-rl" data-key="reading"><i class="spin" aria-hidden="true"></i> Reading the models…</p>`
+      : modelList(kind, d, wait) + (efs.length ? thinkHtml(efs, d, wait) : "");
     if (kind === "project") html += `<div class="iq-items" data-key="proj">${PROJECT}</div>`;
     const changed = draftChanged(s);
     if (changed) html += (P.saveErr ? `<p class="iq-err" role="alert">${esc(P.saveErr)}</p>` : "") + `<footer class="iq-f"><span>${P.saving ? "Saving…" : "From the next turn · Esc cancels"}</span><button type="button" class="iq-done" data-ldone${P.saving ? ' aria-busy="true" aria-disabled="true"' : ""}>${P.saving ? "Saving…" : "Done"}</button></footer>`;

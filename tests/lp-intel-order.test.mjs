@@ -39,7 +39,6 @@ const click = (selector) => {
 };
 try {
   await picker.open("p:work", anchor);
-  click('[data-lpage="model"]');
   click('[data-dmodel="picked"]');
   picker.close();
   await picker.open("p:work", anchor);

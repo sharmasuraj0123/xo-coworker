@@ -56,10 +56,10 @@ export function bindIntelInput(P, scope, {
     if (e.target.closest("[data-ldone]")) { done(); return; }
     const dm = e.target.closest("[data-dmodel]");
     if (dm && (waiting || P.saving)) return;
-    if (dm) { pickModel(dm.dataset.dmodel); back(); return; }
+    if (dm) { pickModel(dm.dataset.dmodel); pop.querySelector(`[data-dmodel="${CSS.escape(dm.dataset.dmodel)}"]`)?.focus({ preventScroll: true }); return; }
     const de = e.target.closest("[data-deffort]");
     if (de && (waiting || P.saving)) return;
-    if (de) { pickEffort(de.dataset.deffort); back(); }
+    if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   }));
   scope.listen(pop, "keydown", /** @type {EventListener} */ ((/** @type {KeyboardEvent & {target: IntelTarget}} */ e) => {
     if (e.key === "Tab") {
@@ -89,6 +89,14 @@ export function bindIntelInput(P, scope, {
     if (at && e.key === "ArrowRight" && at.dataset.lpage) { e.preventDefault(); at.click(); return; }
     if (e.key === "ArrowLeft" && P.page !== "root" && !P.mv && !e.target.closest(".iq-route")) { e.preventDefault(); back(); return; }
     if (at && (e.key === "Enter" || e.key === " ")) return;
+    const depth = e.target.closest(".iq-depth [role=radio]");
+    if (depth && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !P.saving && !(P.mv && P.mv.busy)) {
+      e.preventDefault();
+      const all = [...(/** @type {IntelPop} */ (depth.parentElement)).querySelectorAll("[role=radio]")];
+      const next = all[Math.max(0, Math.min(all.length - 1, all.indexOf(depth) + (e.key === "ArrowRight" ? 1 : -1)))];
+      if (next instanceof HTMLElement && next !== depth) next.click();
+      return;
+    }
     const seg = e.target.closest(".iq-route:not(.iq-depth) button");
     if (seg && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();

@@ -56,21 +56,16 @@ g.fetch = async () => Response.json({
   ],
 });
 await IQ.open("t:cmsg_1", $("#tiq"));
-tap($('[data-lpage="model"]'));
 const row = $('[data-dmodel="second"]');
 assert.equal(row.getAttribute("aria-checked"), "false");
-same(document.activeElement, $('.iq-opt[aria-checked="true"]') || $(".iq-opt"), "a page opens on its chosen choice");
 tap(row);
-assert.match($('[data-lpage="model"]').textContent, /Second model/, "the choice shows on its row");
-same(document.activeElement, $('[data-lpage="model"]'), "choosing comes back to the row that opened the page");
-tap($('[data-lpage="think"]'));
-tap($('[data-deffort="high"]'));
-assert.match($('[data-lpage="think"]').textContent, /Deep/);
-same(document.activeElement, $('[data-lpage="think"]'));
-tap($('[data-lpage="model"]'));
-const esc = new window.Event("keydown", { bubbles: true }); Object.defineProperty(esc, "key", { value: "Escape" });
-$(".iq-opt").dispatchEvent(esc);
-assert.ok($('[data-lpage="model"]') && IQ.isOpen, "Esc on a page goes back, the picker stays open");
+assert.equal(row.getAttribute("aria-checked"), "true");
+same(document.activeElement, row, "selecting a model keeps the original row");
+const effort = $('[data-deffort="high"]');
+assert.equal(effort.textContent, "Deep", "thinking is said in words");
+tap(effort);
+assert.equal(effort.getAttribute("aria-checked"), "true");
+same(document.activeElement, effort, "selecting effort keeps the original button");
 IQ.close({ apply: false });
 
 console.log("intel-chip-toggle: ok");

@@ -9,7 +9,7 @@ import { EFFORT_HINT } from "./effort.js";
 
 /** @typedef {{ id: string, label: string, usable: boolean, why: string }} RtOption */
 
-/** How long each effort thinks, in steps of five. @type {Record<string, number>} */
+/** The efforts the picker names, shortest first. @type {Record<string, number>} */
 export const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 
 const CHECK = xi("check", "iq-ck");
@@ -17,10 +17,6 @@ const GO = xi("chevron-right", "iq-go");
 const BACK = `<button type="button" class="iq-hb" data-lback aria-label="Back">${xi("chevron-left")}</button>`;
 export const PROJECT = `<button type="button" class="iq-item is-link" data-lproject>${xi("gear", "iq-lead")}` +
   `<span class="iq-k">Project settings</span>${GO}</button>`;
-
-/** @param {number} n */
-export const pips = (n) => `<span class="iq-pips" aria-hidden="true">` +
-  `${[1, 2, 3, 4, 5].map((i) => `<i${i <= n ? ' class="is-on"' : ""}></i>`).join("")}</span>`;
 
 /** @param {string} pg @param {string} k @param {string} v @param {string} attrs */
 export const item = (pg, k, v, attrs) => `<button type="button" class="iq-item" data-lpage="${pg}" aria-haspopup="true"${attrs}>` +
@@ -35,11 +31,11 @@ const opt = (inner, sel, attrs) => `<button type="button" class="iq-opt${sel ? "
   ` aria-checked="${sel}"${attrs}>${inner}${CHECK}</button>`;
 
 /** @param {string} key @param {string} rows */
-const optsHtml = (key, rows) => `<div class="iq-opts" data-key="${key}" role="radiogroup" aria-labelledby="iq-hh">${rows}</div>`;
+const optsHtml = (key, rows, label = "iq-hh", cls = "") => `<div class="iq-opts${cls}" data-key="${key}" role="radiogroup"` +
+  ` aria-labelledby="${label}">${rows}</div>`;
 
 /** @param {string} name @param {string} [desc] */
-const named = (name, desc) => (desc ? `<span class="iq-stack"><span class="iq-n">${esc(name)}</span>` +
-  `<span class="iq-d">${esc(desc)}</span></span>` : `<span class="iq-n">${esc(name)}</span>`);
+const named = (name, desc) => `<span class="iq-n">${esc(name)}</span><span class="iq-d">${esc(desc || "")}</span>`;
 
 /** @typedef {{ world: IntelWorld, catalogState: ViewOptions["catalogState"], WAIT: string }} PageDeps */
 
@@ -71,18 +67,21 @@ export function createIntelPages(P, { world, catalogState, WAIT }) {
       : "It moves at its next pause, on that runtime's default model.";
     return optsHtml("opts-rt", rows) + (line ? `<p class="iq-rl">${line}</p>` : "");
   }
-  /** @param {string | null} kind @param {Draft} d @param {string} wait */
-  function modelPage(kind, d, wait) {
+  /** The models, one line each, what each is for in one column. @param {string | null} kind @param {Draft} d @param {string} wait */
+  function modelList(kind, d, wait) {
     const auto = kind !== "thread" ? opt(named("Auto", "XO picks for each turn"), d.auto, ` data-dmodel=""${wait}`) : "";
     const row = (/** @type {IntelModel} */ m) => opt(named(m.name || m.id, m.description || ""), !d.auto && d.model === m.id,
       ` data-dmodel="${esc(m.id)}" title="${esc(m.description || "")}"${wait}`);
-    return optsHtml("opts-model", auto + shown(P.models || []).map(row).join(""));
+    const rows = auto + shown(P.models || []).map(row).join("");
+    return `<p class="iq-lab" id="iq-m-l">Model</p>${optsHtml("models", rows, "iq-m-l", " is-cols")}`;
   }
-  /** @param {string[]} efs @param {Draft} d @param {string} wait */
-  function thinkPage(efs, d, wait) {
-    const row = (/** @type {string} */ e) => opt(`${pips(PIPS[e])}${named(effortWord(e), EFFORT_HINT[e])}`, d.effort === e,
-      ` data-deffort="${esc(e)}"${wait}`);
-    return optsHtml("opts-think", efs.map(row).join(""));
+  /** How long it thinks, in words, and what the chosen one means. @param {string[]} efs @param {Draft} d @param {string} wait */
+  function thinkHtml(efs, d, wait) {
+    const none = !efs.includes(d.effort || "");
+    const one = (/** @type {string} */ e, i = 0) => `<button type="button" role="radio" aria-checked="${d.effort === e}"` +
+      ` tabindex="${d.effort === e || (none && i === 0) ? 0 : -1}"${wait} data-deffort="${esc(e)}">${esc(effortWord(e))}</button>`;
+    return `<p class="iq-lab" id="iq-e-l">Thinking</p><div class="iq-route iq-depth" data-key="depth" role="radiogroup"` +
+      ` aria-labelledby="iq-e-l">${efs.map(one).join("")}</div><p class="iq-rl">${esc(EFFORT_HINT[d.effort || ""] || "")}</p>`;
   }
-  return { runtimePage, modelPage, thinkPage };
+  return { runtimePage, modelList, thinkHtml };
 }
