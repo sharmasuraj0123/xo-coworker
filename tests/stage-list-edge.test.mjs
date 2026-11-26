@@ -25,6 +25,7 @@ test("stage lists size their scroll area without quantizing it to a row grid", (
 
 test("stage scroll fades use the shared edge token", () => {
   assert.equal(tokenValuesFor().get("--edge-fade"), "var(--s-8)");
+  assert.equal(tokenValuesFor(':root[data-theme="light"]').get("--edge-fade"), "0px", "in light a list stops at its edge instead of washing out");
   const selector = '.stage :is([data-fr="agents"]>.fr-b,.ch-old).is-fade';
   const gradient = "linear-gradient(to bottom,#000 calc(100% - var(--edge-fade)),transparent)";
   for (const property of ["-webkit-mask-image", "mask-image"]) {
