@@ -60,7 +60,8 @@ export function coordinatorHtml(m) {
   const busy = m.busy ? ' aria-busy="true"' : "";
   const efforts = m.efforts.map((e) => choice(e, EFFORT_WORD[e] || e, e === m.effort));
   const thinkSub = esc(EFFORT_HINT[m.effort || ""] || "How long it thinks before it answers.");
-  const think = efforts.length ? row("think", "Thinking", thinkSub, seg("think", efforts, "data-ps-effort", m.busy), m.notes.think) : "";
+  const thinkSeg = seg("think", efforts, "data-ps-effort", m.busy);
+  const think = efforts.length ? row("think", "Thinking", thinkSub, thinkSeg, m.notes.think, true) : "";
   const rtSub = `From its next pause, and for its new threads.${m.rtNote ? ` ${esc(m.rtNote)}` : ""}`;
   const routes = m.routes.map((r) => choice(r.id, r.label, r.on));
   return head("Coordinator", `The agent that reads what you write to ${esc(m.name)}, answers, and starts its threads.`) +
