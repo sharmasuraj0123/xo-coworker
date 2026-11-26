@@ -6,6 +6,9 @@ import { forwardOrigin, hopLine, relayedInto, hopNotes, isResult } from "../../c
 import { turnSegments, segmentTurn } from "./blocks/turn.js";
 import { setupOf } from "./handoff.js";
 
+/** The coordinator controls a thread row says itself; any other (setup) is said by its own system message. */
+const SAID = new Set(["steer", "interrupt", "stop"]);
+
 /** @import { Hop } from "../../core/services/world/hop-types.d.ts" */
 
 /** @import { Control, History, Message, ProjectionDeps, ProjectionThread, RelayRows, StoredMessage, TimelineRow } from "./message-types.d.ts" */
@@ -90,7 +93,7 @@ export function createConversationMessages({ localMessages, shape, world, D, PRO
       for (const d of D.notSent().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
     }
     if (t) for (const c of st.controls[t.id] || []) {
-      if (c.action === "setup") continue;
+      if (!SAID.has(c.action)) continue;
       const at = Date.parse(c.at) || 0;
       const note = c.action !== "steer" ? out.find((x) => x.who === "system" && !x.ctl && !x.continuedIn && !x.continuedFrom && !x.passedOn && /interrupt|stop/i.test(x.text || "") && Math.abs((x.at || 0) - at) < 15000) : null;
       if (note) { note.who = "control"; note.ctl = c; continue; }

@@ -64,7 +64,7 @@ export function createIntelCatalog(P, { world, PROJ, simple }) {
   }
 
   /** What a thread's session is running right now (the router's choice or a pin it already took). @param {string} s */
-  const running = (s) => { const t = threadOf(s); const se = (t && t.session) || {}; return t ? { model: se.model || null, effort: se.effort || null, working: t.state === "working" } : null; };
+  const running = (s) => { const t = threadOf(s); const se = (t && t.session) || {}; return t ? { model: se.model || null, effort: se.effort || null, working: t.busy === true } : null; };
   /** @param {string} s */
   function shownSetting(s) {
     const c = current(s), r = running(s);

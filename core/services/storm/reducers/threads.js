@@ -33,7 +33,10 @@ export const threads = {
   },
   // a coordinator steered, interrupted or stopped a thread: kept for the thread's timeline
   "thread.control"(ctx, env, d) {
-    if (ctx.noteControl(env, d)) ctx.soon();
+    if (!ctx.noteControl(env, d)) return;
+    // a new model or effort on the same session: the thread's read carries it
+    if (d.action === "setup" && env.chat_id && env.thread_ts) ctx.refetchThread(env.chat_id, env.thread_ts);
+    ctx.soon();
   },
   card(ctx, env, d) {
     if (typeof d.ts !== "string") return rejectFrame(ctx, "card", "ts");
