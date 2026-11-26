@@ -267,3 +267,8 @@
   :root[data-msgx] .m-them .tc-foot>code{flex:0 1 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:var(--h-touch)}
 }
+:root[data-msgx] .m-ext .mh{display:flex;align-items:center;padding:var(--s-2) var(--s-4);border-bottom:var(--hair) solid var(--line)}
+:root[data-msgx] .msgs>.m-ext>.mb{width:fit-content;max-width:min(88%,var(--w-message-files));overflow:hidden;
+  border:var(--hair) solid var(--line);border-radius:var(--r-xl);background:var(--surface)}
+:root[data-msgx] .msgs>.m-ext>.mb>.prose{max-width:none;background:none;box-shadow:none;border-radius:0}
+:root[data-msgx] .m-ext .prose>.mx-name{display:none}

@@ -10,6 +10,13 @@
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-3)}
 :root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
 :root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
+/* words from another project or the Workspace sit in a card whose header says where they came from */
+:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-card);background:var(--surface);overflow:hidden}
+:root:not([data-msgx]) .m-ext>.av{margin:var(--s-2) 0 0 var(--s-4)}
+:root:not([data-msgx]) .m-ext>.mb{padding-bottom:var(--s-4)}
+:root:not([data-msgx]) .m-ext>.mb>.mh{margin-bottom:var(--s-3);border-bottom:var(--hair) solid var(--line);
+  padding:var(--s-2) var(--s-4) var(--s-2) calc(var(--s-4) + var(--tile))}
+:root:not([data-msgx]) .m-ext>.mb>:not(.mh){margin-inline:var(--s-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
