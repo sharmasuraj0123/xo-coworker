@@ -48,7 +48,8 @@
   font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);--md-line-padding:0 var(--s-4)
 }
 .cm-md-code{
-  font-family:var(--mono);font-size:var(--fs-code);background:var(--code-bg);border-radius:var(--r-xs);padding:var(--s-md-code-y) var(--s-1)
+  font-family:var(--mono);font-size:var(--fs-code);background:var(--fill-2);border:var(--hair) solid var(--line);border-radius:var(--r-sm);
+  padding:var(--s-md-code-y) var(--s-1)
 }
 .cm-md-link{
   color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,var(--fill-clear));
