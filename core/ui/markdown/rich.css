@@ -11,7 +11,7 @@
 :root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
 :root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
 /* words from another project or the Workspace sit in a card whose header says where they came from */
-:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-card);background:var(--surface);overflow:hidden}
+:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-card);background:var(--surface)}
 :root:not([data-msgx]) .m-ext>.av{margin:var(--s-2) 0 0 var(--s-4)}
 :root:not([data-msgx]) .m-ext>.mb{padding-bottom:var(--s-4)}
 :root:not([data-msgx]) .m-ext>.mb>.mh{margin-bottom:var(--s-3);border-bottom:var(--hair) solid var(--line);

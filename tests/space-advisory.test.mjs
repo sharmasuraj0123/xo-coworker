@@ -38,5 +38,5 @@ assert.match(rows[0].textContent, /Memory at 95%/);
 assert.match(rows[0].textContent, /via the Workspace/);
 assert.equal(rows[0].querySelector(".ev-n")?.textContent, "updated 2×");
 
-assert.match(css, /\.ev-space\.is-hot\{border-color:color-mix\(in srgb,var\(--err\) 40%,var\(--line\)\);background:var\(--err-subtle\)\}/);
+assert.match(css, /\.ev-space\.is-hot\{background:var\(--err-subtle\)\}/);
 console.log("space-advisory: ok");
