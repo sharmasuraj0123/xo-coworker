@@ -118,7 +118,7 @@ export function createIntelReads(state, source, render, onChange) {
 }
 
 /** @param {AbortSignal} signal */
-async function routerCatalog(signal) {
+export async function routerCatalog(signal) {
   try {
     return (await api.routerModels({ signal })).models || [];
   } catch (error) {
