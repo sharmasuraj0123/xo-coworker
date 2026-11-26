@@ -219,8 +219,8 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-seg button:is([aria-checked="true"],[aria-pressed="true"]){background:var(--fill-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .rt-seg.is-paid{flex:none;flex-wrap:nowrap;align-self:center} /* the choices stay on one line; the words give way */
 .rt-seg.is-paid button{padding:0 10px;white-space:nowrap}
-.rt-checks{display:flex;flex-wrap:wrap;gap:8px}
-.rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-ui);color:var(--ink-2);cursor:pointer}
+.rt-checks{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.rt-check{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3) 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-ui);color:var(--ink-2);cursor:pointer}
 .rt-check:hover,.rt-check:has(input:checked):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));transition-duration:var(--d-hover-in)}
 .rt-check:has(input:checked){border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 10%,transparent);color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
@@ -264,7 +264,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 
 /* Settings › Runtimes: the defaults, four plain rows that save as they change */
 .rt-defs{display:flex;flex-direction:column}
-.rt-def.is-col{flex-direction:column;align-items:stretch;gap:12px}
+.rt-def.is-col{flex-direction:column;align-items:stretch;gap:var(--s-3)}
 .rt-def .set-l strong{font-weight:var(--fw-medium);color:var(--ink-2)}
 .rt-def .field textarea{min-height:64px}
 .rt-ferr{font-size:var(--fs-meta);color:var(--err-ink)}
