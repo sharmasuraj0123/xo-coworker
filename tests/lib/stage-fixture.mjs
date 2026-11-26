@@ -4,8 +4,8 @@ import { dom } from "./dom.mjs";
 
 /** @typedef {(on: boolean, host?: HTMLElement, view?: string) => void} StageShell */
 
-/** @param {{ reduced?: boolean, phone?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[], shell?: StageShell | null }} [options] */
-export async function stageFixture({ reduced = true, phone = false, place = (view) => view.startsWith("p:"), threads = null, shell = () => {} } = {}) {
+/** @param {{ reduced?: boolean, phone?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[], chats?: object | null, shell?: StageShell | null }} [options] */
+export async function stageFixture({ reduced = true, phone = false, place = (view) => view.startsWith("p:"), threads = null, chats = null, shell = () => {} } = {}) {
   const { document, window } = await dom('<button id="outside">Outside</button><div id="main"></div>');
   const storage = new Map();
   const animations = [];
@@ -39,7 +39,7 @@ export async function stageFixture({ reduced = true, phone = false, place = (vie
   let view = "p:one", changed = [];
   let shellsOwnKey = false;
   const panel = createStage({
-    mapControls: () => map, files: { changes: () => changed }, viewer: {}, view: () => view, place, threads, go() {}, announce() {},
+    mapControls: () => map, files: { changes: () => changed }, viewer: {}, view: () => view, place, threads, chats, go() {}, announce() {},
     at: () => ({ view }), places, shell, owns: () => shellsOwnKey,
     openFiles: () => panel.show("files"),
   });

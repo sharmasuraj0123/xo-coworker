@@ -2,7 +2,6 @@
 import { sheetGesture } from "../../shell/gestures.js";
 import { ownLayer } from "../../shell/layers.js";
 
-import { PHONE } from "../../core/platform/viewport.js";
 import { sessionOf } from "../../shell/place-context.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { pressEntry } from "../../shell/conversation-press.js";
@@ -12,7 +11,7 @@ import { bindChatControls } from "./controls.js";
 import { cliName } from "../../core/services/world/conn.js";
 import { chatOrder } from "../../core/services/world/conversation.js";
 import { heldShort, heldBadge } from "../../core/services/world/held.js";
-import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
+import { rowTime } from "../../core/services/world/list-time.js";
 
 /** @import { ChatButtons } from "./surface-types.d.ts" */
 
@@ -32,7 +31,7 @@ export const chatModelModule = {
         coordinator: !!world.act.coordinatorBusy("workspace"),
       }),
       world, announce: ctx.use("announce"), heraldShow: ctx.use("notices").show, go,
-      schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#msgs"), transcriptOpen: session.folds.open,
+      schedule: () => ctx.invalidate("workspace"), view, listRoot: requireHtml("#main"), transcriptOpen: session.folds.open,
       restore(text, { force = false } = {}) {
         const composer = ctx.optional("composer");
         if (!composer) return false;
@@ -41,7 +40,7 @@ export const chatModelModule = {
         composer.putBack(text);
         return true;
       },
-    }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
+    }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, rowTime });
     ctx.effect(() => chats.dispose);
     ownLayer(ctx, { id: "chat-setup", open: () => chats.setupOpen, close: () => { chats.closeSetup(); } });
     ctx.provide("chats", chats);
@@ -55,8 +54,7 @@ export const chatControlsModule = {
       "intelligence", "composer", "runControls", "navigation"],
     contributes: ["conversation.press:chat-message"] },
   activate(ctx) {
-    if (!PHONE) throw new Error("Chat controls need media queries");
-    const phone = PHONE, view = ctx.use("currentView"), session = ctx.use("conversationSession");
+    const view = ctx.use("currentView"), session = ctx.use("conversationSession");
     const chats = ctx.use("chats"), { updateComposer, putBack, liveBlock, refuse, mentions } = ctx.use("composer");
     const { go } = ctx.use("navigation");
     const composer = () => session.composer.say;
@@ -128,8 +126,7 @@ export const chatControlsModule = {
     const setup = requireHtml("#cs-pop");
     sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
       close: () => { chats.closeSetup(); updateComposer(); } });
-    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
-      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer, openWorkspace });
+    bindChatControls({ scope: ctx, chats, setup: requireHtml("#cs-pop"), updateComposer, openWorkspace });
     const reply = replyNotices(
       view, ctx.use("projectName"), ctx.use("notices").show, ctx.use("announce"), () => ctx.invalidate("workspace"));
     ctx.effect(() => ctx.use("world").onEvent(reply));

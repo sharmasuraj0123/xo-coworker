@@ -168,7 +168,7 @@ Object.assign(globalThis, {
   IntersectionObserver: class {
     constructor(callback) { this.callback = callback; this.nodes = new Set(); }
     observe(node) {
-      if (node.matches(".chl-row")) { this.nodes.add(node); visibleChatTitles.set(node, this.callback); }
+      if (node.matches('[data-go^="c:"]')) { this.nodes.add(node); visibleChatTitles.set(node, this.callback); }
     }
     unobserve(node) { this.nodes.delete(node); visibleChatTitles.delete(node); }
     disconnect() { for (const node of this.nodes) this.unobserve(node); }

@@ -99,7 +99,6 @@ export interface Conversation {
   cliName: (name?: string | null) => string;
   heldShort: (held: Held) => string;
   heldBadge: (held: Held) => string;
-  dayGroup: (iso: string) => string;
   rowTime: (iso: string) => string;
 }
 export interface ChatState extends SetupState {
@@ -109,6 +108,4 @@ export interface ChatState extends SetupState {
   hist: Map<string, History>;
   local: Map<string, LocalPrompt[]>;
   confirm: Map<string | null, { local: LocalPrompt; sid: string | null; count: number }>;
-  q: string;
-  all: boolean;
 }

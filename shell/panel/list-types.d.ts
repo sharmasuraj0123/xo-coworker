@@ -13,7 +13,9 @@ export interface Row {
   coord?: boolean;
   mark?: string;
   at?: string;
+  icon?: string;
 }
 export interface Group { k: string; word?: string; rows: Row[] }
 export interface Agent { go: string; title: string; color: string; doing: string; since: number | null; busy?: boolean; waiting?: boolean }
 export interface Change { path: string; rel: string; project: string; who?: string; mark?: string; live?: boolean }
+export interface ListOptions { folds: Record<string, boolean>; more: Record<string, unknown>; noun?: string; none?: string }

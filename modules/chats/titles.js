@@ -2,9 +2,7 @@
 import { api } from "../../core/platform/api.js";
 import { createLru } from "../../core/platform/cache.js";
 import { missingRoute } from "../../core/platform/http.js";
-import { esc } from "../../core/platform/util.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
-import { redraw } from "../../core/ui/redraw.js";
 import { createTitleQueue } from "./title-queue.js";
 
 /** @import { Session } from "./types.d.ts" */
@@ -15,8 +13,8 @@ const TITLE_LENGTH = 120;
 /** @param {string} text */
 const shortTitle = (text) => text.replace(/\s+/g, " ").slice(0, TITLE_LENGTH);
 
-/** @param {Element | undefined} root @param {(id: string) => Session | null} session @param {() => void} searchChanged */
-export function createChatTitles(root, session, searchChanged) {
+/** @param {Element | undefined} root @param {(id: string) => Session | null} session @param {() => void} changed */
+export function createChatTitles(root, session, changed) {
   /** @type {Set<string>} */
   const untethered = new Set();
   /** @type {ReturnType<typeof createLru<string, { native: string | null, title: string }>>} */
@@ -53,14 +51,6 @@ export function createChatTitles(root, session, searchChanged) {
     if (signal.aborted || row?.native_id !== native || entry(row)) return;
     const title = text ? shortTitle(text) : "";
     cache.set(id, { native, title });
-    if (title) {
-      for (const node of root?.querySelectorAll(".chl-row") ?? []) {
-        if (node.getAttribute("data-go") !== "c:" + id) continue;
-        const label = node.querySelector(".chl-t");
-        if (label) redraw(label, esc(title));
-        break;
-      }
-    }
   }
 
   return {
@@ -85,7 +75,7 @@ export function createChatTitles(root, session, searchChanged) {
       queue ??= createTitleQueue(root, {
         native(id) { const row = session(id); return row && !entry(row) ? row.native_id : null; },
         read,
-        settled: searchChanged,
+        settled: changed,
       });
       return queue.sync(rows.slice(0, CHAT_LIST_LIMIT).map((row) => row.id), query);
     },
