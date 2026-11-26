@@ -7,6 +7,7 @@ export const PAGE_REGIONS = `
       <section class="space-page" id="shared" aria-label="Shared" tabindex="-1" hidden></section>
       <section class="space-page" id="connectors" aria-label="Connectors" tabindex="-1" hidden></section>
       <section class="space-page" id="explore" aria-label="Explore" tabindex="-1" hidden></section>
+      <section class="space-page" id="usage-agents" aria-label="Usage and agents" tabindex="-1" hidden></section>
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
       <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
 `;

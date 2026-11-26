@@ -7,6 +7,7 @@ import { redraw } from "../../core/ui/redraw.js";
 import { secrets, diagnostics } from "./settings.js";
 import { explore } from "./explore.js";
 import { checkSharing, pollConnection, runJob } from "../../core/platform/space-actions-response.js";
+import { readUsage, readSources } from "../../core/platform/space-usage-response.js";
 
 /** @param {string} id @param {string} text */
 const action = (id, text) => `<button type="button" class="btn" data-action="${esc(id)}">${esc(text)}</button>`;
@@ -36,17 +37,28 @@ async function connectors(signal) {
     c.connected_here ? action(c.toolkit, "Poll now") : ""));
 }
 
+/** @param {AbortSignal} signal */
+async function runtimes(signal) {
+  const [totals, sources] = await Promise.all([readUsage(signal), readSources(signal)]);
+  const summary = row("Recorded usage", `${totals.sessions.toLocaleString()} sessions · ${totals.tokens.toLocaleString()} tokens`);
+  const agents = Object.entries(totals.sessions_by_agent).map(([agent, n]) =>
+    row(agent, `${n.toLocaleString()} sessions · ${(totals.tokens_by_agent[agent] ?? 0).toLocaleString()} tokens`));
+  return [summary, ...agents, ...sources.items.map(s => row(s.label, s.enabled ? "Collection enabled" : "Collection paused")),
+    '<li><button class="btn" data-set-open="runtimes">Runtime limits</button>'
+    + '<button class="btn" data-set-open="accounts">Accounts</button></li>'];
+}
+
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const spacePages = {
   manifest: { id: "xo.space-pages", version: "1.0.0", kernel: "^1.1.0",
-    contributes: ["page:scheduled", "page:shared", "page:connectors", "page:explore",
+    contributes: ["page:scheduled", "page:shared", "page:connectors", "page:explore", "page:runtimes",
       "settings.section:secrets", "settings.section:diagnostics"] },
   activate(ctx) {
     explore(ctx);
     ctx.contribute("settings.section", { id: "secrets", label: "Secrets", icon: "lock", render: secrets });
     ctx.contribute("settings.section", { id: "diagnostics", label: "Server & diagnostics", icon: "server", render: diagnostics });
-    for (const [id, read] of Object.entries({ scheduled, shared, connectors })) {
-      const title = id[0].toUpperCase() + id.slice(1);
+    for (const [id, read] of Object.entries({ scheduled, shared, connectors, runtimes })) {
+      const title = id === "runtimes" ? "Usage &amp; agents" : id[0].toUpperCase() + id.slice(1);
       let last = -Infinity, pending = false, working = false, notice = "";
       /** @param {HTMLElement} host */
       async function load(host) {

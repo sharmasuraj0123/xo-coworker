@@ -6,10 +6,13 @@ import { scheduleApi } from "../../../core/platform/schedule-response.js";
 import { readSpaceMap } from "../../../core/platform/explore-response.js";
 import { checkSharing, pollConnection, runJob } from "../../../core/platform/space-actions-response.js";
 import { projectSync, applySharedCommits } from "../../../core/platform/project-access-response.js";
+import { readUsage, readSources } from "../../../core/platform/space-usage-response.js";
 import { readSecretKeys, changeSecret, readDoctor } from "../../../core/platform/space-settings-response.js";
 
 const routes = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8")).paths;
 const payloads = {
+  "/xo/sessions.json": { totals: { sessions: 1, tokens: 20, sessions_by_agent: {agent: 1}, tokens_by_agent: {agent: 20} } },
+  "/api/telemetry/sources": { items: [{ label: "Local runtime", enabled: true }] },
   "/xo/space.json": { groups: [], leaves: [], ties: [], milestones: [] },
   "/api/connections": { connections: [{ toolkit: "github", connected_here: true }] },
   "/api/project-sharing/status": { repos: { "org/project": { project: "project", shared: true } } },
@@ -31,6 +34,8 @@ globalThis.fetch = async (input, init) => {
   return Response.json(payloads[pathname]);
 };
 const signal = new AbortController().signal;
+assert.equal((await readUsage(signal)).tokens, 20);
+assert.equal((await readSources(signal)).items[0].enabled, true);
 assert.deepEqual(await readSpaceMap(signal), payloads["/xo/space.json"]);
 assert.deepEqual(await readConnections(signal), payloads["/api/connections"]);
 assert.deepEqual(await readSharing(signal), payloads["/api/project-sharing/status"]);
