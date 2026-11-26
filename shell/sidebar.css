@@ -92,6 +92,7 @@
 @media (max-width:760px){.side-fold{display:none}}
 
 .sm-sep{margin:var(--s-1) var(--s-2);border-top:1px solid var(--line-soft)}
+.sm-group{padding:var(--s-2);color:var(--ink-3);font-size:var(--fs-meta)}
 .side-pop[role="dialog"]{min-width:calc(7 * var(--h-row))}
 .se-h{display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-2) var(--s-3) var(--s-3)}
 .se-h b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}

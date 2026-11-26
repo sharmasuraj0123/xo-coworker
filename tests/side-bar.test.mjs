@@ -45,6 +45,8 @@ const ids = ["home", "ws", "chats", "arts", "launchpad", "scheduled", "shared", 
   "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
+SIDE.drawMore();
+assert.deepEqual([...document.querySelectorAll("#side-more [role=group]")].map(el => el.getAttribute("aria-label")), ["Space", "Insights"]);
 
 // More's pins from before carry over
 store.set("xo-side-pins", JSON.stringify(["rules", "gone"]));

@@ -145,10 +145,18 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       } else {
         pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
         const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set);
-        html = rest.map((p) => {
+        /** @param {Place} p */
+        const menuRow = p => {
           const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `${p.page ? "data-go" : "data-set-open"}="${p.id}"`;
           return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
-            `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
+            `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`;
+        };
+        const insights = new Set(["runtimes", "explore"]);
+        html = ["Space", "Insights"].map(label => {
+          const rows = rest.filter(p => insights.has(p.id) === (label === "Insights"));
+          if (!rows.length) return "";
+          return `<div role="group" aria-label="${label}"><div class="sm-group">${label}</div>${rows.map(menuRow).join("")}</div>`;
+        }).join("") +
           `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;
       }
       if (popHtml !== html) { redraw(pop, html); popHtml = html; }
