@@ -9,6 +9,7 @@ import { createKernel } from "../core/kernel/index.js";
 import { definePlaces } from "../shell/places.js";
 
 const { document } = await dom('<div id="app"><button id="pb-t"></button><main id="home"></main><main id="arts"></main><main id="lpp"></main><div id="ws-head"></div>'
+  + ["scheduled", "shared", "connectors", "explore", "usage-agents"].map(id => `<main id="${id}"></main>`).join("")
   + '<section id="conv" tabindex="-1"><div id="msgs"><div class="calm-act"><button data-go="home">Go to Home</button></div></div>'
   + '<div class="cbar"><div class="composer"><textarea id="say"></textarea><label for="say"></label></div></div></section></div>');
 const { conversationContentModule } = await import("../modules/conversation/main-viewport.js");
