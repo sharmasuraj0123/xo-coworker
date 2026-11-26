@@ -176,9 +176,7 @@ button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-
 .lp-st.t-need{color:var(--need)}
 .lp-st.t-need>i:not(.lp-arc){width:var(--ic-sm);height:var(--ic-sm);mask:var(--mask-warn)}
 .lp-tm{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-/* the small working arc, inline */
-.lp-arc{flex:none;position:relative;display:inline-block;width:var(--ic-xs);height:var(--ic-xs);color:var(--work)}
-.lp-arc::before{content:"";position:absolute;inset:0;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
+.lp-arc{width:var(--ic-xs);height:var(--ic-xs);color:var(--work)}
 
 /* ── the header's Deploy: Resolve's quiet button, set apart by a green rocket and a faint green tint ── */
 .tw-act.lp-btn{background:var(--ok-fill);border-color:transparent;color:var(--ink)}

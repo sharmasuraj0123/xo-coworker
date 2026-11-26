@@ -32,7 +32,7 @@ const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const 
 
 /** @param {Step} r */
 function rowMark(r) {
-  if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="tb-live" aria-hidden="true"></i>`;
+  if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="spin tb-live" aria-hidden="true"></i>`;
   if (commsBusy(r)) return `<span class="tb-m is-den" title="In use">${ICON.clock}</span>`;
   if (r.status === "error") return `<span class="tb-m is-err" title="Failed">${ICON.close}</span>`;
   if (r.status === "denied") return `<span class="tb-m is-den" title="Denied">${ICON.lock}</span>`;

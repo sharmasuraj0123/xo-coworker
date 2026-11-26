@@ -122,6 +122,7 @@
  "--mask-done",
  "--mask-failed",
  "--mask-load",
+ "--mask-working",
  "--mask-next",
  "--mask-run-tail",
  "--mask-stop",

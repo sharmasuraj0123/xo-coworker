@@ -115,8 +115,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--surface));border-color:transparent;box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
 /* The blue arc marks active work. */
-.tb-live{display:block;width:10px;height:10px;color:var(--info);background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
-@media (prefers-reduced-motion:reduce){.tb-live{animation:none}}
+.tb-live{display:block}
 @media (prefers-reduced-motion:reduce){.av-live{animation:none}}
 /* a thread in ⌘K: the thread mark, its state on its corner */
 .j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}

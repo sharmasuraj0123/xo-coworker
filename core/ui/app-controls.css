@@ -10,7 +10,18 @@ button:disabled{cursor:default}
 
 .g{display:inline-block;flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .g-working{color:var(--info);animation:arc-turn 1.6s linear infinite}
-@media (prefers-reduced-motion:reduce){.g-working{animation:none}}
+/* the turning working mark: painted only inside its circle, so no square edge turns with it */
+.spin{
+  display:inline-block;flex:none;width:var(--ic-activity);height:var(--ic-activity);color:var(--info);
+  background:radial-gradient(closest-side,currentColor 92%,var(--fill-clear));mask:var(--mask-working);animation:spin 1.6s linear infinite
+}
+.spin.is-load{
+  width:var(--ic-lg);height:var(--ic-lg);mask:var(--mask-load);
+  animation-duration:calc(var(--d-land) * 2);animation-timing-function:steps(8)
+}
+button .spin,.btn .spin{color:inherit}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.g-working,.spin{animation:none}}
 .g-needs_reply,.g-needs_approval,.g-paused{color:var(--warn)}
 .g-done{color:var(--accent)}
 .g-failed{color:var(--err-ink)}

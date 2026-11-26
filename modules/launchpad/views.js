@@ -36,7 +36,7 @@ export function installViews(L) {
   const rec = (title, text, act, label, icon = "", s = null, alts = "", tone = "") => {
     const asking = s && s.asking && /^ask/.test(act), err = s && !s.asking && s.askErr && /^ask/.test(act) ? s.askErr : "";
     return `<div class="lq-note lp-rec${tone ? ` t-${tone}` : ""}"><div class="lq-nc"><b>${title}</b><p>${text}</p>${err ? `<p class="lp-err" role="status">Couldn't start the thread: ${esc(err)}.</p>` : ""}</div>` +
-      `<div class="lq-acts">${alts}<button type="button" class="btn btn-pri lp-go" data-lp="${act}"${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button></div></div>`;
+      `<div class="lq-acts">${alts}<button type="button" class="btn btn-pri lp-go" data-lp="${act}"${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="spin lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button></div></div>`;
   };
   /** @param {string} p */
   function setupHtml(p) {
@@ -60,7 +60,7 @@ export function installViews(L) {
       // what Space warned of before the button is pressed (a repository that isn't the person's own, uncommitted changes, …)
       (c.warnings.length ? c.warnings.map((/** @type {string} */ w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("") : "") +
       (editing ? "" : track(p, "preview")) +
-      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lq-acts">${s.pre === 1 ? `<button type="button" class="btn lp-b" data-lp="recheck-gh" aria-disabled="true"><i class="lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span></button>` : btn("recheck-gh", "I ran it: check again", ICON.retry)}</div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
+      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lq-acts">${s.pre === 1 ? `<button type="button" class="btn lp-b" data-lp="recheck-gh" aria-disabled="true"><i class="spin lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span></button>` : btn("recheck-gh", "I ran it: check again", ICON.retry)}</div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
       `<p class="lq-h">Setup</p><div class="lq-group lp-set">` +
       (editing ? "" : field("name", "Name", f.name, { hint: e.name || "It can't change later.", bad: !!e.name, fix: e.nameFix })) +
@@ -153,7 +153,7 @@ export function installViews(L) {
       : r.stopSent ? `<p class="lp-q" role="status">Stopping… it stops once Space confirms.</p>`
       : r.stopping ? `<p class="lp-q" role="status">Stops in <span class="lp-count" data-until="${r.stopAt}">${Math.max(1, Math.ceil((Number(r.stopAt) - Date.now()) / 1000))}</span> s.</p>`
       : `<p class="lp-q">You can close this window. It carries on, and Coworker tells you when it's live.</p>`;
-    const stop = r.stopSent ? `<button type="button" class="btn lp-b" data-lp="stop" aria-disabled="true"><i class="lp-arc" aria-hidden="true"></i><span>Stopping…</span></button>`
+    const stop = r.stopSent ? `<button type="button" class="btn lp-b" data-lp="stop" aria-disabled="true"><i class="spin lp-arc" aria-hidden="true"></i><span>Stopping…</span></button>`
       : r.stopping ? btn("stop-undo", "Keep deploying")
       : btn("stop", r.stopErr ? "Stop again" : "Stop", ICON.stop);
     return top({ tone: "work", words: word, meta: `${since(r.startedAt)} in all`, title: name, addr: addrHtml(s, was), sub: sentence, acts: stop + (build.url ? out(build.url, "Show log") : "") }) +
@@ -249,7 +249,7 @@ export function installViews(L) {
     const d = proj(p).device;
     if (!d) throw new Error("Launchpad device screen requires a connection");
     /** @param {string} w */
-    const wait = (w) => `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>${w}</span></p>`;
+    const wait = (w) => `<p class="lp-wait"><i class="spin lp-arc" aria-hidden="true"></i><span>${w}</span></p>`;
     if (!d.code) return top({ tone: "need", words: "Waiting for GitHub", title: "Connecting GitHub…", sub: "A GitHub login this machine already has is used as it is." }) + wait("Asking Space.");
     return top({ tone: "need", words: "Waiting for GitHub", title: "Connect GitHub", sub: "Enter this code on GitHub. It grants the <code>workflow</code> permission Launchpad needs." }) +
       `<div class="lp-code"><code aria-label="The code">${esc(d.code)}</code>${btn("code-copy", d.copiedUntil > Date.now() ? "Copied" : "Copy", d.copiedUntil > Date.now() ? ICON.check : ICON.copy)}</div>` +

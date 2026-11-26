@@ -72,7 +72,7 @@
  "css/app.css": {
   "px-effect": 2,
   "px-radius": 2,
-  "px-size": 20,
+  "px-size": 18,
   "px-spacing": 74,
   "px-stroke": 2,
   "rawColor": 13,
@@ -132,7 +132,7 @@
   "px-effect": 2,
   "px-position": 18,
   "px-radius": 4,
-  "px-size": 31,
+  "px-size": 29,
   "px-spacing": 87,
   "px-stroke": 2,
   "rawColor": 17

@@ -366,7 +366,7 @@
   "lineLength": 4
  },
  "css/app.css": {
-  "lineLength": 30
+  "lineLength": 29
  },
  "css/diffs.css": {
   "lineLength": 30
@@ -479,7 +479,7 @@
   "lineLength": 1
  },
  "modules/conversation/conversation.css": {
-  "lineLength": 55
+  "lineLength": 53
  },
  "modules/conversation/decoration-types.js": {
   "lineLength": 1
@@ -751,7 +751,7 @@
   "unusedExport": 1
  },
  "modules/launchpad/launchpad.css": {
-  "lineLength": 38
+  "lineLength": 37
  },
  "modules/launchpad/launchpad.js": {
   "functionLines": 1,

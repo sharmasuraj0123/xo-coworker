@@ -48,7 +48,13 @@ t("spinners, needs-you marks and status dots draw from the pack's files, not CSS
     assert.ok(declarations.some(({ p, v }) => p.endsWith("mask") && v === `var(--mask-${role})`), selector);
     if (!rotates) assert.ok(declarations.every(({ p, v }) => !/rotate/.test(p + " " + v)), selector);
   };
-  for (const sel of [".spin", ".tb-live", ".lp-arc::before"]) check(sel, "working");
+  check(".spin", "working");
+  for (const f of ["modules/conversation/blocks/turn.js", "modules/launchpad/views.js", "modules/launchpad/launchpad.js"]) assert.doesNotMatch(readSource(f), /class="(tb-live|lp-arc)"/, f);
+  for (const { sel, declarations } of rules) {
+    const turns = declarations.some(({ p, v }) => p.startsWith("animation") && /\b(spin|arc-turn)\b/.test(v));
+    const masked = declarations.some(({ p }) => p.endsWith("mask"));
+    if (turns && masked) assert.ok(declarations.every(({ p, v }) => !(p.startsWith("background") && v === "currentColor")), `${sel}: a turning mask paints its whole square`);
+  }
   assert.ok(!rules.some(({ sel }) => /\.arc::before/.test(sel)), "the corner badge draws its SVG");
   for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) check(sel, "needs", false);
   const dots = [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)"];

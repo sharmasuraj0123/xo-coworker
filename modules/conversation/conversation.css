@@ -167,9 +167,6 @@
 .sent svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
 .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
-.spin{display:inline-block;width:10px;height:10px;background:currentColor;mask:var(--mask-working);animation:spin var(--d-land) linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spin.is-load{width:var(--ic-lg);height:var(--ic-lg);mask:var(--mask-load);animation-duration:calc(var(--d-land) * 2);animation-timing-function:steps(8)}
 
 .meta-btn{flex:none;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 

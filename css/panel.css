@@ -111,8 +111,6 @@ svg.fi-line{color:inherit}
 .arc>svg{display:block;width:100%;height:100%;animation:arc-turn 1.6s linear infinite}
 .arc>svg>g:first-child>circle{fill:none}
 @keyframes arc-turn{to{transform:rotate(360deg)}}
-.spin{color:var(--info);animation-duration:1.6s}
-button .spin,.btn .spin{color:inherit}
 /* a time is never its own font: it takes its line's, with steady (tabular) digits */
 .elapsed{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;font-variant-numeric:tabular-nums;letter-spacing:0}
 .tb-ht .elapsed{color:inherit}
@@ -126,7 +124,7 @@ button .spin,.btn .spin{color:inherit}
 .mp-now .elapsed{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .typing{animation:none}
 /* The thread's header carries the working animation. */
-@media (prefers-reduced-motion:reduce){.arc>svg,.spin{animation:none}}
+@media (prefers-reduced-motion:reduce){.arc>svg{animation:none}}
 
 /* no blue dots: "being edited now" and a folder an agent is in read in the text's own colour */
 .fl-who.w-live{color:var(--ink-2)}
