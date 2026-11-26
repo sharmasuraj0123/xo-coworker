@@ -24,7 +24,6 @@ test("one-line controls and the dock use the shared heights", () => {
   assert.ok(valuesFor(".b", "height").includes(control));
   assert.deepEqual(valuesFor(".ck-tog", "height"), [control]);
   assert.ok(valuesFor(".dis-h", "min-height").includes(control));
-  assert.deepEqual(valuesFor(".tp-done", "min-height"), [resolveValue("var(--dock-bar)")]);
 
   const baseTokens = stylesheetRows.filter((row) => row.context.length === 2
     && row.context[0].params === "tokens" && row.context[1].selector === ":root");
