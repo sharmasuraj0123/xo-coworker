@@ -21,7 +21,10 @@
 }
 .set-choice:not(:disabled,[aria-disabled="true"]):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .set-choice:disabled{opacity:.55;cursor:default}
-.set-choice.is-on{border-color:var(--fill-clear);background:color-mix(in srgb,var(--accent-fill) 10%,var(--surface))}
+.set-choice.is-on{
+  border-color:var(--accent-fill); box-shadow:inset 0 0 0 calc(var(--stroke-focus) - var(--hair)) var(--accent-fill);
+  background:color-mix(in srgb,var(--accent-fill) 10%,var(--surface))
+}
 .sc-dot{
   flex:none; --ic:var(--ic-base); width:var(--ic); height:var(--ic); margin-top:calc((1lh - var(--ic)) / 2);
   border-radius:50%; border:var(--stroke-setting-choice-off) solid var(--sb-g45)
