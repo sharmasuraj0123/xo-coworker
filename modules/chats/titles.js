@@ -23,6 +23,8 @@ export function createChatTitles(root, session, searchChanged) {
   const cache = createLru({ max: CHAT_LIST_LIMIT, onEvict: (_, id) => untethered.delete(id) });
   /** @type {ReturnType<typeof createTitleQueue> | undefined} */
   let queue;
+  /** @type {ReturnType<typeof createTitleQueue> | undefined} */
+  let recents;
 
   /** @param {Session} row */
   function entry(row) {
@@ -64,6 +66,15 @@ export function createChatTitles(root, session, searchChanged) {
   }
 
   return {
+    /** @param {Element} host @param {Session[]} rows @param {() => void} changed */
+    observeRecents(host, rows, changed) {
+      recents ??= createTitleQueue(host, {
+        native(id) { const row = session(id); return row && !row.title?.trim() && !entry(row) ? row.native_id : null; },
+        read, settled: changed,
+      }, "[data-go]");
+      recents.sync(rows.map(r => r.id), "");
+    },
+    stopRecents() { recents?.dispose(); recents = undefined; },
     /** @param {Session} row */
     get: (row) => entry(row)?.title,
     /** @param {Session} row @param {string} text */

@@ -33,6 +33,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const listHost = listRoot ?? (typeof document === "undefined" ? undefined : document.getElementById("msgs")) ?? undefined;
   const titleList = createChatTitles(listHost, session, () => { if (C.q) schedule(); });
   scope.effect(() => titleList.stop);
+  scope.effect(() => titleList.stopRecents);
   /** @param {string | null} [name] @returns {Runtime | null} */
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? /** @type {Runtime | null} */ (mainRuntime(world.state.runtimes)) : null) || null;
   /** @param {Runtime | null} rt @param {string} key */
@@ -283,9 +284,13 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   return {
     dispose: scope.dispose, leaveList: titleList.stop,
-    recent() {
+    /** @param {Element} [host] */
+    recent(host) {
       const rows = sessions().sort(recentFirst);
-      return { count: rows.length, rows: rows.slice(0, 4).map((row) => ({
+      const visible = rows.slice(0, 4);
+      if (host && view?.() !== "chats") titleList.observeRecents(host, visible, schedule);
+      else titleList.stopRecents();
+      return { count: rows.length, rows: visible.map((row) => ({
         id: row.id, title: titleFor(row), state: waiting(row) ? "needs" : inTurn(row) || world.act.sessionBusy?.(row.id) ? "working" : "",
       })) };
     },

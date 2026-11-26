@@ -34,7 +34,7 @@ export const railModule = {
     ctx.provide("rail", { side, rows(needs) {
       rows(needs);
       picker.paint();
-      const data = chats.recent();
+      const data = chats.recent(list);
       recent.hidden = !data.count;
       history.textContent = `See all · ${data.count}`;
       reconcile(list, data.rows.map(({ id, title, state }) => ({

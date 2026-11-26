@@ -8,7 +8,7 @@ import { scopedIntersection } from "../../core/ui/intersection.js";
 const TITLE_READS = 4;
 
 /** @param {Element | undefined} root @param {import("./read-types.d.ts").TitleSource} source */
-export function createTitleQueue(root, { native, read, settled }) {
+export function createTitleQueue(root, { native, read, settled }, selector = ".chl-row") {
   const scope = createScope();
   /** @type {Map<Element, string>} */
   const observed = new Map();
@@ -65,7 +65,7 @@ export function createTitleQueue(root, { native, read, settled }) {
   function syncRows() {
     if (!observer || !root) return;
     const rows = new Map();
-    for (const row of root.querySelectorAll(".chl-row")) {
+    for (const row of root.querySelectorAll(selector)) {
       const id = idOf(row);
       const key = native(id);
       if (key && attempted.get(id)?.native !== key) rows.set(row, key);
