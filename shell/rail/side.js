@@ -44,6 +44,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       { id: "chats", name: "Chats", sel: "#nv-chats" },
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
     ],
+    SHOWN: ["home", "chats", "arts"],
     PLACES: [
       { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
       { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
@@ -61,7 +62,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     },
     /** {order, shown}: what you saved, made whole (a new place joins at the end, hidden; a gone one is dropped); else More's old pins. */
     bar() {
-      const ids = SIDE.all().map((p) => p.id), def = { order: ids, shown: SIDE.CORE.map((p) => p.id) };
+      const ids = SIDE.all().map((p) => p.id), def = { order: ids, shown: SIDE.SHOWN };
       const v = barValue(SHAPE.get("layout")?.side ?? readLegacy(SIDE.BAR));
       if (!v) {
         const pins = placeIds(readLegacy(SIDE.PINS));
@@ -71,7 +72,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       return { order: [...new Set(order)], shown: v.shown.filter((x) => ids.includes(x)) };
     },
     save(b) { SHAPE.patchMine({ layout: { side: { order: b.order, shown: b.shown } } }); clearLegacy(); SIDE.apply(); },
-    isDefault(b = SIDE.bar()) { const d = SIDE.all().map((p) => p.id); return b.order.join() === d.join() && b.shown.join() === SIDE.CORE.map((p) => p.id).join(); },
+    isDefault(b = SIDE.bar()) { const d = SIDE.all().map((p) => p.id); return b.order.join() === d.join() && b.shown.join() === SIDE.SHOWN.join(); },
     reset() { SHAPE.patchMine({ layout: { side: null } }); clearLegacy(); SIDE.apply(); },
     /** What this browser kept before the bar lived in your shape (its own key, or More's pins): moved there once. */
     adopt() {

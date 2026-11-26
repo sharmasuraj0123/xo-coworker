@@ -19,6 +19,7 @@ export interface Side {
   folded: boolean;
   editing: boolean;
   CORE: Place[];
+  SHOWN: string[];
   PLACES: Place[];
   extras: Map<string, HTMLElement>;
   fold(on: boolean, options?: { quiet?: boolean }): void;

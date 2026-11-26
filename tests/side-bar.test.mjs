@@ -28,14 +28,14 @@ const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, togg
 const SIDE = createSide({ ...deps, scope });
 
 const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
-assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
+assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts"] }, "the default: Home, Chats, Artifacts; Workspace, Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 
 // More's pins from before carry over
 store.set("xo-side-pins", JSON.stringify(["rules", "gone"]));
-assert.deepEqual(SIDE.bar().shown, ["home", "ws", "chats", "arts", "rules"]);
+assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "rules"]);
 store.set("xo-side-bar", "{broken");
-assert.deepEqual(SIDE.bar().shown, ["home", "ws", "chats", "arts", "rules"], "invalid legacy JSON falls back to the old pins");
+assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "rules"], "invalid legacy JSON falls back to the old pins");
 store.clear();
 
 const browserStorage = globalThis.localStorage;
@@ -59,8 +59,8 @@ try {
 }
 
 // keep and leave: a place in the bar or in More
-SIDE.pin("chats", false); SIDE.pin("worktrees", true);
-assert.deepEqual(SIDE.bar().shown, ["home", "ws", "arts", "worktrees"]);
+SIDE.pin("ws", true); SIDE.pin("chats", false); SIDE.pin("worktrees", true);
+assert.deepEqual(SIDE.bar().shown, ["home", "arts", "ws", "worktrees"], "Workspace pinned back from More");
 assert.ok(!SIDE.isDefault());
 
 // reorder: one step (the grip's ↑ ↓), at the ends it stays; before another (a drop), or to the end
@@ -71,7 +71,7 @@ SIDE.move("worktrees", 0, "home"); assert.equal(SIDE.bar().order[0], "worktrees"
 SIDE.move("home", 0, ""); assert.equal(SIDE.bar().order.at(-1), "home");
 
 // kept in your shape, not this browser
-assert.deepEqual(mine.layout.side.shown, ["home", "ws", "arts", "worktrees"]);
+assert.deepEqual(mine.layout.side.shown, ["home", "arts", "ws", "worktrees"]);
 assert.ok(!store.has("xo-side-bar"));
 
 // what's saved is made whole: an unknown place is dropped, a new one joins at the end, hidden
@@ -130,6 +130,8 @@ click(pop.querySelector("[data-se-reset]"));
 assert.equal(pop.querySelector("[data-se-reset]").hasAttribute("disabled"), true);
 click(pop.querySelector("[data-se-done]"));
 assert.equal(pop.getAttribute("role"), "menu");
+assert.deepEqual([...pop.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent), ["Workspace", "Launchpad", "Runtimes", "Edit the sidebar…"], "by default More holds Workspace beside Launchpad");
+assert.equal(document.querySelector("#nv-ws").hidden, true);
 assert.equal(Boolean(document.querySelector("#nv-pins")), false);
 
 pop.querySelector('[role="menuitem"]').focus();
