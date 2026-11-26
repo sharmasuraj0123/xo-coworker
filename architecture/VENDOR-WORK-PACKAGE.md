@@ -1,9 +1,0 @@
-# Package V — vendor relocation
-
-Start on the latest integration gate after P4. Record that commit before editing. Own the 367 planned `js/vendor/` file records and their existing `vendor/` destinations. The inventory covers CodeMirror (128), Mermaid (108), Pierre Diffs (94), KaTeX (24), xterm (6), agent marks (4) and Pierre tree assets (3).
-
-Move each library intact. Preserve relative paths, file bytes, local upstream patches, licenses and load timing. Check the complete source-to-destination hash manifest against the pinned base. Keep the existing vendor versions and adapters. Put each move and its ledger entries in the same commit. Regenerate the ledger report after each commit.
-
-Update only the affected consumers, generators, lint and type paths, and checks. Inventory static and dynamic JavaScript imports, CSS `@import` and `url()` references, workers, fonts, and asset URLs. Include `vendor/` in the static server's versioned file graph. Keep xterm's link in the same position and preserve the CSS entry order. Coordinate path-only edits to `index.html` and `css/app.css` with J. J owns the stylesheet entry splits. Leave module state and package K's wiring alone.
-
-Prove through the static server that the published entry loads its moved dependencies with the same content types and cache policy. Verify that a vendor content change changes the tree version, that current-version URLs are immutable, and that stale-version URLs revalidate. Verify dynamic imports, worker URLs and fonts against the served paths. Demonstrate a regression test that fails when the vendor directory is omitted from the versioned graph. Use the approved P5 browser lane for live path coverage. Run the serial full check from a clean export under the shared lease, then the ledger check separately. Report the exact head, the hash manifest, and any consumer or asset that still needs browser coverage. Settle only the records backed by this evidence.

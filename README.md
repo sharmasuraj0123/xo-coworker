@@ -44,24 +44,8 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 
 **The UI reads and writes your real XO workspace. Sending a message starts real agents.** No test may send a non-GET request to a live backend.
 
-To work on the code, run `npm ci` once for the build and check tools, then follow [DEVELOPING.md](DEVELOPING.md). The rules for every agent and person are in [AGENTS.md](AGENTS.md).
+To work on the code, run `npm ci` once for the build and check tools, then follow [DEVELOPING.md](DEVELOPING.md).
 
 ## Layout
 
-The app is a small kernel, layers of shared code, and modules that plug into named places. Lowest layer first:
-
-| Folder | What lives there |
-|---|---|
-| `core/kernel/` | Holds modules together without knowing any feature: places, activation, undo of everything a module registers, the bus, batched redraws, the layer stack. It imports nothing. |
-| `core/platform/` | Browser plumbing: requests and typed responses, streams, storage, keys, touch, time words, small helpers. |
-| `core/ui/` | What every view draws with: the tokens, icons, markdown, motion, redraw in place, accessibility helpers, shared components, the lightbox. |
-| `core/services/` | Shared data and runtime services for world state, Storm, Shape, paths, notices and media. Services import lower layers. Media handles DOM elements and Storm observes document visibility. |
-| `shell/` | The frame around everything: boot, the rail, the right panel, the phone layout, one layer stack for Esc, Back, inert and Tab, and the catalogue of places. |
-| `modules/*/` | One feature per folder, such as Files, Map, Settings or Home. |
-| `apps-host/` | Paused work on installed apps, including manifests, sandboxed frames, a tool bridge and Settings integration. |
-| `js/app.js` | The static list of modules enabled at boot. |
-| `css/` | Styles that have not moved to their owners yet. It may only shrink. |
-
-`index.html` loads `boot.js`, which loads the frame, then `js/app.js`, which passes the enabled feature modules to the kernel in one static list. Outside the app: `tests/` (unit tests not yet beside their code), `e2e/` (the fast browser lane), `tests/browser/` (older browser suites), `tools/` (the checks, baselines, generators and the release build), `vendor/` and `fonts/`.
-
-Folders with a `README.md` describe their own files. [architecture/places.md](architecture/places.md) lists every place a module or an app can fill, [architecture/decisions/](architecture/decisions/) records the owner's decisions, and [architecture/HANDOFF.md](architecture/HANDOFF.md) lists what the finished modular rebuild left to do.
+A small kernel, layers of shared code, and feature modules that plug into named places. [ARCHITECTURE.md](ARCHITECTURE.md) explains the folders, how the pieces talk and how to write code here. Folders with a `README.md` describe their own files.
