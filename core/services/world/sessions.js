@@ -65,7 +65,7 @@ export function sessionBusy(s, { runs = [], agg = null, turn = null } = {}) {
 }
 
 /** What a gate can hold a session for (the session view's `waiting.for`). */
-export const HELD_FOR = new Set(["limit", "paid", "near_limit", "memory", "founder"]);
+export const HELD_FOR = new Set(["limit", "paid", "near_limit", "founder"]);
 
 /** What a session held back by a gate waits for ({for, until, why, asked}), or null: the backend's `waiting` first, else its pool's state. @param {Pick<Session, "state" | "waiting" | "pool"> | null | undefined} s @param {Record<string, Pool>} [pools] */
 export function heldOf(s, pools = {}) {

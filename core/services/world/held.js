@@ -39,9 +39,8 @@ export function heldWords(h, now = Date.now()) {
     case "limit": return at ? `Waiting for the usage limit · starts${NB}${at}` : "Waiting for the usage limit to reset";
     case "paid": return h.asked ? "Waiting for your choice on paid usage · it's in Needs you" : "Waiting before paid usage · see Settings › Runtimes";
     case "near_limit": return "Waiting · near the usage limit, more urgent work goes first";
-    case "memory": return "Waiting for memory to free up";
     case "founder": return at ? `Paused by you · until ${at.replace(/^at\u00a0/, "")}` : "Paused by you";
-    default: return h.why ? `Waiting · ${h.why}` : "Waiting to start";
+    default: return !h.why ? "Waiting to start" : /^waiting\b/i.test(h.why) ? h.why.replace(/^w/, "W") : `Waiting · ${h.why}`;
   }
 }
 

@@ -73,7 +73,7 @@ t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, w
   // the backend's own word
   assert.deepEqual(heldOf({ state: "queued", waiting: { for: "limit", until: reset, pool: "claude_code:a", why: "usage limit" } }),
     { for: "limit", until: reset, why: "usage limit", asked: false });
-  assert.deepEqual(heldOf({ state: "queued", waiting: { for: "memory", until: null } }), { for: "memory", until: null, why: null, asked: false });
+  assert.deepEqual(heldOf({ state: "queued", waiting: { for: "memory", until: null, why: "waiting for memory to free up" } }), { for: null, until: null, why: "waiting for memory to free up", asked: false }, "storm no longer holds for memory: an older backend's memory wait is a wait it names");
   assert.equal(heldOf({ state: "queued", waiting: { for: "founder", until: reset } }).for, "founder");
   assert.equal(heldOf({ state: "queued", waiting: { for: "something new" } }).for, null, "a reason this UI doesn't know: held, not named");
   // its words name no time: the pool's reset fills it in
@@ -113,7 +113,7 @@ t("held words: one verb (starts), the reset while it's ahead, never a time gone 
   assert.equal(heldWords({ for: "paid", asked: false }, now), "Waiting before paid usage · see Settings › Runtimes");
   assert.ok(!/Never/.test(heldWords({ for: "paid", asked: false }, now)));
   assert.match(heldWords({ for: "near_limit" }, now), /^Waiting · near the usage limit/);
-  assert.equal(heldWords({ for: "memory" }, now), "Waiting for memory to free up");
+  assert.equal(heldWords({ for: null, why: "waiting for memory to free up" }, now), "Waiting for memory to free up");
   assert.match(sp(heldWords({ for: "founder", until: at(0, 6, 50) }, now)), /^Paused by you · until 6:50\sAM$/);
   assert.equal(heldShort({ for: "founder" }, now), "Paused");
   assert.equal(heldBadge({ for: "founder" }), "Paused");
@@ -125,7 +125,7 @@ t("held words: one verb (starts), the reset while it's ahead, never a time gone 
 });
 t("of several held, the soonest start; one with no time when none has", () => {
   const now = Date.parse("2026-11-14T05:00:00Z");
-  const a = { for: "limit", until: "2026-11-14T09:00:00Z" }, b = { for: "limit", until: "2026-11-14T06:00:00Z" }, c = { for: "memory", until: null }, gone = { for: "limit", until: "2026-11-14T04:00:00Z" };
+  const a = { for: "limit", until: "2026-11-14T09:00:00Z" }, b = { for: "limit", until: "2026-11-14T06:00:00Z" }, c = { for: "founder", until: null }, gone = { for: "limit", until: "2026-11-14T04:00:00Z" };
   assert.equal(soonestHeld([a, null, c, b, gone], now), b);
   assert.equal(soonestHeld([c, gone], now), c);
   assert.equal(soonestHeld([null], now), null);
@@ -328,13 +328,13 @@ t("storm: held by the usage limit is Waiting, never Working or replying, on an o
   // the older backend's session, still queued once its pool is open: held for a reason it doesn't name, never Working
   assert.equal(world.thread("old").busy, false);
   assert.deepEqual(world.thread("old").held, { for: null, until: null, why: null, asked: false });
-  // a newer backend's frame holds it again, saying why (here the memory guard)
-  be.push("session", { session_id: "cse_new", seq: 22, data: { status: "queued", reason: "memory", waiting: { for: "memory", until: null, pool: null, why: "memory" } } });
+  // a newer backend's frame holds it again, saying why (here the founder)
+  be.push("session", { session_id: "cse_new", seq: 22, data: { status: "queued", reason: "held by the founder", waiting: { for: "founder", until: null, pool: null, why: "held by the founder" } } });
   await settle();
   assert.equal(world.thread("new").busy, false);
-  assert.equal(world.thread("new").held.for, "memory");
+  assert.equal(world.thread("new").held.for, "founder");
   // and any other status ends the wait, whatever the frame says beside it
-  be.push("session", { session_id: "cse_new", seq: 23, data: { status: "running", waiting: { for: "memory" } } });
+  be.push("session", { session_id: "cse_new", seq: 23, data: { status: "running", waiting: { for: "founder" } } });
   await settle();
   assert.equal(world.thread("new").held, null);
   assert.equal(world.state.sessions.cse_new.waiting, null);
