@@ -16,9 +16,9 @@ import { bindIntelInput } from "./intel-input.js";
 /** @import { Draft, IntelChat, IntelCurrent, IntelError, IntelModel, IntelMove, IntelOptions, IntelPop, IntelState } from "./intel-types.js" */
 
 /** @param {IntelOptions} options */
-export function createIntel({ world, PROJ, onChange, record, onMoved, simple = () => false }) {
+export function createIntel({ world, PROJ, onChange, record, onMoved, onProject = () => {}, simple = () => false }) {
   /** @type {IntelState} */
-  const P = { open: false, gen: 0, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, more: false };
+  const P = { open: false, gen: 0, session: null, anchor: null, returnTo: null, models: null, err: null, busy: false, rt: null, mv: null, full: false, draft: null, page: "root" };
   const movedHere = new Set(); // threads this tab continued elsewhere (their stream frame needs no second word)
   const pop = /** @type {IntelPop} */ (document.getElementById("iq-pop"));
 
@@ -132,7 +132,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     void reads.move(name);
   }
   function stepBack() {
-    P.more = true;
+    P.page = "rt";
     lookAt(null);
     pop.querySelector(`[data-lrt][aria-checked="true"]`)?.focus({ preventScroll: true });
   }
@@ -141,7 +141,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!live(s) || reads.effects.signal.aborted) return;
     reads.open();
     P.gen++;
-    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = /** @type {HTMLElement | null} */ (document.activeElement); P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
+    P.open = true; P.session = s; P.anchor = anchor; P.returnTo = /** @type {HTMLElement | null} */ (document.activeElement); P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.page = "root";
     P.saving = false;
     P.saveErr = null;
     if (failed.has(s)) { P.draft = (/** @type {Draft} */ (failed.get(s))); failed.delete(s); P.saveErr = "Your last choice here didn't save. It's still chosen: Done tries again."; }
@@ -250,7 +250,11 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     } catch (err) { record(s, { text: `Nothing changed: ${(/** @type {IntelError} */ (err)).message}`, refused: true }); }
     P.busy = false;
     onChange();
-    if (P.open && P.session === s) { P.models = null; render(); loadModels(s); }
+    if (P.open && P.session === s) {
+      P.models = null; P.page = "root"; render();
+      pop.querySelector('[data-lpage="rt"]')?.focus({ preventScroll: true });
+      loadModels(s);
+    }
   }
   /** Continue the thread on the runtime it looks at: XO stops it, saves its work, and a linked thread starts there. */
   async function moveGo() {
@@ -284,6 +288,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   bindIntelInput(P, reads.effects, {
     pop, threadOf, deepPick, save, close, render, lookAt, setRuntime, stepBack, moveGo,
     pickMove, route, done, pickModel, pickEffort, place,
+    project() { const s = (/** @type {string} */ (P.session)); close({ restore: false }); onProject(s.slice(2)); },
   });
 
   return {

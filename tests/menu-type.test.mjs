@@ -22,7 +22,7 @@ test("menu rows use the 14/20 interface type", () => {
 });
 
 test("model picker rows use the 12/16 meta type", () => {
-  for (const selector of [".iq-n", ".iq-more"]) {
+  for (const selector of [".iq-n", ".iq-item"]) {
     const fonts = valuesFor(selector, "font");
     assert.ok(fonts.length > 0, selector);
     for (const font of fonts.flat()) assert.match(font, /\b12px\/16px\b/, selector);
