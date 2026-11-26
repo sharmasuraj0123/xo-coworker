@@ -35,7 +35,7 @@ function mountIntelligence(ctx) {
   const settings = createProjectSettings({ world, writes: intelligence.writes, PROJ: ctx.use("projectName"),
     iconOf: (project) => (icons ? icons.projectIcon(project) : "") });
   ctx.contribute("header.action", {
-    id: "project-settings", label: "Project", icon: "gear", order: 90,
+    id: "project-settings", label: "Project settings", icon: "gear", bare: true, order: 90,
     when: (at) => !!at.project && at.project !== "workspace",
     onPress: (at) => { if (at.project) settings.open(at.project); },
   });
