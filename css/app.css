@@ -280,19 +280,3 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 
 /* Keep the project name and Threads control on one line. */
 .tw-t.is-one{flex-direction:row;align-items:center;gap:var(--s-3)}
-
-/* Hide the Threads label before the activity marks or counts when space is tight. */
-.th-ctl{flex:none;gap:var(--s-2)}
-.th-ctl .th-w{color:var(--ink)}
-.th-ctl .th-n{color:var(--ink-3);font-variant-numeric:tabular-nums}
-.th-ctl .th-seg{display:inline-flex;align-items:center;gap:var(--s-1);padding-left:var(--s-2);border-left:1px solid var(--line-soft);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
-.th-ctl .th-seg .g{width:var(--mark-sm);height:var(--mark-sm)}
-.th-ctl .th-seg .pj-k{color:inherit;font-weight:inherit}
-.th-ctl .is-work{color:var(--info)}
-.th-ctl .is-need{color:var(--warn)}
-@container top (max-width:820px){
-  .top .tw-act.th-ctl{width:auto;padding:0 var(--s-2)}
-  .top .tw-act.th-ctl>:is(.th-n,.th-seg){display:inline-flex}
-  .top .tw-act.th-ctl .th-seg>.pj-k{display:inline}
-  .top .tw-act.th-ctl>.th-w{display:none}
-}
