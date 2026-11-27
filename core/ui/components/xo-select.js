@@ -147,8 +147,9 @@ class XoSelect extends HTMLElement {
   }
 
   _rows() {
-    const cur = this.value;
-    this._menu.innerHTML = "";
+    const cur = this.value, check = this.dataset.mark === "check", menu = this._menu;
+    menu.innerHTML = "";
+    menu.classList.toggle("is-check", check);
     this.options.forEach((o, i) => {
       const r = document.createElement("div");
       r.className = "dd-row"; r.id = `${this._id}-o${i}`; r.dataset.i = String(i);
@@ -159,10 +160,11 @@ class XoSelect extends HTMLElement {
       const mk = document.createElement("span"); mk.className = "dd-mk"; mk.setAttribute("aria-hidden", "true");
       if (sel) mk.innerHTML = `<i class="dd-dot"></i>`;
       const t = document.createElement("span"); t.className = "dd-t"; t.textContent = (o.textContent || "").trim();
-      r.append(mk);
+      if (!check) r.append(mk);
       if (o.dataset.icon && hasIcon(o.dataset.icon)) r.insertAdjacentHTML("beforeend", xi(o.dataset.icon, "dd-ic"));
       r.append(t);
       if (o.dataset.desc) { const d = document.createElement("span"); d.className = "dd-d"; d.textContent = o.dataset.desc; r.append(d); }
+      if (check) r.insertAdjacentHTML("beforeend", `<span class="dd-ck" aria-hidden="true">${sel ? ICON.check : ""}</span>`);
       this._menu.append(r);
     });
   }

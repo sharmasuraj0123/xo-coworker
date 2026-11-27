@@ -2,6 +2,7 @@
 
 // <xo-date>: the app's day chooser in place of <input type="date">, written and read like one, its value and min as YYYY-MM-DD.
 
+import { ICON } from "../icons/names.js";
 import { xi } from "../icons/icon.js";
 import { RM, setText } from "../motion.js";
 import { createScope } from "../../kernel/scope.js";
@@ -83,10 +84,10 @@ class XoDate extends HTMLElement {
       btn.setAttribute(k, v);
     }
     const pop = document.createElement("div");
-    pop.className = "dd-menu dt-pop"; pop.hidden = true; pop.setAttribute("data-own", "");
+    pop.className = "dd-menu is-check dt-pop"; pop.hidden = true; pop.setAttribute("data-own", "");
     pop.innerHTML = `<div class="dt-quick" role="listbox" id="${id}-q">${QUICK.map(([t, icon], i) =>
-      `<div class="dd-row" role="option" id="${id}-q${i}" data-quick="${i}"><span class="dd-mk" aria-hidden="true"></span>` +
-      `${xi(icon, "dd-ic")}<span class="dd-t">${t}</span><span class="dd-d"></span></div>`).join("")}</div>` +
+      `<div class="dd-row" role="option" id="${id}-q${i}" data-quick="${i}">${xi(icon, "dd-ic")}<span class="dd-t">${t}</span>` +
+      `<span class="dd-ck" aria-hidden="true"></span></div>`).join("")}</div>` +
       `<div class="dt-cal" hidden><div class="dt-hd"><b class="dt-mo" aria-live="polite"></b>` +
       `<button type="button" class="dt-nav" data-step="-1" tabindex="-1" aria-label="Previous month">${xi("chevron-left")}</button>` +
       `<button type="button" class="dt-nav" data-step="1" tabindex="-1" aria-label="Next month">${xi("chevron-right")}</button></div>` +
@@ -133,9 +134,8 @@ class XoDate extends HTMLElement {
       const day = i < 2 ? dayFrom(near[i]) : d, on = i === 2 ? !!d && at < 0 : at === i;
       row.setAttribute("aria-selected", String(on));
       if (i < 2 && !!min && !!day && day < min) row.setAttribute("aria-disabled", "true"); else row.removeAttribute("aria-disabled");
-      const mk = row.querySelector(".dd-mk");
-      if (mk) mk.innerHTML = on ? `<i class="dd-dot"></i>` : "";
-      setText(row.querySelector(".dd-d"), !day ? "" : i < 2 ? formatDate(day, "weekday") : on ? words(day) : "");
+      const ck = row.querySelector(".dd-ck");
+      if (ck) ck.innerHTML = on ? ICON.check : "";
     });
   }
 

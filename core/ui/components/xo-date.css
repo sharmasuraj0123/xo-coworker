@@ -1,4 +1,4 @@
-/* <xo-date>: a dd-btn opening a dd-menu of today, tomorrow or a date; days are circles like the week strip's, the chosen one filled. */
+/* <xo-date>: a dd-btn opening a ticked menu of today, tomorrow or a date; days are circles, the chosen one filled. */
 
 xo-date{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
 xo-date .dd-btn{font-variant-numeric:tabular-nums}
@@ -6,7 +6,6 @@ xo-date .dd-btn[aria-expanded="true"]{background-image:linear-gradient(var(--hov
 
 .dt-pop{--dt-cell:var(--h-ctl);overflow:visible}
 .dt-quick{min-width:var(--menu-w)}
-.dt-quick .dd-d{text-align:right}
 .dt-cal{padding:var(--s-2);animation:rise-in var(--d-in) var(--ease)}
 .dt-hd{display:flex;align-items:center;gap:var(--s-1);padding:0 0 var(--s-2) var(--s-2)}
 .dt-mo{flex:1;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}

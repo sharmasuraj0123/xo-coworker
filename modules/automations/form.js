@@ -144,7 +144,7 @@ const LATER = `<option value="event" disabled data-icon="bolt-fill" data-desc="l
 const ON_DAYS = new Set(["day", "weekdays", "week"]);
 
 /** @param {FormValues} v */
-const repeatPick = (v) => `<xo-select name="repeat" class="au-chip" aria-label="Repeat">` +
+const repeatPick = (v) => `<xo-select name="repeat" class="au-chip" data-mark="check" aria-label="Repeat">` +
   `${REPEATS.map(([value, words, icon]) => opt(value, words, v.repeat === value, icon)).join("")}${LATER}</xo-select>`;
 
 /** @param {FormValues} v @param {string} cls */
@@ -174,7 +174,7 @@ function sinceHtml(v) {
   if (v.repeat !== "month") return "";
   const doms = [...Array.from({ length: 31 }, (_, i) => opt(String(i + 1), `the ${ordinal(i + 1)}`, v.dom === i + 1)),
     opt("last", "the last day", v.dom === "last")].join("");
-  return `<xo-select name="dom" class="au-chip" aria-label="Day of the month">${doms}</xo-select>`;
+  return `<xo-select name="dom" class="au-chip" data-mark="check" aria-label="Day of the month">${doms}</xo-select>`;
 }
 
 const AGENT_NOTE = "Changing what it does makes it yours: it no longer counts as what you allowed.";
@@ -187,7 +187,7 @@ function agentPick(v, agents, none) {
   const opts = usable.map((a) => opt(`${a.level}:${a.name}`, `${titleOf(a.name)}${a.level === "space" ? " · Every project" : ""}`,
     on === `${a.level}:${a.name}`));
   if (v.persona && !usable.some((a) => `${a.level}:${a.name}` === on)) opts.unshift(opt(on, titleOf(v.persona.name), true));
-  return `<xo-select name="persona" class="au-chip" aria-label="Agent">${opts.join("")}${opt("", none, !on)}</xo-select>`;
+  return `<xo-select name="persona" class="au-chip" data-mark="check" aria-label="Agent">${opts.join("")}${opt("", none, !on)}</xo-select>`;
 }
 
 /** When it tells you and what a failure does, as two choices; nothing where XO Space doesn't keep them. @param {FormValues} v */
@@ -195,7 +195,8 @@ function tellPicks(v, inRow = true) {
   if (!v.notify) return ["", ""];
   const w = inRow ? 1 : 2;
   const pick = (/** @type {string} */ name, /** @type {string} */ label, /** @type {string[][]} */ list, /** @type {string | null} */ on) =>
-    `<xo-select name="${name}" class="au-chip" aria-label="${label}">${list.map((o) => opt(o[0], o[w], o[0] === on)).join("")}</xo-select>`;
+    `<xo-select name="${name}" class="au-chip" data-mark="check" aria-label="${label}">` +
+    `${list.map((o) => opt(o[0], o[w], o[0] === on)).join("")}</xo-select>`;
   return [pick("notify", "Tells you", NOTIFY, v.notify), pick("on_failure", "If it fails", ON_FAILURE, v.onFailure)];
 }
 
@@ -243,7 +244,7 @@ export function sentenceHtml(v, { projects, problem, busy, agents }) {
     `${timeIn(v, "au-chip-in")}</div>` +
     (v.repeat === "week" ? daysHtml(v) : "") +
     `<div class="au-say">${agentPick(v, agents, "An agent")}<span>in</span>` +
-    `<xo-select name="chat" class="au-chip" aria-label="Project">${chats}</xo-select><span>will</span></div>` +
+    `<xo-select name="chat" class="au-chip" data-mark="check" aria-label="Project">${chats}</xo-select><span>will</span></div>` +
     `<textarea name="prompt" class="au-say-text" rows="4" aria-label="What it does each time"` +
     ` placeholder="check what's live and tell me only if something looks wrong.">${esc(v.prompt)}</textarea>` +
     sayTells(v) + problemHtml(problem) + `<p class="au-note">You can also ask any coordinator for one in your own words.</p></form>`;

@@ -127,3 +127,5 @@ const onDay = (date = "") => sentenceHtml({ ...fresh, repeat: "once", date }, { 
 assert.doesNotMatch(onDay(iso(today)), /<span>on<\/span>/, "Once today at 09:00");
 assert.doesNotMatch(onDay(iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))), /<span>on<\/span>/, "Once tomorrow");
 assert.match(onDay("2031-03-10"), /<span>on<\/span><xo-date/, "Once on Mon 10 March");
+const chips = [...sentenceHtml(fresh, { projects: [], problem: "", busy: "x", agents: [] }).matchAll(/<xo-select [^>]*class="au-chip"[^>]*>/g)];
+assert.ok(chips.length > 2 && chips.every(([c]) => c.includes('data-mark="check"')), "a sentence's chips tick their choice at the end");
