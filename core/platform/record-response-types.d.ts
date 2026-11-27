@@ -8,6 +8,20 @@ export interface BranchReceipt {
   unpushed?: number | null;
   pr?: { number?: number | null; url?: string | null; state?: string | null; draft?: boolean; merged_at?: string | null } | null;
   upstream?: { pushed?: boolean; gone?: boolean } | null;
+  tree?: TreeState | null;
+}
+
+/** The worktree's own state, kept by Space: entries as git lists them by default, so a new folder counts once. */
+export interface TreeState {
+  exists: boolean;
+  xo?: boolean;
+  changed?: number;
+  untracked?: number;
+  kept_ignored?: number;
+  local_commits?: number;
+  would_lose?: boolean;
+  error?: string | null;
+  checked_at?: string | null;
 }
 
 interface LostPaths { count: number; paths: string[] }

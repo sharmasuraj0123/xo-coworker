@@ -17,6 +17,12 @@ const nullable = (value, check) => value == null || check(value);
 /** @param {unknown} value @param {(field: unknown) => boolean} check */
 const arrayOf = (value, check) => Array.isArray(value) && value.every(check);
 
+/** @param {unknown} value @returns {value is Wire.TreeState} */
+const isTreeState = (value) => isResponseObject(value) && flag(value.exists)
+  && [value.changed, value.untracked, value.kept_ignored, value.local_commits].every((n) => optional(n, count))
+  && [value.xo, value.would_lose].every((field) => optional(field, flag))
+  && nullable(value.error, text) && nullable(value.checked_at, text);
+
 /** @param {unknown} value @returns {value is Wire.BranchReceipt} */
 export function isBranch(value) {
   return isResponseObject(value) && nullable(value.branch, text) && nullable(value.merged_at, text)
@@ -25,7 +31,8 @@ export function isBranch(value) {
     && nullable(value.pr, (pr) => isResponseObject(pr) && nullable(pr.number, count)
       && nullable(pr.url, text) && nullable(pr.state, text) && optional(pr.draft, flag) && nullable(pr.merged_at, text))
     && nullable(value.upstream, (upstream) => isResponseObject(upstream)
-      && optional(upstream.pushed, flag) && optional(upstream.gone, flag));
+      && optional(upstream.pushed, flag) && optional(upstream.gone, flag))
+    && nullable(value.tree, isTreeState);
 }
 
 /** @param {unknown} value */
