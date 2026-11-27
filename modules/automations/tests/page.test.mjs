@@ -39,6 +39,7 @@ const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
   side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
+    readReport: async () => "**3 commits** aren't live",
     openProject: (/** @type {string} */ chat) => { opened.push(`project ${chat}`); } }),
   agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
   agentList: (hooks) => createAgentList({ ...deps, personas, projectName: () => "Alpha", ...hooks }) });
@@ -82,6 +83,21 @@ await t("a row opens beside the list, and Esc closes it", async () => {
   assert.deepEqual(opened.splice(0), ["project chat_a"], "its project row opens the project");
   assert.equal(page.escape(), true);
   assert.equal(aside().hidden, true);
+});
+
+await t("a run opens its report in place, read from its thread, and Back returns", async () => {
+  const api = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (fake.api)), was = api.scheduleRuns;
+  api.scheduleRuns = async () => ({ job_id: "j1", log_path: null, runs: [{ fire_at: "2026-11-26T07:30:00Z", trigger: "schedule", status: "ok",
+    found: true, summary: "3 commits aren't live", thread: { chat_id: "chat_a", ts: "171.5" } }] });
+  await click('[data-au-act="open"][data-au-id="j1"]');
+  await click('.au-side [data-au-act="report"]');
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Found something");
+  assert.equal(aside().querySelector(".au-report strong")?.textContent, "3 commits", "its thread's last word, as markdown");
+  assert.ok(aside().querySelector('[data-au-act="thread"][data-ts="171.5"]'), "with Open the run");
+  await click('.au-side [data-au-act="report-back"]');
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Morning check");
+  api.scheduleRuns = was;
+  page.escape();
 });
 
 await t("Delete asks first, then leaves an Undo in the row; Undo keeps it", async () => {

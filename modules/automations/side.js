@@ -3,8 +3,9 @@
 import { once } from "../../core/platform/pending.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { menuKeys, focusOpened, radioKeys } from "../../core/ui/a11y/keynav.js";
-import { detailHtml } from "./detail.js";
+import { detailHtml, reportHtml } from "./detail.js";
 import { createDraft } from "./draft.js";
+import { createReport } from "./report.js";
 import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf, withDay } from "./form.js";
 
 /** @import { Automation, FormValues, SideControl, SideDeps, SideState } from "./types" */
@@ -44,6 +45,29 @@ function actOn(what, a, x) {
 
 const noRuns = () => ({ id: "", rows: /** @type {null} */ (null), failed: false });
 
+/** Saves an edit, then shows it. @param {SideControl} x @param {number} now */
+async function saveEdit(x, now) {
+  const { st, deps } = x, a = st.id ? deps.store.find(st.id) : null;
+  if (!st.values || !a) return;
+  const v = st.values = typedIn(st.host, st.values);
+  st.problem = problemOf(v, now);
+  if (st.problem) { x.paint(); return; }
+  const body = bodyOf(v, a, now);
+  await once(`au-save:${a.id}`, async () => {
+    x.paint();
+    try {
+      await deps.store.save(a.id, body);
+      deps.announce(`${body.name} saved`);
+      st.runs = noRuns();
+      x.show(a.id, false);
+    } catch (error) {
+      st.problem = error instanceof Error ? error.message : "Couldn't save it.";
+      deps.failed(error, "");
+      x.paint();
+    }
+  });
+}
+
 /** The values as typed so far. @param {HTMLElement | null} host @param {FormValues} v */
 function typedIn(host, v) {
   const form = host?.querySelector("form[data-au-form]");
@@ -61,6 +85,7 @@ export function createSide(deps) {
   const draft = createDraft(deps, (id) => { st.runs = noRuns(); if (deps.made) deps.made(id); else show(id, false); });
   const unwatchAgents = deps.watchAgents?.(() => { if (st.editing) paint(); draft.repaint(); });
   const current = () => st.id ? deps.store.find(st.id) : null;
+  const report = createReport(deps, () => paint());
   /** @param {FormValues} v */
   const typed = (v) => typedIn(st.host, v);
 
@@ -89,6 +114,7 @@ export function createSide(deps) {
       return;
     }
     if (!a) { redraw(host, ""); return; }
+    if (report.run) { redraw(host, reportHtml(a, report.run, report)); return; }
     const mine = runs.id === a.id;
     redraw(host, detailHtml(a, { runs: mine ? runs.rows : null, runsFailed: mine && runs.failed, menu: st.menu, confirm: st.confirm,
       projectName: deps.projectName(a.project), where: deps.where }));
@@ -96,8 +122,16 @@ export function createSide(deps) {
     if (opened instanceof HTMLElement && !opened.contains(document.activeElement)) focusOpened(opened);
   }
 
+  /** A run's report, or back to its automation. @param {string | null} key */
+  const openReport = (key) => {
+    const r = st.runs.rows?.find((x) => x.key === key);
+    if (r) report.open(r); else { report.close(); paint(); }
+    focusIn(st.host, "#au-det-h");
+  };
+
   /** @param {string | null} next @param {boolean} edit */
   function show(next, edit) {
+    report.close();
     Object.assign(st, { id: next, editing: edit, menu: false, confirm: false, problem: "" });
     const a = current();
     st.values = edit ? valuesOf(a, a?.project ?? deps.projects()[0]?.chat ?? "", now()) : null;
@@ -120,27 +154,6 @@ export function createSide(deps) {
     if (st.host) redraw(st.host, "");
   }
 
-  async function save() {
-    if (!st.values) return;
-    const v = st.values = typed(st.values);
-    st.problem = problemOf(v, now());
-    if (st.problem) { paint(); return; }
-    const a = current(), body = bodyOf(v, a, now());
-    await once(`au-save:${st.id ?? "new"}`, async () => {
-      paint();
-      try {
-        const saved = await deps.store.save(a ? a.id : null, body);
-        deps.announce(a ? `${body.name} saved` : `${body.name} is on`);
-        st.runs = noRuns();
-        show(saved, false);
-      } catch (error) {
-        st.problem = error instanceof Error ? error.message : "Couldn't save it.";
-        deps.failed(error, "");
-        paint();
-      }
-    });
-  }
-
   /** @param {Event} e */
   function onClick(e) {
     const target = e.target instanceof Element ? e.target.closest("[data-au-act], [data-au-day]") : null;
@@ -150,6 +163,7 @@ export function createSide(deps) {
     if (what === "detail-menu") { st.menu = !st.menu; paint(); return; }
     st.menu = false;
     if (what === "cancel") { if (st.id) show(st.id, false); else close(); }
+    else if (what === "report" || what === "report-back") openReport(target.getAttribute("data-au-key"));
     else if (what === "thread") deps.openThread(target.getAttribute("data-chat") ?? "", target.getAttribute("data-ts") ?? "");
     else if (what === "all") deps.showAll?.();
     else if (what === "close") close();
@@ -164,7 +178,7 @@ export function createSide(deps) {
   }
 
   /** @param {Event} e */
-  const onSubmit = (e) => { e.preventDefault(); void save(); };
+  const onSubmit = (e) => { e.preventDefault(); void saveEdit({ st, deps, show, duplicate, close, paint, readRuns }, now()); };
   /** @type {(() => void)[]} */
   const undo = [];
   return {
@@ -191,6 +205,7 @@ export function createSide(deps) {
     /** Esc: a menu, then a confirm, then the form; true when it closed one. */
     escape() {
       if (draft.escape()) return true;
+      if (report.close()) { paint(); return true; }
       if (st.menu || st.confirm) { st.menu = false; st.confirm = false; paint(); return true; }
       if (st.editing) { if (st.id) show(st.id, false); else close(); return true; }
       return false;

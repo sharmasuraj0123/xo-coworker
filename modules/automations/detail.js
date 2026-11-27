@@ -4,11 +4,12 @@ import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
+import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { titleOf } from "./agent-file.js";
 import { cadenceOf, cadenceWords, dayMonth, hhmm, longDate, ordinal } from "./model.js";
 import { confirmHtml, lettersHtml, menuItem, menuWrap, switchHtml, tile } from "./views.js";
 
-/** @import { Automation, DetailState, RunRow } from "./types" */
+/** @import { Automation, DetailState, ReportState, RunRow } from "./types" */
 
 /** The alarm: the time it runs, big, and the days. @param {Automation} a */
 function alarmHtml(a) {
@@ -52,8 +53,8 @@ function runHtml(run) {
   const [cls, icon, words] = runLook(run), line = runLine(run);
   const inner = `${xi(icon)}<span><b>${esc(words)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>` +
     `<time>${esc(runWhen(run.at))}</time>`;
-  const to = run.thread, body = to ? `<button type="button" class="au-run" data-au-act="thread"` +
-    ` data-chat="${esc(to.chat)}" data-ts="${esc(to.ts)}">${inner}</button>` : `<span class="au-run">${inner}</span>`;
+  const body = run.thread ? `<button type="button" class="au-run" data-au-act="report" data-au-key="${esc(run.key)}">${inner}</button>`
+    : `<span class="au-run">${inner}</span>`;
   return `<li class="${cls}">${body}</li>`;
 }
 
@@ -111,4 +112,23 @@ export function detailHtml(a, s) {
     `<section class="au-sec"><h3>Each time</h3><p class="au-prompt">${esc(a.prompt)}</p></section>` +
     `<section class="au-sec">${settingsHtml(a, s)}</section>` +
     `<section class="au-sec"><h3>Runs</h3>${runsHtml(s)}</section></article>`;
+}
+
+/** @param {ReportState} r */
+const reportBody = (r) => r.failed ? `<p class="au-none">Couldn't read its report.</p>`
+  : r.text === null ? `<p class="au-none">Reading its report…</p>`
+  : r.text.trim() ? `<div class="prose au-report">${renderMarkdown(r.text)}</div>` : `<p class="au-none">This run left no report.</p>`;
+
+/** One run: what it found, when, and its report. @param {Automation} a @param {RunRow} run @param {ReportState} r */
+export function reportHtml(a, run, r) {
+  const [cls, icon, words] = runLook(run), line = runLine(run), to = run.thread;
+  const open = to ? `<div class="au-acts"><button type="button" class="btn" data-au-act="thread" data-chat="${esc(to.chat)}"` +
+    ` data-ts="${esc(to.ts)}">${xi("thread")}Open the run</button></div>` : "";
+  const when = [runWhen(run.at), a.persona ? titleOf(a.persona.name) : ""].filter(Boolean).join(" · ");
+  return `<article class="au-det ${cls}" aria-labelledby="au-det-h"><div class="au-bar">` +
+    `<button type="button" class="au-back" data-au-act="report-back">${xi("chevron-left")}${esc(a.name)}</button></div>` +
+    `<div class="au-hd"><span class="au-tile au-run-tile" aria-hidden="true">${xi(icon)}</span>` +
+    `<h2 id="au-det-h" tabindex="-1">${esc(words)}</h2></div><p class="au-next">${esc(when)}</p>` +
+    (line && (run.status !== "ok" || !r.text?.trim()) ? `<p class="au-prompt">${esc(line)}</p>` : "") +
+    open + `<section class="au-sec">${reportBody(r)}</section></article>`;
 }

@@ -161,6 +161,11 @@ button.au-run:hover{background:var(--fill-1)}
 .is-need>.au-run>svg{color:var(--need)}
 .is-ok>.au-run>svg{color:var(--ok-text)}
 .is-err>.au-run>svg{color:var(--danger)}
+.au-run-tile{background:var(--fill-2);color:var(--ink-4)}
+.is-need .au-run-tile{color:var(--need)}
+.is-ok .au-run-tile{color:var(--ok-text)}
+.is-err .au-run-tile{color:var(--danger)}
+.au-report{font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink-2)}
 .au-run b{display:block;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .au-run small{display:block;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .au-run time{font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4);

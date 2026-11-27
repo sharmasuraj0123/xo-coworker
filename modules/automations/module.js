@@ -1,6 +1,6 @@
 // @ts-check
 
-import { api } from "../../core/platform/api.js";
+import { api, NEWEST } from "../../core/platform/api.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { createAgentsFrame } from "./agent-frame.js";
@@ -20,6 +20,7 @@ import { browserZone, keepZone } from "./zone.js";
 
 /** After boot's own reads; the zone matters only when a job is next saved. */
 const ZONE_AFTER_MS = 5000;
+const REPORT_READ = 20;
 
 /** @type {ModuleDef} */
 export const automationsModule = {
@@ -62,8 +63,14 @@ export const automationsModule = {
     const idOf = (chat) => projects().find((p) => p.chat === chat)?.id ?? "";
     /** @param {string} chat */
     const openProject = (chat) => { const id = idOf(chat); if (id) nav.go("p:" + id); };
+    /** @type {(chat: string, ts: string, signal: AbortSignal) => Promise<string>} */
+    const readReport = async (chat, ts, signal) => {
+      const { messages } = await api.messages(chat, { thread: ts, before_seq: NEWEST, limit: REPORT_READ }, { signal });
+      const said = messages.filter((m) => m.author_kind === "agent" && m.text?.trim()).sort((x, y) => (y.seq ?? 0) - (x.seq ?? 0));
+      return said[0]?.text ?? "";
+    };
     const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
-      openProject };
+      openProject, readReport };
     /** @type {string[]} */
     let runtimes = [];
     api.runtimes().then((got) => { runtimes = got.runtimes.map((r) => r.name); }, reportFailure);

@@ -13,6 +13,8 @@ export interface LastRun {
   manual: boolean;
 }
 
+export interface ReportState { text: string | null; failed: boolean }
+
 export interface RunRow extends LastRun {
   key: string;
 }
@@ -248,6 +250,8 @@ export interface SideDeps {
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
+  /** The last thing a run's thread said: its report. */
+  readReport?: (chat: string, ts: string, signal: AbortSignal) => Promise<string>;
   /** Shows one just made; the side shows it itself when absent. */
   made?: (id: string) => void;
   openProject?: (chat: string) => void;
