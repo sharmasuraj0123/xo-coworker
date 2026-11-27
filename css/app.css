@@ -292,7 +292,8 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .th-ctl .is-need{color:var(--warn)}
 @container top (max-width:820px){
   .top .tw-act.th-ctl{width:auto;padding:0 var(--s-2)}
-  .top .tw-act.th-ctl>:is(.th-n,.th-seg){display:inline-flex}
+  .top .tw-act.th-ctl>.th-seg{display:inline-flex}
   .top .tw-act.th-ctl .th-seg>.pj-k{display:inline}
-  .top .tw-act.th-ctl>.th-w{display:none}
+  .top .tw-act.th-ctl>:is(.th-w,.th-n){display:none}
+  .top .tw-act.th-ctl>.th-n+.th-seg{padding-left:0;border-left:0}
 }
