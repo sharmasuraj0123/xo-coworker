@@ -1,0 +1,90 @@
+{
+  "id": "rv_33263965c8dc4f98",
+  "kind": "question",
+  "state": "open",
+  "risk": null,
+  "risk_reasons": [],
+  "risk_groups": [],
+  "blocking": true,
+  "title": "Which line should replace \"Workspace · every project, one conversation\"?; Which heading and subline should replace \"What can I help with?\" / \"For all your chat needs.\"?",
+  "why": null,
+  "detail": {
+    "questions": [
+      {
+        "id": "0",
+        "header": null,
+        "question": "Which line should replace \"Workspace · every project, one conversation\"?",
+        "options": [
+          {
+            "label": "(Recommended) Workspace · coordinate across all projects",
+            "description": null
+          },
+          {
+            "label": "Workspace · all your projects, one thread",
+            "description": null
+          },
+          {
+            "label": "Workspace · one place to run every project",
+            "description": null
+          },
+          {
+            "label": "Workspace · your cross-project coordinator",
+            "description": null
+          }
+        ],
+        "multi": false,
+        "secret": false
+      },
+      {
+        "id": "1",
+        "header": null,
+        "question": "Which heading and subline should replace \"What can I help with?\" / \"For all your chat needs.\"?",
+        "options": [
+          {
+            "label": "(Recommended) \"What are we working on?\" / \"Start a quick chat, or @mention a project.\"",
+            "description": null
+          },
+          {
+            "label": "\"Start a conversation\" / \"Ask anything, or @mention a project to jump in.\"",
+            "description": null
+          },
+          {
+            "label": "\"What's on your mind?\" / \"Quick questions, ideas, or hands-on work.\"",
+            "description": null
+          },
+          {
+            "label": "\"Ready when you are.\" / \"Chat freely, or pick a project below.\"",
+            "description": null
+          }
+        ],
+        "multi": false,
+        "secret": false
+      }
+    ],
+    "run": null,
+    "input_sha256": "b25c810840f31be24cd73c9a6447e93b7e592a29bd5fac76594b5367fa0672b6"
+  },
+  "options": [
+    {
+      "id": "answer",
+      "decision": "answer",
+      "label": "Answer"
+    }
+  ],
+  "chat_id": null,
+  "thread_ts": null,
+  "session_id": "cse_fca5373c23144a8e",
+  "run_id": null,
+  "turn_id": "agy-41baa7-1",
+  "epoch": 1,
+  "origin": "cli",
+  "parked": false,
+  "created_at": "2026-11-27T06:28:47Z",
+  "expires_at": null,
+  "decision": null,
+  "decided_by": null,
+  "decided_at": null,
+  "delivery": null,
+  "annotations": [],
+  "subject": null
+}

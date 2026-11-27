@@ -26,10 +26,10 @@ const isReviewOption = (value) => isResponseObject(value) && text(value.decision
 
 /** @param {unknown} value */
 const isQuestionOption = (value) => isResponseObject(value) && text(value.label)
-  && maybeText(value.description) && maybeText(value.cost) && maybeBoolean(value.recommended);
+  && nullableText(value.description) && nullableText(value.cost) && maybeBoolean(value.recommended);
 
 /** @param {unknown} value */
-const isQuestion = (value) => isResponseObject(value) && [value.id, value.header, value.question].every(maybeText)
+const isQuestion = (value) => isResponseObject(value) && [value.id, value.header, value.question].every(nullableText)
   && maybeBoolean(value.secret) && maybeBoolean(value.multi) && optionalList(value.options, isQuestionOption);
 
 /** @param {unknown} value */
@@ -48,9 +48,9 @@ export const isReview = (value) => isResponseObject(value) && text(value.id) && 
   && optionalList(value.options, isReviewOption) && optionalList(value.annotations, isAnnotation)
   && optionalList(value.risk_groups, isRiskGroup) && (value.decision == null || isDecision(value.decision));
 
-/** @param {unknown} value @returns {value is ReviewPage} */
-export const isReviewPage = (value) => isResponseObject(value) && Array.isArray(value.items) && value.items.every(isReview)
-  && (value.next_after_seq === null || maybeNumber(value.next_after_seq));
+/** Each item is checked where it is read, so one bad item costs only itself. @param {unknown} value @returns {value is ReviewPage} */
+export const isReviewPage = (value) => isResponseObject(value) && Array.isArray(value.items)
+  && value.items.every(isResponseObject) && (value.next_after_seq === null || maybeNumber(value.next_after_seq));
 
 /** @param {unknown} value @returns {value is Rule} */
 export const isRule = (value) => isResponseObject(value) && text(value.id)

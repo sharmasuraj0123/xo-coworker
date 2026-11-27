@@ -3,6 +3,8 @@ import { client, NEWEST, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
 import { once } from "../../platform/pending.js";
 import { retryRead, retryableRead } from "./read-policy.js";
+import { isReview } from "../../platform/review-responses.js";
+import { invalidField, rejectItem } from "./frame-failures.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
 /** @import { Ctx } from "./types" */
@@ -144,6 +146,7 @@ export function installLoad(ctx) {
       const d = await client.review({ state: "open", limit: 500, ...(after ? { after_seq: after } : {}) }, { signal });
       if (signal.aborted) return;
       for (const it of d.items || []) {
+        if (!isReview(it)) { rejectItem(ctx, "review item", invalidField(it, { id: "", state: "open" }, isReview)); continue; }
         if (state.review.get(it.id) === unseen.get(it.id)) state.review.set(it.id, it);
         unseen.delete(it.id);
       }

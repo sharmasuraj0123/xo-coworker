@@ -36,3 +36,21 @@ test("the decision contract checks hold flags and question choices before render
   assert.equal(isReview({ ...item, options: [{ decision: "allow", hold_to_confirm: "false" }] }), false);
   assert.equal(isReview({ ...item, detail: { questions: [{ options: [{ label: 12 }] }] } }), false);
 });
+
+test("an Antigravity question with null headers and choice notes opens as a review", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { questionsOf } = await import("../../review.js");
+  const item = JSON.parse(readFileSync(new URL("./fixtures/agy-question-review.json", import.meta.url), "utf8"));
+  const ctx = { state: { rejectedFrames: new Map(), review: new Map() }, soon() {} };
+  review["review.opened"](ctx, { seq: 1 }, item);
+  assert.equal(ctx.state.rejectedFrames.size, 0);
+  const shown = questionsOf(ctx.state.review.get(item.id));
+  assert.deepEqual(shown.map((q) => [q.header, q.options.length]), [["", 4], ["", 4]]);
+});
+
+test("a live review that can't be read is dropped and said", () => {
+  const ctx = { state: { rejectedFrames: new Map(), review: new Map() }, soon() {} };
+  review["review.opened"](ctx, { seq: 1 }, { id: "r", detail: { questions: [{ header: 3 }] } });
+  assert.equal(ctx.state.review.has("r"), false);
+  assert.deepEqual([...ctx.state.rejectedFrames.keys()], ["review.opened.detail"]);
+});
