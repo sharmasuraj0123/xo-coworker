@@ -2,6 +2,7 @@
 import { captureCoderToken } from "../core/platform/http.js";
 import { trackPress } from "../core/ui/press.js";
 import { defineXoSelect } from "../core/ui/components/xo-select.js";
+import { defineXoDate } from "../core/ui/components/xo-date.js";
 import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
 import { startShell } from "./start.js";
 import { PHONE } from "../core/platform/viewport.js";
@@ -14,6 +15,7 @@ export async function bootShell(modules) {
   captureCoderToken();
   const kernel = createShellKernel();
   defineXoSelect();
+  defineXoDate();
   drawPlaceIcons();
   drawFrameIcons();
   kernel.register({

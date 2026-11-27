@@ -115,3 +115,8 @@ assert.match(formHtml(back, ruled, { projects: [], problem: "", busy: "x", agent
   "Edit is its own view, so it arrives like one");
 
 console.log("form: ok");
+
+const onceSaid = sentenceHtml({ ...fresh, repeat: "once", date: "2026-11-28" }, { projects: [], problem: "", busy: "x", agents: [] });
+assert.match(onceSaid, /<xo-date name="date" class="au-chip" value="2026-11-28" min="\d{4}-\d\d-\d\d" aria-label="Date">/,
+  "a date is chosen in the app's own calendar, from today on");
+assert.doesNotMatch(onceSaid, /type="date"/, "never the browser's own");

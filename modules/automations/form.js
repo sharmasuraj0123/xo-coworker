@@ -163,7 +163,9 @@ function daysHtml(v) {
 
 /** What a repeat that isn't by days needs: its date, its day of the month or its hours. @param {FormValues} v */
 function sinceHtml(v) {
-  if (v.repeat === "once") return `<input type="date" name="date" class="au-chip-in" value="${esc(v.date)}" aria-label="Date">`;
+  if (v.repeat === "once") {
+    return `<xo-date name="date" class="au-chip" value="${esc(v.date)}" min="${dateOf(Date.now())}" aria-label="Date"></xo-date>`;
+  }
   if (v.repeat === "hours") return `<input name="hours" class="au-chip-in" inputmode="numeric" maxlength="2" value="${v.hours}"` +
     ` aria-label="Hours apart"><span>hours, from</span>`;
   if (v.repeat !== "month") return "";

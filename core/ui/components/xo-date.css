@@ -1,0 +1,30 @@
+/* <xo-date>: its button is a dd-btn and its calendar a dd-menu; days are circles like the week strip's, the chosen one filled. */
+
+xo-date{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
+xo-date .dd-btn{font-variant-numeric:tabular-nums}
+xo-date .dd-btn[aria-expanded="true"]{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+
+.dt-pop{--dt-cell:var(--h-ctl);padding:var(--s-3);overflow:visible}
+.dt-hd{display:flex;align-items:center;gap:var(--s-1);padding:0 0 var(--s-2) var(--s-2)}
+.dt-mo{flex:1;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.dt-nav{display:grid;place-items:center;width:var(--dt-cell);height:var(--dt-cell);padding:0;border:0;border-radius:var(--r-icon-round);
+  background:none;color:var(--ink-4);cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dt-nav svg{width:var(--ic);height:var(--ic)}
+.dt-nav:hover{background:var(--hover-fill);color:var(--ink)}
+.dt-nav:disabled{opacity:var(--opacity-muted);cursor:default;background:none}
+.dt-grid{display:grid;grid-template-columns:repeat(7,var(--dt-cell));gap:var(--s-1)}
+.dt-grid>[role=row]{display:contents}
+.dt-grid [role=columnheader]{display:grid;place-items:center;height:var(--h-sm);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.dt-grid [data-day]{display:grid;place-items:center;height:var(--dt-cell);border-radius:var(--r-icon-round);
+  font:var(--fw-medium) var(--fs-ui)/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-2);cursor:pointer;
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dt-grid [data-day]:hover,.dt-grid .is-cur{background:var(--hover-fill);color:var(--ink)}
+.dt-grid [aria-current=date]{color:var(--accent);font-weight:var(--fw-strong)}
+.dt-grid [aria-selected=true]{background:var(--ink);color:var(--on-ink)}
+.dt-grid [aria-disabled=true]{background:none;color:var(--ink-5);cursor:default}
+
+/* a finger needs more than a pointer */
+@media (max-width:760px){
+  .dt-pop{--dt-cell:var(--h-lg)}
+}
