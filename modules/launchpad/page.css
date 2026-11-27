@@ -9,7 +9,7 @@
 .lqp-need .lq-h{margin-top:0}
 .lqp-need .lq-note{margin-top:0}
 .lqp-need .lq-note+.lq-note{margin-top:var(--s-3)}
-.lqp-need .lq-nc{display:flex;align-items:center;gap:var(--s-4);padding:0}
+.lqp-need .lq-nc{display:flex;align-items:center;gap:var(--s-4)}
 .lqp-need .lq-nc p{margin-top:2px}
 .lqp .lq-ic{flex:none;display:grid;place-items:center;width:var(--tile-xl);height:var(--tile-xl);border-radius:var(--r-lg);background:var(--sb-g1C);box-shadow:inset 0 0 0 1px var(--sb-g26);color:var(--ink-2)}
 .lqp .lq-ic svg{width:var(--ic-lg);height:var(--ic-lg)}

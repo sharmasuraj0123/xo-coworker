@@ -146,7 +146,7 @@
   /* every card in the conversation column shares one corner; what sits inside one takes --r-block-in less its inset */
   --r-block:var(--r-lg); --r-block-in:calc(var(--r-block) - var(--hair));
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
-  --r-note:calc(var(--r) + var(--s-2));
+  --r-note:calc(var(--r) + var(--s-4));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
   --halo:8px; --cell-in:4px;
   --halo-row:12px;
