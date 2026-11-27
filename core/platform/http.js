@@ -43,6 +43,11 @@ export class ApiError extends Error {
   }
 }
 
+const INTERRUPTED = new Set(["network", "timeout", "signed_out"]);
+
+/** A request the connection cut short: the app's connection state says so, it is no fault of the app. @param {unknown} error */
+export const interruptedRequest = (error) => error instanceof ApiError && INTERRUPTED.has(error.code);
+
 /** How long a request may go unanswered: a write that never settles would stay "Sending" with no Retry. */
 const WRITE_MS = 20000;
 const READ_MS = 30000;
