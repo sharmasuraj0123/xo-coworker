@@ -20,6 +20,10 @@ interface Data {
   failed_step?: Text;
   kind?: Text;
   repo?: Text;
+  origin?: Text;
+  branch?: Text;
+  diagnosis?: Text;
+  reason?: Text;
   suggestion?: Text;
   ready?: Count;
   desired?: Count;

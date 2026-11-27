@@ -5,6 +5,9 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { esc } from "../../core/platform/index.js";
 import { nextStep, sizeWords } from "./model.js";
 
+/** @import { Model } from "./model.js" */
+/** @import { DeployFrame } from "./lifetime-types.d.ts" */
+
 export const LP_ICON = {
   rocket: ICON.deploy, github: ICON.github, image: ICON.container, app: ICON.server, out: ICON.out, more: ICON.more,
   link: ICON.link, x: ICON.close,
@@ -33,33 +36,33 @@ export const since = (at) => `<span class="elapsed" data-since="${at}">${clock(D
 export const where = (src) => (/^Dockerfile/.test(src) ? "the Dockerfile" : /^package\.json/.test(src) ? "package.json" : /^default/.test(src) ? "the default" : src);
 /** @param {unknown} t */
 export const cap = (t) => { const s = String(t || ""); return /^\S*[./]/.test(s) ? s : s.replace(/^./, (x) => x.toUpperCase()); }; // a file name keeps its case
-/** @param {any} c @param {string} name @param {string} [label] */
-export const sizeText = (c, name, label = "") => sizeWords(c.sizes?.tiers.find((/** @type {any} */ t) => t.name === name), label) || name || "";
+/** @param {Pick<Model, "sizes">} c @param {string | undefined} name @param {string} [label] */
+export const sizeText = (c, name, label = "") => sizeWords(c.sizes?.tiers.find((t) => t.name === name), label) || name || "";
 /** @param {unknown} s */
 export const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+/, "").slice(0, 25).replace(/-+$/, "");
 
-/** @param {any} e */
-export const failWords = (e) => /** @type {Record<string, string>} */ ({ build_failed: "Build failed", build_timeout: "Build is slow", health_check_failed: "Didn't go live", release_failed: "Didn't go live", release_timeout: "Release is slow", github_workflow_scope: "Needs GitHub", github_not_connected: "Needs GitHub", github_token_invalid: "Needs GitHub", push_rejected: "Push refused", remote_ahead: "Push refused", launchpad_unreachable: "Launchpad didn't answer", github_unreachable: "GitHub didn't answer", launchpad_limit: "App limit reached", launchpad_forbidden: "Launchpad said no", cancelled: "Stopped" })[e.code] || "Didn't deploy";
+/** @param {{ code?: string }} e */
+export const failWords = (e) => /** @type {Record<string, string>} */ ({ build_failed: "Build failed", build_timeout: "Build is slow", health_check_failed: "Didn't go live", release_failed: "Didn't go live", release_timeout: "Release is slow", github_workflow_scope: "Needs GitHub", github_not_connected: "Needs GitHub", github_token_invalid: "Needs GitHub", push_rejected: "Push refused", remote_ahead: "Push refused", launchpad_unreachable: "Launchpad didn't answer", github_unreachable: "GitHub didn't answer", launchpad_limit: "App limit reached", launchpad_forbidden: "Launchpad said no", cancelled: "Stopped" })[e.code || ""] || "Didn't deploy";
 
-/** A decision's own lit button above the form: not when the form is the answer (settings), nor done outside. @param {any} nd @returns {any} */
-export const lit = (nd) => { const a = nextStep(nd.action, nd.data); return a && a[1] !== "settings" && a[1] !== "retry" && a[1] !== "log" ? a : null; };
-/** @param {any} e */
+/** A decision's own lit button above the form: not when the form is the answer (settings), nor done outside. @param {DeployFrame} nd @returns {ReturnType<typeof nextStep>} */
+export const lit = (nd) => { const a = nextStep(nd.action || "", nd.data); return a && a[1] !== "settings" && a[1] !== "retry" && a[1] !== "log" ? a : null; };
+/** @param {{ fix?: string }} e */
 export const fixOf = (e) => (e.fix ? `<p class="lp-note">${esc(e.fix)}</p>` : "");
 /** A gh login on this machine without `workflow`: Space's command, to copy. @param {string} fix */
 export const ghCmd = (fix) => /`([^`]+)`/.exec(fix || "")?.[1] || "";
-/** @param {string} cmd @param {any} s */
-export const cmdHtml = (cmd, s) => { const on = s && s.cmdCopied > Date.now(); return `<div class="lp-cmd"><code>${esc(cmd)}</code><button type="button" class="lp-ib" data-lp="cmd-copy" data-v="${esc(cmd)}" title="${on ? "Copied" : "Copy the command"}" aria-label="Copy the command">${on ? ICON.check : ICON.copy}</button></div>`; };
+/** @param {string} cmd @param {{ cmdCopied: number } | null | undefined} s */
+export const cmdHtml = (cmd, s) => { const on = !!s && s.cmdCopied > Date.now(); return `<div class="lp-cmd"><code>${esc(cmd)}</code><button type="button" class="lp-ib" data-lp="cmd-copy" data-v="${esc(cmd)}" title="${on ? "Copied" : "Copy the command"}" aria-label="Copy the command">${on ? ICON.check : ICON.copy}</button></div>`; };
 
-/** Where launchpad.json sends the code, and where git's origin points: both whole, so the person sees the difference. @param {any} nd */
+/** Where deploy.json sends the code, and where git's origin points: both whole, so the person sees the difference. @param {DeployFrame} nd */
 export const repoFacts = (nd) => {
   const d = nd.data || {};
-  return `<p>launchpad.json names ${d.repo ? `<code>${esc(d.repo)}</code>` : "a repository"}. ${d.origin ? `This project's git origin is <code>${esc(d.origin)}</code>.` : "This project has no git origin."}</p>`;
+  return `<p>deploy.json names ${d.repo ? `<code>${esc(d.repo)}</code>` : "a repository"}. ${d.origin ? `This project's git origin is <code>${esc(d.origin)}</code>.` : "This project has no git origin."}</p>`;
 };
-/** The apps a push would also deploy (Space's other_apps), each by its slug or its workflow file, and where the push goes. @param {any} nd */
+/** The apps a push would also deploy (Space's other_apps), each by its slug or its workflow file, and where the push goes. @param {DeployFrame} nd */
 export const appsFacts = (nd) => {
   const d = nd.data || {}, apps = Array.isArray(d.apps) ? d.apps : [];
   return `<p>${d.repo ? `A push to <code>${esc(d.repo)}</code>${d.branch ? ` (<code>${esc(d.branch)}</code>)` : ""}` : "A push"} also deploys:</p>` +
-    (apps.length ? `<ul class="lp-also">${apps.map((/** @type {any} */ a) => `<li><code>${esc(a.slug || a.id || "")}</code>${a.slug && a.workflow ? ` <span>from <code>${esc(a.workflow)}</code></span>` : !a.slug ? " <span>(a workflow file)</span>" : ""}</li>`).join("")}</ul>` : "");
+    (apps.length ? `<ul class="lp-also">${apps.map((a) => `<li><code>${esc(a.slug || a.id || "")}</code>${a.slug && a.workflow ? ` <span>from <code>${esc(a.workflow)}</code></span>` : !a.slug ? " <span>(a workflow file)</span>" : ""}</li>`).join("")}</ul>` : "");
 };
-/** @param {any} c @param {any} f */
+/** @param {Pick<Model, "sizes">} c @param {{ size?: string }} f */
 export const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");

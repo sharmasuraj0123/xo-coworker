@@ -51,11 +51,12 @@ export function installViews(L) {
     const nd = s.needs;
     const editing = !!(s.editing && c.app);
     const sm = editing ? summary(p) : null;
+    const ask = nd ? lit(nd) : null;
     const decline = nd?.code === "confirm_repo" ? btn("decline-repo", "Not this repository") : nd?.code === "other_apps" ? btn("decline-apps", "Don't push") : "";
     return (sm ? top({ tone: sm.tone, words: sm.words, title: `${esc(nameOf(p))}'s settings`, sub: `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.` })
       : top({ words: "Not on the web yet", title: `Put ${esc(nameOf(p))} on the web`, sub: guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it at an address of its own. Nothing goes out until you press Deploy." })) +
       askedHtml(p) +
-      (nd ? `<div class="lq-note lp-rec lp-ask t-need"><div class="lq-nc"><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${decline || lit(nd) ? `<div class="lq-acts">${decline}${lit(nd) ? btn(lit(nd)[1], esc(lit(nd)[0]), "", true) : ""}</div>` : ""}</div>` : "") +
+      (nd ? `<div class="lq-note lp-rec lp-ask t-need"><div class="lq-nc"><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${decline || ask ? `<div class="lq-acts">${decline}${ask ? btn(ask[1], esc(ask[0]), "", true) : ""}</div>` : ""}</div>` : "") +
       (c.blockers.length ? `<p class="lp-note t-need">Deploy would stop here: ${esc(c.blockers.join("; "))}.</p>` : "") +
       // what Space warned of before the button is pressed (a repository that isn't the person's own, uncommitted changes, …)
       (c.warnings.length ? c.warnings.map((/** @type {string} */ w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("") : "") +

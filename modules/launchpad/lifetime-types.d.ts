@@ -3,6 +3,7 @@ import type { createScope } from "../../core/kernel/scope.js";
 import type { model } from "./model.js";
 import type { createWindowNotices } from "./notices.js";
 import type { installStore } from "./store.js";
+import type { Frame } from "../../core/platform/launchpad-stream-types.d.ts";
 
 export type LaunchpadApi = ReturnType<typeof createLpApi>;
 type CheckModel = ReturnType<typeof model>;
@@ -14,7 +15,7 @@ type Disk = { path: string; gb: number };
 type Step = { state?: string; text?: string; url?: string; at?: number; took?: number; ready?: number; of?: number; release?: number };
 type DeployError = { code: string; text?: string; message?: string; node?: string; step?: string; port?: number; declared?: number;
   last?: number; app?: { id: string }; url?: string; action?: string; fix?: string; source?: string;
-  release?: number; log?: string[] | null };
+  release?: number; log?: string[] | null; kind?: string; diagnosis?: string };
 type NoticeOwner = ReturnType<typeof createWindowNotices>;
 
 export interface PrepThread {
@@ -95,7 +96,8 @@ export interface DeployFrame {
   code?: string;
   id?: string;
   run?: string;
-  step: string;
+  by?: { run_id: string; kind: "deploy" };
+  step?: string;
   state?: string;
   at?: number;
   started?: number;
@@ -103,6 +105,7 @@ export interface DeployFrame {
   message?: string;
   action?: string;
   fix?: string;
+  options?: { id: string; label: string }[];
   text?: string;
   url?: string;
   host?: string;
@@ -110,9 +113,8 @@ export interface DeployFrame {
   of?: number;
   release?: number;
   commit?: string;
-  app?: { id: string; name?: string };
-  data?: { suggestion?: string; reason?: string; repo?: string; origin?: string; branch?: string;
-    apps?: { id: string; slug?: string; workflow?: string }[]; app?: { id: string } };
+  app?: { id: string; name?: string; slug?: string } | null;
+  data?: NonNullable<Extract<Frame, { code: string }>["data"]>;
 }
 
 export interface LaunchpadProject {
