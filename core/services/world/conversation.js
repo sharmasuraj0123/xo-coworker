@@ -70,6 +70,7 @@ export function threadAnchors(msgs, threadIds) {
   const alone = new Set();
   msgs.forEach((m, i) => {
     if (!ids.has(m.id)) return;
+    if (ownReply(m)) { on.set(m.id, [...(on.get(m.id) || []), m.id]); return; }
     const near = [];
     for (let j = i + 1; j < msgs.length && near.length < 3; j++) {
       const n = msgs[j];

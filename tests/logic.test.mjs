@@ -224,6 +224,8 @@ t("a copy from another project never takes this chat's thread card", () => {
   assert.deepEqual([...threadAnchors(rows, ["root"]).on], [["told", ["root"]]], "it sits under our coordinator's reply that links the thread");
   assert.deepEqual([...threadAnchors(rows.filter((r) => r.id !== "told"), ["root"]).on], [["said", ["root"]]]);
   assert.deepEqual([...threadAnchors(rows.slice(0, 2), ["root"]).alone], ["root"], "with only a copy after it, the card stands alone");
+  const turn = [{ id: "ask", who: "you" }, { id: "t1", who: "coord" }, { id: "t2", who: "coord" }, { id: "t3", who: "coord" }, { id: "said", who: "coord" }];
+  assert.deepEqual([...threadAnchors(turn, ["t1", "t2", "t3"]).on], [["t1", ["t1"]], ["t2", ["t2"]], ["t3", ["t3"]]], "threads opened in one turn each keep their card");
   assert.equal(ownReply(rows[1]), false);
   assert.equal(ownReply(rows[2]), true);
 });
