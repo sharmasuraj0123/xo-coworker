@@ -16,6 +16,7 @@ import { emptyHtml, foundHtml, listHtml, offHtml, agendaHtml, weekHtml } from ".
 const TABS = /** @type {const} */ ([["upcoming", "Upcoming"], ["found", "Found something"], ["off", "Off"]]);
 const LEADS = { automations: "Agents that run on their own, in your projects.",
   agents: "Who threads and automations run as. A project's own agent replaces the Space's of the same name." };
+const CREATE = { automations: "Create automation", agents: "Create agent" };
 const MODES = /** @type {const} */ ([["automations", "Automations"], ["agents", "Agents"]]);
 
 /** @returns {string | null} */
@@ -115,10 +116,10 @@ export function createAutomationsPage(deps) {
       `${counts[key] ? `<i>${counts[key]}</i>` : ""}</button>`).join("");
     const modes = MODES.map(([key, words]) => `<button type="button" role="radio" aria-checked="${mode === key}"` +
       ` tabindex="${mode === key ? 0 : -1}" data-au-mode="${key}">${esc(words)}</button>`).join("");
-    const canNew = mode === "agents" || deps.projects().length;
+    const shut = mode === "agents" || deps.projects().length ? "" : " disabled";
     return `<div class="au-page"><header class="au-top"><div><h1 id="auto-h" tabindex="-1">Automations</h1>` +
       `<p>${esc(LEADS[mode])}</p></div>` +
-      `<button type="button" class="btn" data-au-act="new"${canNew ? "" : " disabled"}>${xi("plus")}New</button></header>` +
+      `<button type="button" class="btn btn-pri" data-au-act="new"${shut}>${xi("plus")}${CREATE[mode]}</button></header>` +
       `<div class="rt-seg au-mode" role="radiogroup" aria-label="Page">${modes}</div>` +
       (mode === "automations" ? `<div class="rt-seg au-tabs" role="radiogroup" aria-label="Show">${tabs}</div>` : "") +
       `<div class="au-body">${mode === "agents" ? agents.html() : bodyHtml(deps.store.state, tab, rowState(), now())}</div></div>`;
