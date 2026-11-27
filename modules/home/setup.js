@@ -8,7 +8,7 @@ import { isInstalled, rtMark, rtName } from "../../core/services/runtimes.js";
 
 /** @typedef {{ status: string } | null | undefined} GitHubRead */
 
-/** @typedef {{ key: string, page: string, mark: string, name: string, line: string, act: string }} SetupItem */
+/** @typedef {{ key: string, page: string, mark: string, name: string, line: string, act: string, done: string }} SetupItem */
 
 const RUNTIMES = ["claude_code", "codex", "antigravity", "grok_build"];
 
@@ -19,34 +19,45 @@ const signedIn = (rt) => (rt.lifecycle ? rt.lifecycle.signed_in : !!rt.health?.l
 function runtimeItem(rt) {
   const there = rt.lifecycle ? rt.lifecycle.installed : isInstalled(rt);
   const line = there ? "Sign in so XO can run work on it." : "Not installed on this Space yet.";
-  const mark = rtMark(rt.name) || "";
-  return { key: `rt:${rt.name}`, page: "runtimes", mark, name: rtName(rt.name), line, act: there ? "Sign in" : "Install" };
+  const act = there ? "Sign in" : "Install";
+  return { key: `rt:${rt.name}`, page: "runtimes", mark: rtMark(rt.name) || "", name: rtName(rt.name), line, act, done: "Signed in" };
 }
 
 /** @type {SetupItem} */
 const GITHUB = {
   key: "acct:github", page: "accounts", mark: ICON.github, name: "GitHub", line: "One-click deploys on XO's Launchpad.", act: "Connect",
+  done: "Connected",
 };
 
-/** Empty until both land, and once a runtime and GitHub are in. @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
-export function setupItems(runtimes, gh) {
-  if (!runtimes || gh === undefined) return [];
+/** Null until both reads land; empty once set up. @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
+export function setupNeeds(runtimes, gh) {
+  if (!runtimes || gh === undefined) return null;
   const ghOut = !!gh && gh.status !== "connected" && gh.status !== "failed";
   if (runtimes.some(signedIn) && !ghOut) return [];
   const out = RUNTIMES.flatMap((n) => runtimes.filter((r) => r.name === n && !signedIn(r)));
   return [...out.map(runtimeItem), ...(ghOut ? [GITHUB] : [])];
 }
 
-/** @param {SetupItem} it */
-const rowHtml = (it) => `<li><button type="button" class="su-i" data-set-open="${it.page}" data-set-row="${esc(it.key)}">` +
-  `<span class="su-ic" aria-hidden="true">${it.mark}</span>` +
-  `<span class="su-t"><b>${esc(it.name)}</b><span>${esc(it.line)}</span></span>` +
-  `<span class="su-go">${esc(it.act)}${ICON.right}</span></button></li>`;
-
-/** @param {SetupItem[]} items */
-export function setupHtml(items) {
-  if (!items.length) return "";
-  return `<section class="su" aria-labelledby="su-h"><h2 class="hm-lbl" id="su-h">Get set up</h2>` +
-    `<p class="su-lead">Sign in to an agent so XO can work for you, and to GitHub so it can deploy.</p>` +
-    `<ul class="su-list">${items.map(rowHtml).join("")}</ul></section>`;
+/** Whether its sign-in is done. @param {string} key @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
+export function signedInNow(key, runtimes, gh) {
+  if (key === GITHUB.key) return gh?.status === "connected";
+  const rt = (runtimes || []).find((r) => `rt:${r.name}` === key);
+  return !!rt && signedIn(rt);
 }
+
+/** @param {SetupItem} it @param {boolean} done */
+export function rowHtml(it, done) {
+  const ok = done ? `<span class="su-ok">${ICON.check}</span>` : "";
+  const tile = `<span class="su-ic" aria-hidden="true"><span class="su-m">${it.mark}</span>${ok}</span>`;
+  const text = `<span class="su-t"><b>${esc(it.name)}</b><span>${esc(done ? it.done : it.line)}</span></span>`;
+  if (done) return `<div class="su-i is-done" role="status">${tile}${text}</div>`;
+  return `<button type="button" class="su-i" data-set-open="${it.page}" data-set-row="${esc(it.key)}">${tile}${text}` +
+    `<span class="su-go">${esc(it.act)}${ICON.right}</span></button>`;
+}
+
+const READY = "XO can work for you now, and deploy to Launchpad.";
+const WELCOME = "A few suggestions for this Space. Explore freely; they wait here until you're ready.";
+
+/** @param {boolean} allSet */
+export const headHtml = (allSet) => `<h2 class="hm-lbl" id="su-h">${allSet ? "You're all set" : "Get started"}</h2>` +
+  `<p class="su-lead">${allSet ? READY : WELCOME}</p>`;
