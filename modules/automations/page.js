@@ -93,19 +93,14 @@ export function createAutomationsPage(deps) {
   /** @type {"automations" | "agents"} */
   let mode = "automations";
   let menu = noId(), confirm = noId(), selected = noId(), agentKey = noId();
-  /** @type {HTMLElement | null} */
-  let main = null;
-  /** @type {HTMLElement | null} */
-  let aside = null;
-  /** @type {HTMLElement | null} */
-  let agentAside = null;
+  let main = /** @type {HTMLElement | null} */ (null), aside = main, agentAside = main;
   const side = deps.side({ shown(id) { selected = id; showSide(aside, id !== null); paint(); },
     openAgent(persona, chat) { setMode("agents"); agentSide.open(refKeyOf(persona, idOf(deps, chat))); } });
   const agentSide = deps.agentSide({
     shown(key) { agentKey = key; showSide(agentAside, key !== null); paint(); },
     openJob(id) { setMode("automations"); side.open(id); },
   });
-  const agents = deps.agentList({ selected: () => agentKey, shown: () => mode === "agents", changed: () => paint() });
+  const agents = deps.agentList({ selected: () => agentKey, menu: () => menu, shown: () => mode === "agents", changed: () => paint() });
   const unwatch = deps.store.watch(() => paint());
   /** @type {(() => void)[]} */
   const undo = [];
@@ -151,9 +146,11 @@ export function createAutomationsPage(deps) {
     const modeKey = target.getAttribute("data-au-mode");
     if (modeKey) { setMode(/** @type {"automations" | "agents"} */ (modeKey)); return; }
     if (target.hasAttribute("data-ag-act")) {
-      const key = target.getAttribute("data-ag-key");
-      if (target.getAttribute("data-ag-act") === "open" && key) agentSide.open(key);
-      else if (agents.onClick(target)) paint();
+      const key = target.getAttribute("data-ag-key") ?? "", what = target.getAttribute("data-ag-act");
+      menu = what === "row-menu" && wasMenu !== `ag:${key}` ? `ag:${key}` : null;
+      if (what === "open" && key) agentSide.open(key);
+      else if (what === "row-do") { paint(); agentSide.run(key, target.getAttribute("data-ag-do") ?? "", rowMore(key) ?? target); }
+      else if (agents.onClick(target) || what === "row-menu" || wasMenu) paint();
       return;
     }
     const tabKey = target.getAttribute("data-au-tab");
@@ -198,6 +195,9 @@ export function createAutomationsPage(deps) {
     if (el instanceof HTMLElement) el.focus({ preventScroll: true });
   }
 
+  /** @param {string} key */
+  const rowMore = (key) => main?.querySelector(`.au-more[data-au-id="ag:${CSS.escape(key)}"]`) ?? null;
+
   return {
     /** @param {HTMLElement} host */
     mount(host) {
@@ -214,7 +214,7 @@ export function createAutomationsPage(deps) {
         const was = menu;
         menu = null;
         paint();
-        focusIn(`[data-au-act=menu][data-au-id="${CSS.escape(was ?? "")}"]`);
+        focusIn(`.au-more[data-au-id="${CSS.escape(was ?? "")}"]`);
       };
       undo.push(menuKeys(box, { close: closeMenu }), radioKeys(box));
     },

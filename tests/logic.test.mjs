@@ -1,7 +1,7 @@
 // Exercises the UI's pure modules (markdown, model, timeline) against fixed
 // cases and against live storm data through the proxy (GET only: nothing is written).
 //   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
-//   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
+//   XO_UI=<ui url> node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
 import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../core/ui/markdown/markdown.js";
 import { parseChecklist, tasksOf } from "../core/services/world/checklist.js";

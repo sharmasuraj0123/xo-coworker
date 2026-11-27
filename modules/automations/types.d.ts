@@ -127,6 +127,8 @@ export interface AgentSideDeps {
 
 export interface RuntimeChange { st: AgentSideState; deps: AgentSideDeps; may: Record<string, MayChoice>; paint: () => void }
 
+export interface TryWhat { persona?: { name: string; level: Agent["level"] }; text?: string }
+
 export interface TryState { task: string; project: string; busy: string; problem?: string }
 
 export interface AgentDetailState {
@@ -166,6 +168,7 @@ export interface AgentSideState {
   version: string | null;
   values: import("./agent-form.js").AgentValues | null;
   read: string;
+  then: string;
 }
 
 export interface AgentFrameDeps {
@@ -200,6 +203,7 @@ export interface AgentListDeps {
   projects: () => Project[];
   projectName: (id: string) => string;
   selected: () => string | null;
+  menu: () => string | null;
   shown: () => boolean;
   changed: () => void;
   failed: (error: unknown, words: string) => void;
@@ -306,7 +310,7 @@ export interface PageDeps {
   store: AutomationsStore;
   side: (hooks: { shown: (id: string | null) => void, openAgent: (persona: PersonaRef, chat: string) => void }) => Side;
   agentSide: (hooks: { shown: (key: string | null) => void, openJob: (id: string) => void }) => import("./agent-side.js").AgentSide;
-  agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
+  agentList: (hooks: Pick<AgentListDeps, "selected" | "menu" | "shown" | "changed">) => AgentListApi;
   projectName: (chat: string) => string;
   projects: () => Project[];
   here: () => Project | null;

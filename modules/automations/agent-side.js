@@ -7,7 +7,7 @@ import { instructionsOf, keyOf, titleOf } from "./agent-file.js";
 import { agentProblem, agentText, agentValues, readAgentForm } from "./agent-form.js";
 import { agentDetailHtml, agentFormHtml } from "./agent-views.js";
 
-/** @import { Agent, AgentSideDeps, AgentSideState, RuntimeChange } from "./types" */
+/** @import { Agent, AgentSideDeps, AgentSideState, RuntimeChange, TryWhat } from "./types" */
 
 /** @typedef {{ st: AgentSideState, deps: AgentSideDeps, show: (key: string | null, edit: boolean) => void, close: () => void }} Calls */
 
@@ -37,6 +37,22 @@ async function readBody(st, deps, a, paint) {
     deps.failed(error, "Couldn't read its file.");
   }
   paint();
+}
+
+/** @param {Pick<Calls, "st" | "deps"> & { paint: () => void }} c @param {TryWhat} what @param {string} project @param {string} task */
+async function tryOnce({ st, deps, paint }, what, project, task) {
+  await once(`ag-try:${st.key ?? "new"}`, async () => {
+    paint();
+    try {
+      const got = await deps.personas.tryOnce({ ...what, project, ...(task.trim() ? { task: task.trim() } : {}) });
+      st.trying = null;
+      deps.announce("Trying it once, in a new thread");
+      deps.openThread(got.chat_id, got.ts);
+    } catch (error) {
+      deps.failed(error, wordsOf(error, "Couldn't start the try."));
+    }
+    paint();
+  });
 }
 
 /** A button on an agent. @param {string} what @param {Element} target @param {Agent} a @param {Calls & { paint: () => void }} c */
@@ -78,7 +94,7 @@ function newRuntime(e, { st, deps, may, paint }) {
 export function createAgentSide(deps) {
   /** @type {AgentSideState} */
   const st = { host: null, key: null, editing: false, menu: false, confirm: false, trying: null, body: null, version: null, values: null,
-    read: "" };
+    read: "", then: "" };
   const unwatch = deps.personas.watch(() => paint());
   const current = () => st.key ? deps.find(st.key) : null;
   const may = () => deps.personas.seen(deps.project() || "")?.may ?? {};
@@ -96,16 +112,20 @@ export function createAgentSide(deps) {
       return;
     }
     if (!a) { redraw(st.host, st.key ? `<p class="au-none">This agent is gone.</p>` : ""); return; }
-    void readBody(st, deps, a, paint);
+    void readBody(st, deps, a, loaded);
     redraw(st.host, agentDetailHtml(a, { where: deps.where, body: st.body, menu: st.menu, confirm: st.confirm, trying: st.trying,
       may: may(), projects: deps.projects(), project: deps.project(), projectName: deps.projectName }));
     const opened = st.menu ? st.host.querySelector(".au-menu") : null;
     if (opened instanceof HTMLElement && !opened.contains(document.activeElement)) focusOpened(opened);
   }
 
+  function loaded() {
+    if (st.then === "edit" && st.body !== null) { st.then = ""; show(st.key, true); } else paint();
+  }
+
   /** @param {string | null} key @param {boolean} edit */
   function show(key, edit) {
-    Object.assign(st, { key, editing: edit, menu: false, confirm: false, trying: null });
+    Object.assign(st, { key, editing: edit, menu: false, confirm: false, trying: null, then: "" });
     const a = current();
     st.values = edit ? agentValues(a, a ? st.body ?? "" : "", a ? a.project : deps.project(), may()) : null;
     deps.shown(key ?? (edit ? "" : null));
@@ -117,22 +137,6 @@ export function createAgentSide(deps) {
     Object.assign(st, { key: null, editing: false, values: null, menu: false, confirm: false, trying: null });
     deps.shown(null);
     if (st.host) redraw(st.host, "");
-  }
-
-  /** @param {{ persona?: { name: string, level: Agent["level"] }, text?: string }} what @param {string} project @param {string} task */
-  async function tryOnce(what, project, task) {
-    await once(`ag-try:${st.key ?? "new"}`, async () => {
-      paint();
-      try {
-        const got = await deps.personas.tryOnce({ ...what, project, ...(task.trim() ? { task: task.trim() } : {}) });
-        st.trying = null;
-        deps.announce("Trying it once, in a new thread");
-        deps.openThread(got.chat_id, got.ts);
-      } catch (error) {
-        deps.failed(error, wordsOf(error, "Couldn't start the try."));
-      }
-      paint();
-    });
   }
 
   async function save() {
@@ -171,7 +175,7 @@ export function createAgentSide(deps) {
       const v = st.values = form instanceof HTMLElement ? readAgentForm(form, st.values, may()) : st.values;
       const project = deps.project() || v.tryOn || (v.draft.level === "project" ? v.draft.project : "");
       v.problem = project ? "" : "Choose a project to try it on.";
-      if (project) void tryOnce({ text: agentText(v) }, project, ""); else paint();
+      if (project) void tryOnce({ st, deps, paint }, { text: agentText(v) }, project, ""); else paint();
       return;
     }
     const a = current();
@@ -189,7 +193,7 @@ export function createAgentSide(deps) {
       };
       const project = read("try-project") || st.trying.project;
       if (!project) { Object.assign(st.trying, { task: read("task"), problem: "Choose a project to try it on." }); paint(); return; }
-      void tryOnce({ persona: { name: a.name, level: a.level } }, project, read("task"));
+      void tryOnce({ st, deps, paint }, { persona: { name: a.name, level: a.level } }, project, read("task"));
     } else void save();
   }
 
@@ -210,6 +214,14 @@ export function createAgentSide(deps) {
     },
     /** @param {string} key */
     open: (key) => show(key, false),
+    /** Open it and do what its row's ••• chose. @param {string} key @param {string} what @param {Element} from */
+    run(key, what, from) {
+      show(key, false);
+      const a = current();
+      if (!a) return;
+      if (what === "edit" && st.body === null) st.then = "edit";
+      else act(what, from, a, { st, deps, show, close, paint });
+    },
     create: () => show(null, true),
     close,
     get key() { return st.key; },
