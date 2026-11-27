@@ -1,5 +1,5 @@
-// Builds the icon module from its SVG manifest.
-import { readFileSync, writeFileSync } from "node:fs";
+// Builds the icon module from the pack's SVG files.
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const ROOT = new URL("../../", import.meta.url);
 const PACK = new URL("core/ui/icons/source/xo/", ROOT);
@@ -11,6 +11,10 @@ const MARK = { "rgb(29 29 31)": "x", "rgb(131 214 58)": "o" };
 const TAGS = new Set(["svg", "g", "clipPath", "rect", "path", "ellipse", "circle"]);
 const ATTRS = new Set(["xmlns", "width", "height", "viewBox", "id", "clip-path", "transform", "opacity", "d", "x", "y",
   "rx", "ry", "cx", "cy", "r", "fill", "fill-rule", "clip-rule", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"]);
+
+/** Every SVG in the pack, as "<category>/<name>.svg", sorted. */
+export const packFiles = () => readdirSync(PACK, { withFileTypes: true }).filter((d) => d.isDirectory())
+  .flatMap((d) => readdirSync(new URL(`${d.name}/`, PACK)).filter((f) => f.endsWith(".svg")).map((f) => `${d.name}/${f}`)).sort();
 
 const num = (s) => s.replace(/-?\d*\.\d+(e-?\d+)?/g, (n) => String(Math.round(parseFloat(n) * 1000) / 1000));
 
@@ -48,14 +52,12 @@ export function clean(name, src) {
 }
 
 export function build() {
-  const man = JSON.parse(readFileSync(new URL("manifest.json", PACK), "utf8"));
   const out = {};
-  for (const ic of man.icons) {
-    if (!/^[a-z0-9-]+\/[a-z0-9-]+\.svg$/.test(ic.file)) throw new Error(`manifest: odd path ${ic.file}`);
-    // an icon is named by its file (the manifest writes the filled ones "home.fill"; their files say "home-fill")
-    const name = ic.file.split("/")[1].slice(0, -4);
-    if (out[name]) throw new Error(`manifest: ${name} twice`);
-    out[name] = clean(name, readFileSync(new URL(ic.file, PACK), "utf8"));
+  for (const file of packFiles()) {
+    if (!/^[a-z0-9-]+\/[a-z0-9-]+\.svg$/.test(file)) throw new Error(`pack: odd path ${file}`);
+    const name = file.split("/")[1].slice(0, -4);
+    if (out[name]) throw new Error(`pack: ${name} twice`);
+    out[name] = clean(name, readFileSync(new URL(file, PACK), "utf8"));
   }
   // the pack's one pen (1.75, round ends and joins) is written once and joined in
   const pen = JSON.stringify(PEN).slice(1, -1);
@@ -73,5 +75,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const now = readFileSync(OUT, "utf8");
     if (now !== s) { console.error("core/ui/icons/xoicons.js is out of date: node tools/xoicons/build.mjs"); process.exit(1); }
     console.log("xoicons: up to date");
-  } else { writeFileSync(OUT, s); console.log(`xoicons: ${Object.keys(JSON.parse(readFileSync(new URL("manifest.json", PACK), "utf8")).icons).length} icons → core/ui/icons/xoicons.js (${s.length} bytes)`); }
+  } else { writeFileSync(OUT, s); console.log(`xoicons: ${packFiles().length} icons → core/ui/icons/xoicons.js (${s.length} bytes)`); }
 }

@@ -6,8 +6,9 @@ import { cmdIcon, stepIcon } from "../core/services/step-icons.js";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 import { panelSrc } from "./lib/panel-src.mjs";
+import { packFiles } from "../tools/xoicons/build.mjs";
 
-const PACK = JSON.parse(read("core/ui/icons/source/xo/manifest.json")).icons.map((i) => i.file);
+const PACK = packFiles();
 const has = (name) => PACK.some((f) => f.endsWith(`/${name}.svg`) && existsSync(new URL(`../core/ui/icons/source/xo/${f}`, import.meta.url)));
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

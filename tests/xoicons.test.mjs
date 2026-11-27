@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dom } from "./lib/dom.mjs";
 import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
-import { build, clean } from "../tools/xoicons/build.mjs";
+import { build, clean, packFiles } from "../tools/xoicons/build.mjs";
 import { XI } from "../core/ui/icons/xoicons.js";
 import { xi, hasIcon } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
@@ -19,8 +19,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("core/ui/icons/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
   assert.deepEqual(XI, generated.XI);
-  const man = JSON.parse(readFileSync(new URL("../core/ui/icons/source/xo/manifest.json", import.meta.url), "utf8"));
-  assert.equal(Object.keys(XI).length, man.icons.length);
+  assert.equal(Object.keys(XI).length, packFiles().length);
 });
 
 t("a file outside the allowlist stops the build, naming it", () => {
