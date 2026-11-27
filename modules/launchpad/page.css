@@ -7,7 +7,7 @@
 .lqp-sum b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .lqp-need{margin-top:var(--s-8)}
 .lqp-need .lq-h{margin-top:0}
-.lqp-need .lq-note{align-items:center;margin-top:0}
+.lqp-need .lq-note{margin-top:0}
 .lqp-need .lq-note+.lq-note{margin-top:var(--s-3)}
 .lqp-need .lq-nc{display:flex;align-items:center;gap:var(--s-4);padding:0}
 .lqp-need .lq-nc p{margin-top:2px}
