@@ -26,16 +26,22 @@ function runtimeItem(rt) {
 /** @type {SetupItem} */
 const GITHUB = {
   key: "acct:github", page: "accounts", mark: ICON.github, name: "GitHub", line: "One-click deploys on XO's Launchpad.", act: "Connect",
-  done: "Connected",
+  done: "Connected. One-click deploys are on.",
 };
 
-/** Null until both reads land; empty once set up. @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
+/** Null until both reads land; once a runtime is in, only GitHub. @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
 export function setupNeeds(runtimes, gh) {
   if (!runtimes || gh === undefined) return null;
   const ghOut = !!gh && gh.status !== "connected" && gh.status !== "failed";
-  if (runtimes.some(signedIn) && !ghOut) return [];
+  if (runtimes.some(signedIn)) return ghOut ? [GITHUB] : [];
   const out = RUNTIMES.flatMap((n) => runtimes.filter((r) => r.name === n && !signedIn(r)));
   return [...out.map(runtimeItem), ...(ghOut ? [GITHUB] : [])];
+}
+
+/** The name of a runtime that is signed in, if any. @param {Runtime[] | null | undefined} runtimes */
+export function readyRuntime(runtimes) {
+  const rt = (runtimes || []).find(signedIn);
+  return rt ? rtName(rt.name) : "";
 }
 
 /** Whether its sign-in is done. @param {string} key @param {Runtime[] | null | undefined} runtimes @param {GitHubRead} gh */
@@ -55,9 +61,12 @@ export function rowHtml(it, done) {
     `<span class="su-go">${esc(it.act)}${ICON.right}</span></button>`;
 }
 
-const READY = "XO can work for you now, and deploy to Launchpad.";
 const WELCOME = "A few suggestions for this Space. Explore freely; they wait here until you're ready.";
+const LAUNCH = "GitHub is connected. Anything XO builds here goes live on Launchpad in one click.";
 
-/** @param {boolean} allSet */
-export const headHtml = (allSet) => `<h2 class="hm-lbl" id="su-h">${allSet ? "You're all set" : "Get started"}</h2>` +
-  `<p class="su-lead">${allSet ? READY : WELCOME}</p>`;
+/** No runtime yet, a runtime but no GitHub, or all set. @param {{ allSet: boolean, ready: string }} o */
+export function headHtml({ allSet, ready }) {
+  if (allSet) return `<h2 class="hm-lbl" id="su-h">You're ready to launch</h2><p class="su-lead">${LAUNCH}</p>`;
+  const lead = ready ? `${esc(ready)} is ready. You can add more runtimes anytime in Settings.` : WELCOME;
+  return `<h2 class="hm-lbl" id="su-h">${ready ? "One more step" : "Get started"}</h2><p class="su-lead">${lead}</p>`;
+}

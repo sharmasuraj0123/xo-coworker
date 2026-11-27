@@ -4,7 +4,7 @@ import { dom, settle } from "../../../tests/lib/dom.mjs";
 
 await dom("");
 const { createScope } = await import("../../../core/kernel/scope.js");
-const { headHtml, rowHtml, setupNeeds, signedInNow } = await import("../setup.js");
+const { headHtml, readyRuntime, rowHtml, setupNeeds, signedInNow } = await import("../setup.js");
 const { setupSection } = await import("../setup-section.js");
 
 let passed = 0;
@@ -25,8 +25,10 @@ await t("nothing is decided until both the runtimes and GitHub's status have lan
 await t("a fresh Space suggests Claude Code, Codex, Antigravity, Grok and GitHub, never Cursor", () => {
   assert.deepEqual(keys(setupNeeds(OUT, { status: "needs_auth" })), ["rt:claude_code", "rt:codex", "rt:antigravity", "rt:grok_build", "acct:github"]);
 });
-await t("each suggestion goes once its own sign-in is done", () => {
-  assert.deepEqual(keys(setupNeeds(signIn("codex"), { status: "needs_auth" })), ["rt:claude_code", "rt:antigravity", "rt:grok_build", "acct:github"]);
+await t("once a runtime is in, only GitHub is left; GitHub connected first leaves the runtimes", () => {
+  assert.deepEqual(keys(setupNeeds(signIn("codex"), { status: "needs_auth" })), ["acct:github"]);
+  assert.equal(readyRuntime(signIn("codex")), "Codex");
+  assert.equal(readyRuntime(OUT), "");
   assert.deepEqual(keys(setupNeeds(OUT, { status: "connected" })), ["rt:claude_code", "rt:codex", "rt:antigravity", "rt:grok_build"]);
   assert.equal(signedInNow("rt:codex", signIn("codex"), null), true);
   assert.equal(signedInNow("acct:github", OUT, { status: "connected" }), true);
@@ -48,8 +50,9 @@ await t("an uninstalled runtime offers Install; each row opens Settings at its o
   assert.doesNotMatch(done, /data-set-open/);
   assert.match(done, /su-ok/);
   assert.match(done, /Signed in/);
-  assert.match(headHtml(false), /Get started/);
-  assert.match(headHtml(true), /You're all set/);
+  assert.match(headHtml({ allSet: false, ready: "" }), /Get started/);
+  assert.match(headHtml({ allSet: false, ready: "Codex" }), /Codex is ready\. You can add more runtimes anytime in Settings\./);
+  assert.match(headHtml({ allSet: true, ready: "Codex" }), /You're ready to launch.*Launchpad in one click/);
 });
 
 /** @param {{ runtimes: ReturnType<typeof rt>[] | null, done?: boolean }} o */
@@ -86,7 +89,7 @@ await t("the section draws nothing until GitHub answers, then the welcome", asyn
   assert.equal(h.state.reads, 1, "read again only after a pause");
   h.scope.dispose();
 });
-await t("a sign-in turns its row into a check that waits for Home to be seen, then folds away", async () => {
+await t("a runtime sign-in checks off once Home is seen, the other runtimes go, GitHub stays with a calm line", async () => {
   const h = harness({ runtimes: OUT });
   await h.answer("needs_auth");
   h.render();
@@ -99,9 +102,13 @@ await t("a sign-in turns its row into a check that waits for Home to be seen, th
   assert.ok(h.el.querySelector('li[data-k="rt:codex"]'), "no fold while Settings covers Home");
   h.state.visible = true;
   h.render();
+  h.render();
+  assert.deepEqual(rows(h.el), ["rt:codex", "acct:github"], "the runtimes not signed in fold away at once");
   h.flush();
   h.render();
-  assert.deepEqual(rows(h.el), ["rt:claude_code", "rt:antigravity", "rt:grok_build", "acct:github"]);
+  assert.deepEqual(rows(h.el), ["acct:github"]);
+  assert.match(h.el.innerHTML, /One more step/);
+  assert.match(h.el.innerHTML, /Codex is ready/);
   assert.equal(h.state.finished, 0);
   h.scope.dispose();
 });
@@ -111,17 +118,22 @@ await t("a runtime that leaves without signing in just goes, no check", async ()
   h.render();
   h.world.state.runtimes = OUT.filter((r) => r.name !== "antigravity");
   h.render();
+  h.render();
+  assert.doesNotMatch(h.el.innerHTML, /su-ok/);
   assert.deepEqual(rows(h.el), ["rt:claude_code", "rt:codex", "rt:grok_build", "acct:github"]);
   h.scope.dispose();
 });
-await t("once a runtime and GitHub are in: all set, then the section ends and never shows again", async () => {
+await t("once a runtime and GitHub are in: the Launchpad line holds, then the section ends and never shows again", async () => {
   const h = harness({ runtimes: OUT });
   await h.answer("connected");
   h.render();
   h.world.state.runtimes = signIn("claude_code");
   h.render();
-  assert.match(h.el.innerHTML, /You're all set/);
+  h.render();
+  assert.match(h.el.innerHTML, /You're ready to launch/);
   assert.deepEqual(rows(h.el), ["rt:claude_code"]);
+  assert.match(h.el.innerHTML, /Signed in/);
+  assert.equal(h.state.finished, 0, "the moment holds before the section goes");
   h.flush();
   h.render();
   assert.equal(h.el.innerHTML, "");
@@ -129,6 +141,24 @@ await t("once a runtime and GitHub are in: all set, then the section ends and ne
   h.world.state.runtimes = OUT;
   h.render();
   assert.equal(h.el.innerHTML, "", "signing out later doesn't bring it back");
+  h.scope.dispose();
+});
+await t("GitHub connecting last checks off under the Launchpad line", async () => {
+  const h = harness({ runtimes: signIn("claude_code") });
+  await h.answer("needs_auth");
+  h.render();
+  assert.deepEqual(rows(h.el), ["acct:github"]);
+  const now = Date.now;
+  Date.now = () => now() + 60_000;
+  try { h.again(); } finally { Date.now = now; }
+  await h.answer("connected");
+  h.render();
+  assert.match(h.el.innerHTML, /You're ready to launch/);
+  assert.match(h.el.innerHTML, /One-click deploys are on/);
+  h.flush();
+  h.render();
+  assert.equal(h.el.innerHTML, "");
+  assert.equal(h.state.finished, 1);
   h.scope.dispose();
 });
 await t("a Space that is already set up remembers it at once; a remembered one never reads GitHub", async () => {

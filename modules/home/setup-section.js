@@ -4,7 +4,7 @@ import { read, write } from "../../core/platform/storage.js";
 import { EASE, arrive, still, syncList } from "../../core/ui/motion.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { IN, MOVE } from "../../core/ui/tokens.js";
-import { headHtml, rowHtml, setupNeeds, signedInNow } from "./setup.js";
+import { headHtml, readyRuntime, rowHtml, setupNeeds, signedInNow } from "./setup.js";
 
 /** @import { Lifetime } from "../../core/kernel/types" */
 
@@ -24,6 +24,7 @@ import { headHtml, rowHtml, setupNeeds, signedInNow } from "./setup.js";
 
 const AGAIN_MS = 3000;
 const DONE_MS = 1800;
+const FINAL_MS = 4000;
 const STEP_MS = 60;
 const KEY = "xo-setup-done";
 
@@ -67,8 +68,9 @@ export function setupSection({ world, githubStatus, scope, schedule, memory = ST
   let at = 0, reading = false, runtimes = world.state.runtimes, over = memory.done(), leaving = false;
   /** @type {Map<string, SetupItem>} */
   const shown = new Map();
-  /** @type {Map<string, boolean>} */
+  /** @type {Map<string, { done: boolean, started: boolean }>} */
   const ghosts = new Map();
+  let closing = false;
   /** @type {WeakMap<Element, string>} */
   const drawn = new WeakMap();
 
@@ -101,7 +103,7 @@ export function setupSection({ world, githubStatus, scope, schedule, memory = ST
   /** @param {HTMLElement} el @param {boolean} done */
   function leave(el, done) {
     const box = el.firstElementChild;
-    const end = () => { el.replaceChildren(); leaving = false; if (done) finish(); };
+    const end = () => { el.replaceChildren(); leaving = false; closing = false; if (done) finish(); };
     leaving = true;
     if (box && done) fold(box, end); else end();
   }
@@ -123,7 +125,7 @@ export function setupSection({ world, githubStatus, scope, schedule, memory = ST
     const live = new Set(needs.map((it) => it.key));
     for (const key of shown.keys()) {
       if (live.has(key)) ghosts.delete(key);
-      else if (!ghosts.has(key)) { if (signedInNow(key, world.state.runtimes, gh)) ghosts.set(key, false); else shown.delete(key); }
+      else if (!ghosts.has(key)) ghosts.set(key, { done: signedInNow(key, world.state.runtimes, gh), started: false });
     }
     for (const it of needs) shown.set(it.key, it);
     if (!shown.size) { leave(el, gh?.status === "connected"); return; }
@@ -134,19 +136,21 @@ export function setupSection({ world, githubStatus, scope, schedule, memory = ST
       el.innerHTML = `<section class="su" aria-labelledby="su-h"><div class="su-hd"></div><ul class="su-list"></ul></section>`;
       box = /** @type {HTMLElement} */ (el.querySelector(".su"));
     }
-    redraw(box.querySelector(".su-hd"), headHtml(!needs.length));
-    const rows = [...shown.values()].map((it) => ({ key: it.key, html: rowHtml(it, ghosts.has(it.key)) }));
+    const allSet = !needs.length;
+    redraw(box.querySelector(".su-hd"), headHtml({ allSet, ready: readyRuntime(world.state.runtimes) }));
+    const rows = [...shown.values()].map((it) => ({ key: it.key, html: rowHtml(it, !!ghosts.get(it.key)?.done) }));
     syncList(/** @type {HTMLElement} */ (box.querySelector(".su-list")), rows, {
       make: (row) => { const li = document.createElement("li"); paint(li, row); return li; },
       update: paint,
     });
     if (fresh) welcome(box);
     if (!seen(el)) return;
-    for (const [key, started] of ghosts) {
-      if (started) continue;
-      ghosts.set(key, true);
-      scope.timeout(() => settle(key, el), DONE_MS);
+    for (const [key, ghost] of ghosts) {
+      if (ghost.started || (ghost.done && allSet)) continue;
+      ghost.started = true;
+      if (ghost.done) scope.timeout(() => settle(key, el), DONE_MS); else settle(key, el);
     }
+    if (allSet && !closing) { closing = true; scope.timeout(() => leave(el, gh?.status === "connected"), FINAL_MS); }
   }
 
   return { again, section: { id: "hm-start", order: 5, mount() {}, render } };
