@@ -242,7 +242,7 @@ export function installViews(L) {
     const c = proj(p).check;
     if (!c) throw new Error("Launchpad needs screen requires a check");
     return top({ words: "Not ready yet", title: `${esc(nameOf(p))} needs a little setup`, sub: "Launchpad can't run it as it is yet." }) +
-      (c.missing.length ? `<p class="lq-h">Still needed</p><ul class="lq-group lp-check">${c.missing.map((/** @type {{ok: boolean, what: string, why?: string}} */ m) => `<li class="lq-row ${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lq-v lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<small>${esc(m.why)}</small>` : ""}</span></li>`).join("")}</ul>` : "") +
+      (c.missing.length ? `<p class="lq-h">Still needed</p><ul class="lp-check">${c.missing.map((/** @type {{ok: boolean, what: string, why?: string}} */ m) => `<li class="${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lq-v lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<small>${esc(m.why)}</small>` : ""}</span></li>`).join("")}</ul>` : "") +
       rec("Let an agent set it up", "It adds what's missing in a new thread. Once that's merged, deploy from here.", "ask", "Set up", "", proj(p));
   }
 

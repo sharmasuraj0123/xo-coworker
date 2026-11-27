@@ -30,3 +30,8 @@ test("Ask an agent isn't offered twice: not once a thread is asked, not for a de
   const healthy = view("live", { check: { repo: { branch: "main" }, blockers: [], warnings: [], app: { id: "a", name: "backups", host: "b.example", url: "https://b.example", status: "running" } } });
   assert.equal(issueOf(healthy), null);
 });
+
+test("what Launchpad still needs is a plain list, not rows of the card group", () => {
+  const html = view("needs", { check: { repo: { branch: "main" }, blockers: [], warnings: [], missing: [{ what: "a git repository", ok: false }] } });
+  assert.match(html, /<ul class="lp-check"><li class="is-no">/);
+});
