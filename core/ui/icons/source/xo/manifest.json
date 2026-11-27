@@ -3,7 +3,7 @@
   "document": "ic1",
   "fileId": "01M7SVHZJXJ9JBQ6V2K1VMW0N2",
   "exportedAt": "2026-11-19T13:45:34.011Z",
-  "count": 395,
+  "count": 404,
   "icons": [
     {
       "name": "home",
@@ -3162,6 +3162,69 @@
       "category": "R · GitHub",
       "nodeId": "local:gh-pr-draft",
       "file": "r-github/gh-pr-draft.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "automation",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/automation.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "nightly",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/nightly.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sunrise",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/sunrise.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "backup-check",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/backup-check.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "pulse",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/pulse.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "package-up",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/package-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "found",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/found.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "run-skipped",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/run-skipped.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "agent-doc",
+      "category": "S · Automations and agents",
+      "file": "s-automations-and-agents/agent-doc.svg",
       "width": 24,
       "height": 24
     }
