@@ -36,8 +36,8 @@
   :root:root .top:has(> .top-back:not([hidden])) .top-menu{display:none}
 
   :root:root .top .top-who{flex:1 1 0;min-width:0;max-width:none;align-items:center;gap:var(--s-2)}
-  :root:root .top .tw-ic{display:none}
-  :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:var(--s-1)}
+  :root:root .top :is(.tw-ic,.pj-pick){display:none}
+  :root:root .top .tw-t{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;padding-left:var(--s-1)}
   :root:root .top .tw-t h1,
   :root:root .top .tw-h{font:var(--fw-strong) var(--fs-title)/var(--lh-ui) var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}

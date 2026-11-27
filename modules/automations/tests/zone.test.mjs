@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ApiError } from "../../../core/platform/http.js";
 import { keepZone } from "../zone.js";
 
 /** @param {string} server */
@@ -45,4 +46,21 @@ test("a failed read is reported and tried again next time", async () => {
   fail = false;
   await sync();
   assert.equal(errors.length, 1);
+});
+
+test("a zone XO refuses stays quiet and isn't sent again; a dropped connection stays quiet and is tried again", async () => {
+  /** @type {string[]} */
+  const calls = [];
+  let down = true;
+  const api = {
+    scheduleZone: async () => { calls.push("get"); if (down) throw new ApiError(503, "http_503", "XO is restarting"); return { tz: "UTC" }; },
+    /** @param {string} tz */
+    setScheduleZone: async (tz) => { calls.push(`put ${tz}`); throw new ApiError(422, "invalid_time_zone", `${tz} isn't a zone`); },
+  };
+  const sync = keepZone({ api, zone: () => "Asia/Calcutta", report: assert.fail });
+  await sync();
+  down = false;
+  await sync();
+  await sync();
+  assert.deepEqual(calls, ["get", "get", "put Asia/Calcutta"]);
 });

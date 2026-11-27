@@ -128,7 +128,7 @@ await new Promise(setImmediate);
 flushFrames();
 assert.equal(document.querySelectorAll('#since [data-rec-got="p:demo"]').length, 1, "enabling Since restores one project instance");
 press("#nv-home");
-const sinceHome = document.querySelector('#hm-since [data-rec-got="home"]');
+const sinceHome = document.querySelector('#hm-since [data-since-open]');
 assert.ok(sinceHome, "the enabled module paints a Home catch-up");
 sinceHome.focus();
 await kernel.disable("xo.since");
@@ -138,7 +138,7 @@ storage.set("xo-seen", JSON.stringify({ home: lastHomeVisit - 86_400_000, "p:dem
 await kernel.enable("xo.since");
 await new Promise(setImmediate);
 flushFrames();
-assert.equal(document.querySelectorAll('#hm-since [data-rec-got="home"]').length, 1, "enabling Since restores one Home instance");
+assert.equal(document.querySelectorAll('#hm-since [data-since-open]').length, 1, "enabling Since restores one Home instance");
 const homeBody = document.querySelector("#hm-body");
 assert.ok(homeBody);
 press("#nv-arts");
