@@ -211,7 +211,7 @@ button.au-run:hover{background:var(--fill-1)}
 .au-form .field{margin:0}
 .au-form textarea{resize:vertical}
 .au-when{display:flex;flex-wrap:wrap;gap:var(--s-3)}
-.au-when .field{flex:1;min-width:0}
+.au-when .field{flex:1 1 0;min-width:fit-content}
 .au-days{display:flex;gap:var(--s-1)}
 .au-days button{flex:1;height:var(--h-ctl);border:var(--hair) solid var(--line-faint);border-radius:var(--r-pill);
   font:var(--fw-medium) var(--fs-meta)/1 var(--sans);color:var(--ink-5)}

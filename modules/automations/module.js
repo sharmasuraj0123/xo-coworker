@@ -73,11 +73,28 @@ export const automationsModule = {
       openProject, readReport };
     /** @type {string[]} */
     let runtimes = [];
-    api.runtimes().then((got) => { runtimes = got.runtimes.map((r) => r.name); }, reportFailure);
+    /** @type {string | null} */
+    let mainRt = null;
+    api.runtimes().then((got) => {
+      runtimes = got.runtimes.map((r) => r.name);
+      mainRt = (got.runtimes.find((r) => r.default) ?? got.runtimes[0])?.name ?? null;
+    }, reportFailure);
+    /** @type {Map<string, import("./types").AgentFormState["models"]>} */
+    const modelLists = new Map();
+    /** A runtime's models, read once; null while they come, then loaded() draws them. @param {string} rt @param {() => void} loaded */
+    const models = (rt, loaded) => {
+      if (!modelLists.has(rt)) {
+        modelLists.set(rt, null);
+        api.models(rt).then((got) => got.models, (err) => { reportFailure(err); return []; })
+          .then((list) => { modelLists.set(rt, list); loaded(); });
+      }
+      return modelLists.get(rt) ?? null;
+    };
     /** @param {string} id */
     const nameOfId = (id) => projects().find((p) => p.id === id)?.name ?? "A removed project";
     /** @type {Omit<AgentSideDeps, "where" | "project" | "shown" | "openJob">} */
-    const agentDeps = { personas, find: personas.find, projects, projectName: nameOfId, runtimes: () => runtimes, openThread: toThread,
+    const agentDeps = { personas, find: personas.find, projects, projectName: nameOfId, runtimes: () => runtimes, mainRuntime: () => mainRt,
+      models, openThread: toThread,
       failed, announce, openFile: (owner, path, from) => ctx.optional("files")?.viewer.open({ path, name: path.split("/").pop() ?? path,
         project: owner, rel: path }, from) };
     const page = createAutomationsPage({

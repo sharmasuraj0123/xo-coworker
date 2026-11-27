@@ -35,7 +35,16 @@ const people = fakePersonaApi(agentLists, importable);
 const personas = createPersonasStore({ api: people.api, report() {} });
 /** @type {string[]} */
 const opened = [];
+const catalog = [{ id: "claude-opus-5-5", name: "Opus 5.5", description: "For the hardest work" }, { id: "claude-sonnet-5-5", name: "Sonnet 5.5" }];
+/** @type {Map<string, typeof catalog | null>} */
+const modelLists = new Map();
+/** @param {string} rt @param {() => void} loaded */
+const models = (rt, loaded) => {
+  if (!modelLists.has(rt)) { modelLists.set(rt, null); setTimeout(() => { modelLists.set(rt, catalog); loaded(); }, 0); }
+  return modelLists.get(rt) ?? null;
+};
 const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "Alpha", runtimes: () => ["claude_code"],
+  mainRuntime: () => "claude_code", models,
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
   side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
@@ -177,6 +186,13 @@ await t("Edit saves the file over the version it read", async () => {
   await click('[data-ag-act="edit"]');
   const form = agentAside().querySelector("form[data-ag-form]");
   assert.ok(form, "the form opens");
+  const model = () => agentAside().querySelector('xo-select[name="model"]');
+  assert.equal(Boolean(model()), true, "the model is a choice from its runtime's list, never a text box");
+  await settle();
+  assert.deepEqual([...model()?.querySelectorAll("option") ?? []].map((o) => o.textContent), ["Default", "Opus 5.5", "Sonnet 5.5"]);
+  assert.equal(model()?.hasAttribute("aria-busy"), false);
+  assert.equal(agentAside().querySelector('xo-select[name="runtime"] option[value="claude_code"]')?.getAttribute("data-agm"), "claude",
+    "each runtime with its mark");
   /** @type {HTMLTextAreaElement} */ (form.querySelector('[name="body"]')).value = "Read what's live, then say it.";
   form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
   await settle();

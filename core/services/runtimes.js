@@ -5,6 +5,8 @@ export { clockWords, untilWords };
 
 /** @import {Runtime as Row, RuntimePolicy, RuntimeError, UsageItem, RuntimeHealth, SessionThread, SessionsState} from "./runtime-types" */
 
+/** @import { RuntimeModel } from "../platform/runtime-response-types" */
+
 /** @typedef {Row | null | undefined} Rt @typedef {RuntimePolicy | null | undefined} Policy */
 
 /** How people say a runtime's name (shown only, never branched on); one not listed shows as the server names it. @type {Record<string, string>} */
@@ -19,6 +21,8 @@ export const rtName = (name) => NAME[/** @type {string} */ (name)] || String(nam
 
 /** @type {Record<string, string>} */
 const MARK = { claude_code: "claude", codex: "openai", antigravity: "antigravity", cursor: "cursor", grok_build: "grok" };
+/** The mark's own name, for a list that draws it ("claude"), or "". @param {string | null | undefined} name */
+export const rtMarkName = (name) => (name && MARK[name]) || "";
 /** The mark as HTML, its name on hover and for screen readers, or null; withName writes the name beside it. @param {string} name @param {{ withName?: boolean, lead?: boolean }} [o] */
 export function rtMark(name, { withName = false, lead = false } = {}) {
   const m = MARK[name];
@@ -39,6 +43,8 @@ export function sessionThreads(sessions, st) {
     return { id: s, title: "A session XO doesn't list", where: s.slice(0, 8), go: null };
   });
 }
+/** One model per family, without the catalog's "default" stand-in. @template {RuntimeModel} M @param {readonly M[]} models */
+export const offeredModels = (models) => models.filter((m) => !m.is_default && (m.family_default || !m.family));
 /** How people say a thinking effort. @type {Record<string, string>} */
 export const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 /** A model id as people read it: "gpt-6.1-terra" is "GPT-6.1 Terra" (shown only). @param {string | null | undefined} id */

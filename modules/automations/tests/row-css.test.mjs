@@ -10,4 +10,7 @@ for (const [, kept] of held) assert.match(kept, /\.au-menu/, "the ••• menu
 assert.match(css, /\.au-menu\{position:absolute;right:0;top:/);
 assert.match(css, /\.au-intro\+\.au-list\{margin-top:var\(--s-4\)\}/, "a tab's intro stands a step above its list, as approved");
 assert.match(css, /\.au-what\{[^}]*-webkit-line-clamp:2[^}]*overflow:hidden/, "a found run's words stop at two lines");
+assert.match(css, /\.au-when \.field\{flex:1 1 0;min-width:fit-content\}/, "Runs on, Model and Thinking wrap before a name is cut");
+const select = sheet(new URL("../../../core/ui/components/xo-select.css", import.meta.url));
+assert.match(select, /\.dd-t\{flex:0 0 auto;max-width:100%;/, "a row's name stays whole; its description gives way");
 console.log("row-css: ok");

@@ -2,7 +2,7 @@
 
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
-import { EFFORT_WORD, rtName } from "../../core/services/runtimes.js";
+import { EFFORT_WORD, modelWord, offeredModels, rtMarkName, rtName } from "../../core/services/runtimes.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { MAY_WORDS, frontOf, keyOf, mayOf, titleOf } from "./agent-file.js";
 import { menuItem, tile } from "./views.js";
@@ -127,15 +127,26 @@ export function agentDetailHtml(a, s) {
 const opt = (value, words, on) => `<option value="${esc(value)}"${on ? " selected" : ""}>${esc(words)}</option>`;
 
 
+/** A runtime, its mark beside its name. @param {string} r @param {boolean} on */
+const rtOpt = (r, on) => opt(r, rtName(r), on).replace("<option ", `<option data-agm="${esc(rtMarkName(r))}" `);
+
+/** The runtime's own models, its default first; while they come, only what is chosen. @param {AgentFormState} f */
+function modelOpts(f) {
+  const m = f.draft.model, list = offeredModels(f.models ?? []);
+  const known = list.map((x) => opt(x.id, x.name || x.id, x.id === m).replace("<option ",
+    x.description ? `<option data-desc="${esc(x.description)}" ` : "<option "));
+  return [opt("", "Default", !m), ...(m && !list.some((x) => x.id === m) ? [opt(m, modelWord(m), true)] : []), ...known].join("");
+}
+
 /** @param {AgentFormState} f */
 function runsOnHtml(f) {
   const d = f.draft;
-  const rts = [opt("", "Default", !d.runtime), ...f.runtimes.map((r) => opt(r, rtName(r), d.runtime === r)),
-    ...(d.runtime && !f.runtimes.includes(d.runtime) ? [opt(d.runtime, rtName(d.runtime), true)] : [])].join("");
+  const rts = [opt("", "Default", !d.runtime), ...f.runtimes.map((r) => rtOpt(r, d.runtime === r)),
+    ...(d.runtime && !f.runtimes.includes(d.runtime) ? [rtOpt(d.runtime, true)] : [])].join("");
   const efforts = [opt("", "Default", !d.effort), ...Object.entries(EFFORT_WORD).map(([k, w]) => opt(k, w, d.effort === k))].join("");
   return `<div class="au-when"><label class="field"><span>Runs on</span><xo-select name="runtime" class="set-sel" aria-label="Runtime">` +
-    `${rts}</xo-select></label><label class="field"><span>Model</span><input name="model" value="${esc(d.model ?? "")}"` +
-    ` placeholder="Default" autocomplete="off"></label><label class="field"><span>Thinking</span>` +
+    `${rts}</xo-select></label><label class="field"><span>Model</span><xo-select name="model" class="set-sel" aria-label="Model"` +
+    `${f.models ? "" : ' aria-busy="true"'}>${modelOpts(f)}</xo-select></label><label class="field"><span>Thinking</span>` +
     `<xo-select name="effort" class="set-sel" aria-label="Thinking">${efforts}</xo-select></label></div>`;
 }
 
