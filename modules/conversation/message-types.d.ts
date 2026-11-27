@@ -15,7 +15,7 @@ export type Control = { at: string; seq?: number | null; action: string; by?: st
 export type Limit = import("../../core/services/world/state-types.d.ts").WorldThread["limits"][number];
 type Move = { to?: string; from?: string; at?: string; agent?: string; reason?: string };
 type Speaker = "you" | "agent" | "coord" | "system";
-type SpaceNotice = { percent: number | null };
+type SpaceNotice = { percent: number | null; total: number | null; users: { name: string; gb: number; threads: number | null }[] };
 
 type StoredMessage = {
   id: string;

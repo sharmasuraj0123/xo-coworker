@@ -97,7 +97,7 @@ const CLIPPERS = {
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
   ".auto": ["inner", "Automations: its list and the automation beside it pad their controls"],
   ".au-n small": ["text", "an automation's how often and project"],
-  ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".hm-sk": ["decor", "a loading shape"],
+  ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".sp-bar": ["decor", "a storage meter"], ".hm-sk": ["decor", "a loading shape"],
   ".sheet-card": ["inner", "a sheet (Jump, Keys, Runs): its head and body pad their controls; Jump's field, its whole head, draws its ring inside (C020)"],
   ".kl": ["text", "Settings › Keyboard's keys"], ".rl-list": ["inner", "Settings' rules: each row pads its buttons"], ".wt-list": ["inner", "Settings' checkouts: each row pads its buttons"],
   ".viewer": ["inner", "the file viewer: its head pads its controls, its body is text"], ".vw-body.is-frame": ["text", "a page in a frame"],

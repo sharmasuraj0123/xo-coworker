@@ -307,14 +307,32 @@ code.hl{color:var(--code-ink)}
 
 .ev-t{min-width:0;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
 .ev time{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.ev-space{align-items:flex-start;padding:var(--s-2) var(--s-3);
+.ev-space{--tone:var(--warn);align-items:flex-start;padding:var(--s-3) var(--s-4);
   border-radius:var(--r-block);background:var(--warn-subtle);color:var(--ink-2)}
-.ev-space .ev-ic{height:var(--lh-ui);color:var(--warn)}
+.ev-space.is-hot{--tone:var(--err)}
+.ev-space .ev-ic{height:var(--lh-ui);color:var(--tone)}
 .ev-space .ev-t{white-space:normal}
+.sp-body{display:flex;flex-direction:column;gap:var(--s-2);flex:1}
+.sp-head{display:flex;flex-direction:column;margin:0}
+.sp-head span,.sp-src{font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sp-src{margin:0;color:var(--ink-4)}
+.sp-bar{display:flex;gap:var(--hair);height:var(--s-2);margin-top:var(--s-1);
+  border-radius:var(--r-pill);background:var(--fill-2);overflow:hidden}
+.sp-bar i{flex:none}
+.sp-k1{--c:var(--tone)}
+.sp-k2{--c:color-mix(in oklab,var(--tone) 62%,var(--surface))}
+.sp-k3{--c:color-mix(in oklab,var(--tone) 38%,var(--surface))}
+.sp-k4{--c:color-mix(in oklab,var(--ink-5) 50%,var(--surface))}
+.sp-bar i{background:var(--c)}
+.sp-users{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin:0;padding:0;list-style:none;
+  font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-2)}
+.sp-users li{display:flex;align-items:center;gap:var(--s-1)}
+.sp-users li::before{content:"";flex:none;width:var(--s-2);height:var(--s-2);border-radius:var(--r-pill);background:var(--c)}
+.sp-users span{color:var(--ink-4);font-variant-numeric:tabular-nums}
+.sp-users .rt-go{color:inherit}
 .ev-space b{color:var(--ink);font-weight:var(--fw-strong)}
 .ev-space .ev-n{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
 .ev-space.is-hot{background:var(--err-subtle)}
-.ev-space.is-hot .ev-ic{color:var(--err-ink)}
 
 /* A thread passing from one setup to another: the old one faded, an arrow that slides once, the new one */
 .ho-card{display:flex;flex-direction:column;gap:var(--s-2);margin:0 0 var(--s-4);padding:var(--s-3) var(--s-4)}
