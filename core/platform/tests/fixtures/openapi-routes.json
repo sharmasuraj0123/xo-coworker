@@ -238,6 +238,9 @@
   "/api/chat/stream/{stream_id}": [
    "GET"
   ],
+  "/api/chat/try": [
+   "POST"
+  ],
   "/api/chat/worktrees": [
    "GET"
   ],
@@ -528,6 +531,15 @@
   "/api/onboarding/complete": [
    "POST"
   ],
+  "/api/personas": [
+   "GET"
+  ],
+  "/api/personas/import": [
+   "POST"
+  ],
+  "/api/personas/importable": [
+   "GET"
+  ],
   "/api/plugins/status": [
    "GET"
   ],
@@ -562,6 +574,10 @@
   "/api/schedules": [
    "GET",
    "POST"
+  ],
+  "/api/schedules/time-zone": [
+   "GET",
+   "PUT"
   ],
   "/api/schedules/{job_id}": [
    "GET",

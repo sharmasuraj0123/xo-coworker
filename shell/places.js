@@ -24,7 +24,7 @@ const SPECS = [
   ["header.action", "list", "conversation", "A button in the header (Threads, Resolve, Deploy, Map, the panel).", true, ["label", "icon"], ["onPress"]],
   ["thread.menu", "list", "conversation", "An item in a thread's ⋯ menu, in a named group.", true, ["label", "group"], ["run"]],
   ["thread.head", "list", "conversation", "A strip under a thread's header (checklist, sub-agents).", false, [], ["render"]],
-  ["panel.frame", "list", "conversation", "A stacked frame in the right panel (Threads, Changes, Map, Launchpad).", true, ["title"], ["mount"]],
+  ["panel.frame", "list", "conversation", "A stacked frame in the right panel (Threads, Automations, Changes, Map, Launchpad).", true, ["title"], ["mount"]],
   ["panel.page", "keyed", "app", "A page the right panel shows in place of its frames (Shell, Files, Thread).", true, [], ["mount"]],
   ["panel.title-action", "list", "app", "A button in the right panel's title bar.", false, ["label", "icon"], ["onPress"]],
   ["dock.bottom", "single", "app", "The dock under the conversation; it can move into a panel page.", false, [], ["mount"]],

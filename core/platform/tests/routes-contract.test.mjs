@@ -33,6 +33,12 @@ const ARGS = {
   signInCancel: [["claude_code"]],
   runtimeAction: ["install", "update", "uninstall", "sign_out"].map((action) => ["codex", action]),
   setRemoteControl: [["codex", true], ["codex", false]],
+  schedules: [[undefined]],
+  scheduleRuns: [["x", {}, undefined]],
+  personas: [["x"], [null]],
+  importable: [["x"]],
+  importPersona: [[{ adapter: "claude_code", id: "space:x" }]],
+  tryOnce: [[{ project: "x", text: "y" }]],
 };
 const OPTIONAL_GITHUB = new Map([
   ["api.githubIssue", "/api/xo-projects/x/github/issues/y"],

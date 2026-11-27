@@ -61,6 +61,7 @@ export const ICON = {
   threads: xi("threads"),
   // artifacts: what threads made
   stack: xi("artifacts"),
+  automation: xi("automation"),
   pin: xi("pin"),
   shell: xi("terminal"),
   minimize: xi("minimize"),

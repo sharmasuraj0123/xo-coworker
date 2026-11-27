@@ -289,5 +289,89 @@
       }
     ],
     "log_path": "/home/example/.xo/schedule-log"
+  },
+  "liveAgentJob": {
+    "id": "weekday-triage",
+    "kind": "agent",
+    "name": "Weekday triage",
+    "description": null,
+    "chat": "chat_fixture",
+    "prompt": "Sum up open sample issues.",
+    "agent": null,
+    "model": null,
+    "effort": null,
+    "every_seconds": null,
+    "first_run_at": null,
+    "utc_offset": "+00:00",
+    "enabled": true,
+    "state": "armed",
+    "state_reason": null,
+    "created_by": {
+      "kind": "agent",
+      "session_id": "sess_fixture"
+    },
+    "approved_by": {
+      "review_id": "rv_fixture"
+    },
+    "next_run": "2026-01-05T09:00:00Z",
+    "last_result": {
+      "at": "2026-01-02T09:00:00Z",
+      "status": "ok",
+      "trigger": "schedule",
+      "chat_id": "chat_fixture",
+      "thread_ts": "1767344400.000100",
+      "found": true,
+      "summary": "Two issues need an answer.",
+      "thread": {
+        "chat_id": "chat_fixture",
+        "ts": "1767344400.000100"
+      }
+    },
+    "schedule": {
+      "days": "weekdays",
+      "time": "09:00",
+      "tz": "UTC"
+    },
+    "persona": {
+      "name": "triage",
+      "level": "project"
+    },
+    "icon": null,
+    "upcoming": [
+      "2026-01-05T09:00:00Z",
+      "2026-01-06T09:00:00Z"
+    ],
+    "running": false
+  },
+  "agentRuns": {
+    "job_id": "weekday-triage",
+    "log_path": null,
+    "runs": [
+      {
+        "fire_at": "2026-01-02T09:00:00Z",
+        "trigger": "schedule",
+        "status": "ok",
+        "reason": null,
+        "found": true,
+        "summary": "Two issues need an answer.",
+        "thread": {
+          "chat_id": "chat_fixture",
+          "ts": "1767344400.000100",
+          "state": "done"
+        }
+      },
+      {
+        "fire_at": "2026-01-01T09:00:00Z",
+        "trigger": "schedule",
+        "status": "skipped",
+        "reason": "The last run was still working.",
+        "found": null,
+        "summary": null,
+        "thread": null
+      }
+    ]
+  },
+  "zone": {
+    "tz": "Europe/London"
   }
 }

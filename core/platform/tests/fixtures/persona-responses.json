@@ -1,0 +1,35 @@
+{
+  "list": {
+    "personas": [
+      {
+        "name": "release-checker", "description": "Checks what's live against the branch.", "level": "project",
+        "path": ".xo/agents/release-checker.md", "version": "v1", "runtime": "claude_code", "model": "opus", "effort": "high",
+        "tools": ["read", "search", "list"], "disallowedTools": [], "mcpServers": null,
+        "shadows": {"name": "release-checker", "level": "space"}, "shadowed": null,
+        "used_by": {"jobs": [{"id": "j1", "name": "Morning check"}]}, "problems": []
+      },
+      {
+        "name": "release-checker", "description": "The Space's checker.", "level": "space", "path": "release-checker.md",
+        "version": "v2", "runtime": null, "model": null, "effort": null, "tools": null, "disallowedTools": [], "mcpServers": null,
+        "shadows": null, "shadowed": {"name": "release-checker", "level": "project"}, "used_by": {"jobs": []},
+        "problems": [{"line": 3, "key": "tools", "message": "tools is a list of XO's tool words."}]
+      }
+    ],
+    "may": {
+      "read": {"label": "Read the project", "tools": ["read", "search", "list"]},
+      "edit": {"label": "Change files", "tools": ["edit", "create", "delete"]},
+      "run": {"label": "Run commands", "tools": ["shell"]}
+    }
+  },
+  "importable": {
+    "importable": [
+      {
+        "id": "space:reviewer", "level": "space", "source": "/home/example/.claude/agents/reviewer.md", "name": "reviewer",
+        "text": "---\nname: reviewer\ndescription: Reviews a diff.\n---\n\nRead the diff.\n", "dropped": ["hooks"],
+        "adapter": "claude_code", "from": "Claude Code", "problems": []
+      }
+    ]
+  },
+  "imported": {"name": "reviewer", "level": "space", "relative_path": "reviewer.md", "version": "v3", "dropped": ["hooks"]},
+  "tried": {"chat_id": "chat_a", "ts": "1764000000.000100"}
+}
