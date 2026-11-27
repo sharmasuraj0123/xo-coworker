@@ -13,6 +13,7 @@ export interface PsCoordinator {
   runtimes: PsRuntimeOption[];
   rtNote: string;
   models: IntelModel[] | null;
+  modelName: string;
   auto: boolean;
   model: string | null;
   effort: string | null;

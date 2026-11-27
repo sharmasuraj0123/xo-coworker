@@ -30,9 +30,11 @@ const world = {
 };
 /** @type {object[]} */
 const patches = [];
+let holdModels = false;
 g.fetch = async (/** @type {string} */ url, /** @type {RequestInit | undefined} */ options) => {
   if (options?.method === "PATCH") { patches.push(JSON.parse(String(options.body))); return Response.json({}); }
   if (String(url).includes("/router/models")) return Response.json({ models: [] });
+  if (holdModels) return new Promise(() => {});
   return Response.json({ models: [{ id: "m1", name: "Model one" }] });
 };
 const intel = createIntel({ world, PROJ: (p) => p, record() {}, onChange() {} });
@@ -47,7 +49,13 @@ const click = (selector) => {
 };
 
 try {
+  await intel.writes.catalog.catalog("claude_code", { signal: new AbortController().signal });
+  holdModels = true;
   settings.open("work");
+  const models = [...box.querySelectorAll("[data-ps-model] option")].map((o) => o.getAttribute("value"));
+  assert.deepEqual(models, ["", "m1"], "it opens with the models it already read, while it reads them again");
+  assert.equal(box.querySelector(".ps-body .spin"), null, "nothing says Reading… when the models are known");
+  holdModels = false;
   await settle();
   assert.ok(settings.isOpen, "it opens");
   assert.equal(box.querySelector("#ps-title")?.textContent, "Coordinator");
@@ -88,3 +96,9 @@ try {
   settings.dispose();
   intel.dispose();
 }
+
+const { threadsHtml } = await import("../project-settings-view.js");
+const reading = document.createElement("div");
+reading.innerHTML = threadsHtml(/** @type {import("../project-settings-types.js").PsThreads} */ (/** @type {unknown} */ ({ ready: false })));
+assert.ok(reading.querySelector('.m-load[role="status"] > .spin.is-load'), "while it reads, it shows the threads' loader");
+assert.equal(reading.querySelector(".set-note"), null, "not a line of words with a small spinner");
