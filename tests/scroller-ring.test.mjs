@@ -44,6 +44,7 @@ const SCROLLERS = {
   ".lpp": ["inner", "Launchpad's column carries the room"], ".lq-body": ["room", "Launchpad's window body"],
   ".lq-side.nav": ["room", "Launchpad's window sections"],
   ".ps-body": ["room", "Project settings' page"],
+  ".ps-side.nav": ["room", "Project settings' pages, a row along its top on a phone"],
   ".scroller": ["inner", "the conversation: its column and the bubbles carry the room"], ".dlg": ["inner", "a dialog: its sections are padded"],
   ".card.is-dock.is-one .card-in": ["inner", "the docked decision: its body (16 px) and actions (12 px) are padded"],
   ".md-code pre": ["text", "a code block"], ".md-table": ["text", "a table in a message"],
