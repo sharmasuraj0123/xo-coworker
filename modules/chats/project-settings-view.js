@@ -48,7 +48,11 @@ function runtimeCtl(m, busy) {
 
 /** @param {PsCoordinator} m @param {string} busy */
 function modelCtl(m, busy) {
-  if (!m.models) return `<span class="set-note"><i class="spin" aria-hidden="true"></i> Reading…</span>`;
+  if (!m.models) {
+    const now = m.auto || !m.model ? `<option value="" selected>Auto</option>`
+      : `<option value="${esc(m.model)}" selected>${esc(m.modelName)}</option>`;
+    return `<xo-select class="set-sel ps-sel" data-ps-model aria-labelledby="ps-model" aria-busy="true">${now}</xo-select>`;
+  }
   const opts = m.models.map((x) => `<option value="${esc(x.id)}"${!m.auto && x.id === m.model ? " selected" : ""}` +
     `${x.description ? ` data-desc="${esc(x.description)}"` : ""}>${esc(x.name || x.id)}</option>`).join("");
   return `<xo-select class="set-sel ps-sel" data-ps-model aria-labelledby="ps-model"${busy}>` +

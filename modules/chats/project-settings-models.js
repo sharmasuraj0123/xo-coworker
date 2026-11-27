@@ -43,9 +43,11 @@ export function psModels({ world, cat, PROJ, state }) {
     const h = rt ? healthOf(rt) : null, w = rt ? windowsOf(rt)[0] : null;
     const rtNote = rt && h && h.tone === "warn" && w && w.utilization != null
       ? `${rtName(rt.name)} is at ${Math.round(w.utilization * 100)}% of its usage window.` : "";
+    const cur = rc.on || "", known = !cur || rc.list.some((o) => o.id === cur);
+    const runtimes = known ? rc.list : [...rc.list, { id: cur, label: rtName(cur), usable: true, why: "" }];
     return {
-      name: name(), busy: state.busy, runtime: rc.on, runtimes: rc.list, rtNote,
-      models: list ? cat.shown(list) : null, auto, model: c.model, effort: c.effort,
+      name: name(), busy: state.busy, runtime: rc.on, runtimes, rtNote,
+      models: list ? cat.shown(list) : null, modelName: (c.model && cat.nameOf(c.model)) || "", auto, model: c.model, effort: c.effort,
       efforts: auto || !on ? [] : cat.effortsOf(on, s).filter((e) => EFFORT_WORD[e]),
       ...routes(c.ownRouting ? c.routing : null), notes: state.notes,
     };
