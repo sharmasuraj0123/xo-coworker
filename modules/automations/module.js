@@ -6,6 +6,7 @@ import { reportFailure } from "../../core/platform/util.js";
 import { createAgentsFrame } from "./agent-frame.js";
 import { createAgentList } from "./agent-list.js";
 import { createAgentSide } from "./agent-side.js";
+import { keyOf } from "./agent-file.js";
 import { createAutomationsFrame } from "./frame.js";
 import { createAutomationsPage } from "./page.js";
 import { createPersonasStore } from "./personas.js";
@@ -57,7 +58,12 @@ export const automationsModule = {
       const id = projects().find((p) => p.chat === chat)?.id;
       return id ? personas.seen(id)?.agents ?? null : null;
     };
-    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch };
+    /** @param {string} chat */
+    const idOf = (chat) => projects().find((p) => p.chat === chat)?.id ?? "";
+    /** @param {string} chat */
+    const openProject = (chat) => { const id = idOf(chat); if (id) nav.go("p:" + id); };
+    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
+      openProject };
     /** @type {string[]} */
     let runtimes = [];
     api.runtimes().then((got) => { runtimes = got.runtimes.map((r) => r.name); }, reportFailure);
@@ -69,18 +75,19 @@ export const automationsModule = {
         project: owner, rel: path }, from) };
     const page = createAutomationsPage({
       store, projectName, projects, failed, announce,
-      side: ({ shown }) => createSide({ ...sideDeps, where: "page", shown }),
+      side: (hooks) => createSide({ ...sideDeps, ...hooks, where: "page" }),
       agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
       agentList: (hooks) => createAgentList({ personas, projects, projectName: nameOfId, failed, announce, ...hooks }),
     });
     const onPanel = () => stage.pageShown?.name === "automation";
     let leaving = false;
     const inPanel = createSide({ ...sideDeps, where: "panel", showAll: () => nav.go("automations"),
+      openAgent: (persona, chat) => stage.show("agent", keyOf({ ...persona, project: idOf(chat) }), { focus: true }),
       shown(id) { if (id === null && !leaving && onPanel()) stage.back(); else stage.repaint(); } });
     ctx.effect(() => inPanel.dispose);
     ctx.contribute("panel.page", {
       id: "automation",
-      title: () => inPanel.editing && !inPanel.id ? "New automation" : "Automation",
+      title: () => inPanel.editing && !inPanel.id ? "New automation" : "Automations",
       mount: (box) => inPanel.mount(box),
       onShow(key) { if (key.startsWith("new:")) inPanel.create(key.slice(4)); else inPanel.open(key); },
       close() { leaving = true; try { inPanel.close(); } finally { leaving = false; } },

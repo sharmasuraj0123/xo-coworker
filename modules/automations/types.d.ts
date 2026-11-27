@@ -248,6 +248,8 @@ export interface SideDeps {
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
+  openProject?: (chat: string) => void;
+  openAgent?: (persona: PersonaRef, chat: string) => void;
   agentsFor?: (chat: string) => Agent[] | null;
   watchAgents?: (fn: () => void) => () => void;
   failed: (error: unknown, words: string) => void;
@@ -268,7 +270,7 @@ export interface SideState {
 
 export interface PageDeps {
   store: AutomationsStore;
-  side: (hooks: { shown: (id: string | null) => void }) => Side;
+  side: (hooks: { shown: (id: string | null) => void, openAgent: (persona: PersonaRef, chat: string) => void }) => Side;
   agentSide: (hooks: { shown: (key: string | null) => void, openJob: (id: string) => void }) => import("./agent-side.js").AgentSide;
   agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
   projectName: (chat: string) => string;

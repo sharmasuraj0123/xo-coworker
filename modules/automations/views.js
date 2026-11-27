@@ -61,7 +61,7 @@ const deletedHtml = (a, until) => `<li class="au-gone" data-au-row="${esc(a.id)}
   `<button type="button" class="btn" data-au-act="undo" data-au-id="${esc(a.id)}">${undoRingHtml(until, UNDO_MS)}Undo</button></li>`;
 
 /** M T W T F S S, the days it runs strong. @param {number[]} days */
-const lettersHtml = (days) => `<span class="au-wk" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map((d) => {
+export const lettersHtml = (days) => `<span class="au-wk" aria-hidden="true">${[1, 2, 3, 4, 5, 6, 0].map((d) => {
   const name = formatDate(dayAt(d), "weekday"), letter = esc(name.slice(0, 1));
   return days.includes(d) ? `<em title="${esc(name)}">${letter}</em>` : `<i>${letter}</i>`;
 }).join("")}</span>`;

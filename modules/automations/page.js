@@ -6,6 +6,7 @@ import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { focusOpened, menuKeys, radioKeys } from "../../core/ui/a11y/keynav.js";
+import { keyOf } from "./agent-file.js";
 import { agendaOf, dayMonth, hhmm, noticedOf, weekOf } from "./model.js";
 import { emptyHtml, foundHtml, listHtml, offHtml, agendaHtml, weekHtml } from "./views.js";
 
@@ -52,6 +53,9 @@ function bodyHtml({ list, loaded, failed }, tab, s, t) {
   return upcomingHtml(list, s, t);
 }
 
+/** A project's id from its chat. @param {PageDeps} deps @param {string} chat */
+const idOf = (deps, chat) => deps.projects().find((p) => p.chat === chat)?.id ?? "";
+
 /** What runs this week, what found something, what's off; one opens beside the list. @param {PageDeps} deps */
 export function createAutomationsPage(deps) {
   const now = deps.now ?? Date.now;
@@ -66,7 +70,8 @@ export function createAutomationsPage(deps) {
   let aside = null;
   /** @type {HTMLElement | null} */
   let agentAside = null;
-  const side = deps.side({ shown(id) { selected = id; if (aside) aside.hidden = id === null; paint(); } });
+  const side = deps.side({ shown(id) { selected = id; if (aside) aside.hidden = id === null; paint(); },
+    openAgent(persona, chat) { setMode("agents"); agentSide.open(keyOf({ ...persona, project: idOf(deps, chat) })); } });
   const agentSide = deps.agentSide({
     shown(key) { agentKey = key; if (agentAside) agentAside.hidden = key === null; paint(); },
     openJob(id) { setMode("automations"); side.open(id); },

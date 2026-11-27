@@ -113,16 +113,16 @@
 .au-empty-ic svg{width:var(--ic-lg);height:var(--ic-lg)}
 
 /* one automation: an alarm's big time and its days, then what it does, its settings and its runs */
-.au-back{display:none;align-items:center;gap:var(--s-1);height:var(--h-ctl);margin:0 0 var(--s-3) calc(-1 * var(--s-2));
+.au-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-6)}
+.au-back{display:inline-flex;align-items:center;gap:var(--s-1);height:var(--h-ctl);margin-left:calc(-1 * var(--s-2));
   padding:0 var(--s-2);border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .au-back:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .au-back svg{width:var(--ic);height:var(--ic)}
 .au-det,.au-form{padding:var(--s-6)}
 .au-hd{display:flex;align-items:center;gap:var(--s-3)}
-.au-hd>div{min-width:0}
 .au-hd h2{margin:0;font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);
   outline:none}
-.au-hd p{margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.au-when{margin:0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-3)}
 .au-alarm{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-5)}
 .au-alarm b{font:var(--fw-regular) var(--fs-hero)/var(--lh-hero) var(--sans);letter-spacing:var(--tr-40);font-variant-numeric:tabular-nums;
   color:var(--ink)}
@@ -146,6 +146,10 @@
 .au-kv li:last-child,.au-runs li:last-child{border-bottom:0}
 .au-kv svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .au-kv span{color:var(--ink-4)}
+.au-kv-go{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row);padding:0 var(--s-2);
+  margin:0 calc(-1 * var(--s-2));border-radius:var(--r);text-align:left;font:inherit;color:inherit}
+.au-kv-go:hover{background:var(--fill-1)}
+.au-kv-go>svg:last-child{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-5)}
 .au-kv b{margin-left:auto;min-width:0;font-weight:var(--fw-regular);color:var(--ink);text-align:right;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
 .au-runs li{border-bottom:var(--hair) solid var(--line-faint)}
@@ -198,7 +202,6 @@ div.au-problem{margin-top:var(--s-4)}
   .au-page{padding:var(--s-4) 0 var(--s-12)}
   .au-top h1{display:none}
   .au-side{position:absolute;inset:0;width:auto;border:0;z-index:var(--z-panel)}
-  .au-back{display:inline-flex}
   .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
   .au-row .au-tile,.au-row .au-r{display:none}
 }

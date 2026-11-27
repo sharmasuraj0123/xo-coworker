@@ -28,6 +28,8 @@ function actOn(what, a, x) {
   else if (what === "duplicate") x.duplicate(a.id);
   else if (what === "delete") { st.confirm = true; x.paint(); focusIn(st.host, "[data-au-act=keep]"); }
   else if (what === "keep") { st.confirm = false; x.paint(); }
+  else if (what === "project") deps.openProject?.(a.project);
+  else if (what === "agent" && a.persona) deps.openAgent?.(a.persona, a.project);
   else if (what === "delete-now") {
     deps.store.removeLater(a.id);
     deps.announce(`${a.name} deleted. Undo is in the list for 10 seconds.`);

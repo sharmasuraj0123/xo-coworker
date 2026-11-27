@@ -38,7 +38,8 @@ const opened = [];
 const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "Alpha", runtimes: () => ["claude_code"],
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
-  side: ({ shown }) => createSide({ ...deps, store, where: "page", shown, openThread() {} }),
+  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
+    openProject: (/** @type {string} */ chat) => { opened.push(`project ${chat}`); } }),
   agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
   agentList: (hooks) => createAgentList({ ...deps, personas, projectName: () => "Alpha", ...hooks }) });
 const host = /** @type {HTMLElement} */ (document.getElementById("auto"));
@@ -76,6 +77,9 @@ await t("a row opens beside the list, and Esc closes it", async () => {
   assert.equal(aside().hidden, false);
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Nightly build");
   assert.ok(fake.calls.some((c) => c.name === "scheduleRuns" && c.args[0] === "j2"), "its past runs are read");
+  assert.match(aside().querySelector(".au-when")?.textContent ?? "", /next /, "when it runs next, in words");
+  await click('.au-side [data-au-act="project"]');
+  assert.deepEqual(opened.splice(0), ["project chat_a"], "its project row opens the project");
   assert.equal(page.escape(), true);
   assert.equal(aside().hidden, true);
 });
