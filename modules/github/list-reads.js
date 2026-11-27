@@ -49,7 +49,7 @@ export function createListReads(api, signal) {
       const message = requestFailureMessage(error, "Space didn't answer.");
       issues = { ...previous?.issues, repo: previous?.issues.repo ?? null, state: "error", error: { message } };
     }
-    if (issues.repo && pulls !== null) {
+    if (issues.repo && (pulls !== null || refresh)) {
       try {
         pulls = await api.githubPulls(project, options);
       } catch (error) {

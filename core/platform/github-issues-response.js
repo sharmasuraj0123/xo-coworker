@@ -82,8 +82,9 @@ function isDetail(value) {
     && (value.comments === undefined || Array.isArray(value.comments) && value.comments.every(isComment));
 }
 
-/** @param {unknown} value @returns {value is {pulls: Pull[]}} */
-const isPulls = (value) => isResponseObject(value) && Array.isArray(value.pulls) && value.pulls.every(isPull);
+/** @param {unknown} value @returns {value is {pulls: Pull[], open_total?: number}} */
+const isPulls = (value) => isResponseObject(value) && Array.isArray(value.pulls) && value.pulls.every(isPull)
+  && (value.open_total === undefined || Number.isInteger(value.open_total));
 
 /** @param {string} project @param {{signal?: AbortSignal}} [options] */
 export function githubPulls(project, { signal } = {}) {
