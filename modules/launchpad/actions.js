@@ -77,13 +77,15 @@ export function installActions(records) {
     land('[data-lp="stop"]'); // Undo's time is up: it goes, Stop takes its place
     changed();
   }
+  /** a link or unlink Space didn't confirm may still have happened: read the project again; null when that fails too @param {string} p */
+  const linkedNow = (p) => load(p, true).then(() => (proj(p).err ? null : !!proj(p).check?.app));
   /** @param {string} p @param {string} id */
   function link(p, id) {
     const s = proj(p);
     s.picking = null; s.linking = true; land('[data-lp="pick-cancel"]'); changed();
     api.link(p, id)
       .then((a) => { if (s.check) s.check = { ...s.check, state: "linked", app: a }; s.run = null; land('[data-lp="again"]'); load(p, true); })
-      .catch((/** @type {Error} */ e) => { land('[data-lp="pick"]'); tell(`Couldn't link it: ${e.message}`, null, "err"); })
+      .catch((/** @type {Error} */ e) => linkedNow(p).then((linked) => { if (linked) { land('[data-lp="again"]'); tell("Linked to Launchpad"); } else { land('[data-lp="pick"]'); tell(`Couldn't link it: ${e.message}`, null, "err"); } }))
       .finally(() => { s.linking = false; changed(); });
   }
 
@@ -247,7 +249,7 @@ export function installActions(records) {
       case "decline-apps": s.needs = null; form.allowApps = null; s.run = null; invalidate(); land('[data-lp="deploy"], [data-lp="reconnect"]'); announce("Not pushing. Nothing changed."); changed(); return;
       case "decline-repo": s.needs = null; form.useRepo = ""; s.run = null; invalidate(); land('[data-lp="deploy"], [data-lp="reconnect"]'); announce("Not deploying to that repository. Nothing changed."); changed(); return;
       case "create-repo": s.check = { ...check, repo: { ...check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
-      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...check, state: "linked", app: a }; deploy(p, true); }).catch((/** @type {Error} */ err) => tell(`Couldn't link it: ${err.message}`, null, "err")); changed(); return; }
+      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...check, state: "linked", app: a }; deploy(p, true); }).catch((/** @type {Error} */ err) => linkedNow(p).then((linked) => { if (linked) deploy(p, true); else tell(`Couldn't link it: ${err.message}`, null, "err"); })); changed(); return; }
       case "env-all": { // the first of the names it shows, by name (an index into the list could miss when they interleave)
         const first = (check.env || []).find((/** @type {{name: string, sensitive: boolean, default: string}} */ x) => !(x.sensitive || !x.default || form.env[x.name]));
         s.envAll = true; invalidate(); land(first ? `[data-lp-env="${CSS.escape(first.name)}"]` : ".lp-ev input"); changed(); return;
@@ -267,11 +269,12 @@ export function installActions(records) {
         const mid = `lp-unlink:${p}`, until = Date.now() + UNLINK_MS;
         const t = setTimeout(() => {
           say(mid, { text: "Unlinked from Launchpad", kind: "done" }, 2400);
-          api.unlink(p).then(() => load(p, true)).catch((/** @type {Error} */ e) => {
-            s.check = was; land('[data-lp="menu"]');
-            say(mid, { text: `Couldn't unlink from Launchpad`, sub: `${e.message}. It's still linked.`, kind: "err" }, 6000);
-            announce(`Couldn't unlink: ${e.message}. It's still linked.`); changed();
-          });
+          api.unlink(p).then(() => load(p, true)).catch((/** @type {Error} */ e) => linkedNow(p).then((linked) => {
+            if (linked === false) { say(mid, { text: "Unlinked from Launchpad", kind: "done" }, 2400); changed(); return; }
+            const sub = `${e.message}. ${linked ? "It's still linked." : "Couldn't read whether it's still linked."}`;
+            land('[data-lp="menu"]'); say(mid, { text: `Couldn't unlink from Launchpad`, sub, kind: "err" }, 6000);
+            announce(`Couldn't unlink: ${sub}`); changed();
+          }));
         }, UNLINK_MS);
         say(mid, { text: "Unlinked from Launchpad", kind: "done", until,
           undo: () => { fromNotice(p, '[data-lp="deploy"], [data-lp="reconnect"]'); clearTimeout(t); s.check = was; s.run = run; land('[data-lp="menu"]'); changed(); } }, UNLINK_MS + 1000);
