@@ -48,7 +48,7 @@ const hasFeatures = (value) => isResponseObject(value) && optional(value.feature
 
 /** @param {unknown} value @returns {value is Lifecycle} */
 export const isLifecycle = (value) => isResponseObject(value) && string(value.name) && string(value.state)
-  && boolean(value.installed) && boolean(value.signed_in) && strings(value.actions)
+  && boolean(value.installed) && nullable(value.signed_in, boolean) && strings(value.actions)
   && nullable(value.job, string) && nullable(value.version, string) && optional(value.needs_update, boolean)
   && nullable(value.update, string);
 

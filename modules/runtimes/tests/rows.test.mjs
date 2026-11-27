@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { rowHtml, deviceCode } from "../rows.js";
+import { rowHtml, deviceCode, landed } from "../rows.js";
 
 /** @typedef {import("../../../core/services/runtime-types").Runtime} Runtime */
 
@@ -61,4 +61,15 @@ test("a device code needs both the link and the code", () => {
   assert.equal(deviceCode(["Go to https://auth.test/device."]), null);
   assert.deepEqual(deviceCode(["Go to https://auth.test/device.", "and enter WXYZ-9876"]), { url: "https://auth.test/device", code: "WXYZ-9876" });
   assert.deepEqual(deviceCode(["enter WXYZ-9876"], "https://given.test"), { url: "https://given.test", code: "WXYZ-9876" });
+});
+
+test("a login still being checked reads Checking…, never Not signed in, and lands no sign-in or sign-out", () => {
+  const checking = rt("cursor", { state: "checking", signed_in: null, actions: ["update", "sign_in"] });
+  const html = rowHtml(checking, { menuOpen: true });
+  assert.match(words(html), /Checking…/);
+  assert.doesNotMatch(words(html), /not signed in/i);
+  assert.deepEqual(acts(html), ["menu", "update"]);
+  assert.equal(landed(checking, "sign_in"), false);
+  assert.equal(landed(checking, "sign_out"), false);
+  assert.match(words(rowHtml(checking, { settling: "sign_in" })), /Finishing the sign-in…/);
 });
