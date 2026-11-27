@@ -1,0 +1,50 @@
+/* Settings › Usage: every runtime's tokens in the flavour's accent, one shade per runtime, fainter as it uses less */
+.us-board,.us-models{
+  --series-1:var(--accent-fill); --series-2:color-mix(in oklab,var(--accent-fill) 62%,var(--surface));
+  --series-3:color-mix(in oklab,var(--accent-fill) 38%,var(--surface)); --series-4:color-mix(in oklab,var(--accent-fill) 22%,var(--surface))
+}
+.us-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:var(--s-4)}
+.us-range{flex:none}
+.us-board{
+  display:flex; flex-direction:column; gap:var(--s-6); padding:var(--card-pad); border:var(--hair) solid var(--line-soft);
+  border-radius:var(--r-block); background:var(--surface); font-variant-numeric:tabular-nums
+}
+.us-hero{display:flex;flex-direction:column;gap:var(--s-1)}
+.us-kicker{
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans); letter-spacing:var(--tr-caps); text-transform:uppercase;
+  color:var(--ink-4)
+}
+.us-total{font:var(--fw-strong) var(--fs-hero)/var(--lh-hero) var(--sans);color:var(--ink-hi)}
+.us-sub{font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink)}
+.us-split,.us-note{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.us-tiles{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(calc(4 * var(--h-ctl)),1fr)); gap:var(--s-4);
+  padding-top:var(--s-4); border-top:var(--hair) solid var(--line-soft)
+}
+.us-tile{display:flex; flex-direction:column; gap:var(--s-1); padding-left:var(--s-3); border-left:var(--hair) solid var(--line-soft)}
+.us-tile dt{display:flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.us-tile dd{font:var(--fw-medium) var(--fs-display)/var(--lh-display) var(--sans);color:var(--ink)}
+.us-tile dd.us-note{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.us-sw{flex:none;width:var(--s-2);height:var(--s-2);border-radius:var(--r-tight);background:var(--c)}
+.us-chart{--viz-1:var(--series-1); --viz-2:var(--series-2); --viz-3:var(--series-3); --viz-4:var(--series-4); --mc-h:calc(8 * var(--h-ctl))}
+.us-chart .md-chart{--mc-bg:var(--surface);margin:0;padding:0;border:0;background:none}
+.us-models{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto auto;column-gap:var(--s-4)}
+.us-models li{
+  display:grid; grid-template-columns:subgrid; grid-column:1/-1; align-items:center; min-height:var(--h-row);
+  border-bottom:var(--hair) solid var(--line-faint); font-variant-numeric:tabular-nums
+}
+.us-mn{
+  display:flex; align-items:baseline; gap:var(--s-2); min-width:0; font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
+  color:var(--ink-4)
+}
+.us-mn b{overflow:hidden;font-weight:var(--fw-medium);color:var(--ink);text-overflow:ellipsis;white-space:nowrap}
+.us-bar{
+  height:var(--s-2); border-radius:var(--r-pill);
+  background:linear-gradient(to right,var(--c) calc(var(--share) * 100%),var(--fill-2) 0)
+}
+.us-mt{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);text-align:right}
+@media (max-width:760px){
+  .us-total{font-size:var(--fs-display);line-height:var(--lh-display)}
+  .us-models{grid-template-columns:minmax(0,1fr) auto auto}
+  .us-bar{display:none}
+}

@@ -116,7 +116,7 @@
 .iq-d{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 /* the models: names in one column, what each is for in the next, so the lines start together */
-.iq-opts.is-cols{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s-3);max-height:none;padding-top:0}
+.iq-opts.is-cols{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s-3);padding-top:0}
 .iq-opt:focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
 .iq-opts.is-cols .iq-opt{display:grid;grid-column:1/-1;grid-template-columns:subgrid;gap:inherit}
 .iq-s{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}

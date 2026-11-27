@@ -66,6 +66,7 @@ export function installStore({
     const s = proj(p), r = s.run, at = e.at || Date.now(); // Space's own time, so a replayed run keeps its clocks
     if (!r) return;
     if (e.type === "run") { if (e.started) r.startedAt = e.started; return; }
+    if (e.step === undefined) return;
     const st = r.steps[e.step] || (r.steps[e.step] = {});
     if (e.state === "doing" && st.state !== "doing") st.at = at;
     Object.assign(st, { state: e.state, text: e.text || st.text, url: e.url || st.url });
@@ -77,7 +78,7 @@ export function installStore({
       r.live = { host: e.host, url: e.url, release: e.release, commit: e.commit, at };
       const check = s.check, was = check?.app;
       r.appId = e.app?.id || r.appId || was?.id || "";
-      const env = (s.check?.env || []).map((/** @type {{name: string}} */ x) => (r.sent?.includes(x.name) ? { ...x, set: true } : x));
+      const env = (s.check?.env || []).map((x) => (r.sent?.includes(x.name) ? { ...x, set: true } : x));
       // its size and disk: what it had, else what this deploy made it with (preflight says Launchpad's own soon after)
       const made = r.made || {};
       if (check) s.check = { ...check, state: "linked", env, app: {

@@ -222,7 +222,7 @@
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{max-height:min(58vh,520px);background:var(--surface)}
-.dock-fold{--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
+.dock-fold{--note-in:calc((var(--note-h) - var(--note-btn)) / 2);border-radius:var(--r-pill)}
 /* the folded line and the notice pills are glass: the composer's fill, tinted by the line's state */
 :is(.dock-fold,.hr){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
 .card.is-dock .c-h{font-size:var(--fs-heading)}

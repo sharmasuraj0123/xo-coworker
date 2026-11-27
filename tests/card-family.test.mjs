@@ -35,12 +35,10 @@ const NEST = "calc(var(--nest-r) - var(--nest-in))";
 /** a shorthand's values, split on the spaces outside parentheses */
 const parts = (v) => { const out = [""]; let d = 0; for (const ch of v.trim()) { if (ch === "(") d++; if (ch === ")") d--; if (/\s/.test(ch) && !d) { if (out.at(-1)) out.push(""); } else out[out.length - 1] += ch; } return out; };
 
-test("the family's tokens: a 24 corner, controls 12 in, text 20 in (16 on a phone), lines 48 (44 on a phone)", () => {
+test("the family's tokens: a 24 corner, controls 12 in, text 20 in (16 on a phone)", () => {
   assert.equal(px("var(--r-card)", SCREENS.desktop), 24);
   assert.equal(px("var(--card-in)", SCREENS.desktop), 12);
   assert.equal(px("var(--card-pad)", SCREENS.desktop), 20); assert.equal(px("var(--card-pad)", SCREENS.phone), 16);
-  assert.equal(px("var(--dock-bar)", SCREENS.desktop), 48); assert.equal(px("var(--dock-bar)", SCREENS.phone), 44);
-  assert.equal(px("var(--dock-btn)", SCREENS.desktop), 32); assert.equal(px("var(--dock-btn)", SCREENS.phone), 36);
 });
 test("a card's buttons: --card-in from its edge, their corner the nest, so 12 + 12 = 24", () => {
   const card = nest(rule(".card"));
@@ -87,16 +85,11 @@ test("the card's corner control (Read the thread first) sits --card-in from the 
   const body = parts(prop(rule(".c-body"), "padding"));
   for (const env of Object.values(SCREENS)) assert.equal(px(body[0], env) + 1, px("var(--card-in)", env), "above it: the inset");
 });
-test("the folded line: the family's corner, their button (dock-bar − dock-btn) / 2 in, no radius past half its height", () => {
-  const r = rule(".dock-fold"), n = nest(r);
-  assert.equal(n["--nest-r"], "var(--r-card)");
-  assert.equal(prop(r, "border-radius"), "var(--nest-r)");
-  for (const [name, env] of Object.entries(SCREENS)) {
-    const bar = px("var(--dock-bar)", env), btn = px("var(--dock-btn)", env), inn = px(n["--nest-in"], env);
-    assert.equal(inn, (bar - btn) / 2 + 1, `${name}: centred in the bar, its 1 px line included`);
-    const outer = Math.min(px("var(--r-card)", env), (bar + 2) / 2), inner = Math.min(px(NEST, env, n), btn / 2);
-    assert.ok(Math.abs(outer - inn - inner) <= 1, `${name}: ${outer} − ${inn} ≈ ${inner}, its button's corner`);
-  }
+test("the folded line: a notice-line pill, 34 tall (38 on a phone), its button 24", () => {
+  const r = rule(".dock-fold");
+  assert.equal(prop(r, "border-radius"), "var(--r-pill)");
+  assert.equal(px("calc(var(--note-h) + 2px)", SCREENS.desktop), 34); assert.equal(px("calc(var(--note-h) + 2px)", SCREENS.phone), 38);
+  for (const env of Object.values(SCREENS)) assert.equal(px("var(--note-btn)", env), 24);
 });
 test("the composer: Send and Add files are --comp-ctl circles, --comp-in from its edge, so r + in = 24 on either screen", () => {
   for (const sel of [".send", ".attach"]) {

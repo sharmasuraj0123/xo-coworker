@@ -11,7 +11,8 @@ import { createCalmOrder } from "../sideorder.js";
 /** @import { Lifetime } from "../../core/kernel/types" */
 
 /** @template {SideNeed} N @param {Pick<Lifetime, "listen" | "timeout">} scope @param {SideRowsDeps<N>} deps */
-export function createSideRows(scope, { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
+export function createSideRows(scope, deps) {
+  const { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, projectTint, folded } = deps;
   const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false });
   let cancelReorder = () => {};
   /** @type {Map<string, { n: number, until: number }>} */
@@ -71,7 +72,8 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
       const washing = w && w.until > now;
       return { key: p.id, html:
         `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${folded() ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
-        `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
+        `<span class="pr-ic" data-tint="${projectTint(p.id)}" aria-hidden="true">` +
+        `${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
         `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
         (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>`, active: busy || needsMe, urgent: needsMe };
     });

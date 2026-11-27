@@ -27,7 +27,7 @@ let jumps = 0;
 const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
 const SIDE = createSide({ ...deps, scope });
 
-const ids = ["home", "chats", "arts", "automations", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
+const ids = ["home", "chats", "arts", "automations", "launchpad", "runtimes", "accounts", "usage", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts", "automations"] }, "the default: Home, Chats, Artifacts, Automations; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 

@@ -73,7 +73,7 @@ export function rememberHome() {
 export function homeShell(box = document.getElementById("home")) {
   if (!box || built.has(box) || box.firstElementChild) return;
   const s = recall();
-  box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
+  box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-start"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
   built.add(box);
   const $ = (/** @type {string} */ id) => /** @type {HTMLElement} */ (document.getElementById(id));
   $("hm-head").innerHTML = `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${today()}</p><h1 class="hm-h" id="home-h">${greeting()}.<span> ${bar("9.5em", "sk-l")}</span></h1></div></header>`;

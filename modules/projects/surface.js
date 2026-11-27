@@ -6,8 +6,8 @@ import { createProjectIconPicker } from "./icon-picker.js";
 
 /** @param {Pick<import("../../core/kernel/types").ModuleContext, "effect" | "listen">} scope @param {IconHost} host */
 function mountProjectIcons(scope, host) {
-  const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice(host);
-  const { PICK, pickIcon, closePick } = createProjectIconPicker({ ...host, ownIcon, forgetIcon });
+  const { ownIcon, ownTint, projectTint, projectIcon, forgetIcon } = createProjectIconChoice(host);
+  const { PICK, pickIcon, closePick } = createProjectIconPicker({ ...host, ownIcon, ownTint, forgetIcon });
   scope.effect(() => closePick);
   scope.listen(document, "click", ({ target }) => {
     const button = target instanceof Element ? target.closest("[data-pj-icon]") : null;
@@ -17,7 +17,7 @@ function mountProjectIcons(scope, host) {
   scope.listen(document, "pointerdown", ({ target }) => {
     if (PICK.el && target instanceof Element && !target.closest(".pk-pop,[data-pj-icon]")) closePick();
   });
-  return { PICK, projectIcon };
+  return { PICK, projectIcon, projectTint };
 }
 
 /** @type {import("../../core/kernel/types").ModuleDef} */

@@ -14,10 +14,11 @@ export const railModule = {
     const side = createSide({ scope: ctx, shape: ctx.use("shape"), announce: ctx.use("announce"), render: () => ctx.emit("app:render"),
       toggleJump() { const surface = ctx.optional("jump"); if (jump.hidden) surface?.open(); else surface?.close(); } });
     const { D, askShort } = ctx.use("decisionPresentation"), place = ctx.use("placeContext");
+    const icons = ctx.use("projectIcons");
     const rows = createSideRows(ctx, {
       view: ctx.use("currentView"), world: ctx.use("world"), CH: ctx.use("chats"), D,
       projects: place.projects, convThread: place.convThread,
-      ...ctx.use("threadPresentation"), askShort, projectIcon: ctx.use("projectIcons").projectIcon, folded: () => side.folded,
+      ...ctx.use("threadPresentation"), askShort, projectIcon: icons.projectIcon, projectTint: icons.projectTint, folded: () => side.folded,
     });
     ctx.provide("rail", { side, rows });
   },

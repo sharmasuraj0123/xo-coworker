@@ -5,9 +5,11 @@ export function wirePickKeys(el, closePick) {
   /** @param {KeyboardEvent} e */
   const keydown = (e) => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePick({ focus: true }); return; }
-    const os = [.../** @type {NodeListOf<HTMLButtonElement>} */ (el.querySelectorAll(".pk-o"))], i = os.indexOf(/** @type {HTMLButtonElement} */ (document.activeElement));
+    const grid = document.activeElement?.closest(".pk-grid");
+    if (!(grid instanceof HTMLElement) || !el.contains(grid)) return;
+    const os = [.../** @type {NodeListOf<HTMLButtonElement>} */ (grid.querySelectorAll(".pk-o"))], i = os.indexOf(/** @type {HTMLButtonElement} */ (document.activeElement));
     if (i < 0) return;
-    const cols = Math.max(1, Math.round(/** @type {HTMLElement} */ (el.querySelector(".pk-grid")).clientWidth / os[0].offsetWidth));
+    const cols = Math.max(1, Math.round(grid.clientWidth / os[0].offsetWidth));
     /** @type {Record<string, number | undefined>} */
     const steps = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os.length - 1 - i };
     const d = steps[e.key];

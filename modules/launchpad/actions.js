@@ -260,7 +260,7 @@ export function installActions(records) {
       case "copy": copied((s.run?.live || check.app)?.url, "the address", () => { s.copied = Date.now() + 1500; }, () => { s.copied = 0; }); return;
       case "menu": menu(p, !s.menu, !s.menu && (e || true)); return;
       case "unlink": {
-        // Undo is real: Space unlinks (and commits launchpad.json) only once its 3 s are up
+        // Undo is real: Space unlinks (and commits deploy.json) only once its 3 s are up
         s.menu = false; s.needs = null;
         const was = check, run = s.run;
         s.check = { ...was, app: null, state: "ready" }; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); changed();

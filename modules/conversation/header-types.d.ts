@@ -25,6 +25,7 @@ export type HeaderDeps<N extends HeaderNeed> = {
   threadCounts(project: string, needs: N[]): ThreadCounts;
   PROJ(project: string): string;
   projectIcon(project: string): string;
+  projectTint(project: string): number;
   threadsCtl(total: number, counts: ThreadCounts): string;
   threadTitleInput(value: string, attrs: string): string;
   threadLabelInput(value: string, attrs: string): string;

@@ -73,7 +73,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
     CH: { isChats: () => false, live: () => "" }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
-    isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", folded: () => false,
+    isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", projectTint: () => 0, folded: () => false,
   });
   const order = () => [...box.children].map((row) => row.dataset.k);
   sideRender(needs);

@@ -64,10 +64,11 @@ export function createProjectSettings({ world, writes, PROJ, iconOf }) {
   }
 
   function readModels() {
-    reads.dispose(); reads = createScope(); S.models = null;
-    const { signal } = reads;
-    cat.catalog(cat.runtimeOf(M.session()), { fresh: true, signal })
-      .then((list) => list || [], () => [])
+    reads.dispose(); reads = createScope();
+    const { signal } = reads, runtime = cat.runtimeOf(M.session());
+    S.models = cat.catalogs.get(runtime) || null;
+    cat.catalog(runtime, { fresh: true, signal })
+      .then((list) => list || [], () => S.models || [])
       .then((list) => { if (!signal.aborted) { S.models = list; draw(); } });
     writes.routerModels(signal).then((list) => { if (!signal.aborted) { S.dms = list; draw(); } }, () => {});
   }

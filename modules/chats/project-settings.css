@@ -13,6 +13,8 @@
 .ps-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s-10) var(--s-12);outline:none;scrollbar-width:thin}
 .ps-page{display:flex;flex-direction:column;gap:var(--s-8);padding-bottom:var(--s-4);animation:none}
 .ps-page .set-ph{margin:0}
+.ps-body:has(>.ps-page>.m-load){display:flex;flex-direction:column}
+.ps-page:has(>.m-load){flex:1}
 .ps-page h2{outline:none}
 .ps-x{position:absolute;top:var(--s-2);right:var(--s-2);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);
   border-radius:var(--r-lg);color:var(--ink-3)}
@@ -25,3 +27,19 @@
 .ps-mk svg{width:var(--ic);height:var(--ic)}
 .ps-sel{flex:none;min-width:var(--row-k)}
 .ps-row .field textarea{min-height:calc(2 * var(--h-ctl))}
+
+/* a phone: a sheet from the foot, as Launchpad's window, its pages a row along its top and each row's control under its words */
+@media (max-width:760px){
+  .dlg.ps{width:100vw;height:calc(100dvh - var(--s-10));margin:auto 0 0;border-radius:var(--r-xl) var(--r-xl) 0 0;border-bottom:0}
+  .dlg.ps[open]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .ps-side.nav{flex-direction:row;align-items:center;padding:var(--s-2) calc(var(--h-ctl) + 2 * var(--s-2)) var(--s-2) var(--s-2);
+    overflow-x:auto;scrollbar-width:none;border-right:0;border-bottom:var(--hair) solid var(--line-faint)}
+  .ps-me{display:none}
+  .ps-side .nrow{flex:none;width:auto}
+  .ps-x{top:calc(-1 * (var(--h-ctl) + var(--s-2)) - var(--hair))}
+  .ps-body{padding:var(--s-6) var(--s-4)}
+  .ps-row{flex-direction:column;align-items:stretch;gap:var(--s-3)}
+  .ps-row>.ps-ctl,.ps-row.is-col>.rt-checks{align-self:flex-start;max-width:100%}
+  .ps-row>.rt-seg,.ps-row.is-col>.rt-seg{align-self:stretch}
+  .ps-row .rt-seg>button{flex:1 1 auto}
+}
