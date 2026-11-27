@@ -100,7 +100,7 @@ export function createSince({ world, api, schedule, announce, storage }) {
     const ask = waiting ? `<span class="sl-n t-amber">${waiting} ${plural(waiting, "needs", "need")} you</span>${DOT}` : "";
     return '<section class="sl-home" aria-label="Since you were away">'
       + `<button type="button" class="sl-open" data-since-open aria-haspopup="dialog">${ICON.clock}`
-      + `<span class="sl-open-k">${sinceLabel(since)}</span>`
+      + `<span class="sl-open-k">${sinceLabel(home.since)}</span>`
       + `<span class="sl-open-n">${ask}${count(rows.length, "project")}</span>${ICON.right}</button></section>`;
   }
 
