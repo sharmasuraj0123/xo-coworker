@@ -53,7 +53,7 @@ test("the project header counts all thread states and places Threads before Depl
   t.after(scope.dispose);
   const conversationHeaderHtml = createConversationHeader({
     threadControls: createThreadControls(), description: () => undefined,
-    PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
+    PICK: {}, threadCounts, PROJ, projectIcon: () => "", projectTint: () => 0, threadsCtl, convHost: () => null,
   });
   const ws = conversationHeaderHtml("ws", null, needs).who ?? "";
   assert.match(ws, /<span class="tw-t is-one"><h1 id="conv-title">Workspace<\/h1><\/span>$/, "the Workspace's bar is a project's: its name, no count line");

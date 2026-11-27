@@ -357,6 +357,20 @@
   --danger-wash:color-mix(in srgb,var(--err) 10%,transparent);
   --coord-tint:color-mix(in srgb,var(--coord) 14%,transparent);
 }
+/* Project colours: the flavour's violet in hues clear of working blue, needs-you amber and danger red. */
+[data-tint]{--pc-fill:color-mix(in srgb,var(--pc) 16%,transparent)}
+[data-tint="1"]{--pc:oklch(from var(--violet) l c 285)}
+[data-tint="2"]{--pc:oklch(from var(--violet) l c 300)}
+[data-tint="3"]{--pc:oklch(from var(--violet) l c 315)}
+[data-tint="4"]{--pc:oklch(from var(--violet) l c 330)}
+[data-tint="5"]{--pc:oklch(from var(--violet) l c 345)}
+[data-tint="6"]{--pc:oklch(from var(--violet) l c 0)}
+[data-tint="7"]{--pc:oklch(from var(--violet) l c 120)}
+[data-tint="8"]{--pc:oklch(from var(--violet) l c 140)}
+[data-tint="9"]{--pc:oklch(from var(--violet) l c 160)}
+[data-tint="10"]{--pc:oklch(from var(--violet) l c 180)}
+[data-tint="11"]{--pc:oklch(from var(--violet) l c 200)}
+[data-tint="12"]{--pc:oklch(from var(--violet) l c 215)}
 /* Phone controls retain the touch floor while taller rows keep their own heights. */
 @media (max-width:760px){:root{--h-row:36px}}
 @media (max-width:760px){:root{--cbar-fade:22px}}

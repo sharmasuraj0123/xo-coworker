@@ -81,7 +81,17 @@ export function classify(name, titles = []) {
   return { icon: best ? best[0].icon : "project", scores: Object.fromEntries([...score].map(([c, n]) => [c.icon, n])) };
 }
 
-/** The topic's icon from the owner's pack (project-<topic>.svg), the cube for "project" or a topic it doesn't have. @param {string} icon */
+/** The topic's icon from the icon pack (project-<topic>.svg), the cube for "project" or a topic it doesn't have. @param {string} icon */
 export function glyph(icon) {
   return icon !== "project" && hasIcon(`project-${icon}`) ? xi(`project-${icon}`) : xi("project");
+}
+
+/** Project colours on offer, 1…TINTS; 0 is the plain grey tile. */
+export const TINTS = 12;
+
+/** A project's automatic colour, 1…TINTS, the same for its name on every device. @param {string} name */
+export function autoTint(name) {
+  let h = 0;
+  for (const ch of String(name || "")) h = (h * 31 + /** @type {number} */ (ch.codePointAt(0))) >>> 0;
+  return h % TINTS + 1;
 }

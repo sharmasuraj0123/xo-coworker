@@ -33,6 +33,10 @@
 :root:root .side :is(.nrow,.prow):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
 
+/* an idle project's tile wears its colour; working, needing you and open keep their own */
+.side .prow:not(.busy):not(.needs):not(.is-on) .pr-ic:not([data-tint="0"]){
+  color:var(--pc);background:var(--pc-fill);border-color:var(--pc-fill)
+}
 /* its tile: solid, in the row's colour (.side: above light.css's white tile for the open row) */
 .side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--sb-side)}
 .side .prow.is-on.needs .pr-ic{background:var(--warn);border-color:var(--warn);color:var(--sb-side)}
@@ -121,12 +125,15 @@
 .pj-pick:hover .tw-ic,.pj-pick[aria-expanded="true"] .tw-ic{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .pk-pop{left:var(--pop-x);top:var(--pop-y);width:calc(8 * var(--tile) + 7 * var(--s-2) + 2 * var(--s-3) + 2 * var(--s-2))}
 .pk-grid{display:grid;grid-template-columns:repeat(8,var(--tile));gap:var(--s-2);padding:0 var(--s-3) var(--s-3)}
+.pk-grid+.pk-grid{border-top:1px solid var(--line-faint);padding-top:var(--s-3)}
 .pk-o{display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);border:1px solid transparent;color:var(--ink-3)}
 .pk-o:hover{background:var(--hover-fill);color:var(--ink)}
 .pk-o.is-on{border-color:var(--line-strong);background:var(--fill-2);color:var(--ink)}
 .pk-o svg{width:var(--ic);height:var(--ic)}
 .pk-auto{position:relative;display:grid;place-items:center}
-.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}
+.pk-dot{position:relative;width:var(--ic);height:var(--ic);border-radius:50%;
+  background:var(--pc);border:1px solid var(--pc,var(--line-strong))}
+.pk-auto i,.pk-dot i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}
 
 @layer tokens{
 :where(.side.is-drag){--shadow-sidebar-drag:var(--shadow-drawer)}

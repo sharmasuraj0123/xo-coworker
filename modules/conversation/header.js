@@ -13,7 +13,7 @@ import { headerActionsHtml } from "../../shell/header.js";
 /** @template {HeaderNeed} N @param {HeaderDeps<N>} options */
 export function createConversationHeader({
   threadControls, description, world, PICK, LP, LW, STAGE, places, atOf, convHost, isHeld,
-  threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
+  threadCounts, PROJ, projectIcon, projectTint, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
 }) {
   /** @param {string} v @param {N[]} needs */
   function hostNeedHtml(v, needs) {
@@ -38,7 +38,7 @@ export function createConversationHeader({
       const by = threadCounts(pid, needs);
       const need = hostNeedHtml(v, needs);
       const desc = description(pid);
-      who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${desc ? ` title="${esc(desc)}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
+      who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" data-tint="${projectTint(pid)}" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${desc ? ` title="${esc(desc)}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
       controls = threadsCtl(by.all, by);
     } else if (t) {
       const current = threadControls.edit(), edit = current?.tid === t.id ? current : null;
