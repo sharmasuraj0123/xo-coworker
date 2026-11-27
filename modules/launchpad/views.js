@@ -232,9 +232,9 @@ export function installViews(L) {
   function needsHtml(p) {
     const c = proj(p).check;
     if (!c) throw new Error("Launchpad needs screen requires a check");
-    return top({ words: "Not ready yet", title: `${esc(nameOf(p))} needs preparing first`, sub: "Launchpad can't tell how to run it as it is. An agent can prepare it." }) +
-      (c.missing.length ? `<p class="lq-h">What Launchpad looks for</p><ul class="lq-group lp-check">${c.missing.map((/** @type {{ok: boolean, what: string, why?: string}} */ m) => `<li class="lq-row ${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lq-v lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<small>${esc(m.why)}</small>` : ""}</span></li>`).join("")}</ul>` : "") +
-      rec("Ask an agent to get it ready", "In a new thread it adds what's missing. Once that's merged, deploy from here.", "ask", "Ask an agent", "", proj(p));
+    return top({ words: "Not ready yet", title: `${esc(nameOf(p))} needs a little setup`, sub: "Launchpad can't run it as it is yet." }) +
+      (c.missing.length ? `<p class="lq-h">Still needed</p><ul class="lq-group lp-check">${c.missing.map((/** @type {{ok: boolean, what: string, why?: string}} */ m) => `<li class="lq-row ${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lq-v lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<small>${esc(m.why)}</small>` : ""}</span></li>`).join("")}</ul>` : "") +
+      rec("Let an agent set it up", "It adds what's missing in a new thread. Once that's merged, deploy from here.", "ask", "Set up", "", proj(p));
   }
 
   /** @param {string} p */
