@@ -190,7 +190,6 @@ button.au-run:hover{background:var(--fill-1)}
   border-radius:var(--r-sm);background:var(--fill-2);font:inherit;color:var(--ink)}
 .au-chip .dd-btn>svg{display:none}
 .au-chip-in{field-sizing:content;min-width:2ch;font-variant-numeric:tabular-nums}
-.au-chip-in:focus,.au-chip.is-open .dd-btn{border-color:var(--accent)}
 .au-kv .au-chip{margin-left:auto}
 .au-kv .au-chip .dd-btn{background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .au-kv .au-chip .dd-btn>svg{display:block}
@@ -201,7 +200,6 @@ button.au-run:hover{background:var(--fill-1)}
 .au-say-text{width:100%;min-height:calc(4 * var(--lh-read));padding:var(--s-4);border:var(--hair) solid var(--fill-clear);
   border-radius:var(--r-lg);background:var(--fill-1);font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink);
   resize:none;field-sizing:content}
-.au-say-text:focus{outline:none;border-color:var(--accent)}
 .au-say-text::placeholder{color:var(--ink-5)}
 .au-form-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
 .au-form-bar b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
