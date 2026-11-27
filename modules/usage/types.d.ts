@@ -10,6 +10,7 @@ export interface UsageState {
   parts: UsagePart[] | null;
   failed: { name: string; message: string }[];
   waiting: string[];
+  stale: string[];
 }
 
 export interface UsageHost {

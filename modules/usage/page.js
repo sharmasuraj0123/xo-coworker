@@ -16,12 +16,14 @@ const aborted = (error) => error instanceof Error && error.name === "AbortError"
 export function createUsagePage(host, source) {
   const scope = createScope();
   /** @type {UsageState} */
-  const state = { days: 30, parts: null, failed: [], waiting: [] };
+  const state = { days: 30, parts: null, failed: [], waiting: [], stale: [] };
 
   const render = () => { if (!scope.signal.aborted) host.paint(PAGE, usageHtml(state)); };
 
   /** @type {AbortController | null} */
   let reading = null;
+  /** Each runtime's last answer for a period, kept for when a later read times out. @type {Map<string, UsagePart["usage"]>} */
+  const last = new Map();
 
   /** @param {string} name @param {unknown} error */
   function noteFailure(name, error) {
@@ -33,7 +35,7 @@ export function createUsagePage(host, source) {
   async function load() {
     reading?.abort();
     const ctl = reading = new AbortController(), signal = AbortSignal.any([scope.signal, ctl.signal]);
-    Object.assign(state, { parts: null, failed: [], waiting: [] });
+    Object.assign(state, { parts: null, failed: [], waiting: [], stale: [] });
     render();
     /** @type {string[]} */
     let names;
@@ -48,9 +50,14 @@ export function createUsagePage(host, source) {
     state.waiting = [...names];
     /** @type {UsagePart[]} */
     const parts = [];
-    await Promise.all(names.map((name) => source.usage(name, state.days, signal).then(
-      (usage) => { parts.push({ name, usage }); },
-      (error) => { if (!signal.aborted) noteFailure(name, error); },
+    const days = state.days;
+    await Promise.all(names.map((name) => source.usage(name, days, signal).then(
+      (usage) => { last.set(`${name}:${days}`, usage); parts.push({ name, usage }); },
+      (error) => {
+        if (signal.aborted) return;
+        const kept = error instanceof ApiError && error.code === "timeout" ? last.get(`${name}:${days}`) : undefined;
+        if (kept) { parts.push({ name, usage: kept }); state.stale.push(name); } else noteFailure(name, error);
+      },
     ).finally(() => {
       if (signal.aborted) return;
       state.waiting = state.waiting.filter((n) => n !== name);

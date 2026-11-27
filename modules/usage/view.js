@@ -137,6 +137,8 @@ export function usageHtml(state) {
   const parts = usedParts(state.parts);
   const still = state.waiting.length ? `<p class="set-note"><i class="spin" aria-hidden="true"></i> Still reading `
     + `${esc(andList(state.waiting.map(rtName)))}…</p>` : "";
+  const stale = state.stale.length ? `<p class="set-note">Couldn't read ${esc(andList(state.stale.map(rtName)))} just now, `
+    + "so the last count is shown.</p>" : "";
   if (!parts.length && state.waiting.length) return `${head}${failed}${reading}`;
   if (!parts.length && state.failed.length) return `${head}${failed}`;
   if (!parts.length) {
@@ -144,7 +146,7 @@ export function usageHtml(state) {
       + "Tokens show here once a runtime has worked.</p>";
   }
   const total = sumTokens(parts);
-  return `${head}${failed}${still}<div class="us-board">${heroHtml(parts, total, state.days)}`
+  return `${head}${failed}${still}${stale}<div class="us-board">${heroHtml(parts, total, state.days)}`
     + `${tilesHtml(parts, total)}${chartBlock(parts)}</div>`
     + modelsHtml(parts, total) + costNote(parts);
 }
