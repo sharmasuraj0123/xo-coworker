@@ -195,13 +195,28 @@ await t("an agent opens beside the list with its instructions, and Try once open
   assert.deepEqual(opened, ["chat_a/1764000000.000100"]);
   await click('[data-ag-act="open"][data-ag-key="space::helper"]');
   await settle();
-  last = "beta";
+  const tries = () => people.calls.filter((c) => c.name === "tryOnce").map((c) => Object(c.args[0]).project);
+  const pickTry = (id = "") => Object.defineProperty(agentAside().querySelector('xo-select[name="try-project"]'), "value", { value: id, configurable: true });
   await click('[data-ag-act="try"]');
-  last = "alpha";
+  assert.equal(agentAside().querySelector('xo-select[name="try-project"] option[selected]')?.textContent, "Choose a project",
+    "a Space agent's try starts in no project");
   agentAside().querySelector("form[data-ag-try]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
   await settle();
-  assert.equal(/** @type {{ project: string }} */ (people.calls.filter((c) => c.name === "tryOnce")[1]?.args[0])?.project, "beta",
-    "a Space agent's try starts where the owner was last, not in the first project listed");
+  assert.equal(tries().length, 1, "nor runs until one is chosen, never the first listed or the last visited");
+  assert.equal(agentAside().querySelector(".au-try .au-problem")?.textContent, "Choose a project to try it on.");
+  pickTry("beta");
+  agentAside().querySelector("form[data-ag-try]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(tries()[1], "beta", "it runs where the owner chose");
+  await click('[data-au-act="new"]');
+  await click('[data-ag-act="try-form"]');
+  await settle();
+  assert.equal(tries().length, 2, "a new agent tried from the editor waits for a project too");
+  assert.equal(agentAside().querySelector("form[data-ag-form] .au-problem")?.textContent, "Choose a project to try it on.");
+  pickTry("beta");
+  await click('[data-ag-act="try-form"]');
+  await settle();
+  assert.equal(tries()[2], "beta");
   opened.splice(0);
   await click('[data-ag-act="open"][data-ag-key="project:alpha:release-checker"]');
   await settle();

@@ -95,7 +95,7 @@ export const automationsModule = {
     /** @param {string} id */
     const nameOfId = (id) => projects().find((p) => p.id === id)?.name ?? "A removed project";
     /** @type {Omit<AgentSideDeps, "where" | "project" | "shown" | "openJob">} */
-    const agentDeps = { personas, find: personas.find, projects, here, projectName: nameOfId, runtimes: () => runtimes,
+    const agentDeps = { personas, find: personas.find, projects, projectName: nameOfId, runtimes: () => runtimes,
       mainRuntime: () => mainRt, models, openThread: toThread, failed, announce,
       openFile: (owner, path, from) => ctx.optional("files")?.viewer.open({ path, name: path.split("/").pop() ?? path,
         project: owner, rel: path }, from) };

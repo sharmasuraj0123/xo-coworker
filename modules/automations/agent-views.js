@@ -87,13 +87,17 @@ function confirmHtml(a) {
     `<button type="button" class="btn btn-danger" data-ag-act="delete-now">Delete</button></div></div>`;
 }
 
+/** Where a try runs; none until one is picked. @param {{ id: string, name: string }[]} projects @param {string} on */
+const projectOpts = (projects, on) => `<option value="" disabled${on ? "" : " selected"}>Choose a project</option>` +
+  projects.map((p) => `<option value="${esc(p.id)}"${p.id === on ? " selected" : ""}>${esc(p.name)}</option>`).join("");
+
 /** The task a try runs, and where. @param {Agent} a @param {AgentDetailState} s @param {TryState} t */
 function tryHtml(a, s, t) {
   const pick = a.level === "space" && !s.project ? `<label class="field"><span>In</span><xo-select name="try-project" class="set-sel"` +
-    ` aria-label="Project">${s.projects.map((p) => `<option value="${esc(p.id)}"${p.id === t.project ? " selected" : ""}>` +
-    `${esc(p.name)}</option>`).join("")}</xo-select></label>` : "";
+    ` aria-label="Project">${projectOpts(s.projects, t.project)}</xo-select></label>` : "";
   return `<form class="au-try" data-ag-try><label class="field"><span>Try it on</span><textarea name="task" rows="3"` +
     ` placeholder="Say in a few lines what you do and how you would go about it.">${esc(t.task)}</textarea></label>${pick}` +
+    (t.problem ? `<p class="au-problem" role="alert">${esc(t.problem)}</p>` : "") +
     `<p class="au-note">A try only reads: nothing is saved, sent or committed. It opens as a thread.</p>` +
     `<div class="set-fa"><button type="button" class="btn" data-ag-act="try-cancel">Cancel</button>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(t.busy)}>${xi("play")}Try once</button></div></form>`;
@@ -161,7 +165,9 @@ export function agentFormHtml(f) {
     ` placeholder="Checks what's live against the branch and says what isn't deployed.">${esc(d.description)}</textarea></label>` +
     `<label class="field"><span>Instructions</span><textarea name="body" rows="8"` +
     ` placeholder="What it does, step by step, and what it reports.">${esc(d.body)}</textarea></label>` +
-    settingsHtml(f) + `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
+    settingsHtml(f) + (f.tryIn ? `<ul class="au-kv">${row("play", "Try in", "try-project",
+      projectOpts(f.tryIn, f.tryOn || (d.level === "project" ? d.project : "")))}</ul>` : "") +
+    `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
     (f.problem ? `<p class="au-problem" role="alert">${esc(f.problem)}</p>` : "") + `</form>`;
 }
 

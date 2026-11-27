@@ -113,7 +113,6 @@ export interface AgentSideDeps {
   find: (key: string) => Agent | null;
   project: () => string;
   projects: () => Project[];
-  here: () => Project | null;
   projectName: (id: string) => string;
   runtimes: () => string[];
   mainRuntime: () => string | null;
@@ -128,7 +127,7 @@ export interface AgentSideDeps {
 
 export interface RuntimeChange { st: AgentSideState; deps: AgentSideDeps; may: Record<string, MayChoice>; paint: () => void }
 
-export interface TryState { task: string; project: string; busy: string }
+export interface TryState { task: string; project: string; busy: string; problem?: string }
 
 export interface AgentDetailState {
   where: "page" | "panel";
@@ -146,6 +145,8 @@ export interface AgentFormState {
   title: string;
   draft: AgentDraft;
   may: MayKey;
+  tryOn: string;
+  tryIn: { id: string; name: string }[] | null;
   runtimes: string[];
   models: RuntimeModel[] | null;
   problem: string;
