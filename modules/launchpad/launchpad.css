@@ -25,7 +25,7 @@
 .lq .btn .lp-arc{color:inherit}
 
 /* ── the deploy's four steps: a line from the first dot to the last, filled as far as it has come ──── */
-.lq-track{--dot:var(--s-3);position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:var(--s-10) 0 0;padding:0;list-style:none}
+.lq-track{--dot:var(--s-3);position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:var(--s-8) 0 0;padding:0;list-style:none}
 .lq-track::before,.lq-track::after{content:"";position:absolute;top:calc(var(--dot) / 2 - 1px);left:0;height:2px;border-radius:1px}
 .lq-track::before{right:25%;background:var(--fill-3)}
 .lq-track::after{width:calc(var(--at,0) * 25%);background:var(--go)}
@@ -49,7 +49,7 @@
 /* ── grouped rows: a label column, the value with its line under it, what changes it ─────────────── */
 .lq-h{margin:var(--s-8) 0 var(--s-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .lq-h span{font-weight:var(--fw-regular)}
-.lq-group{--nest-r:var(--r-xl);--nest-in:var(--s-4);margin:0;padding:0;border:0;min-width:0;list-style:none;border-radius:var(--nest-r);background:var(--surface)}
+.lq-group{--nest-r:var(--r-note);--nest-in:var(--s-4);margin:0;padding:0;border:0;min-width:0;list-style:none;border-radius:var(--nest-r);background:var(--surface)}
 .lq-group>:first-child,.lq-group>li:first-child>.lq-row{border-start-start-radius:var(--nest-r);border-start-end-radius:var(--nest-r)}
 .lq-group>:last-child,.lq-group>li:last-child>.lq-row{border-end-start-radius:var(--nest-r);border-end-end-radius:var(--nest-r)}
 .lq-row{display:grid;grid-template-columns:var(--row-k) minmax(0,1fr) auto;align-items:center;column-gap:var(--s-4);width:100%;min-height:var(--h-row-list);padding:var(--s-2) var(--nest-in);text-align:left;color:var(--ink)}
@@ -113,25 +113,24 @@ button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-
 .lp-ck svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-check b{font-weight:var(--fw-regular)}
 .lp-check .is-ok b{color:var(--ink-3)}
-.lp-asked .lq-h{margin-top:var(--s-6)}
 
 /* ── the one thing to do next: a card whose corner is its buttons' plus their inset ─────────────── */
-.lq-note{--nest-in:var(--s-2);display:flex;align-items:center;gap:var(--s-4);margin-top:var(--s-6);padding:var(--nest-in);border-radius:var(--r-note);background:var(--surface)}
+.lq-note{--nest-in:var(--s-4);display:flex;align-items:center;gap:var(--s-4);margin-top:var(--s-8);padding:var(--nest-in);border-radius:var(--r-note);background:var(--surface)}
 .lq-note.t-stop{background:color-mix(in srgb,var(--danger) 9%,var(--surface))}
 .lq-note.t-need{background:color-mix(in srgb,var(--need) 9%,var(--surface))}
-.lq-nc{flex:1;min-width:0;padding:var(--s-3) var(--s-4)}
+.lq-nc{flex:1;min-width:0}
 .lq-nc b{display:block;font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)}
 .lq-nc p{margin:var(--s-1) 0 0;max-width:60ch;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .lq-nc .lp-err{margin-top:var(--s-2)}
 .lp-also{margin:var(--s-1) 0 0;padding:0;list-style:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .lp-also li{overflow-wrap:anywhere}
-.lp-log{margin:var(--s-6) 0 0;padding:var(--s-3) var(--s-4);border-radius:var(--r-lg);background:var(--surface);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
+.lp-log{margin:var(--s-8) 0 0;padding:var(--s-4);border-radius:var(--r-note);background:var(--surface);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
 .lp-cmd{display:flex;align-items:flex-start;gap:var(--s-1);margin-top:var(--s-3);padding:var(--s-1) var(--s-1) var(--s-1) var(--s-3);border-radius:var(--r-lg);background:var(--fill-1)}
 .lp-cmd code{flex:1;min-width:0;padding:var(--s-2) 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);background:none;white-space:pre-wrap;overflow-wrap:anywhere}
 .lp-cmd .lp-ib{border-radius:var(--r)}
-.lp-gh{margin-top:var(--s-6)}
+.lp-gh{margin-top:var(--s-8)}
 .lp-gh .lq-acts{margin-top:var(--s-3)}
-.lp-code{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);margin-top:var(--s-8);padding:var(--s-2) var(--s-2) var(--s-2) var(--s-5);border-radius:var(--r-note);background:var(--surface)}
+.lp-code{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);margin-top:var(--s-8);padding:var(--s-4);border-radius:var(--r-note);background:var(--surface)}
 .lp-code code{font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--mono);letter-spacing:var(--tr-code);color:var(--ink);background:none;padding:0}
 
 /* lines: a warning, a fix's words, a quiet note, what Space waits for */
@@ -145,7 +144,7 @@ button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-
 .lp-wait{display:flex;align-items:center;gap:var(--s-2);margin:var(--s-6) 0 0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .lp-ln{color:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
 .lp-ln:hover{color:var(--ink)}
-.lq-body>.lp>:is(.lq-acts,.lp-acts):not(.lq-hero .lq-acts){margin-top:var(--s-6)}
+.lq-body>.lp>:is(.lq-acts,.lp-acts):not(.lq-hero .lq-acts){margin-top:var(--s-8)}
 
 /* ── the foot: a way out on the left, the deploy on the right ──────────────────────────────── */
 .lq-foot{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-top:var(--s-8)}
@@ -205,7 +204,6 @@ button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-
   .lq-hero>.lq-acts{grid-column:1;grid-row:auto;margin-top:var(--s-5)}
   .lq-acts .btn{flex:1}
   .lq-t{padding-right:0}
-  .lq-track{margin-top:var(--s-8)}
   .lq-st{padding-right:var(--s-2)}
   .lq-row{grid-template-columns:minmax(0,1fr) auto;row-gap:0}
   .lq-row>.lq-k{grid-column:1/-1;font-size:var(--fs-meta);line-height:var(--lh-meta)}
