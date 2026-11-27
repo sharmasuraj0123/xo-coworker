@@ -13,6 +13,8 @@
 .ps-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s-10) var(--s-12);outline:none;scrollbar-width:thin}
 .ps-page{display:flex;flex-direction:column;gap:var(--s-8);padding-bottom:var(--s-4);animation:none}
 .ps-page .set-ph{margin:0}
+.ps-body:has(>.ps-page>.m-load){display:flex;flex-direction:column}
+.ps-page:has(>.m-load){flex:1}
 .ps-page h2{outline:none}
 .ps-x{position:absolute;top:var(--s-2);right:var(--s-2);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);
   border-radius:var(--r-lg);color:var(--ink-3)}

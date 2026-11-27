@@ -96,3 +96,9 @@ try {
   settings.dispose();
   intel.dispose();
 }
+
+const { threadsHtml } = await import("../project-settings-view.js");
+const reading = document.createElement("div");
+reading.innerHTML = threadsHtml(/** @type {import("../project-settings-types.js").PsThreads} */ (/** @type {unknown} */ ({ ready: false })));
+assert.ok(reading.querySelector('.m-load[role="status"] > .spin.is-load'), "while it reads, it shows the threads' loader");
+assert.equal(reading.querySelector(".set-note"), null, "not a line of words with a small spinner");

@@ -7,7 +7,8 @@ import { EFFORT_WORD, EFFORT_HINT } from "./effort.js";
 /** @import { PsCoordinator, PsThreads, PsNote } from "./project-settings-types.js" */
 
 const PREF_MAX = 2000;
-const READING = `<p class="set-note"><i class="spin" aria-hidden="true"></i> Reading…</p>`;
+const READING = `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i>` +
+  `<span class="sr-only">Reading…</span></div>`;
 const PREF_EXAMPLE = "Refactors and tests on Codex, UI work on Claude Code.";
 
 const choice = (value = "", words = "", on = false) => /** @type {[string, string, boolean]} */ ([value, words, on]);
