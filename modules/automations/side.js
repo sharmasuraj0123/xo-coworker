@@ -4,6 +4,7 @@ import { once } from "../../core/platform/pending.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { menuKeys, focusOpened, radioKeys } from "../../core/ui/a11y/keynav.js";
 import { detailHtml } from "./detail.js";
+import { createDraft } from "./draft.js";
 import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf, withDay } from "./form.js";
 
 /** @import { Automation, FormValues, SideControl, SideDeps, SideState } from "./types" */
@@ -41,6 +42,8 @@ function actOn(what, a, x) {
   }
 }
 
+const noRuns = () => ({ id: "", rows: /** @type {null} */ (null), failed: false });
+
 /** The values as typed so far. @param {HTMLElement | null} host @param {FormValues} v */
 function typedIn(host, v) {
   const form = host?.querySelector("form[data-au-form]");
@@ -52,10 +55,11 @@ export function createSide(deps) {
   const now = deps.now ?? Date.now;
   /** @type {SideState} */
   const st = { host: null, id: null, editing: false, menu: false, confirm: false, problem: "", values: null,
-    runs: { id: "", rows: null, failed: false } };
+    runs: noRuns() };
   let reading = /** @type {AbortController | null} */ (null);
   const unwatch = deps.store.watch(() => paint());
-  const unwatchAgents = deps.watchAgents?.(() => { if (st.editing) paint(); });
+  const draft = createDraft(deps, (id) => { st.runs = noRuns(); if (deps.made) deps.made(id); else show(id, false); });
+  const unwatchAgents = deps.watchAgents?.(() => { if (st.editing) paint(); draft.repaint(); });
   const current = () => st.id ? deps.store.find(st.id) : null;
   /** @param {FormValues} v */
   const typed = (v) => typedIn(st.host, v);
@@ -79,9 +83,9 @@ export function createSide(deps) {
     const { host, runs } = st, a = current();
     if (!host) return;
     if (st.id && (!a || deps.store.state.deleting.has(st.id))) { close(); return; }
-    if (st.editing && st.values) {
-      const busy = `au-save:${st.id ?? "new"}`, agents = deps.agentsFor?.(st.values.chat) ?? null;
-      redraw(host, formHtml(st.values, a, { projects: deps.projects(), problem: st.problem, busy, agents }));
+    if (st.editing && st.values && a) {
+      const busy = `au-save:${a.id}`, agents = deps.agentsFor?.(st.values.chat) ?? null;
+      redraw(host, formHtml(st.values, a, { projects: deps.projects(), problem: st.problem, busy, agents }, deps.projectName(a.project)));
       return;
     }
     if (!a) { redraw(host, ""); return; }
@@ -106,10 +110,7 @@ export function createSide(deps) {
   /** A new automation, filled in from one that exists. @param {string} from */
   function duplicate(from) {
     const a = deps.store.find(from);
-    if (!a) return;
-    show(null, true);
-    st.values = { ...valuesOf(a, a.project, now()), name: copyName(a.name) };
-    paint();
+    if (a) draft.open({ ...valuesOf(a, a.project, now()), name: copyName(a.name) });
   }
 
   function close() {
@@ -130,7 +131,7 @@ export function createSide(deps) {
       try {
         const saved = await deps.store.save(a ? a.id : null, body);
         deps.announce(a ? `${body.name} saved` : `${body.name} is on`);
-        st.runs = { id: "", rows: null, failed: false };
+        st.runs = noRuns();
         show(saved, false);
       } catch (error) {
         st.problem = error instanceof Error ? error.message : "Couldn't save it.";
@@ -183,17 +184,18 @@ export function createSide(deps) {
     edit: (next) => show(next, true),
     duplicate,
     /** @param {string} chat */
-    create(chat) { show(null, true); if (st.values && chat) { st.values = { ...st.values, chat }; paint(); } },
+    create(chat) { draft.open(valuesOf(null, chat || deps.projects()[0]?.chat || "", now())); },
     close,
     get id() { return st.id; },
     get editing() { return st.editing; },
     /** Esc: a menu, then a confirm, then the form; true when it closed one. */
     escape() {
+      if (draft.escape()) return true;
       if (st.menu || st.confirm) { st.menu = false; st.confirm = false; paint(); return true; }
       if (st.editing) { if (st.id) show(st.id, false); else close(); return true; }
       return false;
     },
     paint,
-    dispose() { unwatch(); unwatchAgents?.(); reading?.abort(); for (const off of undo.splice(0)) off(); },
+    dispose() { draft.dispose(); unwatch(); unwatchAgents?.(); reading?.abort(); for (const off of undo.splice(0)) off(); },
   };
 }

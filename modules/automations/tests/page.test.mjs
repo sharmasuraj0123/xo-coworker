@@ -77,7 +77,7 @@ await t("a row opens beside the list, and Esc closes it", async () => {
   assert.equal(aside().hidden, false);
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Nightly build");
   assert.ok(fake.calls.some((c) => c.name === "scheduleRuns" && c.args[0] === "j2"), "its past runs are read");
-  assert.match(aside().querySelector(".au-when")?.textContent ?? "", /next /, "when it runs next, in words");
+  assert.match(aside().querySelector(".au-next")?.textContent ?? "", /next /, "when it runs next, in words");
   await click('.au-side [data-au-act="project"]');
   assert.deepEqual(opened.splice(0), ["project chat_a"], "its project row opens the project");
   assert.equal(page.escape(), true);
@@ -98,23 +98,23 @@ await t("Delete asks first, then leaves an Undo in the row; Undo keeps it", asyn
   assert.ok(!fake.calls.some((c) => c.name === "deleteSchedule"), "nothing was deleted");
 });
 
-await t("New asks for what's missing, then saves and shows the new one", async () => {
+await t("New is one sentence in a dialog; it asks for what's missing, then saves and shows the new one", async () => {
   await click('[data-au-act="new"]');
-  const form = aside().querySelector("form[data-au-form]");
-  assert.ok(form, "the form opens beside the list");
-  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
+  assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");
+  const send = () => box.querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  send();
   await settle();
-  assert.equal(aside().querySelector(".au-problem")?.textContent, "Give it a name.");
-  const field = (/** @type {string} */ name) => /** @type {HTMLInputElement} */ (aside().querySelector(`[name="${name}"]`));
-  field("name").value = "Weekly notes";
-  field("prompt").value = "Sum up the week";
-  aside().querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  assert.equal(box.querySelector(".au-problem")?.textContent, "Say what it should do each time.");
+  /** @type {HTMLTextAreaElement} */ (box.querySelector('[name="prompt"]')).value = "Sum up the week";
+  send();
   await settle();
   const made = fake.calls.find((c) => c.name === "createSchedule");
   assert.ok(made, "it was sent");
-  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Weekly notes");
-  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Weekly notes");
-  assert.ok(said.includes("Weekly notes is on"));
+  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Sum up the week", "named from what it does");
+  assert.equal(box.hasAttribute("open"), false, "the dialog closes");
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Sum up the week");
+  assert.ok(said.includes("Sum up the week is on"));
 });
 
 const agentAside = () => /** @type {HTMLElement} */ (host.querySelectorAll(".au-side")[1]);

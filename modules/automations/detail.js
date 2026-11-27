@@ -105,7 +105,7 @@ function settingsHtml(a, s) {
 export function detailHtml(a, s) {
   return `<article class="au-det" aria-labelledby="au-det-h">${barHtml(a, s)}` +
     `<div class="au-hd">${tile(a.icon)}<h2 id="au-det-h" tabindex="-1">${esc(a.name)}</h2></div>` +
-    alarmHtml(a) + `<p class="au-when">${esc(whenWords(a))}</p>` + actsHtml(a) +
+    alarmHtml(a) + `<p class="au-next">${esc(whenWords(a))}</p>` + actsHtml(a) +
     (s.confirm ? confirmHtml(a) : "") +
     (a.on ? "" : `<p class="au-off">${xi("pause")}${esc(a.offReason)}</p>`) +
     `<section class="au-sec"><h3>Each time</h3><p class="au-prompt">${esc(a.prompt)}</p></section>` +

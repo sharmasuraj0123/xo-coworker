@@ -1,7 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf } from "../form.js";
+import { bodyOf, copyName, formHtml, problemOf, readForm, sentenceHtml, valuesOf, withDay } from "../form.js";
 import { automationsOf } from "../model.js";
 import { job, persona } from "./fakes.mjs";
 
@@ -10,7 +10,11 @@ const [a] = automationsOf(/** @type {never} */ ([job({ approved_by: { review_id:
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:00[+-]\d\d:\d\d$/;
 
 const fresh = { ...valuesOf(null, "chat_a", now), name: " Weekly ", prompt: "Sum up " };
-assert.equal(problemOf({ ...fresh, name: "" }, now), "Give it a name.");
+assert.equal(problemOf({ ...fresh, name: "" }, now), "", "a new one without a name takes it from what it does");
+assert.equal(bodyOf({ ...fresh, name: "", prompt: "compare what's live on :3000 with coworker/modular, and say. Then stop." }, null, now).name,
+  "Compare whats live on 3000 with coworker modular", "its first words, as XO Space allows a name, cut at a word");
+assert.equal(bodyOf({ ...fresh, name: "", prompt: "... ?" }, null, now).name, "Automation");
+assert.equal(problemOf({ ...fresh, time: "8.30pm" }, now), "Write the time as 24-hour, like 08:30.");
 assert.equal(problemOf({ ...fresh, prompt: " " }, now), "Say what it should do each time.");
 assert.equal(problemOf({ ...fresh, chat: "" }, now), "Choose a project.");
 assert.equal(problemOf({ ...fresh, repeat: "once", date: "2026-11-24", time: "09:00" }, now), "Choose a time that hasn't passed.");
@@ -56,7 +60,7 @@ assert.equal(bodyOf(back, ruled, now, zone).schedule?.tz, "Asia/Kolkata", "an ed
 const agents = /** @type {never[]} */ ([persona({ name: "helper", level: "space" }), persona(),
   persona({ name: "release-checker", level: "space", shadowed: { name: "release-checker", level: "project" } }),
   persona({ name: "broken", problems: [{ line: 1, key: null, message: "No name." }] })]);
-const picker = formHtml(back, null, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents })
+const picker = formHtml(back, ruled, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents }, "Alpha")
   .match(/<xo-select name="persona"[^>]*>(.*?)<\/xo-select>/)?.[1] ?? "";
 assert.deepEqual([...picker.matchAll(/value="([^"]*)"/g)].map((m) => m[1]), ["space:triage", "project:release-checker", "space:helper", ""],
   "the project's own first, then the Space's, then none; replaced and broken ones aren't offered; a chosen one not listed stays on top");
@@ -76,5 +80,19 @@ assert.equal(readForm(typedForm({ persona: "project:release-checker", chat: "cha
   "a project's own agent doesn't follow the automation to another project");
 assert.deepEqual(readForm(typedForm({ persona: "space:helper", chat: "chat_b" }), mine).persona, { level: "space", name: "helper" });
 assert.deepEqual(bodyOf({ ...mine, persona: { level: "space", name: "helper" } }, null, now, zone).persona, { level: "space", name: "helper" });
+
+assert.equal(readForm(typedForm({ time: "8:05" }), mine).time, "08:05", "a time typed short reads as 24-hour");
+
+const weekdays = withDay(withDay({ ...fresh, repeat: "day" }, 0), 6);
+assert.equal(weekdays.repeat, "weekdays", "Every day without Saturday and Sunday is weekdays");
+assert.deepEqual([withDay(weekdays, 3).repeat, withDay(weekdays, 3).days], ["week", [1, 2, 4, 5]], "one more off makes chosen days");
+assert.equal(withDay({ ...fresh, repeat: "week", days: [2] }, 2).days.length, 1, "the last day stays on");
+
+const said = sentenceHtml({ ...fresh, repeat: "weekdays", time: "08:30" }, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }],
+  problem: "", busy: "x", agents });
+assert.match(said, /data-icon="calendar">Every weekday<\/option>/, "the cadence menu has its icons");
+assert.match(said, /<option value="event" disabled[^>]*data-desc="later">When something happens…/, "what can't be chosen yet says so");
+assert.match(said, /<span>at<\/span><input name="time"[^>]*value="08:30"/);
+assert.match(said, /<span>in<\/span><xo-select name="chat"[^>]*>.*Alpha.*<span>will<\/span>/);
 
 console.log("form: ok");

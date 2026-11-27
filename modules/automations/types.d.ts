@@ -248,6 +248,8 @@ export interface SideDeps {
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
+  /** Shows one just made; the side shows it itself when absent. */
+  made?: (id: string) => void;
   openProject?: (chat: string) => void;
   openAgent?: (persona: PersonaRef, chat: string) => void;
   agentsFor?: (chat: string) => Agent[] | null;

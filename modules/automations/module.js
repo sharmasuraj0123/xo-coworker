@@ -83,13 +83,14 @@ export const automationsModule = {
     let leaving = false;
     const inPanel = createSide({ ...sideDeps, where: "panel", showAll: () => nav.go("automations"),
       openAgent: (persona, chat) => stage.show("agent", keyOf({ ...persona, project: idOf(chat) }), { focus: true }),
+      made: (id) => stage.show("automation", id, { focus: true }),
       shown(id) { if (id === null && !leaving && onPanel()) stage.back(); else stage.repaint(); } });
     ctx.effect(() => inPanel.dispose);
     ctx.contribute("panel.page", {
       id: "automation",
-      title: () => inPanel.editing && !inPanel.id ? "New automation" : "Automations",
+      title: () => "Automations",
       mount: (box) => inPanel.mount(box),
-      onShow(key) { if (key.startsWith("new:")) inPanel.create(key.slice(4)); else inPanel.open(key); },
+      onShow: (key) => inPanel.open(key),
       close() { leaving = true; try { inPanel.close(); } finally { leaving = false; } },
       escape: () => inPanel.escape(),
     });
@@ -97,7 +98,7 @@ export const automationsModule = {
       store, changed: () => stage.repaint(),
       chatOf: (v) => { const id = place.convProject(v); return id ? world.project(id)?.chatId ?? null : null; },
       open: (id) => stage.show("automation", id, { focus: true }),
-      create: (chat) => stage.show("automation", `new:${chat}`, { focus: true }),
+      create: (chat) => inPanel.create(chat),
     }));
     const panelProject = () => place.convProject(view()) ?? "";
     const onAgent = () => stage.pageShown?.name === "agent";

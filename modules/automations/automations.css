@@ -122,7 +122,7 @@
 .au-hd{display:flex;align-items:center;gap:var(--s-3)}
 .au-hd h2{margin:0;font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);
   outline:none}
-.au-when{margin:0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-3)}
+.au-next{margin:0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-3)}
 .au-alarm{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s-4);margin-top:var(--s-5)}
 .au-alarm b{font:var(--fw-regular) var(--fs-hero)/var(--lh-hero) var(--sans);letter-spacing:var(--tr-40);font-variant-numeric:tabular-nums;
   color:var(--ink)}
@@ -166,20 +166,40 @@ button.au-run:hover{background:var(--fill-1)}
 .au-run time{font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4);
   white-space:nowrap}
 
-/* the form: Cancel and Save at the top, then the fields */
+/* the form: Cancel and Save at the top, then the fields; a new one is one sentence */
 .au-form{display:flex;flex-direction:column;gap:var(--s-4)}
+.au-form>.au-bar{margin:0}
+.au-new .au-bar b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.au-name{flex:1;min-width:0;padding:0;border:0;background:none;outline:none;
+  font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
+.au-form .field input.au-time-in{height:auto;padding:var(--s-1) var(--s-3);
+  font:var(--fw-regular) var(--fs-hero)/var(--lh-hero) var(--sans);letter-spacing:var(--tr-40);font-variant-numeric:tabular-nums}
+.au-field-hd{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
+.au-say{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2);font:var(--fw-medium) var(--fs-title)/var(--lh-title) var(--sans);
+  color:var(--ink-4)}
+.au-chip .dd-btn,.au-chip-in{width:auto;height:auto;padding:var(--s-1) var(--s-2);border:var(--hair) solid var(--fill-clear);
+  border-radius:var(--r-sm);background:var(--fill-2);font:inherit;color:var(--ink)}
+.au-chip .dd-btn>svg{display:none}
+.au-chip-in{field-sizing:content;min-width:2ch;font-variant-numeric:tabular-nums}
+.au-chip-in:focus,.au-chip.is-open .dd-btn{border-color:var(--accent)}
+.au-kv .au-chip{margin-left:auto}
+.au-kv .au-chip .dd-btn{background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.au-kv .au-chip .dd-btn>svg{display:block}
+.au-say-text{width:100%;min-height:calc(4 * var(--lh-read));padding:var(--s-4);border:var(--hair) solid var(--fill-clear);
+  border-radius:var(--r-lg);background:var(--fill-1);font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink);
+  resize:none;field-sizing:content}
+.au-say-text:focus{outline:none;border-color:var(--accent)}
+.au-say-text::placeholder{color:var(--ink-5)}
 .au-form-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
 .au-form-bar b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .au-form .field{margin:0}
 .au-form textarea{resize:vertical}
 .au-when{display:flex;flex-wrap:wrap;gap:var(--s-3)}
 .au-when .field{flex:1;min-width:0}
-.au-hours{display:flex;align-items:center;gap:var(--s-2);color:var(--ink-3)}
-.au-hours input{width:calc(2 * var(--h-lg))}
 .au-days{display:flex;gap:var(--s-1)}
-.au-days button{flex:1;height:var(--h-ctl);border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/1 var(--sans);
-  color:var(--ink-4);background:var(--fill-1)}
-.au-days button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
+.au-days button{flex:1;height:var(--h-ctl);border:var(--hair) solid var(--line-faint);border-radius:var(--r-pill);
+  font:var(--fw-medium) var(--fs-meta)/1 var(--sans);color:var(--ink-5)}
+.au-days button[aria-pressed="true"]{border-color:var(--fill-clear);background:var(--fill-3);font-weight:var(--fw-strong);color:var(--ink)}
 .au-note{margin:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .au-problem{margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--err-ink)}
 .au-problem ul{margin:var(--s-1) 0 0;padding-left:var(--s-5)}
