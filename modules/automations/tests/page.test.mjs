@@ -35,10 +35,20 @@ const people = fakePersonaApi(agentLists, importable);
 const personas = createPersonasStore({ api: people.api, report() {} });
 /** @type {string[]} */
 const opened = [];
+const catalog = [{ id: "claude-opus-5-5", name: "Opus 5.5", description: "For the hardest work" }, { id: "claude-sonnet-5-5", name: "Sonnet 5.5" }];
+/** @type {Map<string, typeof catalog | null>} */
+const modelLists = new Map();
+/** @param {string} rt @param {() => void} loaded */
+const models = (rt, loaded) => {
+  if (!modelLists.has(rt)) { modelLists.set(rt, null); setTimeout(() => { modelLists.set(rt, catalog); loaded(); }, 0); }
+  return modelLists.get(rt) ?? null;
+};
 const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "Alpha", runtimes: () => ["claude_code"],
+  mainRuntime: () => "claude_code", models,
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
-  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
+  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {}, runtimes: () => ["claude_code"],
+    mainRuntime: () => "claude_code", models,
     readReport: async () => "**3 commits** aren't live",
     openProject: (/** @type {string} */ chat) => { opened.push(`project ${chat}`); } }),
   agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
@@ -121,6 +131,11 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   await click('[data-au-act="new"]');
   const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
   assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");
+  assert.equal(box.querySelector('[name="persona"] option[selected]')?.getAttribute("value"), "rt:claude_code",
+    "with no agent, the main runtime runs it");
+  await settle();
+  assert.deepEqual([...box.querySelectorAll('[name="model"] option')].map((o) => o.textContent), ["Default model", "Opus 5.5", "Sonnet 5.5"],
+    "its own models, once they come");
   const send = () => box.querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
   send();
   await settle();
@@ -130,7 +145,9 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   await settle();
   const made = fake.calls.find((c) => c.name === "createSchedule");
   assert.ok(made, "it was sent");
-  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Sum up the week", "named from what it does");
+  const body = /** @type {Record<string, unknown>} */ (made.args[0]);
+  assert.equal(body.name, "Sum up the week", "named from what it does");
+  assert.equal(body.agent, "claude_code", "and saved with the runtime it showed");
   assert.equal(box.hasAttribute("open"), false, "the dialog closes");
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Sum up the week");
   assert.ok(said.includes("Sum up the week is on"));
@@ -177,6 +194,13 @@ await t("Edit saves the file over the version it read", async () => {
   await click('[data-ag-act="edit"]');
   const form = agentAside().querySelector("form[data-ag-form]");
   assert.ok(form, "the form opens");
+  const model = () => agentAside().querySelector('xo-select[name="model"]');
+  assert.equal(Boolean(model()), true, "the model is a choice from its runtime's list, never a text box");
+  await settle();
+  assert.deepEqual([...model()?.querySelectorAll("option") ?? []].map((o) => o.textContent), ["Default", "Opus 5.5", "Sonnet 5.5"]);
+  assert.equal(model()?.hasAttribute("aria-busy"), false);
+  assert.equal(agentAside().querySelector('xo-select[name="runtime"] option[value="claude_code"]')?.getAttribute("data-agm"), "claude",
+    "each runtime with its mark");
   /** @type {HTMLTextAreaElement} */ (form.querySelector('[name="body"]')).value = "Read what's live, then say it.";
   form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
   await settle();

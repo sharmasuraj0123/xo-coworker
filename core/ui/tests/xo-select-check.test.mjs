@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
 
+const { window, document } = await dom("<main></main>");
+const { customElements, MutationObserver, getComputedStyle, HTMLElement, Element, Node } = window;
+Object.assign(globalThis, { customElements, MutationObserver, getComputedStyle, HTMLElement, Element, Node, innerHeight: 844, innerWidth: 1440 });
+const { defineXoSelect } = await import("../components/xo-select.js");
+defineXoSelect();
+
 test("a ticked select ends its chosen row with a check, with no dot before the words", async () => {
-  const { window, document } = await dom("<main></main>");
-  const { customElements, MutationObserver, getComputedStyle, HTMLElement, Element, Node } = window;
-  Object.assign(globalThis, { customElements, MutationObserver, getComputedStyle, HTMLElement, Element, Node });
-  Object.assign(globalThis, { innerHeight: 844, innerWidth: 1440 });
-  const { defineXoSelect } = await import("../components/xo-select.js");
-  defineXoSelect();
   const host = document.querySelector("main");
   assert.ok(host);
   const select = document.createElement("xo-select");
@@ -33,4 +33,20 @@ test("a ticked select ends its chosen row with a check, with no dot before the w
     button?.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "Escape" }));
   }
   assert.equal(button?.getAttribute("aria-expanded"), "false", "closed before linkedom's observer sees its own rows");
+});
+
+test("a runtime's mark stands before its name, in the list and on the button", async () => {
+  const select = document.createElement("xo-select");
+  select.innerHTML = '<option value="">Default</option><option value="codex" data-agm="openai" selected>Codex</option>';
+  document.querySelector("main")?.append(select);
+  const button = select.querySelector("button");
+  assert.equal(button?.firstElementChild?.className, "agm agm-openai dd-ic", "on the button");
+  button?.click();
+  try {
+    const rows = [...select.querySelectorAll(".dd-row")];
+    assert.equal(rows[1].querySelector(".agm-openai") !== null, true, "in its row");
+    assert.equal(rows[0].querySelector(".agm") === null, true);
+  } finally {
+    button?.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "Escape" }));
+  }
 });

@@ -5,9 +5,20 @@ import { redraw } from "../../core/ui/redraw.js";
 import { closeDialog, createDialog } from "../../core/ui/components/dialog.js";
 import { bodyOf, problemOf, readForm, sentenceHtml, withDay } from "./form.js";
 
-/** @import { FormValues, SideDeps } from "./types" */
+/** @import { FormOptions, FormValues, SideDeps } from "./types" */
 
 const BUSY = "au-save:new";
+const REDRAWN = ["repeat", "chat", "date", "persona"];
+
+/** What the form offers: agents, runtimes, the runtime's models. @param {SideDeps} deps @param {FormValues} v @returns {FormOptions} */
+export function optionsOf(deps, v, problem = "", busy = "", loaded = () => {}) {
+  const rt = v.persona ? null : v.runtime ?? deps.mainRuntime?.() ?? null;
+  return { projects: deps.projects(), problem, busy, agents: deps.agentsFor?.(v.chat) ?? null, runtimes: deps.runtimes?.() ?? [],
+    models: rt ? deps.models?.(rt, loaded) ?? [] : [] };
+}
+
+/** Whether a change to this field redraws the form. @param {EventTarget | null} el */
+export const redraws = (el) => el instanceof Element && REDRAWN.includes(el.getAttribute("name") ?? "");
 
 /** A new automation, as one sentence in a dialog. @param {SideDeps} deps @param {(id: string) => void} made */
 export function createDraft(deps, made) {
@@ -25,7 +36,7 @@ export function createDraft(deps, made) {
 
   function paint() {
     if (!box || !values) return;
-    redraw(box, sentenceHtml(values, { projects: deps.projects(), problem, busy: BUSY, agents: deps.agentsFor?.(values.chat) ?? null }));
+    redraw(box, sentenceHtml(values, optionsOf(deps, values, problem, BUSY, paint)));
   }
 
   function close() {
@@ -64,7 +75,7 @@ export function createDraft(deps, made) {
 
   /** @param {Event} e */
   function onInput(e) {
-    if (!(e.target instanceof Element) || !["repeat", "chat", "date"].includes(e.target.getAttribute("name") ?? "")) return;
+    if (!redraws(e.target)) return;
     values = typed();
     paint();
   }
@@ -84,7 +95,8 @@ export function createDraft(deps, made) {
   return {
     /** @param {FormValues} start */
     open(start) {
-      values = start; problem = "";
+      const rt = start.persona || start.runtime ? start.runtime : deps.mainRuntime?.() ?? null;
+      values = { ...start, runtime: rt }; problem = "";
       const d = box ??= make();
       if (!d.hasAttribute("open") || d.classList.contains("is-closing")) d.replaceChildren();
       d.classList.remove("is-closing");

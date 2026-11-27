@@ -7,7 +7,7 @@ import { redraw } from "../../core/ui/redraw.js";
 import { drawLeaving, leaveWith } from "../../core/ui/motion.js";
 import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { focusOpened, menuKeys, radioKeys } from "../../core/ui/a11y/keynav.js";
-import { keyOf } from "./agent-file.js";
+import { refKeyOf } from "./agent-file.js";
 import { agendaOf, dayMonth, hhmm, noticedOf, weekOf } from "./model.js";
 import { emptyHtml, foundHtml, listHtml, offHtml, agendaHtml, weekHtml } from "./views.js";
 
@@ -96,7 +96,7 @@ export function createAutomationsPage(deps) {
   /** @type {HTMLElement | null} */
   let agentAside = null;
   const side = deps.side({ shown(id) { selected = id; showSide(aside, id !== null); paint(); },
-    openAgent(persona, chat) { setMode("agents"); agentSide.open(keyOf({ ...persona, project: idOf(deps, chat) })); } });
+    openAgent(persona, chat) { setMode("agents"); agentSide.open(refKeyOf(persona, idOf(deps, chat))); } });
   const agentSide = deps.agentSide({
     shown(key) { agentKey = key; showSide(agentAside, key !== null); paint(); },
     openJob(id) { setMode("automations"); side.open(id); },

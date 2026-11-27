@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { ApiError } from "../../../core/platform/http.js";
 import { createPersonasStore } from "../personas.js";
 import { fakePersonaApi, persona } from "./fakes.mjs";
 
@@ -46,4 +47,28 @@ test("bringing one in leaves its unmappable settings out only when asked", async
   await personas.importOne(item, "alpha", false);
   assert.deepEqual(fake.calls.filter((c) => c.name === "importPersona").map((c) => c.args[0]), [
     { adapter: "claude_code", id: "space:reviewer", without_dropped: true }, { adapter: "claude_code", id: "space:reviewer", project: "alpha" }]);
+});
+
+test("the Workspace has no folder: it reads the Space's list, never a project named workspace", async () => {
+  const fake = fakePersonaApi(lists), personas = store(fake);
+  personas.seen("workspace");
+  await personas.refresh("workspace");
+  assert.deepEqual(fake.calls.filter((c) => c.name === "personas").map((c) => c.args[0]), [null]);
+  assert.equal(personas.seen("workspace")?.agents[0].name, "helper");
+  assert.equal(personas.seen("workspace"), personas.seen(""));
+});
+
+test("a read XO answered with a refusal marks the list failed and raises no error; anything else is reported", async () => {
+  /** @type {unknown[]} */
+  const reported = [];
+  const failing = [new ApiError(404, "project_not_found", "Project not found."), new ApiError(0, "network", "Offline."),
+    new ApiError(0, "bad_answer", "XO returned an unexpected answer."), new TypeError("broken")];
+  const fake = fakePersonaApi(lists);
+  const personas = createPersonasStore({ api: { ...fake.api, personas: async () => { throw failing.shift(); } },
+    report: (error) => { reported.push(error); } });
+  for (const project of ["gone", "offline", "odd", "bug"]) {
+    await personas.refresh(project);
+    assert.equal(personas.seen(project)?.failed, true);
+  }
+  assert.deepEqual(reported.map((e) => e instanceof ApiError ? e.code : String(e)), ["bad_answer", "TypeError: broken"]);
 });

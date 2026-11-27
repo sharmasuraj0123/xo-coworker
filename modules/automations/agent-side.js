@@ -7,7 +7,7 @@ import { instructionsOf, keyOf, titleOf } from "./agent-file.js";
 import { agentProblem, agentText, agentValues, readAgentForm } from "./agent-form.js";
 import { agentDetailHtml, agentFormHtml } from "./agent-views.js";
 
-/** @import { Agent, AgentSideDeps, AgentSideState } from "./types" */
+/** @import { Agent, AgentSideDeps, AgentSideState, RuntimeChange } from "./types" */
 
 /** @typedef {{ st: AgentSideState, deps: AgentSideDeps, show: (key: string | null, edit: boolean) => void, close: () => void }} Calls */
 
@@ -59,6 +59,21 @@ function act(what, target, a, { st, deps, show, close, paint }) {
   if (what === "try") focusIn(st.host, "textarea[name=task]");
 }
 
+/** The models of the form's runtime or the main one. @param {AgentSideState} st @param {AgentSideDeps} deps @param {() => void} paint */
+const modelsFor = (st, deps, paint) => {
+  const rt = st.values?.draft.runtime || deps.mainRuntime();
+  return rt ? deps.models(rt, paint) : [];
+};
+
+/** A new runtime brings its own models; a model it doesn't have goes back to Default. @param {Event} e @param {RuntimeChange} c */
+function newRuntime(e, { st, deps, may, paint }) {
+  const form = st.host?.querySelector("form[data-ag-form]");
+  if (!(e.target instanceof Element) || e.target.getAttribute("name") !== "runtime" || !(form instanceof HTMLElement) || !st.values) return;
+  const v = st.values = readAgentForm(form, st.values, may), list = modelsFor(st, deps, paint);
+  if (list && !list.some((m) => m.id === v.draft.model)) st.values = { ...v, draft: { ...v.draft, model: null } };
+  paint();
+}
+
 /** One agent, or the form that makes or edits one, in a host the page or the panel gives it. @param {AgentSideDeps} deps */
 export function createAgentSide(deps) {
   /** @type {AgentSideState} */
@@ -75,7 +90,8 @@ export function createAgentSide(deps) {
       const places = /** @type {[string, string][]} */ (deps.project()
         ? [[deps.project(), `${deps.projectName(deps.project())} only`], ["space", "Every project"]]
         : [["space", "Every project"], ...deps.projects().map((p) => [p.id, `${p.name} only`])]);
-      redraw(st.host, agentFormHtml({ ...st.values, runtimes: deps.runtimes(), busy: `ag-save:${st.key ?? "new"}`, isNew: !a, places }));
+      const models = modelsFor(st, deps, paint), busy = `ag-save:${st.key ?? "new"}`;
+      redraw(st.host, agentFormHtml({ ...st.values, runtimes: deps.runtimes(), models, busy, isNew: !a, places }));
       return;
     }
     if (!a) { redraw(st.host, st.key ? `<p class="au-none">This agent is gone.</p>` : ""); return; }
@@ -178,7 +194,9 @@ export function createAgentSide(deps) {
     /** @param {HTMLElement} el */
     mount(el) {
       st.host = el;
-      for (const [type, fn] of /** @type {const} */ ([["click", onClick], ["submit", onSubmit]])) {
+      /** @param {Event} e */
+      const onChange = (e) => newRuntime(e, { st, deps, may: may(), paint });
+      for (const [type, fn] of /** @type {const} */ ([["click", onClick], ["submit", onSubmit], ["change", onChange]])) {
         el.addEventListener(type, fn);
         undo.push(() => el.removeEventListener(type, fn));
       }

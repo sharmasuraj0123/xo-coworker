@@ -2,6 +2,7 @@
 import type { Notify, OnFailure, PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
 import type { MayChoice, Persona, PersonaApi } from "../../core/platform/persona-response-types";
 import type { ProjectApi } from "../../core/platform/project-response-types";
+import type { RuntimeModel } from "../../core/platform/runtime-response-types";
 
 export interface LastRun {
   at: number;
@@ -114,6 +115,8 @@ export interface AgentSideDeps {
   projects: () => Project[];
   projectName: (id: string) => string;
   runtimes: () => string[];
+  mainRuntime: () => string | null;
+  models: (runtime: string, loaded: () => void) => RuntimeModel[] | null;
   openThread: (chat: string, ts: string) => void;
   openFile: (owner: string, path: string, from: Element) => void;
   openJob: (id: string) => void;
@@ -121,6 +124,8 @@ export interface AgentSideDeps {
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;
 }
+
+export interface RuntimeChange { st: AgentSideState; deps: AgentSideDeps; may: Record<string, MayChoice>; paint: () => void }
 
 export interface TryState { task: string; project: string; busy: string }
 
@@ -141,6 +146,7 @@ export interface AgentFormState {
   draft: AgentDraft;
   may: MayKey;
   runtimes: string[];
+  models: RuntimeModel[] | null;
   problem: string;
   busy: string;
   isNew: boolean;
@@ -182,6 +188,9 @@ export interface FormOptions {
   problem: string;
   busy: string;
   agents: Agent[] | null;
+  /** What runs it when no agent does: the runtimes, and the chosen one's models (null while they come). */
+  runtimes: string[];
+  models: RuntimeModel[] | null;
 }
 
 export interface AgentListDeps {
@@ -227,6 +236,9 @@ export interface FormValues {
   dom: number | "last";
   hours: number;
   persona: PersonaRef | null;
+  runtime: string | null;
+  model: string | null;
+  effort: string | null;
   notify: Notify | null;
   onFailure: OnFailure | null;
 }
@@ -267,6 +279,9 @@ export interface SideDeps {
   openProject?: (chat: string) => void;
   openAgent?: (persona: PersonaRef, chat: string) => void;
   agentsFor?: (chat: string) => Agent[] | null;
+  runtimes?: () => string[];
+  mainRuntime?: () => string | null;
+  models?: (runtime: string, loaded: () => void) => RuntimeModel[] | null;
   watchAgents?: (fn: () => void) => () => void;
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;
