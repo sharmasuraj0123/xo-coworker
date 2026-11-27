@@ -22,8 +22,7 @@ const t = (name, fn) => {
 const NOW = Date.parse("2026-11-03T13:00:00Z");
 const H = 3600000;
 const th = (id, state, hoursAgo, extra = {}) => ({ id, project: "p", title: id.toUpperCase(), state, lastAt: NOW - hoursAgo * H, checklist: { items: [] }, happened: "", outputs: [], ...extra });
-const tree = (lost) => ({ exists: true, error: null, would_lose: lost });
-const lost = ({ changed = 0, untracked = 0, commits = 0 } = {}) => ({ changed: { count: changed }, untracked: { count: untracked }, ignored: { count: 0 }, commits });
+const tree = ({ changed = 0, untracked = 0, local_commits = 0, ...rest } = {}) => ({ tree: { exists: true, xo: true, changed, untracked, kept_ignored: 0, local_commits, would_lose: changed + untracked + local_commits > 0, error: null, ...rest } });
 
 t("a made file's kind comes from its type, else its name", () => {
   const outputs = [
@@ -57,12 +56,13 @@ t("made: filter by kind and words (the thread's title counts); groups drop empty
   assert.deepEqual(g.map((x) => x.id), ["pinned", "today", "earlier"]);
 });
 
-t("git words from a worktree: uncommitted beats unpushed; ignored files and nothing lost are saved", () => {
-  assert.deepEqual(R.gitState(tree(lost({ changed: 2, untracked: 1, commits: 3 }))), { group: "unsaved", word: "3 files not committed", n: 3 });
-  assert.deepEqual(R.gitState(tree(lost({ commits: 1 }))), { group: "unpushed", word: "1 commit not pushed", n: 1 });
-  assert.equal(R.gitState(tree(lost())).group, "saved");
-  assert.equal(R.gitState(tree(null)).group, "saved");
-  assert.equal(R.gitState({ exists: false }).group, "none");
+t("git words from Space's tree state: uncommitted beats unpushed; nothing lost is saved; a tree not known says nothing", () => {
+  assert.deepEqual(R.gitState(tree({ changed: 2, untracked: 1, local_commits: 3 })), { group: "unsaved", word: "3 changes not committed", n: 3 });
+  assert.deepEqual(R.gitState(tree({ local_commits: 1 })), { group: "unpushed", word: "1 commit not pushed", n: 1 });
+  assert.equal(R.gitState(tree()).group, "saved");
+  assert.equal(R.gitState(tree({ changed: 1, error: "git timed out" })).group, "unsaved", "an unreadable tree keeps its last counts");
+  assert.equal(R.gitState({ tree: { exists: false, changed: 4 } }).group, "none");
+  assert.equal(R.gitState({ tree: null }).group, "none");
   assert.equal(R.gitState(undefined).group, "none");
 });
 
@@ -77,13 +77,13 @@ t("since you left: only what moved (or needs you), in the order you'd act on it"
     th("busy", "working", 1),                  // uncommitted work while working is normal: still going
     th("broke", "failed", 3),
   ];
-  const trees = new Map([["dirty", tree(lost({ untracked: 1 }))], ["ahead", tree(lost({ commits: 2 }))], ["busy", tree(lost({ changed: 4 }))]]);
-  const cu = R.catchUp(threads, { since, needing: new Set(["ask"]), trees });
+  const git = { dirty: tree({ untracked: 1 }), ahead: tree({ local_commits: 2 }), busy: tree({ changed: 4 }) };
+  const cu = R.catchUp(threads.map((x) => ({ ...x, git: git[x.id] })), { since, needing: new Set(["ask"]) });
   assert.deepEqual(cu.groups.map((g) => [g.id, g.items.map((x) => x.t.id)]), [
     ["needs", ["ask"]], ["unsaved", ["dirty"]], ["unpushed", ["ahead"]], ["stopped", ["broke"]], ["finished", ["clean"]], ["going", ["busy"]],
   ]);
   assert.equal(cu.total, 6);
-  assert.equal(cu.groups.find((g) => g.id === "going").items[0].git.word, "4 files not committed");
+  assert.equal(cu.groups.find((g) => g.id === "going").items[0].git.word, "4 changes not committed");
   assert.equal(R.catchUp([th("old", "done", 72)], { since }).total, 0);
 });
 
@@ -123,17 +123,17 @@ t("seen: per place, kept in the store, survives a fresh read", () => {
 
 t("a newer backend's git state: merged says shipped (with its PR); pushed, unpushed and nothing to ship", () => {
   const g = (x) => ({ branch: "b", branch_exists: true, commits: 2, merged: false, upstream: null, unpushed: null, pr: null, ...x });
-  assert.deepEqual(R.gitState(null, g({ merged: true, pr: { number: 37, url: "u", state: "MERGED" } })), { group: "shipped", word: "merged · PR #37", n: 0, url: "u" });
-  assert.equal(R.gitState(null, g({ merged: true })).word, "merged");
-  assert.deepEqual(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0, pr: { number: 9, state: "OPEN", url: "p" } })), { group: "unmerged", word: "PR #9 open", n: 0, url: "p" });
-  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0 })).word, "pushed, no PR");
-  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 3 })).word, "3 commits not pushed");
-  assert.equal(R.gitState(null, g({ upstream: null })).word, "2 commits not pushed");    // no upstream: all its own commits
-  assert.equal(R.gitState(null, g({ commits: 0 })).group, "saved");
-  // uncommitted files still come first, from the worktree; a removed tree keeps its last git state
-  assert.equal(R.gitState(tree(lost({ changed: 1 })), g({ merged: true })).group, "unsaved");
-  assert.equal(R.gitState({ exists: false, git: g({ merged: true }) }).group, "shipped");
-  assert.equal(R.gitState({ ...tree(null), git: g({ merged: true }) }).group, "shipped");
+  assert.deepEqual(R.gitState(g({ merged: true, pr: { number: 37, url: "u", state: "MERGED" } })), { group: "shipped", word: "merged · PR #37", n: 0, url: "u" });
+  assert.equal(R.gitState(g({ merged: true })).word, "merged");
+  assert.deepEqual(R.gitState(g({ upstream: { pushed: true }, unpushed: 0, pr: { number: 9, state: "OPEN", url: "p" } })), { group: "unmerged", word: "PR #9 open", n: 0, url: "p" });
+  assert.equal(R.gitState(g({ upstream: { pushed: true }, unpushed: 0 })).word, "pushed, no PR");
+  assert.equal(R.gitState(g({ upstream: { pushed: true }, unpushed: 3 })).word, "3 commits not pushed");
+  assert.equal(R.gitState(g({ upstream: null })).word, "2 commits not pushed");    // no upstream: all its own commits
+  assert.equal(R.gitState(g({ commits: 0 })).group, "saved");
+  // uncommitted changes still come first; a removed tree keeps its branch's state
+  assert.equal(R.gitState(g({ merged: true, ...tree({ changed: 1 }) })).group, "unsaved");
+  assert.equal(R.gitState(g({ merged: true, tree: { exists: false } })).group, "shipped");
+  assert.equal(R.gitState(g({ merged: true, ...tree() })).group, "shipped");
 });
 
 t("since you left with git states: shipped and not merged get their own groups, and the headline says so", () => {

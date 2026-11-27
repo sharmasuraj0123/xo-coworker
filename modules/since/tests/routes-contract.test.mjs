@@ -15,16 +15,14 @@ globalThis.fetch = async (input, init) => {
   requests.push([url.pathname.replace(encodeURIComponent(chat), "{chat_id}"), init?.method, url.searchParams.get("chat")]);
   if (url.pathname === "/api/chat/chats") return Response.json({ chats: [] });
   if (url.pathname.endsWith("/seen")) return Response.json({ seen: { seen_at: "2026-11-20T12:00:00Z", seen_seq: 1 } });
-  return Response.json({ worktrees: [], removed: [], reported: [] });
+  throw new Error(`unexpected ${url.pathname}`);
 };
 
 await chatActivityApi.chats(signal);
-await chatActivityApi.worktrees(chat, signal);
 await chatActivityApi.markSeen(chat, signal);
 
 assert.deepEqual(requests, [
   ["/api/chat/chats", "GET", null],
-  ["/api/chat/worktrees", "GET", chat],
   ["/api/chat/chats/{chat_id}/seen", "PUT", null],
 ]);
 for (const [path, method] of requests) {

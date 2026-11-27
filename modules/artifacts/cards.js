@@ -35,7 +35,7 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
   }
   /** @param {Made} m */
   function iconHtml(m) {
-    const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? gitState(null, m.git || null).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || /** @type {Record<string, string>} */ (KIND_WORD)[m.kind];
+    const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? gitState(m.git).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || /** @type {Record<string, string>} */ (KIND_WORD)[m.kind];
     const ic = m.kind === "link" || m.kind === "branch" ? KIND_IC[m.kind] : fileIcon(m.name || m.path);
     return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
   }
