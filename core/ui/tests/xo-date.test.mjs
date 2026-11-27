@@ -1,0 +1,57 @@
+// @ts-check
+
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { dom } from "../../../tests/lib/dom.mjs";
+
+test("a day chooser shows its month from Monday, keeps past days out and chooses like an input", async () => {
+  const { window, document } = await dom("<main></main>");
+  const { customElements, HTMLButtonElement, HTMLElement, Element, Node, Event } = window;
+  Object.assign(globalThis, { customElements, HTMLButtonElement, HTMLElement, Element, Node, Event, innerHeight: 844, innerWidth: 1440 });
+  const { defineXoDate } = await import("../components/xo-date.js");
+  defineXoDate();
+  const host = document.createElement("div");
+  host.innerHTML = '<xo-date name="date" value="2027-03-10" min="2027-03-09" aria-label="Date"></xo-date>';
+  document.querySelector("main")?.append(host);
+  const date = /** @type {HTMLElement & { value: string }} */ (host.firstElementChild);
+  const button = date.querySelector("button");
+  assert.ok(button);
+  assert.equal(button.textContent, "Wed 10 March");
+  let changes = 0;
+  date.addEventListener("change", () => changes++);
+  const press = (/** @type {string} */ key) => button.dispatchEvent(Object.assign(new Event("keydown", { bubbles: true }), { key }));
+  button.focus();
+  button.click();
+  assert.equal(button.getAttribute("aria-expanded"), "true");
+  const quick = [...date.querySelectorAll("[data-quick] .dd-t")].map((t) => t.textContent);
+  assert.deepEqual(quick, ["Today", "Tomorrow", "Choose a date…"], "today and tomorrow first, then a date of its own");
+  assert.equal(date.querySelector('[data-quick="2"]')?.getAttribute("aria-selected"), "true");
+  assert.ok(date.querySelector('[data-quick="2"] svg'), "the calendar's icon");
+  assert.equal(date.querySelector(".dt-cal")?.hasAttribute("hidden"), true);
+  /** @type {HTMLElement | null} */ (date.querySelector('[data-quick="2"]'))?.click();
+  assert.equal(date.querySelector(".dt-cal")?.hasAttribute("hidden"), false, "then the month");
+  const heads = [...date.querySelectorAll('[role="columnheader"]')].map((h) => h.getAttribute("aria-label"));
+  assert.equal(heads[0], "Monday");
+  assert.equal(date.querySelectorAll("[data-day]").length, 31);
+  assert.equal(date.querySelector('[data-day][aria-selected="true"]')?.getAttribute("data-day"), "2027-03-10");
+  assert.equal(date.querySelector('[data-day="2027-03-08"]')?.getAttribute("aria-disabled"), "true");
+  assert.equal(date.querySelector('[data-step="-1"]')?.hasAttribute("disabled"), true, "no month before the first day it allows");
+  /** @type {HTMLElement | null} */ (date.querySelector('[data-day="2027-03-08"]'))?.click();
+  assert.equal(date.value, "2027-03-10");
+  press("ArrowDown");
+  assert.equal(button.getAttribute("aria-activedescendant")?.endsWith("2027-03-17"), true);
+  press("Enter");
+  assert.equal(date.value, "2027-03-17");
+  assert.equal(button.getAttribute("aria-expanded"), "false");
+  assert.equal(changes, 1);
+  assert.equal(document.activeElement === button, true);
+  const t = new Date(), tomorrow = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1);
+  date.setAttribute("min", `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`);
+  button.click();
+  press("ArrowUp");
+  press("Enter");
+  assert.equal(date.value, `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`);
+  assert.equal(button.textContent, "tomorrow");
+  assert.equal(changes, 2);
+  host.remove();
+});

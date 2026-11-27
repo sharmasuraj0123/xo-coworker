@@ -3,13 +3,16 @@
 xo-select{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
 xo-select>option{display:none}
 
-.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);text-align:left;cursor:pointer;transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;
+  border-radius:var(--r-sm);border:1px solid var(--dd-line,var(--line-soft));background:var(--dd-fill,var(--surface));
+  color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);text-align:left;cursor:pointer;
+  transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .dd-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dd-btn svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
 .dd-btn:hover,xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .dd-btn:hover svg,xo-select.is-open .dd-btn svg{color:var(--ink-3)}
 .dd-btn:disabled{opacity:.5;cursor:default}
-.dd-btn:disabled:hover{border-color:var(--line-soft);color:var(--ink-2)}
+.dd-btn:disabled:hover{border-color:var(--dd-line,var(--line-soft));color:var(--ink-2)}
 
 /* Menu row corners subtract the border and padding from the outer corner. */
 .dd-menu{position:fixed;left:0;top:0;z-index:var(--z-top);box-sizing:border-box;width:max-content;max-width:400px;
@@ -30,11 +33,16 @@ xo-select>option{display:none}
 .dd-dot{display:block;width:5px;height:5px;mask:var(--mask-dot);background:var(--ink-2)}
 .dd-ic{flex:none;align-self:center;width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* data-mark="check": the choice ticked at the row's end, as in a sentence's chips */
+.dd-menu.is-check .dd-row{gap:var(--s-3);font-weight:var(--fw-regular);color:var(--ink)}
+.dd-menu.is-check .dd-ic{color:var(--ink-3)}
+.dd-ck{flex:none;align-self:center;display:grid;place-items:center;width:var(--ic-sm);margin-left:auto;padding-left:var(--s-2);color:var(--ink-3)}
+.dd-ck svg{width:var(--ic-sm);height:var(--ic-sm)}
 .dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 
-:root[data-theme="light"] .dd-btn{background:var(--surface);border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-btn{background:var(--dd-fill,var(--surface));border-color:var(--dd-line,rgba(0,0,0,.12))}
 :root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-:root[data-theme="light"] .dd-btn:disabled:hover{border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-btn:disabled:hover{border-color:var(--dd-line,rgba(0,0,0,.12))}
 
 /* where each one stands */
 .ar-pj xo-select{width:200px}

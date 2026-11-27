@@ -46,6 +46,9 @@ function repeatOf({ kind, days, step }) {
   return kind === "minute" || kind === "hour" ? "hours" : kind;
 }
 
+/** Today's date, or one n days on. @param {number} n */
+const dayAhead = (n) => { const t = new Date(); return dateOf(new Date(t.getFullYear(), t.getMonth(), t.getDate() + n).getTime()); };
+
 /** A new one's values: every day at 9, from tomorrow. @param {string} chat @param {number} at @returns {FormValues} */
 const blankOf = (chat, at) => ({ name: "", prompt: "", chat, repeat: "day", time: "09:00", date: dateOf(at), days: [new Date(at).getDay()],
   dom: new Date(at).getDate(), hours: 6, persona: null, notify: null, onFailure: null });
@@ -141,7 +144,7 @@ const LATER = `<option value="event" disabled data-icon="bolt-fill" data-desc="l
 const ON_DAYS = new Set(["day", "weekdays", "week"]);
 
 /** @param {FormValues} v */
-const repeatPick = (v) => `<xo-select name="repeat" class="au-chip" aria-label="Repeat">` +
+const repeatPick = (v) => `<xo-select name="repeat" class="au-chip" data-mark="check" aria-label="Repeat">` +
   `${REPEATS.map(([value, words, icon]) => opt(value, words, v.repeat === value, icon)).join("")}${LATER}</xo-select>`;
 
 /** @param {FormValues} v @param {string} cls */
@@ -163,13 +166,15 @@ function daysHtml(v) {
 
 /** What a repeat that isn't by days needs: its date, its day of the month or its hours. @param {FormValues} v */
 function sinceHtml(v) {
-  if (v.repeat === "once") return `<input type="date" name="date" class="au-chip-in" value="${esc(v.date)}" aria-label="Date">`;
+  if (v.repeat === "once") {
+    return `<xo-date name="date" class="au-chip" value="${esc(v.date)}" min="${dayAhead(0)}" aria-label="Date"></xo-date>`;
+  }
   if (v.repeat === "hours") return `<input name="hours" class="au-chip-in" inputmode="numeric" maxlength="2" value="${v.hours}"` +
     ` aria-label="Hours apart"><span>hours, from</span>`;
   if (v.repeat !== "month") return "";
   const doms = [...Array.from({ length: 31 }, (_, i) => opt(String(i + 1), `the ${ordinal(i + 1)}`, v.dom === i + 1)),
     opt("last", "the last day", v.dom === "last")].join("");
-  return `<xo-select name="dom" class="au-chip" aria-label="Day of the month">${doms}</xo-select>`;
+  return `<xo-select name="dom" class="au-chip" data-mark="check" aria-label="Day of the month">${doms}</xo-select>`;
 }
 
 const AGENT_NOTE = "Changing what it does makes it yours: it no longer counts as what you allowed.";
@@ -182,7 +187,7 @@ function agentPick(v, agents, none) {
   const opts = usable.map((a) => opt(`${a.level}:${a.name}`, `${titleOf(a.name)}${a.level === "space" ? " · Every project" : ""}`,
     on === `${a.level}:${a.name}`));
   if (v.persona && !usable.some((a) => `${a.level}:${a.name}` === on)) opts.unshift(opt(on, titleOf(v.persona.name), true));
-  return `<xo-select name="persona" class="au-chip" aria-label="Agent">${opts.join("")}${opt("", none, !on)}</xo-select>`;
+  return `<xo-select name="persona" class="au-chip" data-mark="check" aria-label="Agent">${opts.join("")}${opt("", none, !on)}</xo-select>`;
 }
 
 /** When it tells you and what a failure does, as two choices; nothing where XO Space doesn't keep them. @param {FormValues} v */
@@ -190,7 +195,8 @@ function tellPicks(v, inRow = true) {
   if (!v.notify) return ["", ""];
   const w = inRow ? 1 : 2;
   const pick = (/** @type {string} */ name, /** @type {string} */ label, /** @type {string[][]} */ list, /** @type {string | null} */ on) =>
-    `<xo-select name="${name}" class="au-chip" aria-label="${label}">${list.map((o) => opt(o[0], o[w], o[0] === on)).join("")}</xo-select>`;
+    `<xo-select name="${name}" class="au-chip" data-mark="check" aria-label="${label}">` +
+    `${list.map((o) => opt(o[0], o[w], o[0] === on)).join("")}</xo-select>`;
   return [pick("notify", "Tells you", NOTIFY, v.notify), pick("on_failure", "If it fails", ON_FAILURE, v.onFailure)];
 }
 
@@ -229,7 +235,8 @@ export function formHtml(v, a, { problem, busy, agents }, projectName) {
 /** A new one, as one sentence: when, which agent, where, and what it will do. @param {FormValues} v @param {FormOptions} o */
 export function sentenceHtml(v, { projects, problem, busy, agents }) {
   const chats = projects.map((p) => opt(p.chat, p.name, p.chat === v.chat)).join("");
-  const at = v.repeat === "hours" ? "" : v.repeat === "once" || v.repeat === "month" ? "<span>on</span>" : "";
+  const near = v.repeat === "once" && [0, 1].some((n) => dayAhead(n) === v.date);
+  const at = near || v.repeat === "hours" ? "" : v.repeat === "once" || v.repeat === "month" ? "<span>on</span>" : "";
   return `<form class="au-form au-new" data-au-form novalidate aria-labelledby="au-new-h">` +
     `<div class="au-bar"><button type="button" class="au-back" data-au-act="cancel">Cancel</button><b id="au-new-h">New automation</b>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(busy)}>Create</button></div>` +
@@ -237,7 +244,7 @@ export function sentenceHtml(v, { projects, problem, busy, agents }) {
     `${timeIn(v, "au-chip-in")}</div>` +
     (v.repeat === "week" ? daysHtml(v) : "") +
     `<div class="au-say">${agentPick(v, agents, "An agent")}<span>in</span>` +
-    `<xo-select name="chat" class="au-chip" aria-label="Project">${chats}</xo-select><span>will</span></div>` +
+    `<xo-select name="chat" class="au-chip" data-mark="check" aria-label="Project">${chats}</xo-select><span>will</span></div>` +
     `<textarea name="prompt" class="au-say-text" rows="4" aria-label="What it does each time"` +
     ` placeholder="check what's live and tell me only if something looks wrong.">${esc(v.prompt)}</textarea>` +
     sayTells(v) + problemHtml(problem) + `<p class="au-note">You can also ask any coordinator for one in your own words.</p></form>`;

@@ -118,7 +118,8 @@ export function detailHtml(a, s) {
 
 /** @param {ReportState} r */
 const reportBody = (r) => r.failed ? `<p class="au-none">Couldn't read its report.</p>`
-  : r.text === null ? `<p class="au-none">Reading its report…</p>`
+  : r.text === null ? `<div class="au-loading" role="status"><i class="spin is-load" aria-hidden="true"></i>` +
+    `<span class="sr-only">Reading its report</span></div>`
   : r.text.trim() ? `<div class="prose au-report">${renderMarkdown(r.text)}</div>` : `<p class="au-none">This run left no report.</p>`;
 
 /** One run: what it found, when, and its report. @param {Automation} a @param {RunRow} run @param {ReportState} r */
@@ -131,6 +132,6 @@ export function reportHtml(a, run, r) {
     `<button type="button" class="au-back" data-au-act="report-back">${xi("chevron-left")}${esc(a.name)}</button></div>` +
     `<div class="au-hd"><span class="au-tile au-run-tile" aria-hidden="true">${xi(icon)}</span>` +
     `<h2 id="au-det-h" tabindex="-1">${esc(words)}</h2></div><p class="au-next">${esc(when)}</p>` +
-    (line && (run.status !== "ok" || !r.text?.trim()) ? `<p class="au-prompt">${esc(line)}</p>` : "") +
+    (line && (r.failed || r.text !== null && (run.status !== "ok" || !r.text.trim())) ? `<p class="au-prompt">${esc(line)}</p>` : "") +
     open + `<section class="au-sec">${reportBody(r)}</section></article>`;
 }

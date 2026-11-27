@@ -115,3 +115,17 @@ assert.match(formHtml(back, ruled, { projects: [], problem: "", busy: "x", agent
   "Edit is its own view, so it arrives like one");
 
 console.log("form: ok");
+
+const onceSaid = sentenceHtml({ ...fresh, repeat: "once", date: "2026-11-28" }, { projects: [], problem: "", busy: "x", agents: [] });
+assert.match(onceSaid, /<xo-date name="date" class="au-chip" value="2026-11-28" min="\d{4}-\d\d-\d\d" aria-label="Date">/,
+  "a date is chosen in the app's own calendar, from today on");
+assert.doesNotMatch(onceSaid, /type="date"/, "never the browser's own");
+const today = new Date();
+/** @param {Date} d */
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const onDay = (date = "") => sentenceHtml({ ...fresh, repeat: "once", date }, { projects: [], problem: "", busy: "x", agents: [] });
+assert.doesNotMatch(onDay(iso(today)), /<span>on<\/span>/, "Once today at 09:00");
+assert.doesNotMatch(onDay(iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))), /<span>on<\/span>/, "Once tomorrow");
+assert.match(onDay("2031-03-10"), /<span>on<\/span><xo-date/, "Once on Mon 10 March");
+const chips = [...sentenceHtml(fresh, { projects: [], problem: "", busy: "x", agents: [] }).matchAll(/<xo-select [^>]*class="au-chip"[^>]*>/g)];
+assert.ok(chips.length > 2 && chips.every(([c]) => c.includes('data-mark="check"')), "a sentence's chips tick their choice at the end");

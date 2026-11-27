@@ -115,6 +115,9 @@ await t("Delete asks first, then leaves an Undo in the row; Undo keeps it", asyn
 });
 
 await t("New is one sentence in a dialog; it asks for what's missing, then saves and shows the new one", async () => {
+  const cta = document.querySelector('.au-top [data-au-act="new"]');
+  assert.equal(cta?.classList.contains("btn-pri"), true, "the page's one call to action, in the flavour's colour");
+  assert.equal(cta?.textContent, "Create automation");
   await click('[data-au-act="new"]');
   const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
   assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");

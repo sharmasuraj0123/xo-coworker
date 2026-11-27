@@ -8,4 +8,6 @@ const held = [...css.matchAll(/\.au-row>:not\(([^)]*)\)\{([^}]*)\}/g)].filter(([
 assert.ok(held.length, "a row's parts sit above its open button");
 for (const [, kept] of held) assert.match(kept, /\.au-menu/, "the ••• menu floats under its button, out of the row's grid");
 assert.match(css, /\.au-menu\{position:absolute;right:0;top:/);
+assert.match(css, /\.au-intro\+\.au-list\{margin-top:var\(--s-4\)\}/, "a tab's intro stands a step above its list, as approved");
+assert.match(css, /\.au-what\{[^}]*-webkit-line-clamp:2[^}]*overflow:hidden/, "a found run's words stop at two lines");
 console.log("row-css: ok");

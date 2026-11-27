@@ -64,7 +64,7 @@ export function createDraft(deps, made) {
 
   /** @param {Event} e */
   function onInput(e) {
-    if (!(e.target instanceof Element) || !["repeat", "chat"].includes(e.target.getAttribute("name") ?? "")) return;
+    if (!(e.target instanceof Element) || !["repeat", "chat", "date"].includes(e.target.getAttribute("name") ?? "")) return;
     values = typed();
     paint();
   }
@@ -86,6 +86,7 @@ export function createDraft(deps, made) {
     open(start) {
       values = start; problem = "";
       const d = box ??= make();
+      if (!d.hasAttribute("open") || d.classList.contains("is-closing")) d.replaceChildren();
       d.classList.remove("is-closing");
       paint();
       if (!d.hasAttribute("open")) { if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", ""); }
