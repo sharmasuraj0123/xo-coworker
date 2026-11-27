@@ -46,6 +46,8 @@ for (const [id, s] of [["#iq", "p:demo"], ["#tiq", "t:cmsg_1"]]) {
   assert.equal(IQ.isOpen, false, `a press elsewhere closes what ${id} opened`);
 }
 
+world.state.runtimes = null;
+assert.equal(IQ.chipHtml("p:demo"), "", "before the runtimes are read there is no chip to show a raw model id in");
 world.state.runtimes = [{ name: "claude_code" }];
 assert.match(IQ.chipHtml("t:cmsg_1"), /Default/);
 assert.match(IQ.chipHtml("p:demo"), /Auto/);

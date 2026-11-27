@@ -174,13 +174,14 @@ export function installLoad(ctx) {
     const { signal } = ctx.reads;
     await ctx.loadChats();
     if (signal.aborted || !state.projects.length) return;
+    // the runtimes' read can take seconds: the projects and threads don't wait for it, it redraws when it lands
+    void Promise.all([ctx.loadRuntimes(), ctx.loadSpacePolicy()]).then(() => { if (!signal.aborted) ctx.soon(); });
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, signal),
       ...[loadSessions, loadReview, loadRouted].map((read) => retryRead(ctx.reads, async (readSignal) => {
         await read(readSignal);
         if (!readSignal.aborted) ctx.soon();
       })),
-      ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
 }
