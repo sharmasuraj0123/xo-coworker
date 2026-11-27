@@ -7,8 +7,8 @@ const fixture = JSON.parse(readFileSync(new URL("./fixtures/review-api.json", im
 const { review, defaultRule } = fixture;
 const rule = { id: "rule_example", scope: "workspace", sentence: "Check document headings", uses: 1, revoked_at: null };
 const routes = [
-  ["/chat/review", () => api.review(), { items: [review], next_after_seq: null },
-    { items: [{ ...review, risk_groups: [{ text: false }] }] }],
+  ["/chat/review", () => api.review(), { items: [review, { ...review, risk_groups: [{ text: false }] }], next_after_seq: null },
+    { items: [review, 1] }],
   ["/chat/review/review_example", () => api.reviewItem("review_example"), review, { ...review, decision: "approve" }],
   ["/chat/review/review_example/decision", () => api.decide("review_example", { decision: "allow" }), review,
     { ...review, state: false }, "POST"],

@@ -5,6 +5,7 @@ import { connLine } from "../../core/services/world/conn.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
+import { undoRingHtml, startUndoRings } from "../../core/ui/undo-ring.js";
 /** @import { Notice } from "../../core/services/notices.js" */
 
 /** @import { NoticeLineDeps } from "./notice-line-types.d.ts" */
@@ -32,7 +33,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
         : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
         : h.details ? `<div class="hr hr-ev k-halt">${inner}<button type="button" class="hr-undo" data-key="failure-details" ` +
           `data-failure-details="${esc(h.details)}" aria-haspopup="dialog">Details</button></div>`
-        : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
+        : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${h.undoUntil ? undoRingHtml(h.undoUntil, h.undoMs) : ""}${esc(h.undoLabel || "Undo")}</button></div>`
         : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
     } else if (c) {
       html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
@@ -44,6 +45,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     if (!readingFailure && fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(prior?.notice)?.focus({ preventScroll: true });
     if (prior?.html !== html && redraw(box, html) && prior && html) box.firstElementChild?.classList.add("is-in");
     lines.set(box, { notice: h, html });
+    startUndoRings(box);
     heraldRoom();
   }
   function heraldRoom() {

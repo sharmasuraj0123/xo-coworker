@@ -39,6 +39,7 @@ export function createTopHeader(deps, scope, schedule) {
       redraw($("#top-who"), CH.headHtml(v));
       redraw($("#top-end"), STAGE.button(v));
       checklistRender(needs);
+      drawDetails((id) => document.getElementById(id), { project: null, needs });
       return;
     }
     if (t) {

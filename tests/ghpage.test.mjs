@@ -65,6 +65,21 @@ t("a pull request in snake_case, merged: no status marks, no needs-you", () => {
   assert.equal(r.tone, "merged");
 });
 
+t("each state has its own GitHub glyph from the pack, said once on the tile", () => {
+  const glyph = (html) => /data-xi="([^"]+)"/.exec(html)?.[1];
+  assert.equal(glyph(prRow(prOf({ number: 1, title: "a", state: "open" })).icon), "gh-pr");
+  const draft = prRow(prOf({ number: 2, title: "b", state: "open", is_draft: true }));
+  assert.equal(glyph(draft.icon), "gh-pr-draft");
+  assert.equal(draft.sub.includes("gh-pr-draft"), false, "the draft is not said twice");
+  assert.equal(glyph(prRow(prOf({ number: 3, title: "c", state: "closed" })).icon), "gh-pr-closed");
+  assert.equal(glyph(prRow(prOf({ number: 4, title: "d", state: "merged" })).icon), "gh-merged");
+  assert.equal(glyph(issueRow(issueOf({ number: 5, title: "e", state: "open" })).icon), "gh-issue");
+  assert.equal(glyph(issueRow(issueOf({ number: 6, title: "f", state: "closed", state_reason: "completed" })).icon), "gh-issue-closed");
+  assert.equal(glyph(issueRow(issueOf({ number: 7, title: "g", state: "closed", state_reason: "not_planned" })).icon), "gh-issue-skipped");
+  const marks = prRow(prOf({ number: 8, title: "h", state: "open", checks: "PENDING", review_decision: "APPROVED", mergeable: "CONFLICTING" })).sub;
+  for (const name of ["gh-checks-running", "gh-approved", "gh-conflict"]) assert.equal(marks.includes(`data-xi="${name}"`), true, name);
+});
+
 t("a pull request without sizes shows no size", () => {
   assert.equal(prRow(prOf({ number: 4, title: "z", state: "open" })).right, "");
 });
@@ -268,6 +283,38 @@ await githubPage({ pulls: false, item: "i1", failure: { status: 404, detail: { c
   assert.equal(await available, false);
   await opening;
   assert.equal(shown, 0, "a late read cannot open the panel after disposal");
+}
+
+{
+  const { document, window } = await dom("<div id='panel'></div>");
+  const panel = document.getElementById("panel");
+  const pages = new Map();
+  const { ApiError } = await import("../core/platform/http.js");
+  let served = false;
+  const gh = createGhPage({
+    api: {
+      githubIssues: async () => ({ repo: "o/r", state: "ok", issues: [] }),
+      githubStatus: async () => ({ valid: true }),
+      githubPulls: async () => {
+        if (!served) throw new ApiError(404, "http_404", "Not Found");
+        return { open_total: 29, pulls: [{ number: 7, title: "x", state: "open", head: "a", base: "main", additions: 1, deletions: 2 }] };
+      },
+    },
+    stage: { page(name, config) { pages.set(name, config); }, show() {} },
+    view: () => "p:demo",
+    projectOf: () => "demo",
+  });
+  pages.get("github").mount(panel);
+  await pages.get("github").onShow();
+  assert.equal(panel.querySelector('[data-gh-tab="prs"]') === null, true, "no pull request tab while Space has no route");
+  served = true;
+  panel.querySelector("[data-gh-refresh]").dispatchEvent(new window.Event("click", { bubbles: true }));
+  await settle();
+  const tab = panel.querySelector('[data-gh-tab="prs"]');
+  assert.equal(tab !== null, true, "Read GitHub again finds a route Space has added since, without a reload");
+  assert.equal(tab.textContent.includes("29"), true, "the tab counts every open pull request, not only the ones listed");
+  passed++; console.log("  ok  pull requests appear once Space serves them, counted by open_total");
+  gh.dispose();
 }
 
 console.log(`${passed} passed`);

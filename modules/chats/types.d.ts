@@ -60,6 +60,7 @@ interface World {
     runtimes?: Runtime[] | null;
     projects: { id: string; name: string; kind: string }[];
     turns?: Turns;
+    hosts?: Pick<import("../../core/services/world/state-types.d.ts").DecisionHost, "id" | "asks">[];
   };
   ui?: { tbOpen?: Record<string, boolean> };
   project: (path: string) => { name?: string } | null | undefined;

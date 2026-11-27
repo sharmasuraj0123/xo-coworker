@@ -70,4 +70,22 @@ assert.equal(message.firstElementChild.classList.contains("av-p"), true, "a copy
 assert.match(rich, /:root:not\(\[data-msgx\]\) \.m-ext\{border:var\(--hair\) solid var\(--line\);border-radius:var\(--r-block\);background:var\(--surface\)\}/);
 assert.match(bubbles, /:root\[data-msgx\] \.m-ext \.mh\{display:flex;/);
 assert.match(css, /@media \(max-width:760px\)\{\.m-from \.via\{display:none\}\}/);
+const mine = { ...row, id: "mine", seq: 30, author_kind: "owner", author_id: "owner", text: "Is it deployed?", extra: {} };
+const copyAfter = { ...row, id: "copy-after", seq: 31 };
+const sentOf = createConversationMessages({
+  world, D: { decisions: () => [], notSent: () => [] }, shape: { on: () => false },
+  localMessages: { list: () => [], mergeEchoes() {}, alias: (id) => id === "mine" ? "local-mine" : null },
+  convThread: () => null, chatOf: () => "demo", threadsOf: () => [],
+});
+const youView = createMessageItems({
+  world, messagesOf: sentOf, STAGE: { chosen: () => null }, CH: { isChats: () => false },
+  convThread: () => null, fwdSource: () => "source", PROJ: () => "Source", youText: (t) => t, passedTo: () => null,
+  queuedMeta: () => "", reactionsHtml: () => "", nameOf: () => ["Local coordinator", ""],
+});
+world.state.timeline.demo = [mine, copyAfter];
+list.innerHTML = youView.msgItems("p:demo", []).map((item) => item.html).join("");
+assert.match(list.querySelector(".m-you .meta")?.textContent || "", /Received by XO/, "a copy from another project is not this chat's answer to you");
+world.state.timeline.demo = [mine, { ...copyAfter, extra: {} }];
+list.innerHTML = youView.msgItems("p:demo", []).map((item) => item.html).join("");
+assert.equal(list.querySelector(".m-you .meta"), null, "our own coordinator's reply is");
 console.log("copied-speaker: ok");

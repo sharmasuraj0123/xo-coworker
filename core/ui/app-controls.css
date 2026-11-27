@@ -22,6 +22,9 @@ button:disabled{cursor:default}
 button .spin,.btn .spin{color:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.g-working,.spin{animation:none}}
+.undo-ring{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
+.undo-ring path{stroke-dasharray:1;stroke-dashoffset:0}
+:is(.hr-undo,.t-undo):has(>.undo-ring){display:inline-flex;align-items:center;gap:var(--s-1);padding-left:var(--s-2)}
 .g-needs_reply,.g-needs_approval,.g-paused{color:var(--warn)}
 .g-done{color:var(--go)}
 .g-failed{color:var(--err-ink)}

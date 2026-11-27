@@ -9,7 +9,7 @@ import { api } from "../core/platform/api.js";
 import { requestJson } from "../core/platform/http.js";
 import { highlight, langOf } from "../core/ui/markdown/highlight.js";
 import { uiMsg, mergeRows, addReaction } from "../core/services/world/rows.js";
-import { echoes, threadAnchors, parseTarget, stripTarget, waitsForTurn, chatOrder, reactionGroups } from "../core/services/world/conversation.js";
+import { echoes, threadAnchors, ownReply, parseTarget, stripTarget, waitsForTurn, chatOrder, reactionGroups } from "../core/services/world/conversation.js";
 import { askText, stormAsks, plainText, threadState } from "../core/services/world/threads.js";
 import { sendErrorTitle, connLine, sendBlock } from "../core/services/world/conn.js";
 import { currentPools, mainRuntime } from "../core/services/world/sessions.js";
@@ -212,6 +212,22 @@ t("thread cards sit under the coordinator's reply to the root, else alone", () =
   const { on, alone } = threadAnchors(rows, ["r1", "r2", "r3"]);
   assert.deepEqual([...on], [["c1", ["r1"]]]);
   assert.deepEqual([...alone].sort(), ["r2", "r3"]);
+});
+t("a copy from another project never takes this chat's thread card", () => {
+  const fwd = { chatId: "chat_other", id: "orig", via: ["xo-coworker", "workspace"] };
+  const rows = [
+    { id: "root", who: "you", fwd },
+    { id: "copy", who: "coord", fwd, text: "This went to [the runtime sign-in thread](#elsewhere)" },
+    { id: "said", who: "coord", text: "Auditing adapter parity" },
+    { id: "told", who: "coord", text: "I started a read-only audit: [Runtime adapters](#root)." },
+  ];
+  assert.deepEqual([...threadAnchors(rows, ["root"]).on], [["told", ["root"]]], "it sits under our coordinator's reply that links the thread");
+  assert.deepEqual([...threadAnchors(rows.filter((r) => r.id !== "told"), ["root"]).on], [["said", ["root"]]]);
+  assert.deepEqual([...threadAnchors(rows.slice(0, 2), ["root"]).alone], ["root"], "with only a copy after it, the card stands alone");
+  const turn = [{ id: "ask", who: "you" }, { id: "t1", who: "coord" }, { id: "t2", who: "coord" }, { id: "t3", who: "coord" }, { id: "said", who: "coord" }];
+  assert.deepEqual([...threadAnchors(turn, ["t1", "t2", "t3"]).on], [["t1", ["t1"]], ["t2", ["t2"]], ["t3", ["t3"]]], "threads opened in one turn each keep their card");
+  assert.equal(ownReply(rows[1]), false);
+  assert.equal(ownReply(rows[2]), true);
 });
 t("@project targets: only a known project routes; any other @ is text", () => {
   const ps = [{ id: "workspace", name: "Workspace" }, { id: "billing-api", name: "billing-api" }];

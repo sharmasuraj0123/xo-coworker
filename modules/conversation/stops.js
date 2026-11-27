@@ -71,7 +71,7 @@ export function createConversationStops({ world, Kit, PROJ, announce, schedule, 
     };
     heraldShow({
       kind: "halt", tag: "stops", text: interrupt ? "Interrupting" : "Stopping",
-      sub: all.map((x) => x.what).join(", "), back: receipt.focusTargets(interrupt), undo,
+      sub: all.map((x) => x.what).join(", "), back: receipt.focusTargets(interrupt), undo, undoUntil: last, undoMs: Kit.COMMIT_MS,
     }, Math.max(300, last - Date.now()));
   }
 

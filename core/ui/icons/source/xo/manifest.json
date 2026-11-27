@@ -3,7 +3,7 @@
   "document": "ic1",
   "fileId": "01M7SVHZJXJ9JBQ6V2K1VMW0N2",
   "exportedAt": "2026-11-19T13:45:34.011Z",
-  "count": 385,
+  "count": 395,
   "icons": [
     {
       "name": "home",
@@ -3074,6 +3074,94 @@
       "category": "Q · Keys and filled variants",
       "nodeId": "39:579",
       "file": "q-keys-and-filled-variants/x-circle-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-approved",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-approved",
+      "file": "r-github/gh-approved.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-changes",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-changes",
+      "file": "r-github/gh-changes.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-checks-running",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-checks-running",
+      "file": "r-github/gh-checks-running.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-conflict",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-conflict",
+      "file": "r-github/gh-conflict.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-issue",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-issue",
+      "file": "r-github/gh-issue.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-issue-closed",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-issue-closed",
+      "file": "r-github/gh-issue-closed.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-issue-skipped",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-issue-skipped",
+      "file": "r-github/gh-issue-skipped.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-merged",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-merged",
+      "file": "r-github/gh-merged.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-pr",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-pr",
+      "file": "r-github/gh-pr.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-pr-closed",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-pr-closed",
+      "file": "r-github/gh-pr-closed.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gh-pr-draft",
+      "category": "R · GitHub",
+      "nodeId": "local:gh-pr-draft",
+      "file": "r-github/gh-pr-draft.svg",
       "width": 24,
       "height": 24
     }

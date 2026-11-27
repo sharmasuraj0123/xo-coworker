@@ -20,6 +20,7 @@ export interface Issue {
   title?: string;
   url?: string;
   state?: string | null;
+  state_reason?: string | null;
   updated_at?: string | null;
   author?: Person;
   assignees?: Person[];
@@ -30,7 +31,7 @@ export interface Issue {
 }
 export interface PageData {
   issues: { repo?: string | null; state?: string; issues?: Issue[]; error?: { message?: string } | null; fetched_at?: string | null };
-  pulls?: { pulls?: Pull[] } | null;
+  pulls?: { pulls?: Pull[], open_total?: number } | null;
   status: { valid?: boolean } | null;
 }
 interface Page {

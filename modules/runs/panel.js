@@ -1,6 +1,7 @@
 // @ts-check
 import { $ } from "../../core/platform/dom.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { runsListHtml, runViewHtml } from "./view.js";
 
@@ -11,7 +12,8 @@ export function createRunsPanel({ RS, transcriptOpen, world, STAGE, runsCard, pe
   let previousHtml = "";
   const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
   // this page's own stops still in their Undo, where you acted
-  const sheetStops = () => pendingStops.pending().filter((j) => j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
+  const sheetStops = () => pendingStops.pending().filter((j) => j.session === RS.session)
+    .map((j) => ({ key: j.key, what: j.what, until: j.until, ms: j.ms }));
   /** Find a control by its first data attribute. @param {Element | null} e */
   const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
 
@@ -28,6 +30,7 @@ export function createRunsPanel({ RS, transcriptOpen, world, STAGE, runsCard, pe
       const hook = runsHook(document.activeElement);
       // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
       redraw(runsCard, html);
+      startUndoRings(runsCard);
       previousHtml = html;
       const nb = runsCard.querySelector(".rn-body");
       if (nb && RS.keepScroll) nb.scrollTop = keep;

@@ -19,9 +19,9 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
     if (!chip) return;
     const s = sessionOf(K.view);
     const chat = CH.isChats(K.view) && K === MK, fixed = chat && K.view !== "chats";
-    chip.hidden = chat ? !CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s);
+    const html = chat ? CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s) ? "" : IQ.chipHtml(s, PHONE.matches);
+    chip.hidden = !html;
     if (chip.hidden) return;
-    const html = chat ? CH.chipHtml(K.view) : IQ.chipHtml(s, PHONE.matches);
     const title = chat ? CH.chipTitle(K.view) : IQ.chipTitle(s);
     chip.title = title;
     chip.setAttribute("aria-label", `Intelligence: ${title.replace(/ \([^)]*\)$/, "")}`);

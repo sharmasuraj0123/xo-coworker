@@ -3,6 +3,8 @@ import { client, NEWEST, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
 import { once } from "../../platform/pending.js";
 import { retryRead, retryableRead } from "./read-policy.js";
+import { isReview } from "../../platform/review-responses.js";
+import { invalidField, rejectItem } from "./frame-failures.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
 /** @import { Ctx } from "./types" */
@@ -144,6 +146,7 @@ export function installLoad(ctx) {
       const d = await client.review({ state: "open", limit: 500, ...(after ? { after_seq: after } : {}) }, { signal });
       if (signal.aborted) return;
       for (const it of d.items || []) {
+        if (!isReview(it)) { rejectItem(ctx, "review item", invalidField(it, { id: "", state: "open" }, isReview)); continue; }
         if (state.review.get(it.id) === unseen.get(it.id)) state.review.set(it.id, it);
         unseen.delete(it.id);
       }
@@ -171,13 +174,14 @@ export function installLoad(ctx) {
     const { signal } = ctx.reads;
     await ctx.loadChats();
     if (signal.aborted || !state.projects.length) return;
+    // the runtimes' read can take seconds: the projects and threads don't wait for it, it redraws when it lands
+    void Promise.all([ctx.loadRuntimes(), ctx.loadSpacePolicy()]).then(() => { if (!signal.aborted) ctx.soon(); });
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, signal),
       ...[loadSessions, loadReview, loadRouted].map((read) => retryRead(ctx.reads, async (readSignal) => {
         await read(readSignal);
         if (!readSignal.aborted) ctx.soon();
       })),
-      ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
 }

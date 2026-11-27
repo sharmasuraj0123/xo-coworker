@@ -3,6 +3,7 @@
 import { clock, dayOf } from "../../core/platform/time.js";
 import { esc } from "../../core/platform/util.js";
 import { untilWords } from "../../core/services/runtimes.js";
+import { ownReply } from "../../core/services/world/conversation.js";
 import { ICON, XO } from "../../core/ui/icons/names.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { mediaHtml } from "../../core/services/media/render.js";
@@ -30,7 +31,7 @@ const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Lo
 /** @param {Message[]} list @param {Message} m */
 const answeredAfter = (list, m) => {
   const i = list.indexOf(m);
-  return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" ||
+  return i >= 0 && list.slice(i + 1).some((x) => ownReply(x) ||
     (x.who === "turn" && x.turn && x.turn.status !== "running" && Array.from(x.blocks || []).some((b) => b && (b.type === "answer" || b.type === "text") && String(b.text || "").trim())));
 };
 

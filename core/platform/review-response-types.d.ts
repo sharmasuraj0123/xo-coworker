@@ -12,15 +12,15 @@ export interface ReviewOption {
 
 export interface QuestionOption {
   label: string;
-  description?: string;
-  cost?: string;
+  description?: string | null;
+  cost?: string | null;
   recommended?: boolean;
 }
 
 export interface ReviewQuestion {
-  id?: string;
-  header?: string;
-  question?: string;
+  id?: string | null;
+  header?: string | null;
+  question?: string | null;
   options?: QuestionOption[];
   multi?: boolean;
   secret?: boolean;
@@ -70,7 +70,7 @@ export interface ReviewRecord {
 }
 
 export interface ReviewPage {
-  items: ReviewRecord[];
+  items: Record<string, unknown>[];
   next_after_seq?: number | null;
 }
 
