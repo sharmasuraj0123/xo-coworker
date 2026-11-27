@@ -7,7 +7,13 @@ globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v
 const calls = [];
 let chats = { chats: [] };
 const api = { chats: () => new Promise((r) => setTimeout(() => r(chats), 0)), markSeen: async (chat) => { calls.push(`seen ${chat}`); } };
-await dom("");
+const { window: win } = await dom("");
+const dialogProto = Object.getPrototypeOf(win.document.createElement("dialog"));
+if (!dialogProto.showModal) {
+  Object.defineProperty(dialogProto, "open", { configurable: true, get() { return this.hasAttribute("open"); } });
+  dialogProto.showModal = function () { this.setAttribute("open", ""); };
+  dialogProto.close = function () { if (!this.hasAttribute("open")) return; this.removeAttribute("open"); this.dispatchEvent(new globalThis.window.Event("close")); };
+}
 const { createSince } = await import("../view.js");
 
 let passed = 0;
@@ -47,13 +53,34 @@ await t("back after 8 hours: one line under the header, a part per group, each o
   assert.deepEqual([...box.querySelectorAll(".sl-part")].map((b) => [b.dataset.go, b.textContent]), [["t:a", "2 finished"], ["t:b", "1 still going"]], "a part opens the newest thread in its group");
   const home = document.getElementById("home");
   home.innerHTML = S.homeSinceLines([]);
-  assert.equal(home.querySelector('button[data-go="p:demo"]')?.textContent, "Demo");
-  assert.deepEqual([...home.querySelectorAll("button")].map((b) => b.textContent.trim()).slice(1), [
-    "Demo", "2 finished", "1 still going",
-  ]);
+  const buttons = [...home.querySelectorAll("button")];
+  assert.equal(buttons.length, 1, "Home holds one button");
+  assert.match(buttons[0].textContent, /^Since .+1 project$/);
+  assert.equal(home.querySelector("[data-go]"), null, "the projects wait in the sheet");
   assert.deepEqual([...box.querySelectorAll("button")].map((b) => b.getAttribute("aria-label") ?? b.textContent), [
     "2 finished", "1 still going", "Got it",
   ]);
+});
+await t("Home's Since button opens a sheet of its projects, each row opening its project and closing the sheet", async () => {
+  store.set("xo-seen", JSON.stringify({ home: now - 9 * H }));
+  const S = await make();
+  await settle();
+  const home = document.getElementById("home");
+  home.innerHTML = S.homeSinceLines([{ t: threads[0], admitted: true }]);
+  assert.match(home.querySelector(".sl-open-n").textContent, /^1 needs you · 1 project$/);
+  home.querySelector("[data-since-open]").dispatchEvent(new window.Event("click", { bubbles: true }));
+  const sheet = document.querySelector("dialog.sl-sheet");
+  assert.equal(sheet?.open, true);
+  assert.equal(sheet.querySelector("h2").textContent, home.querySelector(".sl-open-k").textContent);
+  assert.equal(sheet.querySelector(".sl-sh p").textContent, "1 project · 1 needs you");
+  const row = sheet.querySelector(".sl-row");
+  assert.equal(row.dataset.go, "p:demo");
+  assert.equal(row.querySelector(".sl-row-p").textContent, "Demo");
+  assert.deepEqual([...row.querySelectorAll(".sl-n")].map((n) => n.textContent), ["1 needs you", "1 finished", "1 still going"]);
+  row.dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(sheet.open, false);
+  S.dispose();
+  assert.equal(document.querySelector("dialog.sl-sheet"), null, "the sheet leaves with the view");
 });
 await t("under 8 hours away nothing speaks", async () => {
   store.set("xo-seen", JSON.stringify({ "p:demo": now - 7 * H }));
@@ -82,9 +109,13 @@ await t("Home's Got it: Home's lines go, and focus goes to Home", async () => {
   await settle();
   const home = document.getElementById("home");
   home.innerHTML = S.homeSinceLines([]);
-  const x = home.querySelector('[data-rec-got="home"]');
+  home.querySelector("[data-since-open]").dispatchEvent(new window.Event("click", { bubbles: true }));
+  const sheet = document.querySelector("dialog.sl-sheet");
+  const x = sheet.querySelector('[data-rec-got="home"]');
+  assert.equal(x.textContent, "Mark all as seen");
   x.focus();
   x.dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(sheet.open, false);
   assert.equal(document.activeElement.id, "home");
   assert.deepEqual(said, ["Caught up"]);
   assert.equal(S.homeSinceLines([]), "");
