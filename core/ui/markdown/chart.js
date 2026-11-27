@@ -4,7 +4,9 @@ import { esc } from "../../platform/index.js";
 
 /** @typedef {[number, number | null]} Pt @typedef {{ name: string, pts: Pt[] }} Series */
 
-/** @typedef {{ type: string, title: string, xLabel: string, yLabel: string, cats: string[] | null, series: Series[], yMin: number | null, yMax: number | null }} Chart */
+/** @typedef {{ type: string, title: string, xLabel: string, yLabel: string, cats: string[] | null, series: Series[] }} ChartData */
+
+/** @typedef {ChartData & { yMin: number | null, yMax: number | null, stacked: boolean }} Chart */
 
 /** @typedef {{ values?: unknown[], label?: unknown, min?: unknown, max?: unknown }} ChartAxis */
 
@@ -12,7 +14,7 @@ import { esc } from "../../platform/index.js";
 
 /** @typedef {{ x?: ChartAxis | unknown[], y?: ChartAxis, labels?: unknown[] }} ChartAxes */
 
-/** @typedef {ChartAxes & {type?: string, title?: unknown, series?: ChartSeriesInput[]}} ChartInput */
+/** @typedef {ChartAxes & {type?: string, title?: unknown, series?: ChartSeriesInput[], stacked?: unknown}} ChartInput */
 
 const MAX_SERIES = 8, MAX_POINTS = 2000;
 const num = (/** @type {unknown} */ v) => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN);
@@ -60,6 +62,7 @@ export function readChart(src) {
   return {
     type, title: s.title ? String(s.title).slice(0, 200) : "", xLabel: x.label ? String(x.label).slice(0, 80) : "", yLabel: y.label ? String(y.label).slice(0, 80) : "",
     cats, series, yMin: fin(y.min) ? num(y.min) : null, yMax: fin(y.max) ? num(y.max) : null,
+    stacked: type === "bar" && s.stacked === true && series.length > 1,
   };
 }
 
@@ -87,12 +90,19 @@ export function fmt(v, step = 0) {
 
 const pct = (/** @type {number} */ v) => `${+(v * 100).toFixed(3)}%`;
 
+/** Where each series' segment of a stacked column ends, per category; a negative value stacks as nothing. @param {Series[]} series */
+function stackTops(series) {
+  const n = Math.max(...series.map((q) => q.pts.length)), sum = new Array(n).fill(0);
+  return series.map((q) => sum.map((_, j) => (sum[j] += Math.max(0, q.pts[j]?.[1] ?? 0))));
+}
+
 /** The chart's HTML for a chart block's source, or null when it isn't a chart XO can draw (shown as code then). @param {unknown} src */
 export function chartHtml(src) {
   const c = readChart(src);
   if (!c) return null;
   const all = /** @type {[number, number][]} */ (c.series.flatMap((q) => q.pts.filter((p) => p[1] != null)));
-  let lo = Math.min(...all.map((p) => p[1])), hi = Math.max(...all.map((p) => p[1]));
+  const tops = c.stacked ? stackTops(c.series) : null;
+  let lo = Math.min(...all.map((p) => p[1])), hi = tops ? Math.max(...tops.flat()) : Math.max(...all.map((p) => p[1]));
   // bars and areas grow from zero; a line keeps its own range (a fit near 1.0 shouldn't be squashed flat)
   if (c.type === "bar" || c.type === "area") { lo = Math.min(0, lo); hi = Math.max(0, hi); }
   if (c.yMin != null) lo = Math.min(lo, c.yMin);
@@ -140,6 +150,14 @@ export function chartHtml(src) {
       // the end of each line carries a dot (with the surface ring), where the eye looks for "now"
       const last = /** @type {[number, number] | undefined} */ ([...q.pts].reverse().find((p) => p[1] != null));
       if (last && q.pts.filter((p) => p[1] != null).length > 1) html += `<i class="mc-dot" style="--c:${col(i)};left:${pct(xv(last[0]))};top:${pct(yv(last[1]))}"></i>`;
+    });
+  } else if (tops) {
+    c.series.forEach((q, i) => {
+      for (const [j, v] of q.pts) {
+        if (!v || v < 0) continue;
+        const top = tops[i][j], last = tops.every((t, s) => s <= i || t[j] === top);
+        html += `<i class="mc-bar${last ? "" : " is-under"}" style="--c:${col(i)};--k:1;--i:0;left:${pct((j + 0.5) / n)};top:${pct(yv(top))};height:${pct(yv(top - v) - yv(top))}"></i>`;
+      }
     });
   } else if (c.type === "bar") {
     const k = c.series.length, zero = yv(Math.max(Y.lo, Math.min(0, Y.hi)));
