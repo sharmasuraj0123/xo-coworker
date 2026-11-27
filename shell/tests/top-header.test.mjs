@@ -10,7 +10,7 @@ const { document } = await dom('<header id="top"><button id="top-back" hidden></
 const K = createKernel();
 definePlaces(K);
 K.places.contribute("header.action", { id: "outline", label: "Outline", icon: "plug", when: ({ project }) => project === "p", onPress() {} }, "xo.apps-host");
-let view = "p:p";
+let view = "p:p", parent = "home";
 const thread = { id: "t", project: "p", state: "working", busy: true };
 const calls = [];
 K.bus.on("app:conversation-header", () => calls.push("since"));
@@ -22,7 +22,7 @@ const back = document.getElementById("top-back");
 const who = document.getElementById("top-who");
 const end = document.getElementById("top-end");
 const render = createTopHeader({
-  location: { view: () => view, parentOf: (v) => v === "t:t" ? "home" : undefined },
+  location: { view: () => view, parentOf: (v) => v === "t:t" ? parent : undefined },
   convThread: (v) => v === "t:t" ? thread : null, isBusy: (t) => t.busy,
   CH: { isChats: (v) => v === "chats" || v.startsWith("c:"), headHtml: () => "<h1>Chat</h1>" },
   STAGE: { button: () => "<button>Panel</button>" },
@@ -73,3 +73,9 @@ assert.equal(details.at(-1), "p");
 view = "chats";
 render([]);
 assert.equal(details.at(-1), null, "Chats clears the project's details, so its Since line doesn't stay under the Chats header");
+view = "t:t";
+for (const [from, words] of [["automations", "Automations"], ["artifacts", "Artifacts"], ["launchpad", "Launchpad"], ["p:p", "Project"]]) {
+  parent = from;
+  render([]);
+  assert.equal(back.getAttribute("aria-label"), `Back to ${words}`, `a thread opened from ${from} names it whole`);
+}
