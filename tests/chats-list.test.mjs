@@ -6,6 +6,7 @@ import { heldShort, heldBadge } from "../core/services/world/held.js";
 import { rowTime } from "../core/services/world/list-time.js";
 import { threadsHtml } from "../shell/panel/lists.js";
 import { dom, same } from "./lib/dom.mjs";
+import { bootPage } from "./lib/page.mjs";
 import { createChats as mountChats } from "../modules/chats/chats.js";
 import { turnHtml, turnAv } from "../modules/conversation/blocks/turn.js";
 
@@ -16,6 +17,8 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 const now = new Date(2026, 10, 20, 15, 0);
 const at = (d, h = 10) => new Date(2026, 10, 20 - d, h, 30).toISOString();
+const shell = (await bootPage()).document;
+const greeting = shell.querySelector("#cs-hi"), subline = shell.querySelector("#cs-sub, .cs-sub");
 await dom("");
 t("a row's time: the clock for today and yesterday, the weekday this week, else the date", () => {
   assert.equal(rowTime(at(0), now), new Date(at(0)).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }));
@@ -129,10 +132,7 @@ const style = (selector, expected, condition = "") => {
 t("The Workspace row is a bare mark beside a reading-size title with no divider", () => {
   style(".chl-list", { "list-style": "none", display: "flex", "flex-direction": "column", margin: "0", padding: "0" });
   assert.ok(!rules.some(({ sel }) => sel.includes(".chl-list>li+li")), "no dividers");
-  style(".chl-row", {
-    height: "var(--h-row-act)", padding: "0 var(--halo-row)", margin: "0 calc(-1 * var(--halo-row))",
-    "border-radius": "var(--r-lg)",
-  });
+  style(".chl-row", { height: "var(--h-row-act)", padding: "0 var(--halo-row)", "border-radius": "var(--r-lg)" });
   const tile = declarations(".chl-tile");
   style(".chl-tile", { width: "var(--ic)", height: "var(--ic)", color: "var(--ink-3)" });
   assert.ok(Object.keys(tile).every((property) => !/^(background|border|box-shadow)/.test(property)), "the mark has no fill or rim");
@@ -144,6 +144,27 @@ t("The Workspace row is a bare mark beside a reading-size title with no divider"
   assert.deepEqual(literals.map(({ sel }) => sel), []);
   assert.ok(!rules.some(({ sel, f }) => (f === "/css/app.css" || f.startsWith("/modules/chats/"))
     && /^\.ch-(list|row|main|t|m|a)$/.test(sel)), "no Chats selectors leak into Changes");
+});
+
+t("The Workspace row is exactly as wide as the composer, its hover fill too: both take the column's --col-w", () => {
+  style(".composer", { width: "var(--col-w)", "margin-left": "var(--col-x)" });
+  style(".column", { width: "var(--col-w)", "margin-left": "var(--col-x)" });
+  style(".chl-row", { width: "100%", margin: undefined });
+});
+
+t("The Chats greeting is a set of lines that take turns in one cell, with no subline under it", () => {
+  const lines = [...greeting.children];
+  assert.ok(subline === null, "no \"For all your chat needs.\"");
+  assert.ok(lines.length > 1 && !/What can I help with/.test(greeting.textContent), "lines, not one stock question");
+  assert.deepEqual(lines.map((line) => line.getAttribute("aria-hidden")), [null, ...lines.slice(1).map(() => "true")], "a reader hears the first line once");
+  style(".cs-hi", { display: "grid" });
+  style(".cs-hi>span", { "grid-area": "1/1", opacity: "0" });
+  for (let n = 2; n <= lines.length; n++) assert.ok(rules.some(({ sel }) => sel === `.cs-hi>:nth-child(${n})`), `line ${n} has its turn`);
+  assert.ok(rules.some(({ sel, declarations: rows }) => sel === ".cs-hi>span"
+    && rows.some(({ p, v }) => p === "animation" && v.startsWith(`cs-line calc(${lines.length} *`))), "one cycle holds every line");
+  const still = "@media (prefers-reduced-motion:reduce)";
+  style(".cs-hi>span", { animation: "none" }, still);
+  style(".cs-hi>:first-child", { opacity: "1" }, still);
 });
 
 t("A project heading with no actions can use the full row", () => {
@@ -159,7 +180,7 @@ t("The Chats greeting and composer lead the page without space reserved at the f
   style(".main:has(.dock.is-top)", { "--dock-h": "0px" });
   style(".cs-hi", {
     font: "var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans)",
-    margin: "auto 0 var(--s-2) var(--col-x)",
+    margin: "auto 0 var(--s-6) var(--col-x)",
   });
 });
 
