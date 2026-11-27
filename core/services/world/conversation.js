@@ -121,7 +121,9 @@ export function chatOrder(prompts, turns) {
     const before = free.filter((x) => x.m.at < at);
     const pick = n ? (after.length ? after.slice(0, n) : before.slice(-1).concat(after.slice(0, n - 1))) : [];
     for (const x of pick) taken.add(x);
-    return /** @type {{at: number, k: number, t: Turn, got: Prompt[], m?: undefined}} */ ({ at, k, t, got: pick.map((x) => x.m) });
+    // stamped to the whole second and woken by no prompt (it follows a stop, say): a prompt written in that second came first
+    const place = !n && at % 1000 === 0 ? at + 999 : at;
+    return /** @type {{at: number, k: number, t: Turn, got: Prompt[], m?: undefined}} */ ({ at: place, k, t, got: pick.map((x) => x.m) });
   });
   /** @type {{at: number, m: Prompt, t?: undefined, k?: undefined, got?: undefined}[]} */
   const loose = mine.filter((x) => !taken.has(x)).map((x) => ({ at: x.m.at, m: x.m }));
