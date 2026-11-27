@@ -15,7 +15,7 @@
 .sl-n.t-amber{color:var(--warn)}
 .sl-n.t-red{color:var(--err-ink)}
 /* Home: one capsule; its glyphs sit as far from the ends as from the top, so they're concentric with it */
-.sl-home{margin:0 0 var(--s-6);animation:rise-in var(--d-in) var(--ease)}
+.sl-home{margin:var(--s-4) 0 var(--s-6);animation:rise-in var(--d-in) var(--ease)}
 .sl-open{--sl-end:calc((var(--h-lg) - var(--ic)) / 2);display:inline-flex;align-items:center;gap:var(--s-2);max-width:100%;
   height:var(--h-lg);padding:0 var(--sl-end);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);
   font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap;
@@ -49,6 +49,7 @@ li+li>.sl-row::before{content:"";position:absolute;top:0;right:0;left:var(--sl-t
 .sl-row-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--gap-control-tight)}
 .sl-row-p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-title)/var(--lh-title) var(--sans)}
 .sl-row-s{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sl-row-s .sl-sep{color:inherit}
 .sl-row>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .sl-sf{flex:none;padding:var(--nest-in) var(--sl-in) var(--sl-in)}
 .sl-seen{display:flex;align-items:center;justify-content:center;width:100%;height:var(--h-hit);

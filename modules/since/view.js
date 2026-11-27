@@ -33,7 +33,7 @@ function partsHtml(catchup) {
 /** @param {ReturnType<typeof catchUp>} catchup */
 function partsText(catchup) {
   return catchup.groups.map(({ items, label, tone }) =>
-    `<span class="sl-n t-${tone}">${items.length} ${esc(label.toLowerCase())}</span>`).join(DOT);
+    `<span class="sl-n t-${tone}">${items.length} ${esc(label.toLowerCase())}</span>`).join('<span class="sl-sep">,</span> ');
 }
 
 /** @param {string} place */
