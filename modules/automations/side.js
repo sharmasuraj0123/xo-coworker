@@ -198,7 +198,10 @@ export function createSide(deps) {
     edit: (next) => show(next, true),
     duplicate,
     /** @param {string} chat */
-    create(chat) { draft.open(valuesOf(null, chat || deps.projects()[0]?.chat || "", now())); },
+    create(chat) {
+      const told = deps.store.state.list.some((x) => x.notify !== null), v = valuesOf(null, chat || deps.projects()[0]?.chat || "", now());
+      draft.open(told ? { ...v, notify: "found", onFailure: "tell" } : v);
+    },
     close,
     get id() { return st.id; },
     get editing() { return st.editing; },

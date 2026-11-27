@@ -5,7 +5,7 @@ import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { undoRingHtml } from "../../core/ui/undo-ring.js";
 import { busyAttrs } from "../../core/platform/pending.js";
-import { cadenceOf, cadenceWords, dateWords, dayAt, hhmm, longDate, ruleWeek } from "./model.js";
+import { cadenceOf, cadenceWords, dateWords, dayAt, foundWords, hhmm, longDate, ruleWeek } from "./model.js";
 import { UNDO_MS } from "./store.js";
 
 /** @import { Automation, AgendaDay, LastRun, RowState, WeekDay } from "./types" */
@@ -14,10 +14,15 @@ import { UNDO_MS } from "./store.js";
 export const tile = (icon, small = false) =>
   `<span class="au-tile${small ? " is-sm" : ""}" data-au-k="${esc(icon)}" aria-hidden="true">${xi(icon)}</span>`;
 
+/** What each notify setting says, in a row and in a sentence. */
+export const NOTIFY = [["found", "When it finds something", "only when it finds something"],
+  ["always", "After every run", "after every run"], ["never", "Never", "never"]];
+export const ON_FAILURE = [["tell", "Tells you", "tell me"], ["silent", "Says nothing", "say nothing"]];
+
 /** How its last run ended: a class, an icon and the words. @param {LastRun} last */
 export const endOf = (last) => last.status === "failed" ? ["is-err", "x-circle", "Failed"]
   : last.status === "skipped" ? ["", "run-skipped", "Skipped"]
-  : last.found === true ? ["is-need", "found", "Found something"]
+  : last.found === true ? ["is-need", "found", foundWords(last)]
   : ["is-ok", "check-circle", last.found === false ? "Nothing new" : "Done"];
 
 /** @param {LastRun | null} last */

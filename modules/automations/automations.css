@@ -190,6 +190,10 @@ button.au-run:hover{background:var(--fill-1)}
 .au-kv .au-chip{margin-left:auto}
 .au-kv .au-chip .dd-btn{background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .au-kv .au-chip .dd-btn>svg{display:block}
+.au-tell{display:flex;align-items:center;gap:var(--s-2);margin-top:calc(-1 * var(--s-2));
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.au-tell>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
+.au-tell .au-chip .dd-btn{padding:0 var(--s-1)}
 .au-say-text{width:100%;min-height:calc(4 * var(--lh-read));padding:var(--s-4);border:var(--hair) solid var(--fill-clear);
   border-radius:var(--r-lg);background:var(--fill-1);font:var(--fw-read) var(--fs-read)/var(--lh-read) var(--sans-read);color:var(--ink);
   resize:none;field-sizing:content}

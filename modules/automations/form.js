@@ -6,7 +6,7 @@ import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { titleOf } from "./agent-file.js";
 import { cadenceOf, dayAt, ordinal } from "./model.js";
-import { tile } from "./views.js";
+import { NOTIFY, ON_FAILURE, tile } from "./views.js";
 import { browserZone } from "./zone.js";
 
 /** @import { AgentJobBody, ScheduleRule } from "../../core/platform/schedule-response-types" */
@@ -48,7 +48,7 @@ function repeatOf({ kind, days, step }) {
 
 /** A new one's values: every day at 9, from tomorrow. @param {string} chat @param {number} at @returns {FormValues} */
 const blankOf = (chat, at) => ({ name: "", prompt: "", chat, repeat: "day", time: "09:00", date: dateOf(at), days: [new Date(at).getDay()],
-  dom: new Date(at).getDate(), hours: 6, persona: null });
+  dom: new Date(at).getDate(), hours: 6, persona: null, notify: null, onFailure: null });
 
 /** A day on or off; all seven make every day, Monday to Friday weekdays; the last one stays on. @param {FormValues} v @param {number} d */
 export function withDay(v, d) {
@@ -81,7 +81,8 @@ export function valuesOf(a, chat, now) {
   const when = Number.isFinite(at) ? at : fallback, repeat = repeatOf(cadence);
   return { ...blank, name: a.name, prompt: a.prompt, chat: a.project, repeat, time: a.rule?.time ?? timeOf(when), date: dateOf(when),
     days: repeat === "week" && cadence.days.length ? cadence.days : [new Date(when).getDay()], dom: cadence.dom ?? new Date(when).getDate(),
-    hours: kind === "hour" ? step : kind === "day" && step > 1 ? step * 24 : 6, persona: a.persona };
+    hours: kind === "hour" ? step : kind === "day" && step > 1 ? step * 24 : 6, persona: a.persona,
+    notify: a.notify, onFailure: a.notify ? a.onFailure ?? "tell" : null };
 }
 
 /** When an interval starts, and how far apart its runs are. @param {FormValues} v @param {number} now */
@@ -126,7 +127,7 @@ export function bodyOf(v, a, now, zone = browserZone) {
     kind: "agent", name: v.name.trim() || nameFrom(v.prompt), description: a?.job.description ?? null, chat: v.chat,
     prompt: v.prompt.trim(), agent: a?.runtime ?? null, model: a?.model ?? null, effort: a?.effort ?? null,
     every_seconds: rule ? null : every, first_run_at: rule ? null : isoLocal(first), schedule: rule, enabled: a ? a.on : true,
-    persona: v.persona, icon: a?.job.icon ?? null,
+    persona: v.persona, icon: a?.job.icon ?? null, ...(v.notify ? { notify: v.notify, on_failure: v.onFailure ?? "tell" } : {}),
   };
 }
 
@@ -184,8 +185,30 @@ function agentPick(v, agents, none) {
   return `<xo-select name="persona" class="au-chip" aria-label="Agent">${opts.join("")}${opt("", none, !on)}</xo-select>`;
 }
 
+/** When it tells you and what a failure does, as two choices; nothing where XO Space doesn't keep them. @param {FormValues} v */
+function tellPicks(v, inRow = true) {
+  if (!v.notify) return ["", ""];
+  const w = inRow ? 1 : 2;
+  const pick = (/** @type {string} */ name, /** @type {string} */ label, /** @type {string[][]} */ list, /** @type {string | null} */ on) =>
+    `<xo-select name="${name}" class="au-chip" aria-label="${label}">${list.map((o) => opt(o[0], o[w], o[0] === on)).join("")}</xo-select>`;
+  return [pick("notify", "Tells you", NOTIFY, v.notify), pick("on_failure", "If it fails", ON_FAILURE, v.onFailure)];
+}
+
 /** @param {string} problem */
 const problemHtml = (problem) => problem ? `<p class="au-problem" role="alert">${esc(problem)}</p>` : "";
+
+/** @param {FormValues} v */
+const tells = (v) => {
+  const [notify, fail] = tellPicks(v);
+  return notify ? `<li>${xi("bell")}<span>Tells you</span>${notify}</li><li>${xi("alert")}<span>If it fails</span>${fail}</li>` : "";
+};
+
+/** @param {FormValues} v */
+const sayTells = (v) => {
+  const [notify, fail] = tellPicks(v, false);
+  return notify ? `<div class="au-tell">${xi("bell")}<span>Tell me</span>${notify}</div>` +
+    `<div class="au-tell">${xi("alert")}<span>If a run fails,</span>${fail}</div>` : "";
+};
 
 /** Editing one in its panel. @param {FormValues} v @param {Automation} a @param {FormOptions} o @param {string} projectName */
 export function formHtml(v, a, { problem, busy, agents }, projectName) {
@@ -199,7 +222,7 @@ export function formHtml(v, a, { problem, busy, agents }, projectName) {
     `<label class="field"><span>${v.repeat === "hours" ? "Starting at" : "Time"}</span>${timeIn(v, "au-time-in")}</label>` + repeat +
     `<label class="field"><span>Each time</span><textarea name="prompt" rows="4">${esc(v.prompt)}</textarea></label>` +
     `<ul class="au-kv"><li>${xi("agent")}<span>Agent</span>${agentPick(v, agents, "None, just the runtime")}</li>` +
-    `<li>${xi("project")}<span>Project</span><b>${esc(projectName)}</b></li></ul>` +
+    `<li>${xi("project")}<span>Project</span><b>${esc(projectName)}</b></li>${tells(v)}</ul>` +
     (a.askedBy === "agent" && a.approved ? `<p class="au-note">${AGENT_NOTE}</p>` : "") + problemHtml(problem) + `</form>`;
 }
 
@@ -217,7 +240,7 @@ export function sentenceHtml(v, { projects, problem, busy, agents }) {
     `<xo-select name="chat" class="au-chip" aria-label="Project">${chats}</xo-select><span>will</span></div>` +
     `<textarea name="prompt" class="au-say-text" rows="4" aria-label="What it does each time"` +
     ` placeholder="check what's live and tell me only if something looks wrong.">${esc(v.prompt)}</textarea>` +
-    problemHtml(problem) + `<p class="au-note">You can also ask any coordinator for one in your own words.</p></form>`;
+    sayTells(v) + problemHtml(problem) + `<p class="au-note">You can also ask any coordinator for one in your own words.</p></form>`;
 }
 
 /** The form's values as typed. @param {ParentNode} form @param {FormValues} was @returns {FormValues} */
@@ -231,7 +254,9 @@ export function readForm(form, was) {
   const picked = text("persona", was.persona ? `${was.persona.level}:${was.persona.name}` : ""), at = picked.indexOf(":");
   const persona = at > 0 && !(chat !== was.chat && picked.startsWith("project:"))
     ? { level: picked.startsWith("space:") ? /** @type {const} */ ("space") : "project", name: picked.slice(at + 1) } : null;
-  return { ...was, name: text("name", was.name), prompt: text("prompt", was.prompt), chat, persona, repeat,
+  const told = text("notify", was.notify ?? ""), notify = !was.notify ? null : told === "always" || told === "never" ? told : "found";
+  const onFailure = !was.notify ? null : text("on_failure", was.onFailure ?? "") === "silent" ? "silent" : "tell";
+  return { ...was, name: text("name", was.name), prompt: text("prompt", was.prompt), chat, persona, repeat, notify, onFailure,
     time: timeFrom(text("time", was.time)) || was.time, date: text("date", was.date) || was.date,
     hours: Number(text("hours", String(was.hours))) || was.hours, dom: dom === "last" ? "last" : Number(dom) || was.dom };
 }

@@ -6,8 +6,8 @@ import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { titleOf } from "./agent-file.js";
-import { cadenceOf, cadenceWords, dayMonth, hhmm, longDate, ordinal } from "./model.js";
-import { confirmHtml, lettersHtml, menuItem, menuWrap, switchHtml, tile } from "./views.js";
+import { cadenceOf, cadenceWords, dayMonth, foundWords, hhmm, longDate, ordinal } from "./model.js";
+import { confirmHtml, lettersHtml, menuItem, menuWrap, NOTIFY, ON_FAILURE, switchHtml, tile } from "./views.js";
 
 /** @import { Automation, DetailState, ReportState, RunRow } from "./types" */
 
@@ -41,7 +41,7 @@ function runWhen(at, now = Date.now()) {
 /** @param {RunRow} run @returns {[string, string, string]} */
 const runLook = (run) => run.status === "failed" ? ["is-err", "x-circle", "Failed"]
   : run.status === "skipped" ? ["", "run-skipped", "Skipped"]
-  : run.found === true ? ["is-need", "found", "Found something"]
+  : run.found === true ? ["is-need", "found", foundWords(run)]
   : ["is-ok", "check-circle", run.found === false ? "Nothing new" : "Ran"];
 
 /** What a run says beside its words. @param {RunRow} run */
@@ -99,6 +99,8 @@ function settingsHtml(a, s) {
     : kv("agent", "Agent", "None, just the runtime");
   const on = runsOn(a);
   return `<ul class="au-kv">${agent}${on ? kv("runtime", "Runs on", on) : ""}${kv("project", "Project", s.projectName, "project")}` +
+    `${a.notify ? kv("bell", "Tells you", NOTIFY.find(([v]) => v === a.notify)?.[1] ?? "") : ""}` +
+    `${a.onFailure ? kv("alert", "If it fails", ON_FAILURE.find(([v]) => v === a.onFailure)?.[1] ?? "") : ""}` +
     `${a.askedBy === "agent" ? kv("shield-check", "Allowed", a.approved ? "By you" : "Not yet") : ""}</ul>`;
 }
 

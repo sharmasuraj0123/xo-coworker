@@ -1,5 +1,5 @@
 // @ts-check
-import type { PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
+import type { Notify, OnFailure, PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
 import type { MayChoice, Persona, PersonaApi } from "../../core/platform/persona-response-types";
 import type { ProjectApi } from "../../core/platform/project-response-types";
 
@@ -11,6 +11,8 @@ export interface LastRun {
   summary: string;
   thread: { chat: string; ts: string } | null;
   manual: boolean;
+  /** How many things it found, when the run said. */
+  count: number | null;
 }
 
 export interface ReportState { text: string | null; failed: boolean }
@@ -41,6 +43,9 @@ export interface Automation {
   askedBy: "you" | "agent";
   approved: boolean;
   persona: PersonaRef | null;
+  /** Null when XO Space doesn't keep these yet. */
+  notify: Notify | null;
+  onFailure: OnFailure | null;
   icon: string;
   job: Extract<ScheduledJob, { kind: "agent" }>;
 }
@@ -220,6 +225,8 @@ export interface FormValues {
   dom: number | "last";
   hours: number;
   persona: PersonaRef | null;
+  notify: Notify | null;
+  onFailure: OnFailure | null;
 }
 
 export interface Project {

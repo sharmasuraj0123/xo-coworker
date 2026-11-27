@@ -95,4 +95,20 @@ assert.match(said, /<option value="event" disabled[^>]*data-desc="later">When so
 assert.match(said, /<span>at<\/span><input name="time"[^>]*value="08:30"/);
 assert.match(said, /<span>in<\/span><xo-select name="chat"[^>]*>.*Alpha.*<span>will<\/span>/);
 
+assert.equal("notify" in bodyOf(fresh, null, now, zone), false, "an XO Space without notify gets no key it would refuse");
+assert.equal(said.includes('name="notify"'), false, "nor a choice it can't keep");
+const told = { ...fresh, notify: /** @type {const} */ ("found"), onFailure: /** @type {const} */ ("tell") };
+const toldBody = bodyOf(told, null, now, zone);
+assert.deepEqual([toldBody.notify, toldBody.on_failure], ["found", "tell"], "both, every time, so a save doesn't reset them");
+const read = readForm(typedForm({ notify: "never", on_failure: "silent" }), told);
+assert.deepEqual([read.notify, read.onFailure], ["never", "silent"]);
+assert.equal(readForm(typedForm({ notify: "never" }), fresh).notify, null, "read only where XO Space keeps it");
+const toldSaid = sentenceHtml(told, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents });
+assert.match(toldSaid, /<span>Tell me<\/span><xo-select name="notify"[^>]*><option value="found" selected[^>]*>only when it finds something/);
+assert.match(toldSaid, /<span>If a run fails,<\/span><xo-select name="on_failure"[^>]*><option value="tell" selected[^>]*>tell me/);
+const [kept] = automationsOf(/** @type {never} */ ([job({ notify: "always", on_failure: "silent" })]));
+assert.deepEqual([valuesOf(kept, "", now).notify, valuesOf(kept, "", now).onFailure], ["always", "silent"], "Edit starts from what it has");
+assert.match(formHtml(valuesOf(kept, "", now), kept, { projects: [], problem: "", busy: "x", agents }, "Alpha"),
+  /<span>Tells you<\/span><xo-select name="notify"[^>]*>.*value="always" selected[^>]*>After every run/);
+
 console.log("form: ok");

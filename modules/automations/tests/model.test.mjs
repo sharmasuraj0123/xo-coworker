@@ -1,7 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { agendaOf, automationsOf, cadenceWords, hhmm, longDate, noticedOf, runRowsOf, weekOf } from "../model.js";
+import { agendaOf, automationsOf, cadenceWords, foundWords, hhmm, longDate, noticedOf, runRowsOf, weekOf } from "../model.js";
 
 const HOUR = 3600, DAY = 86400;
 const now = new Date(2026, 10, 25, 8, 0).getTime();
@@ -96,5 +96,12 @@ assert.equal(cadenceWords(rule({ day_of_month: "last", time: "09:00", tz: "UTC" 
 const weekdays = rule({ days: "weekdays", time: "09:00", tz: "UTC" }, { upcoming: [at(0, 9), at(1, 9), at(2, 9), at(5, 9)] });
 assert.deepEqual(agendaOf([weekdays], now, 7).map((d) => new Date(d.start).getDate()), [25], "at its next run, as XO Space says");
 assert.deepEqual(weekOf([weekdays], now).map((d) => d.dots.length), [1, 1, 1, 1, 1, 0, 0], "weekdays, past ones too, not the weekend");
+
+const ran = (/** @type {unknown} */ n) => /** @type {never} */ (one({ last_result: { status: "ok", found: true, found_count: n } }).last);
+assert.equal(foundWords(ran(2)), "Found 2 things", "the count XO Space keeps");
+assert.equal(foundWords(ran(1)), "Found 1 thing");
+assert.equal(foundWords(ran(undefined)), "Found something", "an XO Space without counts");
+assert.deepEqual([one({}).notify, one({}).onFailure], [null, null], "nothing to tell where XO Space doesn't keep it");
+assert.deepEqual([one({ notify: "always", on_failure: "silent" }).notify, one({ on_failure: "silent" }).onFailure], ["always", "silent"]);
 
 console.log("model: ok");

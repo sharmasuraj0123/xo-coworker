@@ -23,7 +23,8 @@ function runOf(result) {
   const skipped = result.status === "skipped";
   const failed = result.status === "failed" || result.status === "lost";
   return { at: atOf(result), status: skipped ? "skipped" : failed ? "failed" : "ok", found: foundOf(result), reason: result.reason ?? "",
-    summary: result.summary ?? "", thread: threadOf(result), manual: result.trigger === "manual" };
+    summary: result.summary ?? "", thread: threadOf(result), manual: result.trigger === "manual",
+    count: typeof result.found_count === "number" ? result.found_count : null };
 }
 
 /** @param {ScheduledJob} job @returns {job is Extract<ScheduledJob, { kind: "agent" }>} */
@@ -42,9 +43,13 @@ function automationOf(job) {
     last: job.last_result ? runOf(job.last_result) : null,
     offReason: job.enabled ? "" : offWords(job), runtime: job.agent, model: job.model, effort: job.effort,
     askedBy: job.created_by?.kind === "person" ? "you" : "agent", approved: !!job.approved_by, persona: job.persona ?? null,
-    icon: iconOf(job), job,
+    icon: iconOf(job), notify: job.notify ?? null, onFailure: job.on_failure ?? null, job,
   };
 }
+
+/** "Found 2 things", or "Found something" when the run gave no count. @param {LastRun} run */
+export const foundWords = (run) => run.count === null || run.count < 1 ? "Found something"
+  : `Found ${run.count} ${run.count === 1 ? "thing" : "things"}`;
 
 /** What XO Space says when it was saved turned off. */
 const SAVED_OFF = "Saved turned off.";
