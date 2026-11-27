@@ -75,3 +75,12 @@ test("Artifacts, mentions, Next and dock keep their nested corners", () => {
   const legacy = declarationsFor(".c-btns .b", "border-radius");
   assert.ok(legacy.every((row) => row.value !== "calc(var(--r-2xl) - 13px)"));
 });
+
+test("Launchpad's cards share one corner: a button's corner plus the one inset its content keeps", () => {
+  assert.equal(tokens.get("--r-note"), "calc(var(--r) + var(--s-4))");
+  hasDeclarations(".lq-group", { "--nest-r": "var(--r-note)", "--nest-in": "var(--s-4)" });
+  hasDeclarations(".lq-note", { "--nest-in": "var(--s-4)", padding: "var(--nest-in)", "border-radius": "var(--r-note)", "margin-top": "var(--s-8)" });
+  hasDeclarations(".lp-log", { padding: "var(--s-4)", "border-radius": "var(--r-note)" });
+  hasDeclarations(".lp-code", { padding: "var(--s-4)", "border-radius": "var(--r-note)" });
+  assert.deepEqual(declarationsFor(".lq-nc", "padding"), [], "a note's words keep the card's inset, as its buttons do");
+});
