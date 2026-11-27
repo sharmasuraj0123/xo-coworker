@@ -9,7 +9,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { entryInput, usable } from "../../core/ui/a11y/focus.js";
-import { ORDER, MAP_H, ROW, createFrames } from "./frames.js";
+import { ORDER, FIXED, MAP_H, ROW, createFrames } from "./frames.js";
 import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
 import { createCover, createWidth } from "./width.js";
@@ -35,7 +35,8 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
   /** @type {Partial<FrameState>} */
   const savedFrames = read(FR_KEY, JSON.parse, {});
   /** @type {FrameState} */
-  const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, automations: { folded: false }, ...savedFrames };
+  const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true },
+    automations: { folded: false }, personas: { folded: false }, ...savedFrames };
   if (!fr.agents.groups) fr.agents.groups = { done: true };
   if (!fr.map.h) fr.map.h = MAP_H;
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
@@ -50,14 +51,16 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
   el.tabIndex = -1;
   el.setAttribute("aria-label", "Panel: threads, changes and map");
   /** @type {Record<string, string>} */
-  const FRAME_IC = { agents: "threads", automations: "automation", changes: "changes", map: "map" };
+  const FRAME_IC = { agents: "threads", automations: "automation", personas: "agent-doc", changes: "changes", map: "map" };
   const frame = (/** @type {string} */ id, /** @type {string} */ title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}<span class="fr-w">${title}</span>${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (/** @type {string} */ a, /** @type {string} */ b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body"><div class="stg-frames">` +
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) +
-    frame("automations", "Automations", `<button type="button" class="fr-ib" data-au-new aria-label="New automation">${PLUS}</button>`) +
+    frame("automations", "Automations",
+      `<button type="button" class="fr-ib" data-fixed-new="automations" aria-label="New automation">${PLUS}</button>`) +
+    frame("personas", "Agents", `<button type="button" class="fr-ib" data-fixed-new="personas" aria-label="New agent">${PLUS}</button>`) +
     gutter("agents", "changes") +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden>${ICON.follow}</button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree" title="Diagram" aria-label="Diagram">${ICON.map}</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph" title="Graph" aria-label="Graph">${ICON.graph}</button></div>`) +
@@ -93,7 +96,8 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
   const binding = bindPanelFrames({
-    places, mapControls, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host"), automations: body("automations") },
+    places, mapControls, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host"),
+      fixed: { automations: body("automations"), personas: body("personas") } },
     options: {
       view,
       openFile: ({ project, worktree }, path, from) => viewer.open({
@@ -113,8 +117,8 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
   });
   const chatsAt = (v = view()) => !!chats?.is(v);
   // Chats has no Changes or Map: its panel is your chats; a project's Automations show while it has some
-  const kept = (/** @type {string} */ id) => id === "map" ? binding.map : id === "automations" ? S.auN : binding.changes;
-  const activeFrames = () => [...frames(), "automations"].filter((id) => id === "agents" || (!chatsAt() && kept(id)));
+  const kept = (/** @type {string} */ id) => id === "map" ? binding.map : id === "changes" ? binding.changes : S.fixedN?.[id];
+  const activeFrames = () => [...frames(), ...FIXED].filter((id) => id === "agents" || (!chatsAt() && kept(id)));
 
   function persist() { write(KEY, JSON.stringify({ open: S.open || !!S.resume })); write(FR_KEY, JSON.stringify(fr)); }
 
@@ -180,11 +184,13 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const agentCount = query('[data-fr-n="agents"]');
     const count = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
     if (agentCount.textContent !== count) agentCount.textContent = count;
-    // Automations: this project's, under Threads, only when it has some
-    const autos = binding.automations, auN = autos && !chatty ? autos.count(v) : 0;
-    if (S.auN !== auN) { S.auN = auN; layout(); }
-    if (auN && !fr.automations.folded && !covered) autos?.paint(v);
-    set("aun", query('[data-fr-n="automations"]'), String(auN || ""));
+    // Automations and Agents: this project's, under Threads, only when it has some
+    const counts = Object.fromEntries(FIXED.map((id) => [id, !chatty ? binding.fixed(id)?.count(v) ?? 0 : 0]));
+    if (FIXED.some((id) => (S.fixedN?.[id] ?? 0) !== counts[id])) { S.fixedN = counts; layout(); }
+    for (const id of FIXED) {
+      if (counts[id] && !fr[id].folded && !covered) binding.fixed(id)?.paint(v);
+      set(`n-${id}`, query(`[data-fr-n="${id}"]`), String(counts[id] || ""));
+    }
     // Changes: Space's list and diff where it has /changes, else today's list
     if (!fr.changes.folded && !covered) changes?.paint();
     const hd = changes?.head();
@@ -304,7 +310,7 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const pa = closest("[data-stg-act]");
     if (pa?.dataset.stgAct && S.page) { PAGES.get(S.page.name)?.act?.(pa.dataset.stgAct, pa); return; }
     const id = closest("[data-fr-fold]")?.dataset.frFold;
-    if (id === "agents" || id === "changes" || id === "map" || id === "automations") {
+    if (id === "agents" || id === "changes" || id === "map" || id === "automations" || id === "personas") {
       fr[id].folded = !fr[id].folded;
       layout(); paint(); persist(); return;
     }
@@ -325,7 +331,8 @@ export function createStage({ mapControls, files, openFiles = null, place = () =
     const more = closest("[data-tg-more]")?.dataset.tgMore;
     if (more) { S.tgMore[more] = true; paint(); return; }
     if (t.closest("[data-tg-find]")) { findThreads(); return; }
-    if (t.closest("[data-au-new]")) { binding.automations?.create(view()); return; }
+    const made = closest("[data-fixed-new]")?.dataset.fixedNew;
+    if (made === "automations" || made === "personas") { binding.fixed(made)?.create(view()); return; }
     if (t.closest("[data-tg-clear]")) { const inp = filter(); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const destination = closest("[data-go]")?.dataset.go;
     if (destination) openFromPanel(destination, e);

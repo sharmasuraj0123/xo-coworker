@@ -1,9 +1,9 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { bodyOf, copyName, problemOf, valuesOf } from "../form.js";
+import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf } from "../form.js";
 import { automationsOf } from "../model.js";
-import { job } from "./fakes.mjs";
+import { job, persona } from "./fakes.mjs";
 
 const now = new Date(2026, 10, 25, 8, 0).getTime();
 const [a] = automationsOf(/** @type {never} */ ([job({ approved_by: { review_id: "rv1" }, created_by: { kind: "agent" } })]));
@@ -52,5 +52,29 @@ const [ruled] = automationsOf(/** @type {never} */ ([job({ every_seconds: null, 
 const back = valuesOf(ruled, ruled.project, now);
 assert.deepEqual([back.repeat, back.days, back.time, back.persona?.name], ["week", [1, 4], "18:15", "triage"]);
 assert.equal(bodyOf(back, ruled, now, zone).schedule?.tz, "Asia/Kolkata", "an edit keeps the rule's own zone");
+
+const agents = /** @type {never[]} */ ([persona({ name: "helper", level: "space" }), persona(),
+  persona({ name: "release-checker", level: "space", shadowed: { name: "release-checker", level: "project" } }),
+  persona({ name: "broken", problems: [{ line: 1, key: null, message: "No name." }] })]);
+const picker = formHtml(back, null, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents })
+  .match(/<xo-select name="persona"[^>]*>(.*?)<\/xo-select>/)?.[1] ?? "";
+assert.deepEqual([...picker.matchAll(/value="([^"]*)"/g)].map((m) => m[1]), ["space:triage", "project:release-checker", "space:helper", ""],
+  "the project's own first, then the Space's, then none; replaced and broken ones aren't offered; a chosen one not listed stays on top");
+
+/** @param {Record<string, string>} fields */
+const typedForm = (fields) => {
+  const querySelector = (sel = "") => {
+    const name = /name="([^"]+)"/.exec(sel)?.[1] ?? "";
+    return name in fields ? { value: fields[name] } : null;
+  };
+  return /** @type {never} */ ({ querySelector });
+};
+const mine = { ...back, chat: "chat_a" };
+assert.deepEqual(readForm(typedForm({ persona: "project:release-checker" }), mine).persona, { level: "project", name: "release-checker" });
+assert.equal(readForm(typedForm({ persona: "" }), mine).persona, null, "No agent saves none");
+assert.equal(readForm(typedForm({ persona: "project:release-checker", chat: "chat_b" }), mine).persona, null,
+  "a project's own agent doesn't follow the automation to another project");
+assert.deepEqual(readForm(typedForm({ persona: "space:helper", chat: "chat_b" }), mine).persona, { level: "space", name: "helper" });
+assert.deepEqual(bodyOf({ ...mine, persona: { level: "space", name: "helper" } }, null, now, zone).persona, { level: "space", name: "helper" });
 
 console.log("form: ok");

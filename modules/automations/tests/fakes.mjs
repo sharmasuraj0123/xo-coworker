@@ -58,3 +58,54 @@ export function fakeTimers() {
     get size() { return pending.size; },
   };
 }
+
+export const MAY = {
+  read: { label: "Read the project", tools: ["read", "search", "list"] },
+  edit: { label: "Change files", tools: ["edit", "create", "delete"] },
+  run: { label: "Run commands", tools: ["shell"] },
+};
+
+/** @param {Record<string, unknown>} over */
+export const persona = (over = {}) => ({
+  name: "release-checker", description: "Checks what's live.", level: "project", path: ".xo/agents/release-checker.md", version: "v1",
+  runtime: null, model: null, effort: null, tools: ["read", "search", "list"], disallowedTools: [], mcpServers: null, shadows: null,
+  shadowed: null, used_by: { jobs: [] }, problems: [], ...over,
+});
+
+/** The personas and files routes over lists keyed by project ("" for the Space's), writing down each call. @param {Record<string, Record<string, unknown>[]>} lists @param {Record<string, unknown>[]} [importable] */
+export function fakePersonaApi(lists, importable = []) {
+  /** @type {{ name: string, args: unknown[] }[]} */
+  const calls = [];
+  /** @param {string} name @param {unknown[]} args */
+  const note = (name, args) => { calls.push({ name, args }); };
+  /** @type {Map<string, string>} */
+  const files = new Map();
+  const api = {
+    /** @param {string | null} project */
+    personas: async (project) => { note("personas", [project]); return { personas: lists[project ?? ""] ?? [], may: MAY }; },
+    /** @param {string | null} project */
+    importable: async (project) => { note("importable", [project]); return { importable }; },
+    /** @param {Record<string, unknown>} body */
+    importPersona: async (body) => {
+      note("importPersona", [body]);
+      return { name: "reviewer", level: "space", relative_path: "reviewer.md", version: "v9", dropped: [] };
+    },
+    /** @param {Record<string, unknown>} body */
+    tryOnce: async (body) => { note("tryOnce", [body]); return { chat_id: "chat_a", ts: "1764000000.000100" }; },
+    /** @param {string} owner @param {string} path */
+    projectFile: async (owner, path) => {
+      note("projectFile", [owner, path]);
+      return { content: files.get(`${owner}/${path}`) ?? "---\nname: release-checker\n---\n\nRead what's live.\n", version: "v1" };
+    },
+    /** @param {string} owner @param {string} path @param {string} text @param {string | null} base */
+    saveProjectFile: async (owner, path, text, base) => { note("saveProjectFile", [owner, path, text, base]); files.set(`${owner}/${path}`, text); },
+    /** @param {string} owner @param {string} path @param {string | null} base */
+    deleteProjectFile: async (owner, path, base) => { note("deleteProjectFile", [owner, path, base]); },
+    /** @param {string} owner @param {string} path */
+    mkdirProject: async (owner, path) => {
+      note("mkdirProject", [owner, path]);
+      throw Object.assign(new Error("exists"), { code: "exists" });
+    },
+  };
+  return { api: /** @type {never} */ (api), calls };
+}

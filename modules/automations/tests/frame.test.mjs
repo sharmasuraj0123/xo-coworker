@@ -66,3 +66,27 @@ test("disposed, it stops listening", () => {
   host.querySelector('[data-au-id="late"]')?.dispatchEvent(new window.Event("click", { bubbles: true }));
   assert.deepEqual(opened, ["late"]);
 });
+
+test("a project's agents: its own first, then the Space's it still sees; one opens as the panel's page", async () => {
+  const { createAgentsFrame } = await import("../agent-frame.js");
+  const { createPersonasStore } = await import("../personas.js");
+  const { fakePersonaApi, persona } = await import("./fakes.mjs");
+  const people = fakePersonaApi({ alpha: [persona({ name: "zed" }), persona({ name: "helper", level: "space", path: "helper.md" }),
+    persona({ name: "zed", level: "space", path: "zed.md", shadowed: { name: "zed", level: "project" } })] });
+  const personas = createPersonasStore({ api: people.api, report() {} });
+  /** @type {string[]} */
+  const keys = [], news = [];
+  const agentsHost = document.createElement("div");
+  const agents = createAgentsFrame({ personas, projectOf: (v) => v === "p:a" ? "alpha" : null, changed() {},
+    open: (key) => { keys.push(key); }, create: (project) => { news.push(project); } }).mount(agentsHost);
+  assert.equal(agents.count("p:a"), 0, "nothing read yet");
+  await settle();
+  assert.equal(agents.count("p:a"), 2);
+  assert.equal(agents.count("home"), 0);
+  agents.paint("p:a");
+  assert.deepEqual(Array.from(agentsHost.querySelectorAll(".ag-t b"), (b) => b.textContent), ["Zed", "Helper"]);
+  agentsHost.querySelector('[data-ag-act="open"]')?.dispatchEvent(new window.Event("click", { bubbles: true }));
+  agents.create("p:a");
+  assert.deepEqual([keys, news], [["project:alpha:zed"], ["alpha"]]);
+  agents.dispose();
+});

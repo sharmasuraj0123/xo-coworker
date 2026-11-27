@@ -1,5 +1,7 @@
 // @ts-check
 import type { PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
+import type { MayChoice, Persona, PersonaApi } from "../../core/platform/persona-response-types";
+import type { ProjectApi } from "../../core/platform/project-response-types";
 
 export interface LastRun {
   at: number;
@@ -60,28 +62,128 @@ export interface AgendaDay {
   items: { automation: Automation; at: number }[];
 }
 
-export interface Persona {
+export type MayKey = "read" | "edit" | "run" | "all" | "own";
+
+/** An agent as the screens read it: the server's, with the project it was listed for. */
+export interface Agent extends Persona {
+  project: string;
+  owner: string;
+}
+
+export interface AgentDraft {
   name: string;
   description: string;
-  level: "project" | "space";
-  project: string | null;
-  path: string;
+  body: string;
   runtime: string | null;
   model: string | null;
   effort: string | null;
   tools: string[] | null;
-  disallowedTools: string[] | null;
+  disallowedTools: string[];
   mcpServers: string[] | null;
-  shadows: boolean;
-  shadowed: boolean;
-  used_by: { jobs: string[]; threads_running: number };
-  version: string;
-  updated_at: string;
+  level: Persona["level"];
+  project: string;
 }
 
-export interface PersonaSource {
-  list(project: string | null, signal?: AbortSignal): Promise<{ personas: Persona[]; importable: number }>;
-  get(level: Persona["level"], name: string, project: string | null): Promise<Persona & { body: string; text: string }>;
+export interface AgentList {
+  agents: Agent[];
+  may: Record<string, MayChoice>;
+  failed: boolean;
+}
+
+export interface PersonasDeps {
+  api: Pick<PersonaApi, "personas" | "importable" | "importPersona" | "tryOnce">
+    & Pick<ProjectApi, "projectFile" | "saveProjectFile" | "deleteProjectFile" | "mkdirProject">;
+  report: (error: unknown) => void;
+  now?: () => number;
+}
+
+export interface AgentSideDeps {
+  personas: import("./personas.js").PersonasStore;
+  where: "page" | "panel";
+  find: (key: string) => Agent | null;
+  project: () => string;
+  projects: () => Project[];
+  projectName: (id: string) => string;
+  runtimes: () => string[];
+  openThread: (chat: string, ts: string) => void;
+  openFile: (owner: string, path: string, from: Element) => void;
+  openJob: (id: string) => void;
+  shown: (key: string | null) => void;
+  failed: (error: unknown, words: string) => void;
+  announce: (words: string) => void;
+}
+
+export interface TryState { task: string; project: string; busy: string }
+
+export interface AgentDetailState {
+  where: "page" | "panel";
+  body: string | null;
+  menu: boolean;
+  confirm: boolean;
+  trying: TryState | null;
+  may: Record<string, MayChoice>;
+  projects: Project[];
+  project: string;
+  projectName: (id: string) => string;
+}
+
+export interface AgentFormState {
+  title: string;
+  draft: AgentDraft;
+  may: MayKey;
+  runtimes: string[];
+  problem: string;
+  busy: string;
+  isNew: boolean;
+  places: [string, string][];
+}
+
+export interface AgentSideState {
+  host: HTMLElement | null;
+  key: string | null;
+  editing: boolean;
+  menu: boolean;
+  confirm: boolean;
+  trying: TryState | null;
+  body: string | null;
+  version: string | null;
+  values: import("./agent-form.js").AgentValues | null;
+  read: string;
+}
+
+export interface AgentFrameDeps {
+  personas: import("./personas.js").PersonasStore;
+  projectOf: (view: string) => string | null;
+  open: (key: string) => void;
+  create: (project: string) => void;
+  changed: () => void;
+}
+
+export interface AgentWrite {
+  level: Agent["level"];
+  project: string;
+  name: string;
+  text: string;
+  base: string | null;
+  was?: Agent | null;
+}
+
+export interface FormOptions {
+  projects: Project[];
+  problem: string;
+  busy: string;
+  agents: Agent[] | null;
+}
+
+export interface AgentListDeps {
+  personas: import("./personas.js").PersonasStore;
+  projects: () => Project[];
+  projectName: (id: string) => string;
+  selected: () => string | null;
+  shown: () => boolean;
+  changed: () => void;
+  failed: (error: unknown, words: string) => void;
+  announce: (words: string) => void;
 }
 
 export interface RowState {
@@ -119,6 +221,7 @@ export interface FormValues {
 export interface Project {
   chat: string;
   name: string;
+  id: string;
 }
 
 export interface AutomationsState {
@@ -143,6 +246,8 @@ export interface SideDeps {
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
+  agentsFor?: (chat: string) => Agent[] | null;
+  watchAgents?: (fn: () => void) => () => void;
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;
   now?: () => number;
@@ -162,6 +267,8 @@ export interface SideState {
 export interface PageDeps {
   store: AutomationsStore;
   side: (hooks: { shown: (id: string | null) => void }) => Side;
+  agentSide: (hooks: { shown: (key: string | null) => void, openJob: (id: string) => void }) => import("./agent-side.js").AgentSide;
+  agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
   projectName: (chat: string) => string;
   projects: () => Project[];
   failed: (error: unknown, words: string) => void;
@@ -170,6 +277,7 @@ export interface PageDeps {
 }
 
 export type AutomationsStore = ReturnType<typeof import("./store.js").createAutomationsStore>;
+export type AgentListApi = ReturnType<typeof import("./agent-list.js").createAgentList>;
 export type Side = ReturnType<typeof import("./side.js").createSide>;
 
 export interface SideControl {

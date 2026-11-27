@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { dom } from "./lib/dom.mjs";
 
 const frame = (id) => `<section class="fr" data-fr="${id}"><button data-fr-fold></button><div class="fr-b"></div></section>`;
-const { document, window } = await dom(`<div id="st">${frame("agents")}${frame("automations")}<div class="fr-gut" data-gut="agents|changes" tabindex="0"></div>${frame("changes")}<div class="fr-gut" data-gut="changes|map"></div>${frame("map")}</div>`);
+const { document, window } = await dom(`<div id="st">${frame("agents")}${frame("automations")}${frame("personas")}<div class="fr-gut" data-gut="agents|changes" tabindex="0"></div>${frame("changes")}<div class="fr-gut" data-gut="changes|map"></div>${frame("map")}</div>`);
 const { createFrames } = await import("../shell/panel/frames.js");
 const FRAME_MIN = 96;
 
 const el = document.getElementById("st");
 const S = { stackH: 600, chEmpty: true, open: false };
-const fr = { agents: { rows: null, folded: false }, changes: { folded: false, h: 640 }, map: { h: 260, folded: true }, automations: { folded: false } };
+const fr = { agents: { rows: null, folded: false }, changes: { folded: false, h: 640 }, map: { h: 260, folded: true }, automations: { folded: false }, personas: { folded: false } };
 const { layout } = createFrames({ el, S, fr, frames: () => ["agents", "changes", "map"], view: () => "p:x", map: { show() {}, hide() {} }, persist() {}, paint() {} });
 layout();
 

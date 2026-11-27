@@ -6,6 +6,7 @@ declare module "../../core/kernel/types" {
     "panel.frame:map": MapFrame;
     "panel.frame:changes": ChangesFrame;
     "panel.frame:automations": AutomationsFrame;
+    "panel.frame:personas": AutomationsFrame;
   }
   interface PlaceEntries {
     "panel.frame": MapFrame | ChangesFrame | AutomationsFrame;
@@ -33,7 +34,7 @@ export interface StageState {
   resume?: boolean;
   chEmpty?: boolean;
   agRows?: number;
-  auN?: number;
+  fixedN?: Record<string, number>;
   agCap?: number;
 }
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
@@ -75,6 +76,7 @@ export interface FrameState {
   agents: { folded: boolean; rows: number | null; h?: number; groups: Record<string, boolean> };
   map: { folded: boolean; h: number };
   automations: { folded: boolean };
+  personas: { folded: boolean };
 }
 export interface PanelTitleAction extends Entry {
   label: string;

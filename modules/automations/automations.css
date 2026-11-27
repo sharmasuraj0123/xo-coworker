@@ -15,7 +15,8 @@
   outline:none}
 .au-top p{margin:var(--s-1) 0 0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-4)}
 .au-top .btn svg,.au-acts .btn svg{width:var(--ic);height:var(--ic)}
-.au-tabs{margin-top:var(--s-8)}
+.au-tabs,.au-mode{margin-top:var(--s-8)}
+.au-mode+.au-tabs{margin-top:var(--s-3)}
 .au-tabs i{margin-left:var(--s-1);font-style:normal;color:var(--ink-5)}
 
 /* the week, as a calendar's strip: today circled, one dot per run in its automation's colour */
@@ -37,6 +38,7 @@
 [data-au-k="nightly"]{--c:var(--violet)}
 [data-au-k="sunrise"]{--c:var(--go)}
 [data-au-k="pulse"]{--c:var(--warn)}
+[data-au-k="agent-doc"]{--c:var(--violet)}
 .au-tile{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);border-radius:var(--r-lg);
   background:color-mix(in srgb,var(--c) 16%,var(--fill-clear));color:var(--c)}
 .au-tile svg{width:var(--ic-lg);height:var(--ic-lg)}
@@ -168,6 +170,20 @@ button.au-run:hover{background:var(--fill-1)}
 .au-days button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
 .au-note{margin:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .au-problem{margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--err-ink)}
+.au-problem ul{margin:var(--s-1) 0 0;padding-left:var(--s-5)}
+div.au-problem{margin-top:var(--s-4)}
+.au-form>.btn{align-self:flex-start}
+
+/* an agent: trying it once, the automations that run as it, bringing in Claude Code's */
+.au-try{display:flex;flex-direction:column;gap:var(--s-3);margin-top:var(--s-4)}
+.au-try .field{margin:0}
+.au-link{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row);padding:0 var(--s-2);
+  margin:0 calc(-1 * var(--s-2));border-radius:var(--r);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);text-align:left;
+  color:var(--ink)}
+.au-link:hover{background:var(--fill-1)}
+.au-link svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.au-kv .au-link span,.au-link span{flex:1;min-width:0;color:var(--ink)}
+.au-bring{margin-top:var(--s-6)}
 
 @media (max-width:760px){
   .auto{top:var(--h-phonebar)}
@@ -178,8 +194,8 @@ button.au-run:hover{background:var(--fill-1)}
   .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
   .au-row .au-tile,.au-row .au-r{display:none}
 }
-.stage .fr[data-fr="automations"]{border-top:1px solid var(--fill-2)}
-.stage .fr[data-fr="automations"] .fr-b{
+.stage .fr:is([data-fr="automations"],[data-fr="personas"]){border-top:1px solid var(--fill-2)}
+.stage .fr:is([data-fr="automations"],[data-fr="personas"]) .fr-b{
   max-height:calc(var(--au-rows,1) * (var(--h-row-act) + var(--s-1)) - var(--s-1));margin-bottom:var(--s-2)
 }
-.stage .fr[data-fr="automations"] .ag-list{padding-bottom:0}
+.stage .fr:is([data-fr="automations"],[data-fr="personas"]) .ag-list{padding-bottom:0}

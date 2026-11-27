@@ -3,12 +3,13 @@
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
+import { titleOf } from "./agent-file.js";
 import { cadenceOf, dayAt, ordinal } from "./model.js";
 import { browserZone } from "./zone.js";
 
 /** @import { AgentJobBody, ScheduleRule } from "../../core/platform/schedule-response-types" */
 
-/** @import { Automation, Cadence, FormValues, Project, Repeat } from "./types" */
+/** @import { Agent, Automation, Cadence, FormOptions, FormValues, Repeat } from "./types" */
 
 const HOUR_S = 3600;
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0];
@@ -136,8 +137,20 @@ function whenHtml(v) {
 
 const AGENT_NOTE = "Changing what it does makes it yours: it no longer counts as what you allowed.";
 
-/** @param {FormValues} v @param {Automation | null} a @param {{ projects: Project[], problem: string, busy: string }} o */
-export function formHtml(v, a, { projects, problem, busy }) {
+/** The project's own agents, then the Space's, then none. @param {FormValues} v @param {Agent[] | null} agents */
+function agentPickHtml(v, agents) {
+  const on = v.persona ? `${v.persona.level}:${v.persona.name}` : "";
+  const usable = (agents ?? []).filter((a) => !a.shadowed && !a.problems.length)
+    .sort((x, y) => Number(x.level === "space") - Number(y.level === "space") || x.name.localeCompare(y.name));
+  const opts = usable.map((a) => opt(`${a.level}:${a.name}`, `${titleOf(a.name)}${a.level === "space" ? " · Every project" : ""}`,
+    on === `${a.level}:${a.name}`));
+  if (v.persona && !usable.some((a) => `${a.level}:${a.name}` === on)) opts.unshift(opt(on, titleOf(v.persona.name), true));
+  return `<label class="field"><span>Agent</span><xo-select name="persona" class="set-sel" aria-label="Agent">${opts.join("")}` +
+    `${opt("", "No agent (just the runtime)", !on)}</xo-select></label>`;
+}
+
+/** @param {FormValues} v @param {Automation | null} a @param {FormOptions} o */
+export function formHtml(v, a, { projects, problem, busy, agents }) {
   const chats = projects.map((p) => opt(p.chat, p.name, p.chat === v.chat)).join("");
   return `<form class="au-form" data-au-form novalidate>` +
     `<div class="au-form-bar"><button type="button" class="btn" data-au-act="cancel">Cancel</button>` +
@@ -149,7 +162,7 @@ export function formHtml(v, a, { projects, problem, busy }) {
     ` placeholder="Check what's live and tell me only if something looks wrong.">${esc(v.prompt)}</textarea></label>` +
     `<label class="field"><span>Project</span>` +
     `<xo-select name="chat" class="set-sel" aria-label="Project"${a ? " disabled" : ""}>${chats}</xo-select></label>` +
-    whenHtml(v) +
+    agentPickHtml(v, agents) + whenHtml(v) +
     (a && a.askedBy === "agent" && a.approved ? `<p class="au-note">${AGENT_NOTE}</p>` : "") +
     (problem ? `<p class="au-problem" role="alert">${esc(problem)}</p>` : "") + `</form>`;
 }
@@ -161,8 +174,11 @@ export function readForm(form, was) {
     const el = form.querySelector(`[name="${name}"]`);
     return el && "value" in el && typeof el.value === "string" ? el.value : fallback;
   };
-  const repeat = /** @type {Repeat} */ (text("repeat", was.repeat)), dom = text("dom", String(was.dom));
-  return { ...was, name: text("name", was.name), prompt: text("prompt", was.prompt), chat: text("chat", was.chat), repeat,
+  const repeat = /** @type {Repeat} */ (text("repeat", was.repeat)), dom = text("dom", String(was.dom)), chat = text("chat", was.chat);
+  const picked = text("persona", was.persona ? `${was.persona.level}:${was.persona.name}` : ""), at = picked.indexOf(":");
+  const persona = at > 0 && !(chat !== was.chat && picked.startsWith("project:"))
+    ? { level: picked.startsWith("space:") ? /** @type {const} */ ("space") : "project", name: picked.slice(at + 1) } : null;
+  return { ...was, name: text("name", was.name), prompt: text("prompt", was.prompt), chat, persona, repeat,
     time: text("time", was.time) || was.time, date: text("date", was.date) || was.date,
     hours: Number(text("hours", String(was.hours))) || was.hours, dom: dom === "last" ? "last" : Number(dom) || was.dom };
 }

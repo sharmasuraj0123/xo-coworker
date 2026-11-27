@@ -97,7 +97,7 @@ test("Threads starts grouped, filters in place and returns from a page to its fi
   assert.equal(filter.title, "Filter threads (/)");
   assert.ok(!query("[data-switch], [data-fr=launchpad]"), "the panel omits unrelated controls");
   assert.deepEqual(Array.from(stage.querySelectorAll(".fr[data-fr]"), (frame) => frame.dataset.fr),
-    ["agents", "automations", "changes", "map"]);
+    ["agents", "automations", "personas", "changes", "map"]);
   assert.deepEqual(Array.from(stage.querySelectorAll("[data-gut]"), (handle) => handle.dataset.gut),
     ["agents|changes", "changes|map"]);
   assert.equal(query("[data-fr-fold=map]").getAttribute("aria-expanded"), "false");

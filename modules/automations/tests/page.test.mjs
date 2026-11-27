@@ -2,12 +2,15 @@
 
 import assert from "node:assert/strict";
 import { dom, settle } from "../../../tests/lib/dom.mjs";
-import { fakeApi, fakeTimers, job } from "./fakes.mjs";
+import { fakeApi, fakePersonaApi, fakeTimers, job, persona } from "./fakes.mjs";
 
 const { window, document } = await dom(`<section id="auto"></section>`);
 const { createAutomationsStore } = await import("../store.js");
 const { createAutomationsPage } = await import("../page.js");
 const { createSide } = await import("../side.js");
+const { createAgentSide } = await import("../agent-side.js");
+const { createAgentList } = await import("../agent-list.js");
+const { createPersonasStore } = await import("../personas.js");
 
 const now = () => Date.parse("2026-11-26T08:00:00Z");
 const jobs = [
@@ -18,12 +21,26 @@ const jobs = [
 ];
 const fake = fakeApi(jobs), timers = fakeTimers();
 const store = createAutomationsStore({ api: fake.api, report() {}, timeout: timers.timeout, now });
-const projects = () => [{ chat: "chat_a", name: "Alpha" }];
+const projects = () => [{ chat: "chat_a", name: "Alpha", id: "alpha" }];
 /** @type {string[]} */
 const said = [];
 const deps = { projectName: () => "Alpha", projects, failed() {}, announce: (/** @type {string} */ w) => { said.push(w); }, now };
+const agentLists = {
+  "": [persona({ name: "helper", level: "space", path: "helper.md", description: "Helps anywhere." })],
+  alpha: [persona(), persona({ name: "helper", level: "space", path: "helper.md" })],
+};
+const importable = [{ id: "space:reviewer", level: "space", name: "reviewer", adapter: "claude_code", from: "Claude Code",
+  text: "---\nname: reviewer\ndescription: Reviews a diff.\n---\n", dropped: [], problems: [] }];
+const people = fakePersonaApi(agentLists, importable);
+const personas = createPersonasStore({ api: people.api, report() {} });
+/** @type {string[]} */
+const opened = [];
+const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "Alpha", runtimes: () => ["claude_code"],
+  openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
-  side: ({ shown }) => createSide({ ...deps, store, where: "page", shown, openThread() {} }) });
+  side: ({ shown }) => createSide({ ...deps, store, where: "page", shown, openThread() {} }),
+  agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
+  agentList: (hooks) => createAgentList({ ...deps, personas, projectName: () => "Alpha", ...hooks }) });
 const host = /** @type {HTMLElement} */ (document.getElementById("auto"));
 page.mount(host);
 page.render();
@@ -93,6 +110,58 @@ await t("New asks for what's missing, then saves and shows the new one", async (
   assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Weekly notes");
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Weekly notes");
   assert.ok(said.includes("Weekly notes is on"));
+});
+
+const agentAside = () => /** @type {HTMLElement} */ (host.querySelectorAll(".au-side")[1]);
+
+await t("Agents lists the Space's agents, then each project's own, and offers Claude Code's", async () => {
+  await click('[data-au-mode="agents"]');
+  await settle();
+  const groups = [...host.querySelectorAll(".au-main .au-day")].map((h) => h.textContent);
+  assert.deepEqual(groups, ["Every project", "Alpha"]);
+  const rows = [...host.querySelectorAll(".au-main .au-row .au-n b")].map((b) => b.textContent);
+  assert.deepEqual(rows, ["Helper", "Release checker"]);
+  assert.match(host.querySelector('[data-ag-act="bring"]')?.textContent ?? "", /Claude Code agents \(1\)/);
+});
+
+await t("Bring in copies one of Claude Code's agents in", async () => {
+  await click('[data-ag-act="bring"]');
+  await settle();
+  assert.match(host.querySelector(".au-main .au-n small")?.textContent ?? "", /Reviews a diff/);
+  await click('[data-ag-act="import"][data-ag-i="0"]');
+  await settle();
+  assert.deepEqual(people.calls.find((c) => c.name === "importPersona")?.args[0], { adapter: "claude_code", id: "space:reviewer" });
+  assert.ok(said.includes("Reviewer brought in"));
+  assert.equal(page.escape(), true);
+});
+
+await t("an agent opens beside the list with its instructions, and Try once opens its thread", async () => {
+  await click('[data-ag-act="open"][data-ag-key="project:alpha:release-checker"]');
+  await settle();
+  assert.equal(agentAside().hidden, false);
+  assert.equal(agentAside().querySelector("#ag-det-h")?.textContent, "Release checker");
+  assert.match(agentAside().querySelector(".au-prompt")?.textContent ?? "", /Read what's live/);
+  await click('[data-ag-act="try"]');
+  agentAside().querySelector("form[data-ag-try]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.deepEqual(people.calls.find((c) => c.name === "tryOnce")?.args[0],
+    { persona: { name: "release-checker", level: "project" }, project: "alpha" });
+  assert.deepEqual(opened, ["chat_a/1764000000.000100"]);
+});
+
+await t("Edit saves the file over the version it read", async () => {
+  await click('[data-ag-act="edit"]');
+  const form = agentAside().querySelector("form[data-ag-form]");
+  assert.ok(form, "the form opens");
+  /** @type {HTMLTextAreaElement} */ (form.querySelector('[name="body"]')).value = "Read what's live, then say it.";
+  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  await settle();
+  const saved = people.calls.find((c) => c.name === "saveProjectFile");
+  assert.ok(saved, "it was written");
+  assert.deepEqual(saved.args.slice(0, 2), ["alpha", ".xo/agents/release-checker.md"]);
+  assert.match(String(saved.args[2]), /\n---\n\nRead what's live, then say it.\n$/);
+  assert.equal(saved.args[3], "v1");
+  assert.equal(agentAside().querySelector("#ag-det-h")?.textContent, "Release checker");
 });
 
 page.dispose();

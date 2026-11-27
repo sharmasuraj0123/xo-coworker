@@ -35,6 +35,10 @@ const ARGS = {
   setRemoteControl: [["codex", true], ["codex", false]],
   schedules: [[undefined]],
   scheduleRuns: [["x", {}, undefined]],
+  personas: [["x"], [null]],
+  importable: [["x"]],
+  importPersona: [[{ adapter: "claude_code", id: "space:x" }]],
+  tryOnce: [[{ project: "x", text: "y" }]],
 };
 const OPTIONAL_GITHUB = new Map([
   ["api.githubIssue", "/api/xo-projects/x/github/issues/y"],

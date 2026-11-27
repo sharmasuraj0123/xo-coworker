@@ -4,6 +4,7 @@ import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { clock, clockWords, formatDate } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
+import { titleOf } from "./agent-file.js";
 import { cadenceOf, cadenceWords, dayAt, ordinal } from "./model.js";
 import { confirmHtml, menuItem, menuWrap, tile } from "./views.js";
 
@@ -90,6 +91,7 @@ export function detailHtml(a, s) {
     (a.on ? "" : `<p class="au-off">${xi("pause")}${esc(a.offReason)}</p>`) +
     `<section class="au-sec"><h3>What it does each time</h3><p class="au-prompt">${esc(a.prompt)}</p></section>` +
     `<section class="au-sec"><ul class="au-kv">${kv("folder", "Project", s.projectName)}${kv("clock", "Next run", nextWords(a))}` +
-    `${kv("runtime", "Runs on", runsOnWords(a))}${kv("person", "Made by", madeBy(a))}</ul></section>` +
+    `${kv("agent-doc", "Agent", a.persona ? `${titleOf(a.persona.name)}${a.persona.level === "space" ? " · Every project" : ""}`
+      : "None, just the runtime")}${kv("runtime", "Runs on", runsOnWords(a))}${kv("person", "Made by", madeBy(a))}</ul></section>` +
     `<section class="au-sec"><h3>Runs</h3>${runsHtml(s)}</section></article>`;
 }

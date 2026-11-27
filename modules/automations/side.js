@@ -53,6 +53,7 @@ export function createSide(deps) {
     runs: { id: "", rows: null, failed: false } };
   let reading = /** @type {AbortController | null} */ (null);
   const unwatch = deps.store.watch(() => paint());
+  const unwatchAgents = deps.watchAgents?.(() => { if (st.editing) paint(); });
   const current = () => st.id ? deps.store.find(st.id) : null;
   /** @param {FormValues} v */
   const typed = (v) => typedIn(st.host, v);
@@ -77,8 +78,8 @@ export function createSide(deps) {
     if (!host) return;
     if (st.id && (!a || deps.store.state.deleting.has(st.id))) { close(); return; }
     if (st.editing && st.values) {
-      const busy = `au-save:${st.id ?? "new"}`;
-      redraw(host, formHtml(st.values, a, { projects: deps.projects(), problem: st.problem, busy }));
+      const busy = `au-save:${st.id ?? "new"}`, agents = deps.agentsFor?.(st.values.chat) ?? null;
+      redraw(host, formHtml(st.values, a, { projects: deps.projects(), problem: st.problem, busy, agents }));
       return;
     }
     if (!a) { redraw(host, ""); return; }
@@ -154,7 +155,7 @@ export function createSide(deps) {
 
   /** @param {Event} e */
   function onInput(e) {
-    if (!st.values || !(e.target instanceof Element) || e.target.getAttribute("name") !== "repeat") return;
+    if (!st.values || !(e.target instanceof Element) || !["repeat", "chat"].includes(e.target.getAttribute("name") ?? "")) return;
     st.values = typed(st.values);
     paint();
   }
@@ -191,6 +192,6 @@ export function createSide(deps) {
       return false;
     },
     paint,
-    dispose() { unwatch(); reading?.abort(); for (const off of undo.splice(0)) off(); },
+    dispose() { unwatch(); unwatchAgents?.(); reading?.abort(); for (const off of undo.splice(0)) off(); },
   };
 }
