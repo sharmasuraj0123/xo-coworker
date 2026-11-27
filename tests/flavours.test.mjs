@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { FLAVOURS, flavourBlocks, source, swatchSource } from "../tools/flavours/build.mjs";
+import { FLAVOURS, flavourBlocks, source, swatchSource, oklchOf } from "../tools/flavours/build.mjs";
 import { rootProps, color } from "../tools/diffview/theme.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
@@ -41,6 +41,13 @@ t("Settings › Appearance offers the mode (dark, light, system) and every flavo
 t("the chosen flavour's preview wears the accent's ring, not just a tint", () => {
   const rule = /\.fl-opt\.is-on \.fl-sw\{([^}]*)\}/.exec(read("modules/settings/configuration.css"))?.[1] ?? "";
   assert.match(rule, /box-shadow:inset 0 0 0 var\(--hair\) var\(--sw-line\),0 0 0 var\(--stroke-focus\) var\(--accent-fill\)/);
+});
+t("no two looks share a light canvas: each light flavour carries its own tint", () => {
+  const lab = (rgb) => { const [L, C, H] = oklchOf("#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("")); return [L, C * Math.cos((H * Math.PI) / 180), C * Math.sin((H * Math.PI) / 180)]; };
+  const canvases = palettes.filter(([, mode]) => mode === "light").map(([id, , p]) => [id, lab(color("var(--canvas)", p).map(Math.round))]);
+  const near = [];
+  for (const [i, [a, x]] of canvases.entries()) for (const [b, y] of canvases.slice(i + 1)) { const d = Math.hypot(...x.map((v, k) => v - y[k])); if (d < 0.009) near.push(`${a} ~ ${b} ${d.toFixed(4)}`); }
+  assert.deepEqual(near, []);
 });
 t("a flavour never changes the XO mark", () => {
   const set = [...read("css/flavours.css").matchAll(/(--[\w-]+):/g)].map((m) => m[1]);

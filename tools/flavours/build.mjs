@@ -120,9 +120,12 @@ const SEL = {
 /** A flavour's look in each mode: light takes the dark look without its lift, then its own light settings. */
 const STONE_CANVAS = { dark: 0.1913, light: 0.9851 };
 /** A palette flavour's look in a mode: its greys take the background's hue, chroma and lightness, its words the text's hue and chroma. */
+const LIGHT_TINT = 0.03, LIGHT_ROOM = -0.02;
 function paletteLook(p, mode) {
   const [L, C, H] = oklchOf(p.bg), [, Ci, Hi] = oklchOf(p.fg), lift = L - STONE_CANVAS[mode];
-  return { hue: H, chroma: Math.min(C, 0.06), lift: +(mode === "light" ? Math.min(0, lift) : lift).toFixed(4), inkHue: Hi, inkChroma: Math.min(Ci, 0.03), ...(p.look || {}) };
+  // a near-white light background takes the accent's hue, so no light flavour is plain grey
+  const hue = mode === "light" && C < LIGHT_TINT / 2 ? oklchOf(p.accent)[2] : H, chroma = mode === "light" ? Math.max(C, LIGHT_TINT) : C;
+  return { hue, chroma: Math.min(chroma, 0.06), lift: +(mode === "light" ? Math.min(LIGHT_ROOM, lift) : lift).toFixed(4), inkHue: Hi, inkChroma: Math.min(Ci, 0.03), ...(p.look || {}) };
 }
 export const looks = (f) => {
   if (f.dark) return { dark: paletteLook(f.dark, "dark"), light: paletteLook(f.light, "light") };
