@@ -77,7 +77,9 @@ const madeBy = (a) => a.askedBy === "you" ? "You" : a.approved ? "An agent, allo
 
 /** One automation: when it runs, its actions, what it does, its settings and its runs. @param {Automation} a @param {DetailState} s */
 export function detailHtml(a, s) {
-  return `<article class="au-det" aria-labelledby="au-det-h">` +
+  const back = s.where === "page" ? `<button type="button" class="au-back" data-au-act="close">${xi("chevron-left")}Automations</button>`
+    : "";
+  return `<article class="au-det" aria-labelledby="au-det-h">${back}` +
     `<div class="au-hd">${tile(a.icon)}<div><h2 id="au-det-h" tabindex="-1">${esc(a.name)}</h2>` +
     `<p>${esc(cadenceWords(a))} · ${esc(s.projectName)}</p></div></div>` +
     alarmHtml(a) + actsHtml(a, s) +

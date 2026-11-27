@@ -6,7 +6,7 @@ import { automationsOf } from "../model.js";
 import { job } from "./fakes.mjs";
 
 const now = new Date(2026, 10, 25, 8, 0).getTime();
-const [a] = automationsOf(/** @type {never} */ ([job({ approved_by: { kind: "person" }, created_by: { kind: "agent" } })]));
+const [a] = automationsOf(/** @type {never} */ ([job({ approved_by: { review_id: "rv1" }, created_by: { kind: "agent" } })]));
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:00[+-]\d\d:\d\d$/;
 
 const fresh = { ...valuesOf(null, "chat_a", now), name: " Weekly ", prompt: "Sum up " };

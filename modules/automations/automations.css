@@ -47,12 +47,13 @@
 .au-day{display:flex;align-items:baseline;gap:var(--s-2);margin:var(--s-8) 0 var(--s-1);
   font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .au-day span{font-weight:var(--fw-regular);color:var(--ink-4)}
-.au-list{list-style:none;margin:0;padding:0}
-.au-row{position:relative;display:grid;grid-template-columns:minmax(var(--h-row-list),auto) auto minmax(0,1fr) auto auto;align-items:center;
-  column-gap:var(--s-4);
+/* one grid per list, so times, names and results line up from row to row */
+.au-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:max-content auto minmax(0,1fr) auto auto;
+  column-gap:var(--s-4)}
+.au-row{grid-column:1/-1;position:relative;display:grid;grid-template-columns:subgrid;align-items:center;
   min-height:var(--h-row-list);padding:var(--s-3) 0;border-bottom:var(--hair) solid var(--line-faint)}
 .au-row:last-child,.au-gone:last-child{border-bottom:0}
-.au-open{position:absolute;inset:0;border-radius:var(--r);background:none}
+.au-open{position:absolute;inset:0 calc(-1 * var(--s-2));border-radius:var(--r);background:none}
 .au-open:hover,.au-row.is-on .au-open{background:var(--fill-1)}
 .au-row>:not(.au-open){position:relative;pointer-events:none}
 .au-row>:is(.au-more,.au-menu,.au-confirm){pointer-events:auto}
@@ -61,12 +62,12 @@
 .au-n{min-width:0}
 .au-n b{display:block;font:var(--fw-medium) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
-.au-n small{display:flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);
-  white-space:nowrap;overflow:hidden}
-.au-n small span::before{content:"·";margin-right:var(--s-2);color:var(--ink-5)}
+.au-n small{display:block;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.au-n small span::before{content:"·";margin:0 var(--s-2);color:var(--ink-5)}
 .au-row.is-off :is(.au-t,.au-n b){color:var(--ink-5);font-weight:var(--fw-regular)}
-.au-r{display:inline-flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);
-  white-space:nowrap}
+.au-r{justify-self:end;display:inline-flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
+  color:var(--ink-4);white-space:nowrap}
 .au-r svg{width:var(--ic);height:var(--ic);color:var(--ink-5)}
 .au-r.is-ok svg{color:var(--ok-text)}
 .au-r.is-need{color:var(--ink-2)}
@@ -75,7 +76,7 @@
 .au-more{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-4)}
 .au-more svg{width:var(--ic);height:var(--ic)}
 .au-more:hover,.au-more[aria-expanded="true"]{background:var(--fill-2);color:var(--ink)}
-.au-gone{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--h-row-list);
+.au-gone{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--h-row-list);
   border-bottom:var(--hair) solid var(--line-faint);
   font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .au-gone .btn{gap:var(--s-2)}
@@ -102,6 +103,10 @@
 .au-empty-ic svg{width:var(--ic-lg);height:var(--ic-lg)}
 
 /* one automation: an alarm's big time and its days, then what it does, its settings and its runs */
+.au-back{display:none;align-items:center;gap:var(--s-1);height:var(--h-ctl);margin:0 0 var(--s-3) calc(-1 * var(--s-2));
+  padding:0 var(--s-2);border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.au-back:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.au-back svg{width:var(--ic);height:var(--ic)}
 .au-det,.au-form{padding:var(--s-6)}
 .au-hd{display:flex;align-items:center;gap:var(--s-3)}
 .au-hd>div{min-width:0}
@@ -169,6 +174,7 @@ button.au-run:hover{background:var(--fill-1)}
   .au-page{padding:var(--s-4) 0 var(--s-12)}
   .au-top h1{display:none}
   .au-side{position:absolute;inset:0;width:auto;border:0;z-index:var(--z-panel)}
-  .au-row{grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s-3)}
+  .au-back{display:inline-flex}
+  .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
   .au-row .au-tile,.au-row .au-r{display:none}
 }

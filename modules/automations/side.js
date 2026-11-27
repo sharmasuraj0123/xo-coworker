@@ -141,6 +141,7 @@ export function createSide(deps) {
     if (what === "cancel") { if (st.id) show(st.id, false); else close(); }
     else if (what === "thread") deps.openThread(target.getAttribute("data-chat") ?? "", target.getAttribute("data-ts") ?? "");
     else if (what === "all") deps.showAll?.();
+    else if (what === "close") close();
     else { const a = current(); if (a) actOn(what, a, { st, deps, show, duplicate, close, paint, readRuns }); }
   }
 
