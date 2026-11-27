@@ -78,6 +78,7 @@
 .au-n small>.au-wk>*{display:inline-grid;place-items:center;width:var(--s-3)}
 .au-n small:has(>.au-what){white-space:normal}
 .au-intro{margin:var(--s-6) 0 0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.au-intro+.au-list{margin-top:var(--s-4)}
 .au-row.is-off :is(.au-t,.au-n b){color:var(--ink-5);font-weight:var(--fw-regular)}
 .au-row.is-off .au-tile{opacity:var(--opacity-muted)}
 .au-r{justify-self:end;display:inline-flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
