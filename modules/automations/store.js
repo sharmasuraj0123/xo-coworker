@@ -25,7 +25,7 @@ const calendarOf = (rule) => rule && !("every_seconds" in rule) ? { schedule: ru
 /** @param {StoreDeps} deps */
 export function createAutomationsStore({ api, report, timeout, now = Date.now }) {
   /** @type {AutomationsState} */
-  let state = { list: [], loaded: false, failed: false, deleting: new Map() };
+  let state = { list: [], loaded: false, failed: false, deleting: new Map(), turning: new Map() };
   /** @type {Map<string, () => void>} */
   const timers = new Map();
   /** @type {Set<(state: AutomationsState) => void>} */
@@ -97,7 +97,12 @@ export function createAutomationsStore({ api, report, timeout, now = Date.now })
     },
     /** @param {Automation} a @param {boolean} on */
     async setOn(a, on) {
-      landOne(await api.updateSchedule(a.id, { ...definitionOf(a.job), enabled: on }));
+      set({ turning: new Map(state.turning).set(a.id, on) });
+      try { landOne(await api.updateSchedule(a.id, { ...definitionOf(a.job), enabled: on })); } finally {
+        const turning = new Map(state.turning);
+        turning.delete(a.id);
+        set({ turning });
+      }
     },
     /** @param {Automation} a */
     async runNow(a) {

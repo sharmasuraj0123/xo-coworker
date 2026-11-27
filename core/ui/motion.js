@@ -190,3 +190,33 @@ export function keepTurning() {
   observer.observe(document.body, { childList: true, subtree: true });
   return () => observer.disconnect();
 }
+
+/** Adds cls; done runs after what it starts, unless cls went first. @param {Element} el @param {string} cls @param {() => void} done */
+export function leaveWith(el, cls, done) {
+  if (el.classList.contains(cls)) return;
+  el.classList.add(cls);
+  const end = () => { if (!el.classList.contains(cls)) return; el.classList.remove(cls); done(); };
+  const out = el.getAnimations?.() ?? [];
+  if (out.length) void Promise.allSettled(out.map((a) => a.finished)).then(end); else end();
+}
+
+/** Removed matches stay inert while they fade or fold. @param {Element} host @param {string} selector @param {() => void} draw */
+export function drawLeaving(host, selector, draw, fold = false) {
+  if (still()) { draw(); return; }
+  const was = [...host.querySelectorAll(selector)].filter((el) => !el.hasAttribute("data-own"))
+    .map((el) => ({ el, parent: el.parentNode, next: el.nextSibling, h: el.getBoundingClientRect().height }));
+  draw();
+  for (const { el, parent, next, h } of was.reverse()) {
+    if (el.isConnected || !parent?.isConnected) continue;
+    el.setAttribute("data-own", "");
+    el.setAttribute("inert", "");
+    parent.insertBefore(el, next?.parentNode === parent ? next : null);
+    const a = fold
+      ? el.animate([{ height: `${h}px`, opacity: 1, overflow: "hidden" },
+        { height: "0px", minHeight: "0px", paddingBlock: "0px", borderBottomWidth: "0px", opacity: 0, overflow: "hidden" }],
+      { duration: MOVE, easing: EASE, fill: "forwards" })
+      : el.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(-2px) scale(.99)" }],
+        { duration: OUT, easing: EASE, fill: "forwards" });
+    a.onfinish = a.oncancel = () => el.remove();
+  }
+}

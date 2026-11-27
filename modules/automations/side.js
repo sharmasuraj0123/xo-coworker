@@ -2,6 +2,7 @@
 
 import { once } from "../../core/platform/pending.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { drawLeaving } from "../../core/ui/motion.js";
 import { menuKeys, focusOpened, radioKeys } from "../../core/ui/a11y/keynav.js";
 import { detailHtml, reportHtml } from "./detail.js";
 import { createDraft } from "./draft.js";
@@ -115,9 +116,10 @@ export function createSide(deps) {
     if (!a) { redraw(host, ""); return; }
     if (report.run) { redraw(host, reportHtml(a, report.run, report)); return; }
     const mine = runs.id === a.id;
-    redraw(host, detailHtml(a, { runs: mine ? runs.rows : null, runsFailed: mine && runs.failed, menu: st.menu, confirm: st.confirm,
-      projectName: deps.projectName(a.project), where: deps.where }));
-    const opened = st.menu ? host.querySelector(".au-menu") : null;
+    const s = { runs: mine ? runs.rows : null, runsFailed: mine && runs.failed, menu: st.menu, confirm: st.confirm,
+      projectName: deps.projectName(a.project), where: deps.where, turning: deps.store.state.turning };
+    drawLeaving(host, ".au-menu", () => redraw(host, detailHtml(a, s)));
+    const opened = st.menu ? host.querySelector(".au-menu:not([data-own])") : null;
     if (opened instanceof HTMLElement && !opened.contains(document.activeElement)) focusOpened(opened);
   }
 

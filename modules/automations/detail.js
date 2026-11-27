@@ -72,7 +72,7 @@ function barHtml(a, s) {
     ` aria-label="More">${xi("more")}</button>`;
   const back = s.where === "page" ? `<button type="button" class="au-back" data-au-act="close">${xi("chevron-left")}Automations</button>`
     : "<span></span>";
-  return `<div class="au-bar">${back}<span class="au-acts-end">${more}${menu}${switchHtml(a)}</span></div>`;
+  return `<div class="au-bar">${back}<span class="au-acts-end">${more}${menu}${switchHtml(a, s.turning)}</span></div>`;
 }
 
 /** @param {Automation} a */

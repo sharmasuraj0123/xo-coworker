@@ -200,6 +200,7 @@ export interface RowState {
   confirm: string | null;
   selected: string | null;
   deleting: Map<string, number>;
+  turning: Map<string, boolean>;
   projectName: (chat: string) => string;
 }
 
@@ -210,6 +211,7 @@ export interface DetailState {
   confirm: boolean;
   projectName: string;
   where: "page" | "panel";
+  turning: Map<string, boolean>;
 }
 
 export type Repeat = "once" | "day" | "weekdays" | "week" | "month" | "hours";
@@ -240,6 +242,7 @@ export interface AutomationsState {
   loaded: boolean;
   failed: boolean;
   deleting: Map<string, number>;
+  turning: Map<string, boolean>;
 }
 
 export interface StoreDeps {

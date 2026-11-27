@@ -10,6 +10,7 @@
 .au-side>*{flex:none;box-sizing:border-box;width:100%;min-width:var(--sw)}
 @starting-style{.au-side{width:0}}
 .au-side[hidden]{display:none}
+.au-side.is-out{width:0}
 .au-page{width:var(--col-w);margin-left:var(--col-x);padding:var(--s-12) 0}
 
 .au-top{display:flex;align-items:flex-start;gap:var(--s-4)}
@@ -243,4 +244,4 @@ div.au-problem{margin-top:var(--s-4)}
   max-height:calc(var(--au-rows,1) * (var(--h-row-act) + var(--s-1)) - var(--s-1));margin-bottom:var(--s-2)
 }
 .stage .fr:is([data-fr="automations"],[data-fr="personas"]) .ag-list{padding-bottom:0}
-.au-view{animation:rise-in var(--d-in) var(--ease)}
+.au-view,.au-empty{animation:rise-in var(--d-in) var(--ease)}

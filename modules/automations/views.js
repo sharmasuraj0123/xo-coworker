@@ -77,10 +77,13 @@ const oftenHtml = (a) => {
   return days && days.length < 7 ? lettersHtml(days) : `<span>${esc(cadenceWords(a))}</span>`;
 };
 
-/** @param {Automation} a */
-export const switchHtml = (a) => `<button type="button" class="switch" role="switch" aria-checked="${a.on}"` +
-  ` aria-label="${a.on ? "On" : "Off"}" data-au-act="toggle" data-au-id="${esc(a.id)}"${busyAttrs(`au-on:${a.id}`)}>` +
-  `<span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`;
+/** Where it's being turned, it shows where it's going. @param {Automation} a @param {Map<string, boolean>} turning */
+export function switchHtml(a, turning) {
+  const on = turning.get(a.id) ?? a.on;
+  return `<button type="button" class="switch" role="switch" aria-checked="${on}" aria-label="${on ? "On" : "Off"}"` +
+    ` data-au-act="toggle" data-au-id="${esc(a.id)}"${busyAttrs(`au-on:${a.id}`)}>` +
+    `<span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`;
+}
 
 /** One automation as a row. @param {Automation} a @param {string} lead @param {RowState} s @param {string} [sub] */
 function rowHtml(a, lead, s, sub) {
@@ -88,7 +91,7 @@ function rowHtml(a, lead, s, sub) {
   if (until) return deletedHtml(a, until);
   const id = esc(a.id), name = esc(a.name), open = s.menu === a.id;
   const line = sub ?? `${oftenHtml(a)}<span>${esc(s.projectName(a.project))}</span>`;
-  const side = a.on ? resultHtml(a.last) : switchHtml(a);
+  const side = a.on ? resultHtml(a.last) : switchHtml(a, s.turning);
   return `<li class="au-row${a.on ? "" : " is-off"}${s.selected === a.id ? " is-on" : ""}" data-au-row="${id}">` +
     `<button type="button" class="au-open" data-au-act="open" data-au-id="${id}" aria-label="${name}, ${esc(cadenceWords(a))}"></button>` +
     `<span class="au-t">${lead}</span>${tile(a.icon)}<span class="au-n"><b>${name}</b><small>${line}</small></span>${side}` +
