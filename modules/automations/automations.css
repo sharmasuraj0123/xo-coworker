@@ -160,6 +160,7 @@
 .au-kv-go>svg:last-child{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-5)}
 .au-kv b{margin-left:auto;min-width:0;font-weight:var(--fw-regular);color:var(--ink);text-align:right;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis}
+.au-kv b .agm{margin-right:var(--s-2)}
 .au-runs li{border-bottom:var(--hair) solid var(--line-faint)}
 .au-run{display:grid;grid-template-columns:var(--ic) minmax(0,1fr) auto;column-gap:var(--s-3);align-items:start;width:100%;
   padding:var(--s-3) var(--s-2);margin:0 calc(-1 * var(--s-2));
@@ -195,8 +196,8 @@ button.au-run:hover{background:var(--fill-1)}
   border-radius:var(--r-sm);background:var(--fill-2);font:inherit;color:var(--ink)}
 .au-chip .dd-btn>svg{display:none}
 .au-chip-in{field-sizing:content;min-width:2ch;font-variant-numeric:tabular-nums}
-.au-kv .au-chip{margin-left:auto}
-.au-kv .au-chip .dd-btn{background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.au-kv .au-chip{margin-left:auto;--dd-fill:var(--fill-clear);--dd-line:var(--fill-clear)}
+.au-kv .au-chip .dd-btn{color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .au-kv .au-chip .dd-btn>svg{display:block}
 .au-tell{display:flex;align-items:center;gap:var(--s-2);margin-top:calc(-1 * var(--s-2));
   font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}

@@ -13,4 +13,7 @@ assert.match(css, /\.au-what\{[^}]*-webkit-line-clamp:2[^}]*overflow:hidden/, "a
 assert.match(css, /\.au-form \.au-bar b\{/, "every form's bar names it the same way");
 const select = sheet(new URL("../../../core/ui/components/xo-select.css", import.meta.url));
 assert.match(select, /\.dd-t\{flex:0 0 auto;max-width:100%;/, "a row's name stays whole; its description gives way");
+assert.match(css, /\.au-kv \.au-chip\{[^}]*--dd-fill:var\(--fill-clear\);--dd-line:var\(--fill-clear\)\}/,
+  "a row's choice is plain text in both themes; the light theme's fill reads these, not background:none");
+assert.doesNotMatch(css, /\.au-kv \.au-chip \.dd-btn\{[^}]*background:none/, "which would also take away its hover");
 console.log("row-css: ok");

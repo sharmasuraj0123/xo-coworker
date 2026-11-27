@@ -3,6 +3,7 @@
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
+import { rtMark } from "../../core/services/runtimes.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { titleOf } from "./agent-file.js";
@@ -104,7 +105,8 @@ const runsHtml = (s) => s.runsFailed ? `<p class="au-none">Couldn't read its pas
 /** Its agent, project, and who allowed it. @param {Automation} a @param {DetailState} s */
 function settingsHtml(a, s) {
   const who = a.persona ? `${titleOf(a.persona.name)}${a.persona.level === "space" ? " · Every project" : ""}` : "";
-  const agent = a.persona ? kv("agent", "Agent", who, "agent") : kv("agent", "Agent", runsOnWords(a));
+  const mark = a.runtime ? rtMark(a.runtime) ?? "" : "";
+  const agent = a.persona ? kv("agent", "Agent", who, "agent") : kv("agent", "Agent", runsOnWords(a)).replace("<b>", `<b>${mark}`);
   return `<ul class="au-kv">${agent}${kv("project", "Project", s.projectName, "project")}` +
     `${a.notify ? kv("bell", "Tells you", NOTIFY.find(([v]) => v === a.notify)?.[1] ?? "") : ""}` +
     `${a.onFailure ? kv("alert", "If it fails", ON_FAILURE.find(([v]) => v === a.onFailure)?.[1] ?? "") : ""}` +
