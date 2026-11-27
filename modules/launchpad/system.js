@@ -54,7 +54,7 @@ export function createSystem({ proj, nameOf }) {
     const admin = c?.repo && (c.repo.admin || !c.github?.connected);
     const rows = [];
     if (c?.repo) rows.push(row("Source", admin ? `${esc(c.repo.full)}<small>${esc(c.repo.branch || "main")} · builds on every push</small>` : `<span title="You're not an admin on ${esc(c.repo.full)}, so Launchpad can't add its build there">A private copy in your GitHub</span> <span class="lp-new">new</span>`));
-    if (ca && (ca.size || ca.sizeLabel)) rows.push(row("Machine", `${esc(sizeText(c, ca.size, ca.sizeLabel))}${ca.storage ? `<small>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></small>` : ""}`, change("Change", "the machine")));
+    if (ca && (ca.size || ca.sizeLabel)) rows.push(row("Machine", `${esc(sizeText(c, ca.size, ca.sizeLabel))}${ca.storage ? `<small>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></small>` : ""}`));
     const port = r?.error?.port || f?.port || "";
     if (port) rows.push(row("Port", `<code>${esc(String(port))}</code>`));
     if (c?.env?.length) rows.push(row("Environment", `${c.env.filter((/** @type {{set: boolean}} */ x) => x.set).length} of ${c.env.length} set`, change("Edit", "the environment")));

@@ -3,7 +3,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { ARC } from "../../core/ui/icons/icon.js";
 import { esc } from "../../core/platform/index.js";
 import { appState, formKey, launchpadUrl, nextStep } from "./model.js";
-import { LP_ICON, NEEDS_YOU, since, where, cap, sizeText, lit, fixOf, ghCmd, cmdHtml, repoFacts, appsFacts, sizeHint, failWords, NODES, ago } from "./words.js";
+import { LP_ICON, NEEDS_YOU, since, where, cap, lit, fixOf, ghCmd, cmdHtml, repoFacts, appsFacts, sizeHint, failWords, NODES, ago } from "./words.js";
 import { createSystem } from "./system.js";
 /** @import { LaunchpadCheck, LaunchpadForm, LaunchpadProject, LaunchpadViewOptions, PrepThread } from "./lifetime-types.d.ts" */
 
@@ -103,10 +103,7 @@ export function installViews(L) {
     /** @param {string} id @param {string} text */
     const hint = (id, text) => `<small class="lp-hint" id="lp-h-${id}">${text}</small>`;
     if (a) {
-      return (a.size || a.sizeLabel ? row("Size", `<span class="lq-v lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
-        (a.storage === undefined ? "" : a.storage
-          ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
-          : row("Disk", `<span class="lq-v lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
+      return a.storage ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label") : "";
     }
     const z = c.sizes, at = f.size || z?.def || "";
     if (!z) return "";
