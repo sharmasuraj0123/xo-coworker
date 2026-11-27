@@ -120,11 +120,14 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
   return { loadList, loadChat };
 }
 
+// claude writes these into its transcript as the person's turn when a turn is interrupted
+const CLI_NOTE = /^\[Request interrupted by user[^\]\n]*\]$/;
+
 /** @param {import("../../core/platform/chat-response-types.d.ts").ObservedMessage[]} [messages] */
 function userPrompts(messages = []) {
   return messages.filter((message) => message.data?.role === "user").map((message) => ({
     id: message.id,
     at: Date.parse(message.time_created) || 0,
     text: (message.parts || []).map((part) => part.data?.type === "text" ? part.data.text : "").join("\n").trim(),
-  })).filter((prompt) => prompt.text);
+  })).filter((prompt) => prompt.text && !CLI_NOTE.test(prompt.text));
 }

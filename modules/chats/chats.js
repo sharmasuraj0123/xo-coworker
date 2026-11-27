@@ -76,11 +76,12 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const s = session(sid), h = C.hist.get(sid);
     if (s?.native_id && h && h.tried !== s.native_id) loadChat(sid, { afterTurn: true });
   }));
-  /** A prompt sent while a turn ran waits behind it, as in a thread: or Interrupt, and it reads this now. @param {Session} s @param {import("./types").Prompt} m */
+  /** A prompt sent while a turn ran waits behind it, or joins it at its next step: or Interrupt, and it reads this now. @param {Session} s @param {import("./types").Prompt} m */
   const waitingMeta = (s, m) => !m.waits || m.status !== "sent" || !inTurn(s) || (world.act.turnOf?.(s.id) || "turn") !== m.waits ? ""
     : world.act.sessionState?.(s.id) === "stopping"
     ? `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`
-    : `<div class="meta"><span>Waiting · it reads this when its current turn ends</span><button type="button" class="meta-btn" data-interrupt title="Stop its current turn so it reads this now (Undo for 3 s)">${ICON.bolt}Interrupt</button></div>`;
+    : `<div class="meta"><span>${m.steered ? "Sent · it reads this after its current step" : "Waiting · it reads this when its current turn ends"}</span>` +
+      `<button type="button" class="meta-btn" data-interrupt title="Stop its current turn so it reads this now (Undo for 3 s)">${ICON.bolt}Interrupt</button></div>`;
   /** @param {string} sid */
   function chatItems(sid) {
     const s = session(sid);
@@ -88,8 +89,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const h = C.hist.get(sid) || {};
     const items = [];
     const mine = [...(h.user || [])];
-    // your prompts sent from this tab and not in its history yet
-    for (const l of C.local.get(sid) || []) if (!mine.some((m) => m.text === l.text && Math.abs(m.at - l.at) < 120000)) mine.push(l);
+    // your prompts sent from this tab and not in its history yet; the CLI writes those sent into one turn as one message
+    const has = (text = "", part = "") => text === part || `\n${text}\n`.includes(`\n${part}\n`);
+    for (const l of C.local.get(sid) || []) if (!mine.some((m) => has(m.text, l.text) && Math.abs(m.at - l.at) < 120000)) mine.push(l);
     const turns = world.state.turns ? world.state.turns.list((t) => t.session === sid) : [];
     // each turn right under the prompt that woke it, whenever the CLI got round to writing that down
     const all = chatOrder(mine, turns);
@@ -198,7 +200,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const rt = s ? runtime(s.agent) : null;
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
       const delivery = s && inTurn(s) && steer ? "add" : null;
-      if (s && inTurn(s) && !steer) local.waits = world.act.turnOf?.(sid) || "turn";
+      if (s && inTurn(s)) Object.assign(local, { waits: world.act.turnOf?.(sid) || "turn", ...(steer ? { steered: true } : {}) });
       local.body = { text, client_id: local.cid, session_id: sid, ...(delivery ? { delivery } : {}) };
       (C.local.get(sid) || /** @type {LocalPrompt[]} */ (C.local.set(sid, []).get(sid))).push(local);
       schedule();

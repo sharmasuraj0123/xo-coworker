@@ -27,6 +27,8 @@ export interface Prompt {
   errTitle?: string;
   /** Sent while a turn ran: that turn's id; the prompt waits until it ends. */
   waits?: string;
+  /** Sent into that turn: the agent reads it at its next step. */
+  steered?: boolean;
 }
 interface PromptBody {
   text: string;
