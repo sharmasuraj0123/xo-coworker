@@ -46,6 +46,9 @@ function repeatOf({ kind, days, step }) {
   return kind === "minute" || kind === "hour" ? "hours" : kind;
 }
 
+/** Today's date, or one n days on. @param {number} n */
+const dayAhead = (n) => { const t = new Date(); return dateOf(new Date(t.getFullYear(), t.getMonth(), t.getDate() + n).getTime()); };
+
 /** A new one's values: every day at 9, from tomorrow. @param {string} chat @param {number} at @returns {FormValues} */
 const blankOf = (chat, at) => ({ name: "", prompt: "", chat, repeat: "day", time: "09:00", date: dateOf(at), days: [new Date(at).getDay()],
   dom: new Date(at).getDate(), hours: 6, persona: null, notify: null, onFailure: null });
@@ -164,7 +167,7 @@ function daysHtml(v) {
 /** What a repeat that isn't by days needs: its date, its day of the month or its hours. @param {FormValues} v */
 function sinceHtml(v) {
   if (v.repeat === "once") {
-    return `<xo-date name="date" class="au-chip" value="${esc(v.date)}" min="${dateOf(Date.now())}" aria-label="Date"></xo-date>`;
+    return `<xo-date name="date" class="au-chip" value="${esc(v.date)}" min="${dayAhead(0)}" aria-label="Date"></xo-date>`;
   }
   if (v.repeat === "hours") return `<input name="hours" class="au-chip-in" inputmode="numeric" maxlength="2" value="${v.hours}"` +
     ` aria-label="Hours apart"><span>hours, from</span>`;
@@ -231,7 +234,8 @@ export function formHtml(v, a, { problem, busy, agents }, projectName) {
 /** A new one, as one sentence: when, which agent, where, and what it will do. @param {FormValues} v @param {FormOptions} o */
 export function sentenceHtml(v, { projects, problem, busy, agents }) {
   const chats = projects.map((p) => opt(p.chat, p.name, p.chat === v.chat)).join("");
-  const at = v.repeat === "hours" ? "" : v.repeat === "once" || v.repeat === "month" ? "<span>on</span>" : "";
+  const near = v.repeat === "once" && [0, 1].some((n) => dayAhead(n) === v.date);
+  const at = near || v.repeat === "hours" ? "" : v.repeat === "once" || v.repeat === "month" ? "<span>on</span>" : "";
   return `<form class="au-form au-new" data-au-form novalidate aria-labelledby="au-new-h">` +
     `<div class="au-bar"><button type="button" class="au-back" data-au-act="cancel">Cancel</button><b id="au-new-h">New automation</b>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(busy)}>Create</button></div>` +

@@ -13,6 +13,7 @@ const WEEKS = 6;
 const LONG = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const NARROW = new Intl.DateTimeFormat(undefined, { weekday: "narrow" });
 const MONDAY = new Date(2024, 0, 1);
+const QUICK = [["Today", "sun"], ["Tomorrow", "sunrise"], ["Choose a date…", "calendar"]];
 let seq = 0;
 /** Only one calendar is ever open. @type {XoDate | null} */
 let openOne = null;
@@ -30,11 +31,14 @@ function dayFrom(s) {
 const words = (d) => `${formatDate(d, "weekday")} ${d.getDate()} ${formatDate(d, "month")}`;
 /** @param {Date} d @param {number} days */
 const plus = (d, days) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+const nearDays = () => [new Date(), plus(new Date(), 1)].map(isoDay);
 
 class XoDate extends HTMLElement {
   /** @type {string | null} */
   #v = null;
   #open = false;
+  #cal = false;
+  #q = 0;
   #id = "";
   #cur = new Date();
   #shown = new Date();
@@ -75,22 +79,31 @@ class XoDate extends HTMLElement {
     const id = this.#id = `dt${++seq}`;
     const btn = document.createElement("button");
     btn.type = "button"; btn.className = "dd-btn"; btn.innerHTML = `<span class="dd-v"></span>`;
-    for (const [k, v] of [["role", "combobox"], ["aria-haspopup", "grid"], ["aria-expanded", "false"], ["aria-controls", `${id}-g`]]) {
+    for (const [k, v] of [["role", "combobox"], ["aria-haspopup", "listbox"], ["aria-expanded", "false"], ["data-own", ""]]) {
       btn.setAttribute(k, v);
     }
     const pop = document.createElement("div");
-    pop.className = "dd-menu dt-pop"; pop.hidden = true;
-    pop.innerHTML = `<div class="dt-hd"><b class="dt-mo" aria-live="polite"></b>` +
+    pop.className = "dd-menu dt-pop"; pop.hidden = true; pop.setAttribute("data-own", "");
+    pop.innerHTML = `<div class="dt-quick" role="listbox" id="${id}-q">${QUICK.map(([t, icon], i) =>
+      `<div class="dd-row" role="option" id="${id}-q${i}" data-quick="${i}"><span class="dd-mk" aria-hidden="true"></span>` +
+      `${xi(icon, "dd-ic")}<span class="dd-t">${t}</span><span class="dd-d"></span></div>`).join("")}</div>` +
+      `<div class="dt-cal" hidden><div class="dt-hd"><b class="dt-mo" aria-live="polite"></b>` +
       `<button type="button" class="dt-nav" data-step="-1" tabindex="-1" aria-label="Previous month">${xi("chevron-left")}</button>` +
       `<button type="button" class="dt-nav" data-step="1" tabindex="-1" aria-label="Next month">${xi("chevron-right")}</button></div>` +
-      `<div class="dt-grid" role="grid" id="${id}-g"></div>`;
+      `<div class="dt-grid" role="grid" id="${id}-g"></div></div>`;
     btn.addEventListener("click", () => (this.#open ? this.close(true) : this.open()));
     btn.addEventListener("keydown", (e) => this.#key(e));
     btn.addEventListener("blur", () => queueMicrotask(() => { if (document.activeElement !== btn) this.close(false); }));
     pop.addEventListener("pointerdown", (e) => e.preventDefault());
+    pop.addEventListener("pointermove", (e) => {
+      const row = e.target instanceof Element ? e.target.closest("[data-quick]") : null;
+      if (row instanceof HTMLElement && row.getAttribute("aria-disabled") !== "true") this.#quick(Number(row.dataset.quick));
+    });
     pop.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
       const t = e.target instanceof Element ? e.target : null;
+      const row = t?.closest("[data-quick]");
+      if (row instanceof HTMLElement && row.getAttribute("aria-disabled") !== "true") this.#pick(Number(row.dataset.quick));
       const step = t?.closest("[data-step]");
       if (step instanceof HTMLButtonElement && !step.disabled) this.#month(Number(step.dataset.step));
       const cell = t?.closest("[data-day]");
@@ -102,14 +115,54 @@ class XoDate extends HTMLElement {
 
   #paint() {
     if (!this.#btn) return;
-    const d = dayFrom(this.value);
-    setText(this.#btn.querySelector(".dd-v"), d ? words(d) : "");
+    const d = dayFrom(this.value), near = nearDays().indexOf(this.value);
+    setText(this.#btn.querySelector(".dd-v"), !d ? "" : near >= 0 ? QUICK[near][0].toLowerCase() : words(d));
     const label = this.getAttribute("aria-label");
     if (label) this.#btn.setAttribute("aria-label", d ? `${label}, ${LONG.format(d)}` : label);
     this.#btn.disabled = this.disabled;
   }
 
   #min() { return dayFrom(this.getAttribute("min")); }
+
+  /** Today, tomorrow, or a date of its own, its choice marked. */
+  #rows() {
+    const pop = this.#pop, min = this.#min();
+    if (!pop) return;
+    const near = nearDays(), at = near.indexOf(this.value), d = dayFrom(this.value);
+    pop.querySelectorAll("[data-quick]").forEach((row, i) => {
+      const day = i < 2 ? dayFrom(near[i]) : d, on = i === 2 ? !!d && at < 0 : at === i;
+      row.setAttribute("aria-selected", String(on));
+      if (i < 2 && !!min && !!day && day < min) row.setAttribute("aria-disabled", "true"); else row.removeAttribute("aria-disabled");
+      const mk = row.querySelector(".dd-mk");
+      if (mk) mk.innerHTML = on ? `<i class="dd-dot"></i>` : "";
+      setText(row.querySelector(".dd-d"), !day ? "" : i < 2 ? formatDate(day, "weekday") : on ? words(day) : "");
+    });
+  }
+
+  /** @param {number} i */
+  #quick(i) {
+    this.#q = i;
+    this.#pop?.querySelectorAll("[data-quick]").forEach((row, k) => row.classList.toggle("is-cur", k === i));
+    this.#btn?.setAttribute("aria-activedescendant", `${this.#id}-q${i}`);
+  }
+
+  /** @param {number} i */
+  #pick(i) {
+    if (i < 2) { this.#choose(dayFrom(nearDays()[i])); return; }
+    this.#show(true);
+    this.#move(dayFrom(this.value) ?? this.#min() ?? new Date());
+    this.#place();
+  }
+
+  /** @param {boolean} cal */
+  #show(cal) {
+    const pop = this.#pop, btn = this.#btn;
+    this.#cal = cal;
+    pop?.querySelector(".dt-quick")?.toggleAttribute("hidden", cal);
+    pop?.querySelector(".dt-cal")?.toggleAttribute("hidden", !cal);
+    btn?.setAttribute("aria-haspopup", cal ? "grid" : "listbox");
+    btn?.setAttribute("aria-controls", `${this.#id}-${cal ? "g" : "q"}`);
+  }
 
   #grid() {
     const pop = this.#pop, first = this.#shown, min = this.#min();
@@ -154,7 +207,10 @@ class XoDate extends HTMLElement {
     if (openOne && openOne !== this) openOne.close(false);
     this.#exitScope?.dispose(); this.#exitScope = null;
     openOne = this; this.#open = true;
-    this.#move(dayFrom(this.value) ?? this.#min() ?? new Date());
+    const at = nearDays().indexOf(this.value);
+    this.#show(false);
+    this.#rows();
+    this.#quick(at >= 0 ? at : dayFrom(this.value) ? 2 : 0);
     pop.classList.remove("is-out", "is-up", "is-in");
     pop.hidden = false;
     this.#place();
@@ -212,18 +268,25 @@ class XoDate extends HTMLElement {
   /** @param {KeyboardEvent} e */
   #key(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const k = e.key, c = this.#cur;
+    const k = e.key;
     const take = () => { e.preventDefault(); e.stopPropagation(); };
     if (!this.#open) {
       if (["ArrowDown", "ArrowUp", "Enter", " "].includes(k)) { take(); this.open(); }
       return;
     }
-    const by = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7, Home: -((c.getDay() + 6) % 7), End: 6 - ((c.getDay() + 6) % 7) };
+    if (k === "Escape") { take(); this.close(true); return; }
+    if (k === "Tab") { this.close(false); return; }
+    if (!this.#cal) {
+      const by = { ArrowDown: 1, ArrowUp: -1, Home: -QUICK.length, End: QUICK.length };
+      if (k in by) { take(); this.#quick(Math.max(0, Math.min(QUICK.length - 1, this.#q + by[/** @type {keyof typeof by} */ (k)]))); }
+      if (k === "Enter" || k === " ") { take(); this.#pick(this.#q); }
+      return;
+    }
+    const c = this.#cur, wd = (c.getDay() + 6) % 7;
+    const by = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7, Home: -wd, End: 6 - wd };
     if (k in by) { take(); this.#move(plus(c, by[/** @type {keyof typeof by} */ (k)])); return; }
     if (k === "PageUp" || k === "PageDown") { take(); this.#month((k === "PageUp" ? -1 : 1) * (e.shiftKey ? 12 : 1)); return; }
-    if (k === "Enter" || k === " ") { take(); this.#choose(c); return; }
-    if (k === "Escape") { take(); this.close(true); return; }
-    if (k === "Tab") this.close(false);
+    if (k === "Enter" || k === " ") { take(); this.#choose(c); }
   }
 }
 
