@@ -19,7 +19,8 @@ const LEADS = { automations: "Agents that run on their own, in your projects.",
 const CREATE = { automations: "Create automation", agents: "Create agent" };
 /** On a phone it is its + alone. @param {string} words @param {string} shut */
 const createHtml = (words, shut) =>
-  `<button type="button" class="btn btn-pri" data-au-act="new" aria-label="${words}"${shut}>${xi("plus")}<span>${words}</span></button>`;
+  `<button type="button" class="btn btn-pri au-cta" data-au-act="new" aria-label="${words}"${shut}>${xi("plus")}` +
+  `<span>${words}</span></button>`;
 const MODES = /** @type {const} */ ([["automations", "Automations"], ["agents", "Agents"]]);
 
 /** @returns {string | null} */

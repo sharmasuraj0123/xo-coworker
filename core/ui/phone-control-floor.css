@@ -8,7 +8,7 @@
     [type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.jump-field) input)){min-height:var(--h-touch)}
   :where(.fl-q,.ar-q,.fl-new-r){min-height:var(--h-touch)}
   :where(.x,.vw-x,.vw-btn,.fr-ib,.stg-x,.lbx-btn,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,
-    .fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act){min-width:var(--h-touch)}
+    .fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act,.au-cta){min-width:var(--h-touch)}
   .fl-r,.tb-rh{min-height:var(--h-touch)}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
   :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-touch)}

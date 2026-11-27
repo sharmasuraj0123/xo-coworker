@@ -241,8 +241,8 @@ div.au-problem{margin-top:var(--s-4)}
   .au-top>div{grid-row:2;margin-top:var(--s-4)}
   .au-top p{margin:0}
   .au-mode{grid-row:1;grid-column:1;margin-top:0}
-  .au-top .btn{grid-row:1;grid-column:2;width:var(--h-ctl);padding:0}
-  .au-top .btn span{display:none}
+  .au-cta{grid-row:1;grid-column:2;width:var(--h-touch);padding:0}
+  .au-cta span{display:none}
   .au-side{position:absolute;inset:0;width:auto;border:0;z-index:var(--z-panel);transition:none}
   .au-side>*{min-width:0}
   .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
