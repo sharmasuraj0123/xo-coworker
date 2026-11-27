@@ -194,3 +194,54 @@ test("a tree Space hasn't read yet says so in Space's words; one it couldn't rea
     page.dispose();
   }
 });
+
+test("a refused removal re-reads that tree through Space's check, and a timed-out check shows the row Space last stored", async () => {
+  const what = { summary: "2 untracked files", changed: { count: 0, paths: [] }, untracked: { count: 2, paths: ["a", "b"] }, commits: 0 };
+  const exact = { ...tree, removable: false, xo: true, would_lose: what };
+  for (const answer of [
+    () => Response.json(exact),
+    () => Response.json({ detail: { code: "check_timeout", message: "slow", row: exact } }, { status: 504 }),
+  ]) {
+    const { page } = await mount();
+    const calls = [];
+    globalThis.fetch = async (url, init) => {
+      calls.push(`${init.method} ${new URL(url, "http://x").pathname}`);
+      if (init.method === "DELETE") return Response.json({ detail: { code: "would_lose_work", message: "Would lose work", what, confirm: "tok" } }, { status: 409 });
+      if (init.method === "POST") return answer();
+      return Response.json({ worktrees: [tree] });
+    };
+    try {
+      await page.open();
+      page.click(document.querySelector("[data-wt]"));
+      page.click(document.querySelector("[data-wt-yes]"));
+      await settle();
+      await settle();
+      assert.equal(calls.filter((call) => call.startsWith("POST")).length, 1);
+      assert.match(calls.find((call) => call.startsWith("POST")), /\/worktrees\/chat\/thread\/check$/);
+      assert.match(document.querySelector(".wt-s").textContent, /^Has work not kept anywhere else/);
+      assert.equal(Boolean(document.querySelector("[data-wt-no]")), true);
+    } finally {
+      page.dispose();
+    }
+  }
+});
+
+test("a check that finds the tree already removed drops its row", async () => {
+  const { page } = await mount();
+  const what = { summary: "1 untracked file", changed: { count: 0, paths: [] }, untracked: { count: 1, paths: ["a"] }, commits: 0 };
+  globalThis.fetch = async (_url, init) => {
+    if (init.method === "DELETE") return Response.json({ detail: { code: "would_lose_work", message: "Would lose work", what, confirm: "tok" } }, { status: 409 });
+    if (init.method === "POST") return Response.json({ chat_id: "chat", thread_ts: "thread", path: "/checkout", removed_at: "2026-11-27T10:00:00Z", removed_by: "sweep", git: null });
+    return Response.json({ worktrees: [tree] });
+  };
+  try {
+    await page.open();
+    page.click(document.querySelector("[data-wt]"));
+    page.click(document.querySelector("[data-wt-yes]"));
+    await settle();
+    await settle();
+    assert.equal(Boolean(document.querySelector(".wt-row")), false);
+  } finally {
+    page.dispose();
+  }
+});

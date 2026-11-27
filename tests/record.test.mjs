@@ -57,7 +57,7 @@ t("made: filter by kind and words (the thread's title counts); groups drop empty
 });
 
 t("git words from Space's tree state: uncommitted beats unpushed; nothing lost is saved; a tree not known says nothing", () => {
-  assert.deepEqual(R.gitState(tree({ changed: 2, untracked: 1, local_commits: 3 })), { group: "unsaved", word: "3 changes not committed", n: 3 });
+  assert.deepEqual(R.gitState(tree({ changed: 2, untracked: 1, local_commits: 3 })), { group: "unsaved", word: "3 files not committed", n: 3 });
   assert.deepEqual(R.gitState(tree({ local_commits: 1 })), { group: "unpushed", word: "1 commit not pushed", n: 1 });
   assert.equal(R.gitState(tree()).group, "saved");
   assert.equal(R.gitState(tree({ changed: 1, error: "git timed out" })).group, "unsaved", "an unreadable tree keeps its last counts");
@@ -84,7 +84,7 @@ t("since you left: only what moved (or needs you), in the order you'd act on it"
     ["needs", ["ask"]], ["unsaved", ["dirty"]], ["unpushed", ["ahead"]], ["stopped", ["broke"]], ["finished", ["clean"]], ["going", ["busy"]],
   ]);
   assert.equal(cu.total, 6);
-  assert.equal(cu.groups.find((g) => g.id === "going").items[0].git.word, "4 changes not committed");
+  assert.equal(cu.groups.find((g) => g.id === "going").items[0].git.word, "4 files not committed");
   assert.equal(R.catchUp([th("old", "done", 72)], { since }).total, 0);
 });
 

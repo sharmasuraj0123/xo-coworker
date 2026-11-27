@@ -9,7 +9,7 @@ export const GIT_ICON = { unsaved: "edit", unpushed: "cloud-upload", unmerged: "
 export function gitState(g) {
   const tree = g && g.tree && g.tree.exists ? g.tree : null;
   const changes = tree ? (tree.changed || 0) + (tree.untracked || 0) : 0;
-  if (changes) return { group: "unsaved", word: `${count(changes, "change")} not committed`, n: changes };
+  if (changes) return { group: "unsaved", word: `${count(changes, "file")} not committed`, n: changes };
   if (g) {
     const pr = g.pr && g.pr.number ? `PR #${g.pr.number}` : "";
     if (g.merged) return { group: "shipped", word: pr ? `merged · ${pr}` : "merged", n: 0, url: g.pr && g.pr.url };

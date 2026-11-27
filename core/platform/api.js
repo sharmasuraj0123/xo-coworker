@@ -6,7 +6,7 @@ import { scheduleApi } from "./schedule-response.js";
 import { checkedResponse, engineStatus, requestChecked } from "./response.js";
 import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
 import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
-import { isMade, isMadeItem, isMemory, isMemoryFile, isShape, isWorktreeRemoval, isWorktrees } from "./record-responses.js";
+import { isMade, isMadeItem, isMemory, isMemoryFile, isShape, isWorktree, isWorktreeRemoval, isWorktrees } from "./record-responses.js";
 import { isModels, isPolicies, isRouter, isRouterModels, isRuntimes } from "./runtime-responses.js";
 import { isRunDetail, isRunList, isRunTranscript, isStopRunReceipt, isStopRunsReceipt } from "./run-responses.js";
 import {
@@ -57,6 +57,10 @@ export const chatActivityApi = {
   /** @param {string} chat @param {string} thread @param {string | null} [confirm] @param {AbortSignal} [signal] */
   removeWorktree: (chat, thread, confirm, signal) => requestChecked(`/chat/worktrees/${enc(chat)}/${enc(thread)}`, isWorktreeRemoval, {
     method: "DELETE", query: confirm ? { confirm } : undefined, signal,
+  }),
+  /** @param {string} chat @param {string} thread @param {AbortSignal} [signal] */
+  checkWorktree: (chat, thread, signal) => requestChecked(`/chat/worktrees/${enc(chat)}/${enc(thread)}/check`, isWorktree, {
+    method: "POST", body: {}, signal,
   }),
 };
 

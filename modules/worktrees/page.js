@@ -5,8 +5,8 @@ import { chatActivityApi } from "../../core/platform/api.js";
 import { ApiError } from "../../core/platform/http.js";
 import { busyAttrs, esc, isPending } from "../../core/platform/index.js";
 import { latest } from "../../core/platform/latest.js";
-import { isWorktreeLoss } from "../../core/platform/record-responses.js";
-import { requestFailureMessage } from "../../core/services/notices/failures.js";
+import { isWorktree, isWorktreeLoss } from "../../core/platform/record-responses.js";
+import { reportFailure, requestFailureMessage } from "../../core/services/notices/failures.js";
 import { holdButton } from "../../core/ui/components/hold.js";
 import { ICON } from "../../core/ui/icons/names.js";
 
@@ -198,6 +198,7 @@ export function createWorktreesPage(host, options) {
           const confirm = "confirm" in error && typeof error.confirm === "string" ? error.confirm : undefined;
           if (loss && confirm) {
             state.confirmation = { key, loss, token: confirm };
+            void recheckTree(key);
             return { to: "[data-wt-no]" };
           }
         }
@@ -208,6 +209,25 @@ export function createWorktreesPage(host, options) {
         return {};
       }
     }, from);
+  }
+
+  /** A refused removal means the stored row was out of date: Space's check answers the exact one. @param {string} key */
+  async function recheckTree(key) {
+    const [chat, thread] = key.split("/");
+    /** @type {Worktree | null} */
+    let row = null;
+    try {
+      row = await chatActivityApi.checkWorktree(chat, thread, scope.signal);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "check_timeout" && "row" in error && isWorktree(error.row)) row = error.row;
+      else reportFailure(error);
+    }
+    if (!row || scope.signal.aborted || !state.trees) return;
+    const fresh = row;
+    state.trees = fresh.removed_at !== undefined
+      ? state.trees.filter((tree) => treeKey(tree) !== key)
+      : state.trees.map((tree) => treeKey(tree) === key ? fresh : tree);
+    render();
   }
 
   /** @param {string} key @param {Element} from */

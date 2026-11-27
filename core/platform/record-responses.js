@@ -45,7 +45,7 @@ export function isWorktreeLoss(value) {
 }
 
 /** @param {unknown} value @returns {value is Wire.WorktreeRow} */
-function isWorktree(value) {
+export function isWorktree(value) {
   return isResponseObject(value) && text(value.chat_id) && text(value.thread_ts)
     && [value.path, value.thread_state].every((field) => optional(field, text))
     && [value.branch, value.base_commit, value.resolved_at, value.session_id, value.session_state, value.error,
