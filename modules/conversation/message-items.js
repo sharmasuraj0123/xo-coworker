@@ -47,21 +47,26 @@ function copyHead(m, fwd, src, P) {
   return { by, from, name: ws ? by : `${by} ${src ? `${coord ? "of" : "in"} ${P(src)}` : "in another chat"}` };
 }
 
-/** A Space notice: its number and meter first, then who uses the memory. @param {Message} m @param {(p: string) => boolean} isProject */
+/** A Space notice as a storage meter. @param {Message} m @param {(p: string) => boolean} isProject */
 function spaceHtml(m, isProject) {
   const n = /** @type {NonNullable<Message["space"]>} */ (m.space), via = m.fwd ? " · via the Workspace" : "";
   if (n.percent == null || n.total == null) return `<span class="ev-t"><b>Space advisory</b>${via} · ${esc(m.text || "")}</span>`;
-  const who = n.users.map((u) => {
-    const name = isProject(u.name) ? `<button type="button" class="rt-go" data-go="p:${esc(u.name)}">${esc(u.name)}</button>`
+  const used = Math.round(n.total * n.percent) / 100, named = n.users.reduce((a, u) => a + u.gb, 0);
+  const rest = Math.round((used - named) * 10) / 10;
+  const parts = [...n.users.map((u, i) => ({ ...u, k: Math.min(i + 1, 3) })),
+    ...(rest > 0 && n.users.length ? [{ name: "Other", gb: rest, threads: null, k: 4 }] : [])];
+  const seg = parts.map((u) => `<i class="sp-k${u.k}" style="flex-basis:${(u.gb / n.total) * 100}%"></i>`).join("");
+  const key = parts.map((u) => {
+    const word = u.k < 4 && isProject(u.name) ? `<button type="button" class="rt-go" data-go="p:${esc(u.name)}">${esc(u.name)}</button>`
       : esc(u.name[0].toUpperCase() + u.name.slice(1));
-    const threads = u.threads != null ? ` · ${u.threads} thread${u.threads === 1 ? "" : "s"}` : "";
-    return `<li><b>${name}</b> ${u.gb} GB${threads}</li>`;
+    const tip = u.threads != null ? ` title="${u.threads} thread${u.threads === 1 ? "" : "s"}"` : "";
+    return `<li class="sp-k${u.k}"${tip}>${word} <span>${u.gb} GB</span></li>`;
   }).join("");
-  const bar = `<span class="rt-bar sp-bar" role="meter" aria-valuemin="0" aria-valuemax="100"`
-    + ` aria-valuenow="${Math.round(n.percent)}" aria-label="Memory used"><i style="--u:${Math.min(1, n.percent / 100)}"></i></span>`;
-  return `<div class="ev-t sp-body"><p class="sp-head"><b>Memory at ${n.percent}%</b> of ${n.total} GB`
-    + `<span class="via"> · Space advisory${via}</span></p>${bar}`
-    + `${who ? `<ul class="sp-users" aria-label="Largest users">${who}</ul>` : ""}</div>`;
+  const title = n.percent >= 90 ? "Memory almost full" : n.percent >= 75 ? "Memory running high" : "Memory";
+  const bar = `<span class="sp-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(n.percent)}"`
+    + ` aria-label="Memory used">${seg || `<i class="sp-k1" style="flex-basis:${n.percent}%"></i>`}</span>`;
+  return `<div class="ev-t sp-body"><p class="sp-head"><b>${title}</b><span>${used} of ${n.total} GB used · ${n.percent}%</span></p>${bar}`
+    + `${key ? `<ul class="sp-users" aria-label="Who uses it">${key}</ul>` : ""}<p class="sp-src">Space advisory${via}</p></div>`;
 }
 
 /** @param {MessageItemsDeps} deps */
