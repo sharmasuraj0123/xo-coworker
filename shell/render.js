@@ -8,6 +8,9 @@ import { PAGE_OF } from "./place-context.js";
 import { faviconRender } from "./favicon.js";
 import { createSurfaceSlots } from "./surfaces.js";
 
+/** @type {Record<string, string>} */
+const PAGE_TITLES = { home: "Home", artifacts: "Artifacts", launchpad: "Launchpad", automations: "Automations" };
+
 /** @type {import("../core/kernel/types").ModuleDef} */
 export const workspaceRendererModule = {
   manifest: { id: "xo.workspace", version: "1.0.0", kernel: "^1.1.0", core: true,
@@ -36,7 +39,7 @@ export const workspaceRendererModule = {
       if (app.hasAttribute("data-gone") !== gone) app.toggleAttribute("data-gone", gone);
       for (const [id, selector] of Object.entries(PAGE_OF)) requireHtml(selector).hidden = id !== v;
       requireHtml("#conv").hidden = !!page;
-      const title = v === "home" ? "Home" : v === "artifacts" ? "Artifacts" : v === "launchpad" ? "Launchpad" : "";
+      const title = PAGE_TITLES[v] ?? "";
       redraw($("#pb-t"), title ? esc(title) : XO);
       rail.rows(needs);
       if (page) {

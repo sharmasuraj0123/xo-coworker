@@ -66,7 +66,7 @@ await t("Shells is its icon and count, named for a screen reader", () => {
 });
 await t("panel heads lead with their place's icon; Map's switch is its two icons", () => {
   const st = panelSrc;
-  assert.match(st, /const FRAME_IC = \{ agents: "threads", changes: "changes", map: "map" \};/);
+  assert.match(st, /const FRAME_IC = \{ agents: "threads", automations: "automation", personas: "agent-doc", changes: "changes", map: "map" \};/);
   assert.match(st, /\$\{xi\(FRAME_IC\[id\], "fr-ic"\)\}<span class="fr-w">\$\{title\}<\/span>/);
   assert.match(st, /data-map-mode="tree" title="Diagram" aria-label="Diagram">\$\{ICON\.map\}/);
   assert.match(st, /data-map-mode="graph" title="Graph" aria-label="Graph">\$\{ICON\.graph\}/);

@@ -9,9 +9,12 @@ export const ORDER = ["agents", "changes", "map"];
 export const MAP_H = 260, MAP_MIN = 72;
 // Threads is sized in whole rows, never a row cut in half: a row and the gap under it are ROW px
 export const AG_ROWS = 6, ROW = 48;
+// Automations and Agents under Threads show as many rows as the project has, up to these, and never grow
+const FIXED_ROWS = 4;
 // the room Changes needs (its head, one file row, the list's foot, the diff's 120 px and margin) and a frame's head
 export const CH_MIN = 212, HEAD = 40;
 const FRAME_MIN = 96, THREADS_MIN = 4 * ROW;
+export const FIXED = /** @type {const} */ (["automations", "personas"]);
 
 /** @typedef {{ el: HTMLElement, S: StageState, fr: FrameState, frames: () => string[], view: () => string, map: { show(view: string): void, hide(): void }, persist: () => void, paint: () => void }} FramesDeps */
 
@@ -22,17 +25,20 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
   const lines = () => [.../** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll(".fr-gut"))].filter((line) => !line.hidden).length;
 
   const grows = (id = "") => q(`[data-fr="${id}"]`).classList.contains("is-grow");
+  const rowsOf = (/** @type {string} */ id) => Math.min(S.fixedN?.[id] || 0, FIXED_ROWS);
+  const fixedH = () => FIXED.reduce((h, id) => h + (q(`[data-fr="${id}"]`).hidden ? 0 : fr[id].folded ? HEAD : 44 + rowsOf(id) * ROW), 0);
   function layout() {
     // the shape's frames: one it doesn't keep is gone, with the line beside it
     const keep = new Set(frames());
     if (!keep.size) keep.add("agents");
     const on = (/** @type {string} */ id) => keep.has(id);
-    for (const id of ORDER) {
+    for (const id of [...ORDER, ...FIXED]) {
       q(`[data-fr="${id}"]`).hidden = !on(id);
     }
+    for (const id of FIXED) q(`[data-fr="${id}"]`).style.setProperty("--au-rows", String(rowsOf(id) || 1));
     q('[data-gut="agents|changes"]').hidden = !(on("agents") && (on("changes") || on("map")));
     q('[data-gut="changes|map"]').hidden = !(on("changes") && on("map"));
-    for (const id of ORDER) {
+    for (const id of /** @type {const} */ ([...ORDER, ...FIXED])) {
       const f = q(`[data-fr="${id}"]`), folded = !!fr[id].folded;
       f.classList.toggle("is-folded", folded);
       const fold = /** @type {HTMLElement} */ (f.querySelector("[data-fr-fold]"));
@@ -63,7 +69,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
     if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
         const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const mapH = !on("map") ? 0 : fr.map.folded ? HEAD : grows("map") ? 96 : fr.map.h;
-            cap = Math.max(1, Math.floor((room - changes - mapH - lines() - 44) / ROW));
+      cap = Math.max(1, Math.floor((room - changes - mapH - fixedH() - lines() - 44) / ROW));
       rows = Math.min(rows, cap);
     }
     S.agRows = rows; S.agCap = cap;
@@ -85,7 +91,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
       const room = S.stackH;
       const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       const rows = Math.min(S.agRows || 1, Math.max(1, el.querySelectorAll('[data-fr="agents"] .ag-r').length));
-      return room - changes - lines() - 44 - rows * ROW;
+      return room - changes - fixedH() - lines() - 44 - rows * ROW;
     };
     const sizeMap = (/** @type {number} */ d) => {
       const h = fr.map.h || MAP_H;
@@ -95,7 +101,7 @@ export function createFrames({ el, S, fr, frames, view, map, persist, paint }) {
     const changesTop = () => {
       const shown = (/** @type {string} */ id) => !q(`[data-fr="${id}"]`).hidden;
             const mapH = !shown("map") ? 0 : fr.map.folded ? HEAD : fr.map.h || MAP_H;
-      return S.stackH - lines() - THREADS_MIN - mapH;
+      return S.stackH - lines() - THREADS_MIN - mapH - fixedH();
     };
     const resize = (/** @type {number} */ dy) => {
       const { id, sign } = sized();

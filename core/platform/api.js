@@ -3,6 +3,7 @@
 import { blob, signedUrl, socketUrl, text, upload, urlOf } from "./http.js";
 import { projectApi } from "./project-api.js";
 import { scheduleApi } from "./schedule-response.js";
+import { personaApi } from "./persona-response.js";
 import { checkedResponse, engineStatus, requestChecked } from "./response.js";
 import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
 import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
@@ -169,6 +170,7 @@ export const api = {
   removeWorktree: (chat, ts, confirm) => chatActivityApi.removeWorktree(chat, ts, confirm),
 
   ...scheduleApi,
+  ...personaApi,
   ...projectApi,
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),

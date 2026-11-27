@@ -2,9 +2,14 @@ import type { At, Entry, Kernel } from "../../core/kernel/types";
 import type { Agent, Change, Group } from "./list-types";
 
 declare module "../../core/kernel/types" {
-  interface KeyedPlaceEntries { "panel.frame:map": MapFrame; "panel.frame:changes": ChangesFrame }
+  interface KeyedPlaceEntries {
+    "panel.frame:map": MapFrame;
+    "panel.frame:changes": ChangesFrame;
+    "panel.frame:automations": AutomationsFrame;
+    "panel.frame:personas": AutomationsFrame;
+  }
   interface PlaceEntries {
-    "panel.frame": MapFrame | ChangesFrame;
+    "panel.frame": MapFrame | ChangesFrame | AutomationsFrame;
     "panel.page": import("./pages.js").PageSpec;
     "panel.title-action": PanelTitleAction;
   }
@@ -29,6 +34,7 @@ export interface StageState {
   resume?: boolean;
   chEmpty?: boolean;
   agRows?: number;
+  fixedN?: Record<string, number>;
   agCap?: number;
 }
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
@@ -39,6 +45,13 @@ interface MapApi {
   hide(): void;
 }
 export interface MapFrame extends Entry { title: string; mount(host: HTMLElement): void | (() => void) }
+export interface AutomationsPanel {
+  count(view: string): number;
+  paint(view: string): void;
+  create(view: string): void;
+  dispose(): void;
+}
+export interface AutomationsFrame extends Entry { title: string; mount(host: HTMLElement): AutomationsPanel }
 export interface ChangesFrameOptions {
   view(): string;
   openFile(scope: { project: string; worktree?: string | null }, path: string, from?: Element | null): void;
@@ -62,6 +75,8 @@ export interface FrameState {
   changes: { folded: boolean; size?: number | null };
   agents: { folded: boolean; rows: number | null; h?: number; groups: Record<string, boolean> };
   map: { folded: boolean; h: number };
+  automations: { folded: boolean };
+  personas: { folded: boolean };
 }
 export interface PanelTitleAction extends Entry {
   label: string;

@@ -2,11 +2,15 @@
 
 import { ownSurface } from "../surfaces.js";
 
-/** @import { MapFrame, ChangesFrame, ChangesFrameOptions, StageDeps } from "./panel-types.d.ts" */
+/** @import { MapFrame, ChangesFrame, ChangesFrameOptions, AutomationsFrame, AutomationsPanel, StageDeps } from "./panel-types.d.ts" */
 
 /** @import { SurfaceScope } from "../surface-types.d.ts" */
 
-/** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: { map: HTMLElement, changes: HTMLElement } }} BindHosts */
+/** @typedef {"automations" | "personas"} FixedId */
+
+/** @typedef {{ map: HTMLElement, changes: HTMLElement, fixed: Record<FixedId, HTMLElement> }} FrameHosts */
+
+/** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: FrameHosts }} BindHosts */
 
 /** @typedef {{ options: ChangesFrameOptions, fallback: () => HTMLElement, refresh: () => void }} BindActions */
 
@@ -18,6 +22,8 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
   let changeFrame;
   /** @type {ReturnType<ChangesFrame["mount"]> | undefined} */
   let changes;
+  /** @type {Record<string, { entry: AutomationsFrame, panel: AutomationsPanel, retire: () => void }>} */
+  const fixed = {};
   let retireMap = () => {}, retireChanges = () => {};
 
   function sync() {
@@ -45,6 +51,20 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
         }, fallback);
       }
     }
+    for (const id of /** @type {FixedId[]} */ (["automations", "personas"])) syncFixed(id);
+  }
+
+  /** A frame that sizes to its rows under Threads. @param {FixedId} id */
+  function syncFixed(id) {
+    const entry = places.get("panel.frame", id), was = fixed[id];
+    if (entry === was?.entry) return;
+    was?.retire();
+    delete fixed[id];
+    if (!entry) return;
+    const panel = entry.mount(hosts.fixed[id]);
+    const gone = () => { if (fixed[id]?.panel === panel) delete fixed[id]; panel.dispose(); };
+    fixed[id] = { entry, panel, retire: () => {} };
+    fixed[id].retire = ownSurface(scope, hosts.fixed[id], gone, fallback);
   }
 
   scope.effect(() => places.watch("panel.frame", () => { sync(); refresh(); }));
@@ -52,6 +72,8 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
   return {
     get map() { return mapFrame ? mapControls?.() : undefined; },
     get changes() { return changes; },
+    /** @param {FixedId} id */
+    fixed: (id) => fixed[id]?.panel,
     /** @param {string} theme */
     theme(theme) { changeFrame?.theme(theme); },
   };

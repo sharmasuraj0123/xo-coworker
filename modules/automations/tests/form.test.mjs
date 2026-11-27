@@ -1,0 +1,80 @@
+// @ts-check
+
+import assert from "node:assert/strict";
+import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf } from "../form.js";
+import { automationsOf } from "../model.js";
+import { job, persona } from "./fakes.mjs";
+
+const now = new Date(2026, 10, 25, 8, 0).getTime();
+const [a] = automationsOf(/** @type {never} */ ([job({ approved_by: { review_id: "rv1" }, created_by: { kind: "agent" } })]));
+const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:00[+-]\d\d:\d\d$/;
+
+const fresh = { ...valuesOf(null, "chat_a", now), name: " Weekly ", prompt: "Sum up " };
+assert.equal(problemOf({ ...fresh, name: "" }, now), "Give it a name.");
+assert.equal(problemOf({ ...fresh, prompt: " " }, now), "Say what it should do each time.");
+assert.equal(problemOf({ ...fresh, chat: "" }, now), "Choose a project.");
+assert.equal(problemOf({ ...fresh, repeat: "once", date: "2026-11-24", time: "09:00" }, now), "Choose a time that hasn't passed.");
+assert.equal(problemOf(fresh, now), "");
+
+const zone = () => "Europe/London";
+const weekly = bodyOf({ ...fresh, repeat: "week", days: [5, 1], time: "07:30" }, null, now, zone);
+assert.equal(weekly.name, "Weekly");
+assert.equal(weekly.prompt, "Sum up");
+assert.deepEqual(weekly.schedule, { days: ["mon", "fri"], time: "07:30", tz: "Europe/London" }, "the chosen days, in the browser's zone");
+assert.deepEqual([weekly.every_seconds, weekly.first_run_at], [null, null], "a calendar rule says when it runs by itself");
+assert.equal(weekly.enabled, true, "a new one is on");
+assert.equal(weekly.agent, null, "a new one runs on the project's default");
+assert.deepEqual(bodyOf({ ...fresh, repeat: "weekdays" }, null, now, zone).schedule, { days: "weekdays", time: "09:00", tz: "Europe/London" });
+assert.deepEqual(bodyOf({ ...fresh, repeat: "month", dom: "last" }, null, now, zone).schedule,
+  { day_of_month: "last", time: "09:00", tz: "Europe/London" });
+assert.equal(bodyOf({ ...fresh, repeat: "day" }, null, now, zone).schedule?.days?.length, 7);
+
+const hourly = bodyOf({ ...fresh, repeat: "hours", hours: 6 }, null, now, zone);
+assert.deepEqual([hourly.every_seconds, hourly.schedule], [6 * 3600, null], "an interval clears any rule it had");
+assert.match(hourly.first_run_at ?? "", ISO, "the browser's own offset, as XO Space asks");
+const once = bodyOf({ ...fresh, repeat: "once", date: "2026-11-30", time: "10:00" }, null, now, zone);
+assert.equal(once.every_seconds, null);
+assert.equal(new Date(once.first_run_at ?? "").getDate(), 30);
+
+assert.equal(problemOf({ ...fresh, name: "Morning: what changed" }, now), "Name it with letters, numbers, spaces, dots, dashes or underscores, up to 64.",
+  "XO Space refuses a colon in a name");
+assert.equal(problemOf({ ...fresh, name: copyName("x".repeat(64)) }, now), "", "a copy's name still fits");
+
+const edited = bodyOf({ ...valuesOf(a, a.project, now), name: "Renamed" }, a, now);
+assert.equal(edited.name, "Renamed");
+assert.deepEqual([edited.agent, edited.model, edited.effort, edited.description], ["claude", "opus", "high", "Checks"], "edits keep what the form doesn't show");
+assert.equal(edited.every_seconds, null, "a daily interval saves as a daily rule, which keeps its wall time");
+assert.equal(edited.schedule?.days?.length, 7);
+assert.equal(valuesOf(a, a.project, now).repeat, "day");
+
+const [ruled] = automationsOf(/** @type {never} */ ([job({ every_seconds: null, first_run_at: null, persona: { name: "triage", level: "space" },
+  schedule: { days: ["mon", "thu"], time: "18:15", tz: "Asia/Kolkata" } })]));
+const back = valuesOf(ruled, ruled.project, now);
+assert.deepEqual([back.repeat, back.days, back.time, back.persona?.name], ["week", [1, 4], "18:15", "triage"]);
+assert.equal(bodyOf(back, ruled, now, zone).schedule?.tz, "Asia/Kolkata", "an edit keeps the rule's own zone");
+
+const agents = /** @type {never[]} */ ([persona({ name: "helper", level: "space" }), persona(),
+  persona({ name: "release-checker", level: "space", shadowed: { name: "release-checker", level: "project" } }),
+  persona({ name: "broken", problems: [{ line: 1, key: null, message: "No name." }] })]);
+const picker = formHtml(back, null, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents })
+  .match(/<xo-select name="persona"[^>]*>(.*?)<\/xo-select>/)?.[1] ?? "";
+assert.deepEqual([...picker.matchAll(/value="([^"]*)"/g)].map((m) => m[1]), ["space:triage", "project:release-checker", "space:helper", ""],
+  "the project's own first, then the Space's, then none; replaced and broken ones aren't offered; a chosen one not listed stays on top");
+
+/** @param {Record<string, string>} fields */
+const typedForm = (fields) => {
+  const querySelector = (sel = "") => {
+    const name = /name="([^"]+)"/.exec(sel)?.[1] ?? "";
+    return name in fields ? { value: fields[name] } : null;
+  };
+  return /** @type {never} */ ({ querySelector });
+};
+const mine = { ...back, chat: "chat_a" };
+assert.deepEqual(readForm(typedForm({ persona: "project:release-checker" }), mine).persona, { level: "project", name: "release-checker" });
+assert.equal(readForm(typedForm({ persona: "" }), mine).persona, null, "No agent saves none");
+assert.equal(readForm(typedForm({ persona: "project:release-checker", chat: "chat_b" }), mine).persona, null,
+  "a project's own agent doesn't follow the automation to another project");
+assert.deepEqual(readForm(typedForm({ persona: "space:helper", chat: "chat_b" }), mine).persona, { level: "space", name: "helper" });
+assert.deepEqual(bodyOf({ ...mine, persona: { level: "space", name: "helper" } }, null, now, zone).persona, { level: "space", name: "helper" });
+
+console.log("form: ok");

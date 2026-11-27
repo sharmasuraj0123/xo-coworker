@@ -5,7 +5,7 @@ import { dom } from "../../tests/lib/dom.mjs";
 import { createSideRows } from "../rail/rows.js";
 
 test("Chats holds the Workspace: its row is on there, and its coordinator lights the Chats dot", async () => {
-  const nav = ["home", "chats", "arts", "lp", "more"].map((place) => `<button id="nv-${place}"><span id="${place}-n"></span></button>`).join("");
+  const nav = ["home", "chats", "arts", "auto", "lp", "more"].map((place) => `<button id="nv-${place}"><span id="${place}-n"></span></button>`).join("");
   const { document } = await dom(`<aside id="side"><nav class="nav">${nav}<span id="chats-live"></span></nav><div id="projects"></div></aside>`);
   const side = document.getElementById("side"), matches = side.matches.bind(side);
   side.matches = (selector) => selector === ":focus-within" ? false : matches(selector);

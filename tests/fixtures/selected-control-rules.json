@@ -1,6 +1,7 @@
 [
   ".ar-kinds button[aria-checked=\"true\"]",
   ".at-list li[aria-selected=\"true\"]",
+  ".au-days button[aria-pressed=\"true\"]",
   ".cp-mode button[aria-checked=\"true\"]",
   ".dd-row.is-cur",
   ".dd-row[aria-selected=\"true\"]",

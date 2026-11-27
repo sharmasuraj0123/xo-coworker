@@ -1,5 +1,6 @@
 import type { ProjectApi } from "./project-response-types";
 import type { ScheduleApi } from "./schedule-response-types";
+import type { PersonaApi } from "./persona-response-types";
 import type { Policies, Router, RouterModel, Runtime, RuntimeModel } from "./runtime-response-types.d.ts";
 import type {
   AbortReceipt, ActiveTurn, ChatRecord, CursorPage, HopRecord, MessageRecord, ObservedPage, PromptReceipt,
@@ -20,7 +21,7 @@ interface ReadOptions { signal?: AbortSignal }
 type SignInApi = typeof import("./sign-in-response.js").signInApi;
 type LifecycleApi = typeof import("./lifecycle-response.js").lifecycleApi;
 
-export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, SignInApi, LifecycleApi, ActionsApi {
+export interface Api extends ProjectApi, ScheduleApi, PersonaApi, TerminalApi, AuthApi, SignInApi, LifecycleApi, ActionsApi {
   status(options?: ReadOptions): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Promise<{ runtimes: Runtime[] }>;
   models(runtime: string, options?: ReadOptions): Promise<{ models: RuntimeModel[] }>;

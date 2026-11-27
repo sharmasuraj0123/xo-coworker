@@ -2,8 +2,8 @@
 import { layerQueries } from "./layer-queries.js";
 
 const ORDER = {
-  back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
-  escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
+  back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions", "automations"],
+  escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup", "automations"],
   tab: ["keys", "jump", "settings", "drawer"],
 };
 /** @import { ModuleContext, Layer } from "../core/kernel/types" */

@@ -44,8 +44,9 @@ export function createSideRows(scope, { view, world, CH, D, projects, convThread
     requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current) || current === "ws");
     requireHtml("#nv-arts", "button").classList.toggle("is-on", current === "artifacts");
     requireHtml("#nv-lp", "button").classList.toggle("is-on", current === "launchpad");
+    requireHtml("#nv-auto", "button").classList.toggle("is-on", current === "automations");
     // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
-    for (const id of ["nv-home", "nv-chats", "nv-arts", "nv-lp"]) {
+    for (const id of ["nv-home", "nv-chats", "nv-arts", "nv-auto", "nv-lp"]) {
       const b = requireHtml("#" + id, "button");
       if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page");
       else b.removeAttribute("aria-current");

@@ -37,10 +37,15 @@ const routes = [
   ["GET", "/schedules", () => api.schedules(), { jobs: [fixture.job, fixture.agentJob] }, (v) => { v.jobs = [{}]; }],
   ["GET", schedule, () => api.schedule(job), fixture.job, (v) => { v.last_result = { status: "ok" }; }],
   ["GET", schedule + "/runs", () => api.scheduleRuns(job), fixture.runs, (v) => { v.runs = [{ type: "job.run" }]; }],
+  ["GET", "/schedules", () => api.schedules(undefined, 14), { jobs: [fixture.liveAgentJob] }, (v) => { v.jobs = [{ ...fixture.liveAgentJob,
+    schedule: { days: "weekdays" } }]; }],
+  ["GET", schedule + "/runs", () => api.scheduleRuns(job), fixture.agentRuns, (v) => { v.runs = [{ fire_at: "x", thread: { ts: 1 } }]; }],
+  ["GET", "/schedules/time-zone", () => api.scheduleZone(), fixture.zone, (v) => { v.tz = null; }],
+  ["PUT", "/schedules/time-zone", () => api.setScheduleZone("Europe/London"), fixture.zone, (v) => { delete v.tz; }],
 ];
 
 for (const [method, path, call, sample, alter] of routes) {
-  test(`${method} ${path} checks the response before publishing it`, async ({ mock }) => {
+  test(`${method} ${path} checks the response before publishing it (${Object.keys(sample).join(",").slice(0, 40)})`, async ({ mock }) => {
     const invalid = { ...sample };
     alter(invalid);
     let value = sample;

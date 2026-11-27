@@ -5,6 +5,7 @@
 export const PAGE_REGIONS = `
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
       <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
+      <section class="auto" id="auto" aria-labelledby="auto-h" tabindex="-1" hidden></section>
 `;
 
 export const MAIN_LAYERS = `

@@ -27,15 +27,15 @@ let jumps = 0;
 const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
 const SIDE = createSide({ ...deps, scope });
 
-const ids = ["home", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
-assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts"] }, "the default: Home, Chats, Artifacts; Launchpad and Settings' pages in More");
+const ids = ["home", "chats", "arts", "automations", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
+assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "chats", "arts", "automations"] }, "the default: Home, Chats, Artifacts, Automations; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 
 // More's pins from before carry over
 store.set("xo-side-pins", JSON.stringify(["rules", "gone"]));
-assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "rules"]);
+assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "automations", "rules"]);
 store.set("xo-side-bar", "{broken");
-assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "rules"], "invalid legacy JSON falls back to the old pins");
+assert.deepEqual(SIDE.bar().shown, ["home", "chats", "arts", "automations", "rules"], "invalid legacy JSON falls back to the old pins");
 store.clear();
 
 const browserStorage = globalThis.localStorage;
@@ -60,18 +60,18 @@ try {
 
 // keep and leave: a place in the bar or in More
 SIDE.pin("launchpad", true); SIDE.pin("chats", false); SIDE.pin("worktrees", true);
-assert.deepEqual(SIDE.bar().shown, ["home", "arts", "launchpad", "worktrees"], "Launchpad pinned back from More");
+assert.deepEqual(SIDE.bar().shown, ["home", "arts", "automations", "launchpad", "worktrees"], "Launchpad pinned back from More");
 assert.ok(!SIDE.isDefault());
 
 // reorder: one step (the grip's ↑ ↓), at the ends it stays; before another (a drop), or to the end
-SIDE.move("arts", -1); assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "arts", "chats", "launchpad"]);
+SIDE.move("arts", -1); assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "arts", "chats", "automations"]);
 SIDE.move("home", -1); assert.equal(SIDE.bar().order[0], "home");
 SIDE.move("keys", 1); assert.equal(SIDE.bar().order.at(-1), "keys");
 SIDE.move("worktrees", 0, "home"); assert.equal(SIDE.bar().order[0], "worktrees");
 SIDE.move("home", 0, ""); assert.equal(SIDE.bar().order.at(-1), "home");
 
 // kept in your shape, not this browser
-assert.deepEqual(mine.layout.side.shown, ["home", "arts", "launchpad", "worktrees"]);
+assert.deepEqual(mine.layout.side.shown, ["home", "arts", "automations", "launchpad", "worktrees"]);
 assert.ok(!store.has("xo-side-bar"));
 
 // what's saved is made whole: an unknown place is dropped, a new one joins at the end, hidden
@@ -110,6 +110,7 @@ const grip = pop.querySelector('[data-se-grip="launchpad"]');
 assert.equal(grip.getAttribute("aria-label"), "Move Launchpad: up or down arrow");
 assert.equal(Boolean(grip.querySelector("svg")), true);
 grip.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
+pop.querySelector('[data-se-grip="launchpad"]').dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
 pop.querySelector('[data-se-grip="launchpad"]').dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
 assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "launchpad", "chats", "arts"]);
 same(document.activeElement, pop.querySelector('[data-se-grip="launchpad"]'));
