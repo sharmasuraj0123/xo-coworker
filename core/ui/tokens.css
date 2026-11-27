@@ -154,7 +154,6 @@
   --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
   /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
-  --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
   --note-h:var(--h-ctl); --note-btn:var(--h-sm);
   --pop-x:10px;
   --pop-list-h:min(296px,40dvh);

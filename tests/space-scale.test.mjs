@@ -27,8 +27,7 @@ test("one-line controls and the dock use the shared heights", () => {
 
   const baseTokens = stylesheetRows.filter((row) => row.context.length === 2
     && row.context[0].params === "tokens" && row.context[1].selector === ":root");
-  assert.equal(baseTokens.find((row) => row.property === "--dock-bar")?.value, "var(--h-row-act)");
-  assert.equal(baseTokens.find((row) => row.property === "--dock-btn")?.value, "var(--h-ctl)");
+  assert.equal(baseTokens.find((row) => row.property === "--dock-bar"), undefined);
 });
 
 test("the main bar has 12px vertical padding and the thread header stacks its back line", () => {

@@ -2,7 +2,7 @@
 .rn-live{display:none}
 
 @media (max-width:760px){
-  :root{--dock-bar:var(--h-hit);--dock-btn:var(--h-touch);--note-h:var(--h-touch);--comp-ctl:var(--h-touch);--card-pad:var(--s-4)}
+  :root{--note-h:var(--h-touch);--comp-ctl:var(--h-touch);--card-pad:var(--s-4)}
   :root:root .phonebar{padding:6px var(--s-4) 5px 6px}
   :root:root .phonebar .help.gear,
   :root:root .top :is(.tw-act,.stg-btn){border-radius:var(--r-lg)}
