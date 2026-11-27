@@ -49,14 +49,6 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
   padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);
   border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:var(--e-composer-idle)}
 
-/* the lines a message is about, above the composer's field (Ask about this, from a file) */
-.cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
-.cref[hidden]{display:none}
-.cref .lk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cref-x{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4)}
-.cref-x:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.cref-x svg{width:var(--ic-sm);height:var(--ic-sm)}
-.cref-x:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .composer:focus-within{border-color:var(--line-composer-focus);box-shadow:var(--e-composer-focused)}
 /* attach and Send are --comp-ctl circles --comp-in from the edge (concentric with --r-card); the text starts on the paperclip's glyph */
 .composer-field{position:relative;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}

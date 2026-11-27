@@ -29,11 +29,12 @@ function referenceHtml({ path, name, a, b }) {
   const single = a === b;
   const title = lines ? `${path}, ${single ? "line" : "lines"} ${lines}` : path;
   const attrs = lines ? ` data-ref-a="${a}" data-ref-b="${b}"` : "";
-  const text = lines ? `${esc(name)} · ${lines}` : esc(name);
+  const what = lines ? `${single ? "Line" : "Lines"} ${lines}` : "Whole file";
   const target = lines ? (single ? "the line" : "the lines") : esc(name || path.split("/").pop());
   const hint = lines ? (single ? "Take it out" : "Take them out") : "Take the file out";
-  return `<a href="#${esc(path)}" class="lk lk-in lk-file" data-ref="${esc(path)}"${attrs} title="${esc(title)}">`
-    + `<span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${text}</span></a>`
-    + `<button type="button" class="cref-x" data-lref-x aria-label="Take ${target} out of this message"`
-    + ` title="${hint}">${ICON.close}</button>`;
+  return `<div class="att is-ref"><a href="#${esc(path)}" class="att-open" data-ref="${esc(path)}"${attrs} title="${esc(title)}">`
+    + `<span class="att-ic">${fileIcon(name)}</span>`
+    + `<span class="att-t"><span class="att-n">${esc(name)}</span><span class="att-m">${what}</span></span></a>`
+    + `<button type="button" class="att-b" data-lref-x aria-label="Take ${target} out of this message"`
+    + ` title="${hint}">${ICON.close}</button></div>`;
 }

@@ -46,6 +46,11 @@ assert.equal(capsule?.getAttribute("data-ref"), "src/index.js");
 assert.equal(capsule?.getAttribute("data-ref-a"), "8");
 assert.equal(capsule?.getAttribute("data-ref-b"), "11");
 const removal = document.querySelector("#cref [data-lref-x]");
+const card = document.querySelector("#cref > .att");
+assert.ok(card?.querySelector(".att-ic svg") && card.contains(capsule) && card.contains(removal), "the lines attach as a card, like a file");
+assert.equal(card?.querySelector(".att-n")?.textContent, "index.js");
+assert.equal(card?.querySelector(".att-m")?.textContent, "Lines 8–11");
+assert.ok(removal?.classList.contains("att-b"), "the card's own remove button");
 assert.equal(removal?.getAttribute("aria-label"), "Take the lines out of this message");
 lrefRender();
 assert.ok(document.querySelector("#cref [data-lref-x]") === removal, "redrawing preserves the line reference control");
@@ -57,6 +62,7 @@ assert.equal(question.composeAbout(file, 8, 11), false, "another place's compose
 assert.ok(question.askAboutFile(file));
 assert.equal(view, "t:thread-1");
 assert.equal(document.querySelector("#cref [data-ref]")?.getAttribute("data-ref-a"), null);
+assert.equal(document.querySelector("#cref .att-m")?.textContent, "Whole file");
 assert.deepEqual(deliveries, []);
 
 view = "p:elsewhere";
