@@ -52,3 +52,15 @@ test("a request the connection cut short is no application error; a bad answer s
   surface.report(new ApiError(0, "bad_answer", "XO's answer wasn't readable."), "Application error");
   assert.equal(notices.length, 1);
 });
+
+test("XO restarting is a connection state, not an application error: the proxy's 502, a gateway's bare 5xx, an engine still starting", () => {
+  const notices = [];
+  const surface = createFailureSurface(notice => notices.push(notice), fn => fn());
+  surface.report(new ApiError(502, "upstream_unreachable", "Could not reach the XO API at http://127.0.0.1:5002 (ConnectionRefusedError)."), "Application error");
+  surface.report(new ApiError(503, "engine_not_running", "Storm's engine isn't running in this server; retry shortly."), "Application error");
+  for (const status of [502, 503, 504]) surface.report(new ApiError(status, `http_${status}`, "Bad Gateway"), "Application error");
+  assert.equal(notices.length, 0);
+  surface.report(new ApiError(500, "http_500", "Internal Server Error"), "Application error");
+  surface.report(new ApiError(503, "store_failed", "The store couldn't be opened."), "Application error");
+  assert.equal(notices.length, 2);
+});
