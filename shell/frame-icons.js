@@ -11,6 +11,7 @@ export function drawPlaceIcons() {
   requireHtml("#ic-chats").innerHTML = ICON.thread;
   requireHtml("#ic-arts").innerHTML = ICON.stack;
   requireHtml("#ic-lp").innerHTML = ICON.deploy;
+  requireHtml("#ic-auto").innerHTML = ICON.automation;
   requireHtml("#ic-shells").innerHTML = ICON.shell;
 }
 

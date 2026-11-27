@@ -14,6 +14,8 @@ export interface ScheduleResult {
   already?: boolean;
   code?: string;
   reason?: string;
+  found?: boolean;
+  summary?: string;
 }
 
 export interface ScheduleRun extends ScheduleResult {
@@ -37,6 +39,8 @@ interface JobFields {
   created_at?: string;
   updated_at?: string;
   fire?: { at: string; trigger: string };
+  disabled_by?: { kind: string; reason?: string; at?: string };
+  icon?: string;
 }
 
 interface AgentJob {
@@ -69,8 +73,32 @@ export interface ScheduleRuns {
   log_path: string;
 }
 
+export interface AgentJobBody {
+  kind: "agent";
+  name: string;
+  description: string | null;
+  chat: string;
+  prompt: string;
+  agent: string | null;
+  model: string | null;
+  effort: string | null;
+  every_seconds: number | null;
+  first_run_at: string | null;
+  enabled: boolean;
+}
+
+export interface ScheduleStarted {
+  ok: true;
+  started: boolean;
+  job: ScheduledJob;
+}
+
 export interface ScheduleApi {
-  schedules(): Promise<ScheduleList>;
+  schedules(signal?: AbortSignal): Promise<ScheduleList>;
   schedule(id: string): Promise<ScheduledJob>;
-  scheduleRuns(id: string, query?: Record<string, unknown>): Promise<ScheduleRuns>;
+  scheduleRuns(id: string, query?: Record<string, unknown>, signal?: AbortSignal): Promise<ScheduleRuns>;
+  createSchedule(body: AgentJobBody): Promise<ScheduledJob>;
+  updateSchedule(id: string, body: AgentJobBody): Promise<ScheduledJob>;
+  deleteSchedule(id: string): Promise<{ ok: true; deleted: string }>;
+  runSchedule(id: string): Promise<ScheduleStarted>;
 }

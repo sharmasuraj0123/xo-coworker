@@ -124,8 +124,8 @@
 .main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--canvas);overflow:clip}
 
 .main{--rp:0px;--gut-min:28px;--col-max:calc(24 * var(--h-ctl))}
-:is(.home,.conv,.arts,.lpp,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
-.main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
+:is(.home,.conv,.arts,.lpp,.auto,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
+.main :is(.home,.conv,.arts,.auto,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){
   body.panel-open .main{--rp:var(--pw)}
   body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .main{--rp:var(--sw)}

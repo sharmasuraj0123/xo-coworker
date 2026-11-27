@@ -16,7 +16,9 @@ function isResult(value) {
     && (value.duration_seconds == null || Number.isFinite(value.duration_seconds))
     && [value.chat_id, value.thread_ts, value.reason, value.code, value.output_tail]
       .every((field) => field === undefined || typeof field === "string")
-    && (value.fire_at === undefined || textOrNull(value.fire_at)) && (value.already === undefined || typeof value.already === "boolean");
+    && (value.fire_at === undefined || textOrNull(value.fire_at)) && (value.already === undefined || typeof value.already === "boolean")
+    && (value.found === undefined || typeof value.found === "boolean")
+    && (value.summary === undefined || typeof value.summary === "string");
 }
 
 /** @param {unknown} value @returns {value is ScheduleRun} */
@@ -51,7 +53,10 @@ function isJob(value) {
     || (value.every_seconds !== null && !Number.isInteger(value.every_seconds))
     || ![value.created_at, value.updated_at].every((field) => field === undefined || typeof field === "string")
     || (value.last_result !== null && !isResult(value.last_result))) return false;
-  const fire = value.fire;
+  const { fire, disabled_by: by } = value;
+  if (by !== undefined && (!isResponseObject(by) || typeof by.kind !== "string"
+    || ![by.reason, by.at].every((field) => field === undefined || typeof field === "string"))) return false;
+  if (value.icon !== undefined && typeof value.icon !== "string") return false;
   if (fire !== undefined && (!isResponseObject(fire) || typeof fire.at !== "string" || typeof fire.trigger !== "string")) return false;
   if (value.kind === "agent") return isAgentDefinition(value);
   return (value.kind === undefined || value.kind === "command") && isCommandDefinition(value);
@@ -64,9 +69,21 @@ const isList = (value) => isResponseObject(value) && Array.isArray(value.jobs) &
 const isRuns = (value) => isResponseObject(value) && typeof value.job_id === "string" && typeof value.log_path === "string"
   && Array.isArray(value.runs) && value.runs.every(isRun);
 
+/** @param {unknown} value @returns {value is import("./schedule-response-types").ScheduleStarted} */
+const isStarted = (value) => isResponseObject(value) && value.ok === true && typeof value.started === "boolean" && isJob(value.job);
+
+/** @param {unknown} value @returns {value is { ok: true, deleted: string }} */
+const isDeleted = (value) => isResponseObject(value) && value.ok === true && typeof value.deleted === "string";
+
+const at = (/** @type {string} */ id) => `/schedules/${encodeURIComponent(id)}`;
+
 /** @type {import("./schedule-response-types").ScheduleApi} */
 export const scheduleApi = {
-  schedules: () => requestChecked("/schedules", isList),
-  schedule: (id) => requestChecked(`/schedules/${encodeURIComponent(id)}`, isJob),
-  scheduleRuns: (id, query = {}) => requestChecked(`/schedules/${encodeURIComponent(id)}/runs`, isRuns, { query }),
+  schedules: (signal) => requestChecked("/schedules", isList, { signal }),
+  schedule: (id) => requestChecked(at(id), isJob),
+  scheduleRuns: (id, query = {}, signal) => requestChecked(`${at(id)}/runs`, isRuns, { query, signal }),
+  createSchedule: (body) => requestChecked("/schedules", isJob, { method: "POST", body }),
+  updateSchedule: (id, body) => requestChecked(at(id), isJob, { method: "PUT", body }),
+  deleteSchedule: (id) => requestChecked(at(id), isDeleted, { method: "DELETE" }),
+  runSchedule: (id) => requestChecked(`${at(id)}/run`, isStarted, { method: "POST", body: {} }),
 };

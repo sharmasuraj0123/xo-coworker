@@ -42,8 +42,9 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       { id: "home", name: "Home", sel: "#nv-home" },
       { id: "chats", name: "Chats", sel: "#nv-chats" },
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
+      { id: "automations", name: "Automations", sel: "#nv-auto" },
     ],
-    SHOWN: ["home", "chats", "arts"],
+    SHOWN: ["home", "chats", "arts", "automations"],
     PLACES: [
       { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
       { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },

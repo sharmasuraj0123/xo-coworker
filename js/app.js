@@ -37,6 +37,7 @@ import { jumpModule } from "../modules/search/jump-module.js";
 import { changeDataModule } from "../modules/changes/data.js";
 import { threadControlsModule, threadActionsModule } from "../modules/threads/action-surface.js";
 import { githubModule } from "../modules/github/surface.js";
+import { automationsModule } from "../modules/automations/module.js";
 import { fileQuestionsModule } from "../modules/conversation/file-question-module.js";
 import { changesModule } from "../modules/changes/module.js";
 import { createProjectModule, projectDescriptionsModule } from "../modules/create-project/module.js";
@@ -87,6 +88,7 @@ export default await bootShell([
   workspaceRendererModule,
   conversationContentModule,
   githubModule,
+  automationsModule,
   sinceModule,
   artifactsModule,
   threadPageModule,
