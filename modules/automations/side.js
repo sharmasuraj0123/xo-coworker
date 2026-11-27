@@ -134,7 +134,7 @@ export function createSide(deps) {
     report.close();
     Object.assign(st, { id: next, editing: edit, menu: false, confirm: false, problem: "" });
     const a = current();
-    st.values = edit ? valuesOf(a, a?.project ?? deps.projects()[0]?.chat ?? "", now()) : null;
+    st.values = edit ? valuesOf(a, a?.project ?? deps.here()?.chat ?? "", now()) : null;
     if (a && !edit && st.runs.id !== a.id) void readRuns(a.id);
     deps.shown(st.id ?? (edit ? "" : null));
     paint();
@@ -199,7 +199,7 @@ export function createSide(deps) {
     duplicate,
     /** @param {string} chat */
     create(chat) {
-      const told = deps.store.state.list.some((x) => x.notify !== null), v = valuesOf(null, chat || deps.projects()[0]?.chat || "", now());
+      const told = deps.store.state.list.some((x) => x.notify !== null), v = valuesOf(null, chat || deps.here()?.chat || "", now());
       draft.open(told ? { ...v, notify: "found", onFailure: "tell" } : v);
     },
     close,

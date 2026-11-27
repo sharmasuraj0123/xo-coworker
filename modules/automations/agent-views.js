@@ -6,7 +6,7 @@ import { EFFORT_WORD, modelWord, rtName } from "../../core/services/runtimes.js"
 import { xi } from "../../core/ui/icons/icon.js";
 import { MAY_WORDS, frontOf, keyOf, mayOf, titleOf } from "./agent-file.js";
 import { effortOpts, modelOpts, runtimeOpts } from "./runs-on.js";
-import { menuItem, tile } from "./views.js";
+import { tile } from "./views.js";
 
 /** @import { Importable } from "../../core/platform/persona-response-types" */
 
@@ -40,7 +40,7 @@ function agentRowHtml(a, selected) {
   const key = esc(keyOf(a)), name = esc(titleOf(a.name));
   return `<li class="au-row${a.shadowed ? " is-off" : ""}${selected === keyOf(a) ? " is-on" : ""}">` +
     `<button type="button" class="au-open" data-ag-act="open" data-ag-key="${key}" aria-label="${name}, ${esc(aboutWords(a))}"></button>` +
-    `<span class="au-t"></span>${tile(ICON)}<span class="au-n"><b>${name}</b><small>${esc(aboutWords(a))}</small></span>` +
+    `${tile(ICON)}<span class="au-n"><b>${name}</b><small>${esc(aboutWords(a))}</small></span>` +
     `<span class="au-r${a.problems.length ? " is-err" : ""}">` +
     `${a.problems.length ? `${xi("x-circle")}Can't run` : esc(usedWords(a))}</span>` +
     `<span></span></li>`;
@@ -48,7 +48,7 @@ function agentRowHtml(a, selected) {
 
 /** @param {string} title @param {Agent[]} list @param {string | null} selected */
 export const agentGroupHtml = (title, list, selected) => list.length
-  ? `<h2 class="au-day">${esc(title)}</h2><ul class="au-list">${list.map((a) => agentRowHtml(a, selected)).join("")}</ul>` : "";
+  ? `<h2 class="au-day">${esc(title)}</h2><ul class="au-list is-plain">${list.map((a) => agentRowHtml(a, selected)).join("")}</ul>` : "";
 
 /** @param {string} icon @param {string} k @param {string} v */
 const kv = (icon, k, v) => `<li>${xi(icon)}<span>${esc(k)}</span><b>${esc(v)}</b></li>`;
@@ -60,11 +60,15 @@ const mayWords = (a, may) => {
 };
 
 
+/** A menu row the agent side acts on. @param {string} act @param {string} icon @param {string} words */
+const agItem = (act, icon, words, cls = "") =>
+  `<button type="button" role="menuitem" data-ag-act="${act}"${cls ? ` class="${cls}"` : ""}>${xi(icon)}${words}</button>`;
+
 /** @param {Agent} a @param {AgentDetailState} s */
 function actsHtml(a, s) {
   const key = keyOf(a);
-  const menu = s.menu ? `<span class="au-menu" role="menu" tabindex="-1">${menuItem("ag-file", "", "file", "Edit as file")}` +
-    `<span class="au-sep" role="separator"></span>${menuItem("ag-delete", "", "delete", "Delete…", "is-danger")}</span>` : "";
+  const menu = s.menu ? `<span class="au-menu" role="menu" tabindex="-1">${agItem("ag-file", "doc", "Edit as file")}` +
+    `<span class="au-sep" role="separator"></span>${agItem("ag-delete", "delete", "Delete…", "is-danger")}</span>` : "";
   return `<div class="au-acts"><button type="button" class="btn" data-ag-act="try"${a.problems.length ? " disabled" : ""}` +
     `${busyAttrs(`ag-try:${key}`)}>${xi("play")}Try once</button>` +
     `<button type="button" class="btn" data-ag-act="edit">${xi("edit")}Edit</button>` +
@@ -83,13 +87,17 @@ function confirmHtml(a) {
     `<button type="button" class="btn btn-danger" data-ag-act="delete-now">Delete</button></div></div>`;
 }
 
+/** Where a try runs; none until one is picked. @param {{ id: string, name: string }[]} projects @param {string} on */
+const projectOpts = (projects, on) => `<option value="" disabled${on ? "" : " selected"}>Choose a project</option>` +
+  projects.map((p) => `<option value="${esc(p.id)}"${p.id === on ? " selected" : ""}>${esc(p.name)}</option>`).join("");
+
 /** The task a try runs, and where. @param {Agent} a @param {AgentDetailState} s @param {TryState} t */
 function tryHtml(a, s, t) {
   const pick = a.level === "space" && !s.project ? `<label class="field"><span>In</span><xo-select name="try-project" class="set-sel"` +
-    ` aria-label="Project">${s.projects.map((p) => `<option value="${esc(p.id)}"${p.id === t.project ? " selected" : ""}>` +
-    `${esc(p.name)}</option>`).join("")}</xo-select></label>` : "";
+    ` aria-label="Project">${projectOpts(s.projects, t.project)}</xo-select></label>` : "";
   return `<form class="au-try" data-ag-try><label class="field"><span>Try it on</span><textarea name="task" rows="3"` +
     ` placeholder="Say in a few lines what you do and how you would go about it.">${esc(t.task)}</textarea></label>${pick}` +
+    (t.problem ? `<p class="au-problem" role="alert">${esc(t.problem)}</p>` : "") +
     `<p class="au-note">A try only reads: nothing is saved, sent or committed. It opens as a thread.</p>` +
     `<div class="set-fa"><button type="button" class="btn" data-ag-act="try-cancel">Cancel</button>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(t.busy)}>${xi("play")}Try once</button></div></form>`;
@@ -157,7 +165,9 @@ export function agentFormHtml(f) {
     ` placeholder="Checks what's live against the branch and says what isn't deployed.">${esc(d.description)}</textarea></label>` +
     `<label class="field"><span>Instructions</span><textarea name="body" rows="8"` +
     ` placeholder="What it does, step by step, and what it reports.">${esc(d.body)}</textarea></label>` +
-    settingsHtml(f) + `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
+    settingsHtml(f) + (f.tryIn ? `<ul class="au-kv">${row("play", "Try in", "try-project",
+      projectOpts(f.tryIn, f.tryOn || (d.level === "project" ? d.project : "")))}</ul>` : "") +
+    `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
     (f.problem ? `<p class="au-problem" role="alert">${esc(f.problem)}</p>` : "") + `</form>`;
 }
 
@@ -168,12 +178,12 @@ const importAbout = (item) => { const about = frontOf(item.text).description; re
 export function importHtml(items, busy) {
   if (!items) return `<p class="au-none">Looking for agents…</p>`;
   if (!items.length) return `<p class="au-none">No agents to bring in.</p>`;
-  return `<ul class="au-list">${items.map((item, i) => {
+  return `<ul class="au-list is-plain">${items.map((item, i) => {
     const left = item.dropped.length ? ` · Leaves out ${item.dropped.join(", ")}` : "";
     const why = item.problems.length ? `<span class="au-r is-err">${xi("x-circle")}Can't map</span>`
       : `<button type="button" class="btn" data-ag-act="import" data-ag-i="${i}"${busyAttrs(`${busy}:${i}`)}>Bring in</button>`;
-    return `<li class="au-row"><span class="au-t"></span>${tile(ICON)}<span class="au-n"><b>${esc(titleOf(item.name))}</b>` +
-      `<small>${esc(importAbout(item) || item.from)}` +
+    return `<li class="au-row">${tile(ICON)}<span class="au-n"><b>${esc(titleOf(item.name))}</b>` +
+      `<small><span>${esc(importAbout(item) || item.from)}</span>` +
       `<span>${esc(`${item.from} · ${item.level === "space" ? "Every project" : "This project"}${left}`)}` +
       `</span></small></span>${why}<span></span></li>`;
   }).join("")}</ul>`;

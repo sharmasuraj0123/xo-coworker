@@ -42,7 +42,7 @@ async function readBody(st, deps, a, paint) {
 /** A button on an agent. @param {string} what @param {Element} target @param {Agent} a @param {Calls & { paint: () => void }} c */
 function act(what, target, a, { st, deps, show, close, paint }) {
   if (what === "edit") { if (st.body !== null) show(st.key, true); return; }
-  const project = deps.project() || a.project || deps.projects()[0]?.id || "";
+  const project = deps.project() || a.project || "";
   if (what === "try") st.trying = { task: "", project, busy: `ag-try:${st.key}` };
   else if (what === "try-cancel") st.trying = null;
   else if (what === "ag-file") deps.openFile(a.owner, a.path, target);
@@ -91,7 +91,8 @@ export function createAgentSide(deps) {
         ? [[deps.project(), `${deps.projectName(deps.project())} only`], ["space", "Every project"]]
         : [["space", "Every project"], ...deps.projects().map((p) => [p.id, `${p.name} only`])]);
       const models = modelsFor(st, deps, paint), busy = `ag-save:${st.key ?? "new"}`;
-      redraw(st.host, agentFormHtml({ ...st.values, runtimes: deps.runtimes(), models, busy, isNew: !a, places }));
+      redraw(st.host, agentFormHtml({ ...st.values, runtimes: deps.runtimes(), models, busy, isNew: !a, places,
+        tryIn: deps.project() ? null : deps.projects() }));
       return;
     }
     if (!a) { redraw(st.host, st.key ? `<p class="au-none">This agent is gone.</p>` : ""); return; }
@@ -168,7 +169,9 @@ export function createAgentSide(deps) {
     if (what === "try-form" && st.values) {
       const form = st.host.querySelector("form[data-ag-form]");
       const v = st.values = form instanceof HTMLElement ? readAgentForm(form, st.values, may()) : st.values;
-      void tryOnce({ text: agentText(v) }, v.draft.project || deps.project() || deps.projects()[0]?.id || "", "");
+      const project = deps.project() || v.tryOn || (v.draft.level === "project" ? v.draft.project : "");
+      v.problem = project ? "" : "Choose a project to try it on.";
+      if (project) void tryOnce({ text: agentText(v) }, project, ""); else paint();
       return;
     }
     const a = current();
@@ -184,7 +187,9 @@ export function createAgentSide(deps) {
         const el = form.querySelector(`[name="${n}"]`);
         return el && "value" in el ? String(el.value) : "";
       };
-      void tryOnce({ persona: { name: a.name, level: a.level } }, read("try-project") || st.trying.project, read("task"));
+      const project = read("try-project") || st.trying.project;
+      if (!project) { Object.assign(st.trying, { task: read("task"), problem: "Choose a project to try it on." }); paint(); return; }
+      void tryOnce({ persona: { name: a.name, level: a.level } }, project, read("task"));
     } else void save();
   }
 

@@ -6,17 +6,17 @@ import { fileOf, isName, mayOf, slugOf, toolsOf } from "./agent-file.js";
 
 /** @import { Agent, AgentDraft, MayKey } from "./types" */
 
-/** @typedef {{ title: string, draft: AgentDraft, may: MayKey, problem: string }} AgentValues */
+/** @typedef {{ title: string, draft: AgentDraft, may: MayKey, problem: string, tryOn: string }} AgentValues */
 
 /** @param {Agent | null} a @param {string} body @param {string} project @param {Record<string, MayChoice>} may @returns {AgentValues} */
 export function agentValues(a, body, project, may) {
   if (!a) {
-    return { title: "", may: "read", problem: "", draft: { name: "", description: "", body: "", runtime: null, model: null, effort: null,
-      tools: toolsOf("read", may), disallowedTools: [], mcpServers: null, level: project ? "project" : "space", project } };
+    return { title: "", may: "read", problem: "", tryOn: "", draft: { name: "", description: "", body: "", runtime: null, model: null,
+      effort: null, tools: toolsOf("read", may), disallowedTools: [], mcpServers: null, level: project ? "project" : "space", project } };
   }
   return { title: a.name.replace(/-+/g, " ").replace(/^\w/, (c) => c.toUpperCase()), may: mayOf(a.tools, may), problem: "",
-    draft: { name: a.name, description: a.description, body, runtime: a.runtime, model: a.model, effort: a.effort, tools: a.tools,
-      disallowedTools: a.disallowedTools, mcpServers: a.mcpServers, level: a.level, project: a.project } };
+    tryOn: "", draft: { name: a.name, description: a.description, body, runtime: a.runtime, model: a.model, effort: a.effort,
+      tools: a.tools, disallowedTools: a.disallowedTools, mcpServers: a.mcpServers, level: a.level, project: a.project } };
 }
 
 /** The form as typed. @param {ParentNode} form @param {AgentValues} was @param {Record<string, MayChoice>} may @returns {AgentValues} */
@@ -29,7 +29,8 @@ export function readAgentForm(form, was, may) {
   const d = was.draft, mayKey = /** @type {MayKey} */ (text("may", was.may));
   const kept = text("level", d.level === "space" ? "space" : d.project);
   const title = text("title", was.title);
-  return { title, may: mayKey, problem: was.problem, draft: { ...d, name: slugOf(title), description: text("description", d.description),
+  return { title, may: mayKey, problem: was.problem, tryOn: text("try-project", was.tryOn), draft: { ...d, name: slugOf(title),
+    description: text("description", d.description),
     body: text("body", d.body), runtime: text("runtime", d.runtime ?? "") || null, model: text("model", d.model ?? "").trim() || null,
     effort: text("effort", d.effort ?? "") || null, tools: mayKey === "own" ? d.tools : toolsOf(mayKey, may),
     level: kept === "space" ? "space" : "project", project: kept === "space" ? d.project : kept } };

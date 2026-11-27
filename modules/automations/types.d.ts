@@ -127,7 +127,7 @@ export interface AgentSideDeps {
 
 export interface RuntimeChange { st: AgentSideState; deps: AgentSideDeps; may: Record<string, MayChoice>; paint: () => void }
 
-export interface TryState { task: string; project: string; busy: string }
+export interface TryState { task: string; project: string; busy: string; problem?: string }
 
 export interface AgentDetailState {
   where: "page" | "panel";
@@ -145,6 +145,8 @@ export interface AgentFormState {
   title: string;
   draft: AgentDraft;
   may: MayKey;
+  tryOn: string;
+  tryIn: { id: string; name: string }[] | null;
   runtimes: string[];
   models: RuntimeModel[] | null;
   problem: string;
@@ -269,6 +271,7 @@ export interface SideDeps {
   where: "page" | "panel";
   projectName: (chat: string) => string;
   projects: () => Project[];
+  here: () => Project | null;
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
@@ -306,6 +309,7 @@ export interface PageDeps {
   agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
   projectName: (chat: string) => string;
   projects: () => Project[];
+  here: () => Project | null;
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;
   now?: () => number;

@@ -5,6 +5,7 @@ import { $, requireHtml } from "../core/platform/dom.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { redraw } from "../core/ui/redraw.js";
 import { headerActionsHtml } from "./header.js";
+import { PAGE_NAME } from "./place-context.js";
 import { createSurfaceSlots } from "./surfaces.js";
 
 /** @import { HeaderThread as Thread, HeaderNeed as Need, HeaderDeps } from "./header-types.d.ts" */
@@ -44,7 +45,7 @@ export function createTopHeader(deps, scope, schedule) {
     }
     if (t) {
       const to = location.parentOf(v) || "p:" + t.project;
-      backTo(to === "home" ? "Home" : to === "ws" ? "Workspace" : PROJ(to.slice(2)));
+      backTo(to.startsWith("p:") ? PROJ(to.slice(2)) : PAGE_NAME[to] ?? "Chats");
     }
     const { who, controls } = conversationHeaderHtml(v, t, needs);
     if (who != null) redraw($("#top-who"), who);

@@ -27,7 +27,7 @@ const REPORT_READ = 20;
 export const automationsModule = {
   manifest: {
     id: "xo.automations", version: "1.0.0", kernel: "^1.1.0",
-    needs: ["world", "announce", "navigation", "currentView", "stage", "placeContext"],
+    needs: ["world", "announce", "navigation", "navigationState", "currentView", "stage", "placeContext"],
     optional: ["files"],
     contributes: ["page:automations", "panel.frame:automations", "panel.page:automation", "panel.frame:personas", "panel.page:agent"],
   },
@@ -50,7 +50,9 @@ export const automationsModule = {
       if (thread) nav.go("t:" + ts);
       else announce("That run's thread is gone.");
     }
-    const stage = ctx.use("stage"), place = ctx.use("placeContext");
+    const stage = ctx.use("stage"), place = ctx.use("placeContext"), trail = ctx.use("navigationState");
+    const here = () => trail.recent().map((v) => projects().find((p) => p.id === place.convProject(v))).find(Boolean)
+      ?? projects()[0] ?? null;
     /** @type {(chat: string, ts: string) => void} */
     const toThread = (chat, ts) => void openThread(chat, ts);
     const personas = createPersonasStore({ api, report: reportFailure });
@@ -88,7 +90,7 @@ export const automationsModule = {
       }
       return modelLists.get(rt) ?? null;
     };
-    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
+    const sideDeps = { store, projectName, projects, here, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
       openProject, readReport, runtimes: () => runtimes, mainRuntime: () => mainRt, models };
     /** @param {string} id */
     const nameOfId = (id) => projects().find((p) => p.id === id)?.name ?? "A removed project";
@@ -98,7 +100,7 @@ export const automationsModule = {
       openFile: (owner, path, from) => ctx.optional("files")?.viewer.open({ path, name: path.split("/").pop() ?? path,
         project: owner, rel: path }, from) };
     const page = createAutomationsPage({
-      store, projectName, projects, failed, announce,
+      store, projectName, projects, here, failed, announce,
       side: (hooks) => createSide({ ...sideDeps, ...hooks, where: "page" }),
       agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
       agentList: (hooks) => createAgentList({ personas, projects, projectName: nameOfId, failed, announce, ...hooks }),
