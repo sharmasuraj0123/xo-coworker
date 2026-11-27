@@ -35,20 +35,31 @@ export function aboutWords(a) {
   return a.description || levelWords(a);
 }
 
-/** An agent as a page row. @param {Agent} a @param {string | null} selected */
-function agentRowHtml(a, selected) {
-  const key = esc(keyOf(a)), name = esc(titleOf(a.name));
+/** What a row's ••• offers; each opens the agent beside the list and does it there. @param {Agent} a @param {string} key */
+const rowMenuHtml = (a, key) => {
+  /** @param {string} what @param {string} icon @param {string} words */
+  const item = (what, icon, words, cls = "") => `<button type="button" role="menuitem" data-ag-act="row-do" data-ag-do="${what}"` +
+    ` data-ag-key="${key}"${cls ? ` class="${cls}"` : ""}>${xi(icon)}${words}</button>`;
+  return `<span class="au-menu" role="menu" tabindex="-1">${a.problems.length ? "" : item("try", "play", "Try once")}` +
+    `${item("edit", "edit", "Edit")}${item("ag-file", "doc", "Edit as file")}<span class="au-sep" role="separator"></span>` +
+    `${item("ag-delete", "delete", "Delete…", "is-danger")}</span>`;
+};
+
+/** An agent as a page row. @param {Agent} a @param {string | null} selected @param {string | null} menu */
+function agentRowHtml(a, selected, menu) {
+  const key = esc(keyOf(a)), name = esc(titleOf(a.name)), open = menu === `ag:${keyOf(a)}`;
   return `<li class="au-row${a.shadowed ? " is-off" : ""}${selected === keyOf(a) ? " is-on" : ""}">` +
     `<button type="button" class="au-open" data-ag-act="open" data-ag-key="${key}" aria-label="${name}, ${esc(aboutWords(a))}"></button>` +
     `${tile(ICON)}<span class="au-n"><b>${name}</b><small>${esc(aboutWords(a))}</small></span>` +
     `<span class="au-r${a.problems.length ? " is-err" : ""}">` +
     `${a.problems.length ? `${xi("x-circle")}Can't run` : esc(usedWords(a))}</span>` +
-    `<span></span></li>`;
+    `<button type="button" class="au-more" data-ag-act="row-menu" data-ag-key="${key}" data-au-id="ag:${key}" aria-haspopup="menu"` +
+    ` aria-expanded="${open}" aria-label="More for ${name}">${xi("more")}</button>${open ? rowMenuHtml(a, key) : ""}</li>`;
 }
 
-/** @param {string} title @param {Agent[]} list @param {string | null} selected */
-export const agentGroupHtml = (title, list, selected) => list.length
-  ? `<h2 class="au-day">${esc(title)}</h2><ul class="au-list is-plain">${list.map((a) => agentRowHtml(a, selected)).join("")}</ul>` : "";
+/** @param {string} title @param {Agent[]} list @param {string | null} selected @param {string | null} [menu] */
+export const agentGroupHtml = (title, list, selected, menu = null) => list.length ? `<h2 class="au-day">${esc(title)}</h2>` +
+  `<ul class="au-list is-plain">${list.map((a) => agentRowHtml(a, selected, menu)).join("")}</ul>` : "";
 
 /** @param {string} icon @param {string} k @param {string} v */
 const kv = (icon, k, v) => `<li>${xi(icon)}<span>${esc(k)}</span><b>${esc(v)}</b></li>`;

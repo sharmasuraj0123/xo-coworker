@@ -222,6 +222,23 @@ await t("an agent opens beside the list with its instructions, and Try once open
   await settle();
 });
 
+await t("an agent row's ••• opens the agent beside the list and does what it chose there", async () => {
+  const more = () => document.querySelector('.au-more[data-ag-key="project:alpha:release-checker"]');
+  const items = () => [...document.querySelectorAll(".au-row .au-menu [data-ag-do]")].map((b) => b.textContent);
+  assert.equal(Boolean(more()), true, "each agent row has a •••, as an automation row does");
+  await click('.au-more[data-ag-key="project:alpha:release-checker"]');
+  assert.equal(more()?.getAttribute("aria-expanded"), "true");
+  assert.deepEqual(items(), ["Try once", "Edit", "Edit as file", "Delete…"]);
+  await click('.au-row .au-menu [data-ag-do="try"]');
+  assert.deepEqual(items(), [], "the menu closes");
+  assert.equal(Boolean(agentAside().querySelector("form[data-ag-try]")), true, "Try once opens its try beside the list");
+  await click('.au-more[data-ag-key="project:alpha:release-checker"]');
+  await click('.au-row .au-menu [data-ag-do="edit"]');
+  await settle();
+  assert.equal(Boolean(agentAside().querySelector("form[data-ag-form]")), true, "Edit opens its form once its file is read");
+  await click('[data-ag-act="cancel"]');
+});
+
 await t("Edit saves the file over the version it read", async () => {
   await click('[data-ag-act="edit"]');
   const form = agentAside().querySelector("form[data-ag-form]");

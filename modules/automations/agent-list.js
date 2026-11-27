@@ -32,8 +32,9 @@ export function createAgentList(deps) {
     if (!asked) void readImportable();
     const bring = importable?.length ? `<button type="button" class="au-link au-bring" data-ag-act="bring">${xi("download")}` +
       `<span>${esc(`Bring in your Claude Code agents (${importable.length})`)}</span>${xi("chevron-right")}</button>` : "";
-    const groups = agentGroupHtml("Every project", space.agents, deps.selected()) + own.map(({ id, list }) =>
-      agentGroupHtml(deps.projectName(id), (list?.agents ?? []).filter((a) => a.level === "project"), deps.selected())).join("");
+    const on = deps.selected(), menu = deps.menu();
+    const groups = agentGroupHtml("Every project", space.agents, on, menu) + own.map(({ id, list }) =>
+      agentGroupHtml(deps.projectName(id), (list?.agents ?? []).filter((a) => a.level === "project"), on, menu)).join("");
     const failed = space.failed ? `<div class="au-empty"><b>Couldn't read your agents.</b>` +
       `<button type="button" class="btn" data-ag-act="reload">Try again</button></div>` : "";
     return bring + (groups || failed || emptyHtml("No agents yet", EMPTY));
