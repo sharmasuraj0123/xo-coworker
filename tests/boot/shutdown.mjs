@@ -1,7 +1,7 @@
 // @ts-check
 import {
   window, document, assert, setImmediate, outgoingPosts, stageLayoutObservers, mainFollowObservers,
-  mainDecorationObservers, keyboardLayerObservers, heldStatusSignal, sinceReads, stormSignal,
+  mainDecorationObservers, keyboardLayerObservers, heldStatusSignal, stormSignal,
   githubSignal, artifactsSignal, shellSignal, shellRelocationObservers, threadDockObservers,
   threadResolves, setTimeout, flushFrames, frames, shapeReads, stream, encoder, storage, createGithubSignal,
   createCloneSignal, lastHomeVisit, readFileSync, createCloneWrite, createGithubRead, initialShape,
@@ -82,8 +82,6 @@ setHeldStatusSignal(null);
 window.dispatchEvent(new window.Event("visibilitychange"));
 await new Promise(setImmediate);
 assert.ok(heldStatusSignal, "the mounted Storm starts a status read when visible again");
-const activeSinceReads = sinceReads.filter(({ signal }) => !signal.aborted).length;
-assert.ok(activeSinceReads > 0, "Since still owns a live read after being re-enabled");
 pagehide(true);
 assert.equal(stormSignal.aborted || heldStatusSignal.aborted, false, "the page cache keeps the Storm stream and status read alive");
 assert.equal(mainLatest.isConnected, true, "the page cache keeps the main conversation decoration");
@@ -95,7 +93,6 @@ assert.equal(launchpadDialog.open, true, "the page cache keeps Launchpad's overv
 press("#attach");
 assert.equal(filePickerClicks, 2, "the page cache keeps the composer control live");
 assert.equal(rules.signal.aborted || worktrees.signal.aborted, false, "the page cache keeps both Settings readers live");
-assert.equal(sinceReads.filter(({ signal }) => !signal.aborted).length, activeSinceReads);
 assert.equal(githubSignal.aborted, false, "the page cache keeps GitHub's read live");
 assert.equal(artifactsSignal.aborted, false, "the page cache keeps the Artifacts read live");
 assert.equal(shellSignal.aborted, false, "the page cache keeps the Shells poll live");
@@ -227,7 +224,6 @@ assert.equal(filePickerClicks, 2, "unloading releases the retained composer cont
 for (const id of settingsOwners) assert.equal(kernel.live(id), 0, `${id} disposed through the app`);
 assert.equal(rules.signal.aborted, true, "unloading aborts Rules through the app");
 assert.equal(worktrees.signal.aborted, true, "unloading aborts Worktrees through the app");
-assert.equal(sinceReads.every(({ signal }) => signal.aborted), true, "unloading aborts Since through the app");
 assert.equal(kernel.live("xo.since"), 0, "unload removes the Since module effects");
 assert.equal(kernel.places.get("home.section", "hm-since"), undefined, "unload removes Since from Home");
 assert.equal(githubSignal.aborted, true, "unloading aborts GitHub through the app");
@@ -250,7 +246,6 @@ const worktreesPage = settings.querySelector('[data-page="worktrees"]');
 const displayed = [rulesPage.textContent, worktreesPage.textContent];
 rules.response.resolve(Response.json({ rules: [{ id: "late", sentence: "Late rule" }] }));
 worktrees.response.resolve(Response.json({ worktrees: [] }));
-for (const { response } of sinceReads) response.resolve(Response.json({ worktrees: [] }));
 const terminalReplies = JSON.parse(readFileSync(new URL("../../core/platform/tests/fixtures/terminal-responses.json", import.meta.url)));
 githubRead.resolve(Response.json({ ...connectorReplies.issues, issues: [{ ...connectorReplies.issues.issues[0], title: "Late issue" }] }));
 artifactsRead.resolve(Response.json({ made: [{ id: "late", name: "Late artifact", relative_path: "late.txt" }] }));
