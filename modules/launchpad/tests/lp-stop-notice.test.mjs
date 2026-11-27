@@ -44,7 +44,7 @@ async function world({ stopAnswer = async () => ({}), unlinkAnswer = async () =>
   if (!linked) { stream({ type: "run", started: Date.now() - 5000 }); stream({ type: "step", step: "build", state: "doing", at: Date.now() }); }
   lp.paint("p:demo", true);
   const press = (name) => section.on.click[0]({ target: { closest: (q) => (q === "[data-lp]" ? { dataset: { lp: name } } : null) }, preventDefault() {} });
-  return { her, press, line: her.current, stream: (e) => stream(e) };
+  return { her, press, line: her.current, stream: (e) => stream(e), setLinked: (v) => { linked = v; } };
 }
 
 let passed = 0;
@@ -146,6 +146,17 @@ t("Unlink: its Undo lasts exactly as long as the unlink waits; then the same not
   l = w.line();
   assert.equal(l.mid, mid); assert.equal(l.text, "Couldn't unlink from Launchpad"); assert.match(l.sub, /Fixture offline\. It's still linked\./);
   assert.equal(l.kind, "stopped");
+});
+
+t("Unlink whose answer failed but which happened: it reads the project again and says it's unlinked, never 'still linked'", async () => {
+  let answer; const w = await world({ linked: true, unlinkAnswer: () => new Promise((ok, no) => (answer = no)) });
+  w.press("unlink");
+  await at(3200);
+  w.setLinked(false);
+  answer(new Error("Bad reply")); await flush(); await flush();
+  const l = w.line();
+  assert.equal(l.text, "Unlinked from Launchpad");
+  assert.ok(!/still linked/.test(l.sub || ""));
 });
 
 t("Unlink undone from its notice within the window: nothing is sent", async () => {
