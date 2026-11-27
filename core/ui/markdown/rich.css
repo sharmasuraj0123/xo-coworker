@@ -128,13 +128,13 @@
 /* Charts identify each series with its swatch and label. */
 :root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
 :root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
-.md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
+.md-chart{container:mc/inline-size;--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
 .mc-title{font:var(--fw-strong) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink)}
 .mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .mc-key{display:inline-flex;align-items:center;gap:8px}
 .mc-sw{flex:none;width:8px;height:8px;border-radius:2px;background:var(--c)}
 .mc-sw.is-line{width:12px;height:2px;border-radius:1px}
-.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto 200px 24px auto;column-gap:8px;margin-top:12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto var(--mc-h,200px) 24px auto;column-gap:8px;margin-top:12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .mc-yl{grid-column:1/-1;grid-row:1;margin-bottom:12px}
 .mc-y{position:relative;grid-column:1;grid-row:2}
 .mc-y>span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
@@ -142,6 +142,7 @@
 .mc-plot>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .mc-x{position:relative;grid-column:2;grid-row:3}
 .mc-x>span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap}
+@container mc (max-width:480px){.mc-x>span:nth-child(even){visibility:hidden}}
 .mc-xl{grid-column:2;grid-row:4;margin-top:4px;text-align:center}
 .mc-grid{stroke:var(--line-faint);stroke-width:1;vector-effect:non-scaling-stroke}
 .mc-grid.is-zero{stroke:var(--line-strong)}
@@ -151,6 +152,7 @@
 /* a category's columns side by side, 2 px apart, each at most 24 px and 70 % of the band shared, centred on it */
 .mc-bar{--w:min(24px,calc((70% / var(--n) - (var(--k) - 1) * 2px) / var(--k)));position:absolute;width:var(--w);margin-left:calc((var(--k) * var(--w) + (var(--k) - 1) * 2px) / -2 + var(--i) * (var(--w) + 2px));border-radius:var(--r-xs) var(--r-xs) 0 0;background:var(--c)}
 .mc-bar.is-neg{border-radius:0 0 var(--r-xs) var(--r-xs)}
+.mc-bar.is-under{border-radius:0;box-shadow:inset 0 var(--hair) 0 var(--mc-bg)}   /* a stacked segment with another on it */
 .mc-hover{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--d-out) var(--ease)}
 .mc-hover.is-on{opacity:1;transition-duration:var(--d-hover-in)}
 .mc-cross{position:absolute;top:0;bottom:0;left:var(--at);width:1px;background:var(--line-strong)}

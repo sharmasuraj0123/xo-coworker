@@ -39,6 +39,8 @@ export const SETTINGS = `
       <button type="button" role="tab" id="set-t-routing" data-set="routing" aria-selected="false" aria-controls="set-p-routing" tabindex="-1">Routing</button>
       <button type="button" role="tab" id="set-t-runtimes" data-set="runtimes" aria-selected="false" aria-controls="set-p-runtimes" tabindex="-1">Runtimes</button>
       <button type="button" role="tab" id="set-t-accounts" data-set="accounts" aria-selected="false" aria-controls="set-p-accounts" tabindex="-1">Accounts</button>
+      <button type="button" role="tab" id="set-t-usage" data-set="usage" aria-selected="false" aria-controls="set-p-usage"
+        tabindex="-1">Usage</button>
       <button type="button" role="tab" id="set-t-rules" data-set="rules" aria-selected="false" aria-controls="set-p-rules" tabindex="-1">Rules</button>
       <button type="button" role="tab" id="set-t-worktrees" data-set="worktrees" aria-selected="false" aria-controls="set-p-worktrees" tabindex="-1">Worktrees</button>
       <button type="button" role="tab" id="set-t-keys" data-set="keys" aria-selected="false" aria-controls="set-p-keys" tabindex="-1">Keyboard</button>
@@ -56,6 +58,8 @@ export const SETTINGS = `
     <div class="set-page" role="tabpanel" id="set-p-routing" aria-labelledby="set-t-routing" data-page="routing" hidden><header class="set-ph"><h2>Routing</h2></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-runtimes" aria-labelledby="set-t-runtimes" data-page="runtimes" hidden><header class="set-ph"><h2>Runtimes</h2><p class="set-intro">The agents XO can run threads on, and where each project's work may go.</p></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-accounts" aria-labelledby="set-t-accounts" data-page="accounts" hidden><header class="set-ph"><h2>Accounts</h2><p class="set-intro">The accounts XO works with for you. Each signs in once, for the whole Space.</p></header><div class="set-live"></div></div>
+    <div class="set-page" role="tabpanel" id="set-p-usage" aria-labelledby="set-t-usage" data-page="usage" hidden>
+      <header class="set-ph"><h2>Usage</h2></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-rules" aria-labelledby="set-t-rules" data-page="rules" hidden><header class="set-ph"><h2>Rules</h2></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-worktrees" aria-labelledby="set-t-worktrees" data-page="worktrees" hidden><header class="set-ph"><h2>Worktrees</h2></header><div class="set-live"></div></div>
     <div class="set-page" role="tabpanel" id="set-p-keys" aria-labelledby="set-t-keys" data-page="keys" hidden><header class="set-ph"><h2>Keyboard</h2></header><div id="set-keys-list"></div></div>

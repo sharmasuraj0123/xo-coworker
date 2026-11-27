@@ -23,7 +23,7 @@ export function drawFrameIcons() {
   requireHtml("#set-x", "button").innerHTML = ICON.close;
   requireHtml("#set-side-ic").innerHTML = ICON.gear;
   {
-    const IC = /** @type {Record<string, string>} */ ( { general: ICON.sliders, appearance: ICON.contrast, shape: ICON.shape, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, keys: ICON.key });
+    const IC = /** @type {Record<string, string>} */ ( { general: ICON.sliders, appearance: ICON.contrast, shape: ICON.shape, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, usage: ICON.chart, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, keys: ICON.key });
     for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.getAttribute("data-set") || ""] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
   }
   requireHtml("#set-phone", "button").innerHTML = ICON.gear;
