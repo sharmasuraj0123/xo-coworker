@@ -51,11 +51,11 @@ function copyHead(m, fwd, src, P) {
 function spaceHtml(m, isProject) {
   const n = /** @type {NonNullable<Message["space"]>} */ (m.space), via = m.fwd ? " · via the Workspace" : "";
   if (n.percent == null || n.total == null) return `<span class="ev-t"><b>Space advisory</b>${via} · ${esc(m.text || "")}</span>`;
-  const used = Math.round(n.total * n.percent) / 100, named = n.users.reduce((a, u) => a + u.gb, 0);
+  const total = n.total, used = Math.round(total * n.percent) / 100, named = n.users.reduce((a, u) => a + u.gb, 0);
   const rest = Math.round((used - named) * 10) / 10;
   const parts = [...n.users.map((u, i) => ({ ...u, k: Math.min(i + 1, 3) })),
     ...(rest > 0 && n.users.length ? [{ name: "Other", gb: rest, threads: null, k: 4 }] : [])];
-  const seg = parts.map((u) => `<i class="sp-k${u.k}" style="flex-basis:${(u.gb / n.total) * 100}%"></i>`).join("");
+  const seg = parts.map((u) => `<i class="sp-k${u.k}" style="flex-basis:${(u.gb / total) * 100}%"></i>`).join("");
   const key = parts.map((u) => {
     const word = u.k < 4 && isProject(u.name) ? `<button type="button" class="rt-go" data-go="p:${esc(u.name)}">${esc(u.name)}</button>`
       : esc(u.name[0].toUpperCase() + u.name.slice(1));
