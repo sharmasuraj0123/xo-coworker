@@ -4,7 +4,7 @@ import { esc } from "../../core/platform/index.js";
 import { modelWord, rtName } from "../../core/services/runtimes.js";
 import { chartHtml, fmt } from "../../core/ui/markdown/chart.js";
 
-/** @import {UsageTokens} from "../../core/platform/usage-types" @import {UsagePart, UsageState} from "./types" */
+/** @import {UsageDay, UsageTokens} from "../../core/platform/usage-types" @import {UsagePart, UsageState} from "./types" */
 
 export const RANGES = [7, 30, 90];
 const MODELS_SHOWN = 6;
@@ -31,11 +31,17 @@ const dollars = (usd) => usd.toLocaleString("en-US", { style: "currency", curren
 const usedParts = (parts) => parts.filter((p) => allTokens(p.usage.total_tokens) > 0)
   .sort((a, b) => allTokens(b.usage.total_tokens) - allTokens(a.usage.total_tokens));
 
-/** Each day's new tokens, summed across runtimes. @param {UsagePart[]} parts */
-function dayTotals(parts) {
+/** Every day row splits its tokens; a day without it is unknown, so days then count new tokens only. @param {UsagePart[]} parts */
+const daysSplit = (parts) => parts.every((p) => p.usage.daily.every((d) => d.total_tokens));
+
+/** @param {UsageDay} d @param {boolean} split */
+const dayTokens = (d, split) => (split && d.total_tokens ? allTokens(d.total_tokens) : d.tokens);
+
+/** Each day's tokens, summed across runtimes. @param {UsagePart[]} parts @param {boolean} split */
+function dayTotals(parts, split) {
   /** @type {Map<string, number>} */
   const days = new Map();
-  for (const p of parts) for (const d of p.usage.daily) days.set(d.date, (days.get(d.date) || 0) + d.tokens);
+  for (const p of parts) for (const d of p.usage.daily) days.set(d.date, (days.get(d.date) || 0) + dayTokens(d, split));
   return [...days].sort(([a], [b]) => (a < b ? -1 : 1));
 }
 
@@ -57,7 +63,7 @@ function rangeHtml(days) {
 
 /** @param {UsagePart[]} parts @param {UsageTokens} total @param {number} days */
 function heroHtml(parts, total, days) {
-  const dates = dayTotals(parts);
+  const dates = dayTotals(parts, false);
   const span = dates.length ? `${dayWords(dates[0][0])} – ${dayWords(dates[dates.length - 1][0])}` : "";
   const split = [
     [total.input + total.output, "new in and out"], [total.cache_read, "read from cache"], [total.cache_write, "written to cache"],
@@ -74,9 +80,10 @@ function tilesHtml(parts, total) {
     + `${esc(rtName(name))}</dt>`
     + `<dd>${esc(fmt(allTokens(usage.total_tokens)))}</dd>`
     + `<dd class="us-note">${percent(allTokens(usage.total_tokens) / whole)}${usage.estimated_tokens ? " · estimated" : ""}</dd></div>`);
-  const busiest = dayTotals(parts).reduce((best, day) => (day[1] > best[1] ? day : best), ["", 0]);
+  const split = daysSplit(parts);
+  const busiest = dayTotals(parts, split).reduce((best, day) => (day[1] > best[1] ? day : best), ["", 0]);
   if (busiest[1]) tiles.push(`<div class="us-tile"><dt>Busiest day</dt><dd>${esc(dayWords(busiest[0]))}</dd>`
-    + `<dd class="us-note">${esc(fmt(busiest[1]))} new tokens</dd></div>`);
+    + `<dd class="us-note">${esc(fmt(busiest[1]))} ${split ? "" : "new "}tokens</dd></div>`);
   const costed = parts.filter((p) => p.usage.total_cost > 0);
   const cost = costed.reduce((sum, p) => sum + p.usage.total_cost, 0);
   if (costed.length) tiles.push(`<div class="us-tile"><dt>Cost</dt><dd>${esc(dollars(cost))}</dd>`
@@ -86,12 +93,12 @@ function tilesHtml(parts, total) {
 
 /** @param {UsagePart[]} parts */
 function chartBlock(parts) {
-  const dates = dayTotals(parts).map(([date]) => date);
+  const split = daysSplit(parts), dates = dayTotals(parts, split).map(([date]) => date);
   const spec = {
-    type: "bar", stacked: true, title: "New tokens in and out, each day",
+    type: "bar", stacked: true, title: split ? "Tokens each day, cache included" : "New tokens in and out, each day",
     x: { values: dates.map(dayWords) },
     series: parts.map(({ name, usage }) => {
-      const byDate = new Map(usage.daily.map((d) => [d.date, d.tokens]));
+      const byDate = new Map(usage.daily.map((d) => [d.date, dayTokens(d, split)]));
       return { name: rtName(name), values: dates.map((date) => byDate.get(date) || 0) };
     }),
   };

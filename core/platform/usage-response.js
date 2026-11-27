@@ -16,7 +16,7 @@ const isTokens = (value) => isResponseObject(value)
 
 /** @param {unknown} value @returns {value is UsageDay} */
 const isDay = (value) => isResponseObject(value) && typeof value.date === "string" && count(value.tokens)
-  && optional(value.cost, count);
+  && optional(value.cost, count) && optional(value.total_tokens, isTokens);
 
 /** @param {unknown} value @returns {value is UsageModel} */
 const isModel = (value) => isResponseObject(value) && typeof value.model_id === "string" && isTokens(value.total_tokens)
