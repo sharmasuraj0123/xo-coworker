@@ -16,6 +16,7 @@
 .au-top p{margin:var(--s-1) 0 0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-4)}
 .au-top .btn svg,.au-acts .btn svg{width:var(--ic);height:var(--ic)}
 .au-tabs,.au-mode{margin-top:var(--s-8)}
+.au-mode{display:flex;width:max-content}
 .au-mode+.au-tabs{margin-top:var(--s-3)}
 .au-tabs i{margin-left:var(--s-1);font-style:normal;color:var(--ink-5)}
 
