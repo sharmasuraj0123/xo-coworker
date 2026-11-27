@@ -11,15 +11,15 @@ export interface BranchReceipt {
   tree?: TreeState | null;
 }
 
-/** The worktree's own state, kept by Space: entries as git lists them by default, so a new folder counts once. */
+/** The worktree's own state, kept by Space: entries as git lists them by default, so a new folder counts once; null when not known. */
 export interface TreeState {
-  exists: boolean;
-  xo?: boolean;
-  changed?: number;
-  untracked?: number;
-  kept_ignored?: number;
-  local_commits?: number;
-  would_lose?: boolean;
+  exists?: boolean | null;
+  xo?: boolean | null;
+  changed?: number | null;
+  untracked?: number | null;
+  kept_ignored?: number | null;
+  local_commits?: number | null;
+  would_lose?: boolean | null;
   error?: string | null;
   checked_at?: string | null;
 }
@@ -53,6 +53,7 @@ export interface WorktreeRow {
   git?: BranchReceipt | null;
   removed_at?: string | null;
   removed_by?: string | null;
+  checked_at?: string | null;
 }
 
 export interface ReportedTree {

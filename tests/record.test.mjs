@@ -63,6 +63,7 @@ t("git words from Space's tree state: uncommitted beats unpushed; nothing lost i
   assert.equal(R.gitState(tree({ changed: 1, error: "git timed out" })).group, "unsaved", "an unreadable tree keeps its last counts");
   assert.equal(R.gitState({ tree: { exists: false, changed: 4 } }).group, "none");
   assert.equal(R.gitState({ tree: null }).group, "none");
+  assert.equal(R.gitState({ tree: { exists: null, changed: null, error: "git timed out" } }).group, "none", "a tree never read is not known");
   assert.equal(R.gitState(undefined).group, "none");
 });
 

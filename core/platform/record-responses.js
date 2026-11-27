@@ -18,9 +18,9 @@ const nullable = (value, check) => value == null || check(value);
 const arrayOf = (value, check) => Array.isArray(value) && value.every(check);
 
 /** @param {unknown} value @returns {value is Wire.TreeState} */
-const isTreeState = (value) => isResponseObject(value) && flag(value.exists)
-  && [value.changed, value.untracked, value.kept_ignored, value.local_commits].every((n) => optional(n, count))
-  && [value.xo, value.would_lose].every((field) => optional(field, flag))
+const isTreeState = (value) => isResponseObject(value)
+  && [value.changed, value.untracked, value.kept_ignored, value.local_commits].every((n) => nullable(n, count))
+  && [value.exists, value.xo, value.would_lose].every((field) => nullable(field, flag))
   && nullable(value.error, text) && nullable(value.checked_at, text);
 
 /** @param {unknown} value @returns {value is Wire.BranchReceipt} */
@@ -49,7 +49,7 @@ function isWorktree(value) {
   return isResponseObject(value) && text(value.chat_id) && text(value.thread_ts)
     && [value.path, value.thread_state].every((field) => optional(field, text))
     && [value.branch, value.base_commit, value.resolved_at, value.session_id, value.session_state, value.error,
-      value.removed_at, value.removed_by].every((field) => nullable(field, text))
+      value.removed_at, value.removed_by, value.checked_at].every((field) => nullable(field, text))
     && [value.exists, value.xo, value.removable].every((field) => optional(field, flag))
     && nullable(value.would_lose, isWorktreeLoss) && nullable(value.git, isBranch);
 }

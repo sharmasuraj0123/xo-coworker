@@ -53,7 +53,7 @@ function treeRow(tree, title, view, host) {
   const choice = view.confirmation?.key === key ? view.confirmation : null;
   const busy = !!tree.session_state && tree.session_state !== "cold";
   const canRemove = tree.removable || (tree.would_lose && tree.xo !== false && !tree.error);
-  const state = tree.error ? `Can't be read: ${tree.error}`
+  const state = tree.error ? (tree.checked_at === null ? tree.error : `Can't be read: ${tree.error}`)
     : tree.exists === false ? "The checkout is already gone"
     : tree.xo === false ? "XO didn't make this checkout, so it won't remove it"
     : busy ? "Its agent is still using it"

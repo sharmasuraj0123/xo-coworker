@@ -179,3 +179,18 @@ test("a long loss says how many more there are from Space's counts, not the path
     page.dispose();
   }
 });
+
+test("a tree Space hasn't read yet says so in Space's words; one it couldn't read says why", async () => {
+  const { page } = await mount();
+  const unread = { ...tree, thread_ts: "a", path: "/a", removable: false, error: "Not read yet: XO reads it in the background shortly.", checked_at: null };
+  const broken = { ...tree, thread_ts: "b", path: "/b", removable: false, error: "git timed out", checked_at: "2026-11-27T09:00:00Z" };
+  globalThis.fetch = async () => Response.json({ worktrees: [unread, broken], next_cursor: null });
+  try {
+    await page.open();
+    const states = [...document.querySelectorAll(".wt-s")].map((span) => span.textContent);
+    assert.match(states[0], /^Not read yet: XO reads it in the background shortly\./);
+    assert.match(states[1], /^Can't be read: git timed out/);
+  } finally {
+    page.dispose();
+  }
+});
