@@ -25,7 +25,7 @@ export function createHomeView(options, scope) {
   function homeRender(needs) {
     const box = requireHtml("#home");
     if (!built.has(box)) {
-      box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
+      box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-start"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
       built.add(box);
     }
     const P0 = homeParts(needs);

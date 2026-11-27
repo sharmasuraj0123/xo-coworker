@@ -3,6 +3,32 @@
 import { createScope } from "../../core/kernel/scope.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 
+const SEEK_MS = 10000;
+
+/** @param {HTMLElement} el @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+function rowSeeker(el, scope) {
+  let stop = () => {};
+  /** @param {string} key */
+  function seek(key) {
+    stop();
+    const land = () => {
+      const row = el.querySelector(`[data-page]:not([hidden]) [data-key="${CSS.escape(key)}"]`);
+      const to = row?.querySelector(".btn-pri") || row?.querySelector("button, a[href]");
+      if (!(to instanceof HTMLElement) || el.hidden) return false;
+      stop();
+      to.focus();
+      return true;
+    };
+    if (land()) return;
+    const watch = new MutationObserver(land);
+    scope.observe(watch);
+    watch.observe(el, { childList: true, subtree: true });
+    const stopTimer = scope.timeout(() => stop(), SEEK_MS);
+    stop = () => { stop = () => {}; watch.disconnect(); stopTimer(); };
+  }
+  return { seek, stop: () => stop() };
+}
+
 /** @param {import("./types").SettingsFrameDeps} deps */
 export function createSettingsFrame({
   el, side, phoneButton, closeButton, onPage, beforeOpen, beforeClose, onHidden, focusIn, fallback, phone, onOpen, scope = createScope(),
@@ -36,6 +62,7 @@ export function createSettingsFrame({
   }
   function close({ restore = true } = {}) {
     if (el.hidden) return;
+    rows.stop();
     beforeClose();
     el.hidden = true;
     onHidden();
@@ -51,16 +78,20 @@ export function createSettingsFrame({
   scope.listen(side, "click", () => (el.hidden ? open() : close()));
   scope.listen(phoneButton, "click", open);
   scope.listen(closeButton, "click", () => close());
+  const rows = rowSeeker(el, scope);
   scope.listen(document, "click", ({ target }) => {
     if (!(target instanceof Element)) return;
-    const id = target.closest("[data-set-open]")?.getAttribute("data-set-open");
+    const from = target.closest("[data-set-open]"), id = from?.getAttribute("data-set-open");
     if (id == null) return;
+    rows.stop();
     setPage(id);
     if (el.hidden) open();
     else {
       const selected = el.querySelector('[aria-selected="true"]');
       if (selected instanceof HTMLElement) selected.focus({ preventScroll: true });
     }
+    const row = from?.getAttribute("data-set-row");
+    if (row) rows.seek(row);
   });
   const nav = /** @type {HTMLElement} */ (el.querySelector(".set-nav"));
   scope.listen(nav, "click", ({ target }) => {
