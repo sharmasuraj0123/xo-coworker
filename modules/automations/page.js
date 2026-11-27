@@ -2,13 +2,14 @@
 
 import { esc } from "../../core/platform/util.js";
 import { once } from "../../core/platform/pending.js";
-import { clockWords } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { drawLeaving, leaveWith } from "../../core/ui/motion.js";
 import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { focusOpened, menuKeys, radioKeys } from "../../core/ui/a11y/keynav.js";
-import { agendaOf, noticedOf, weekOf } from "./model.js";
-import { emptyHtml, lastLead, listHtml, agendaHtml, weekHtml } from "./views.js";
+import { keyOf } from "./agent-file.js";
+import { agendaOf, dayMonth, hhmm, noticedOf, weekOf } from "./model.js";
+import { emptyHtml, foundHtml, listHtml, offHtml, agendaHtml, weekHtml } from "./views.js";
 
 /** @import { Automation, AutomationsState, PageDeps, RowState, Tab } from "./types" */
 
@@ -29,7 +30,7 @@ function upcomingHtml(list, s, t) {
   const later = on.filter((a) => !listed.has(a.id));
   return weekHtml(weekOf(on, t)) + (days.length ? agendaHtml(days, s) : `<p class="au-none">Nothing runs in the next seven days.</p>`) +
     (later.length ? `<h2 class="au-day">Later</h2>` + listHtml(later, s,
-      (a) => Number.isFinite(a.next) ? esc(clockWords(new Date(a.next).toISOString(), t)) : "") : "");
+      (a) => Number.isFinite(a.next) ? `${esc(dayMonth(a.next))} ${hhmm(a.next)}` : "") : "");
 }
 
 /** The list under the tabs. @param {AutomationsState} state @param {Tab} tab @param {RowState} s @param {number} t */
@@ -43,14 +44,40 @@ function bodyHtml({ list, loaded, failed }, tab, s, t) {
   if (tab === "found") {
     const found = noticedOf(list);
     if (!found.length) return emptyHtml("Nothing to look at", "Runs that find something or fail show here.");
-    return listHtml(found, s, lastLead);
+    return `<p class="au-intro">Runs that found something or failed, newest first.</p>${foundHtml(found, s, t)}`;
   }
   if (tab === "off") {
     const off = list.filter((a) => !a.on);
     if (!off.length) return emptyHtml("Nothing is off", "Automations you or XO turn off show here, with why.");
-    return listHtml(off, s, () => "");
+    return `<p class="au-intro">These don't run. Turn one on and it starts again at its next time.</p>${offHtml(off, s)}`;
   }
   return upcomingHtml(list, s, t);
+}
+
+/** What a row needs from the store. @param {AutomationsState} state */
+const pick = ({ deleting, turning }) => ({ deleting, turning });
+
+/** A project's id from its chat. @param {PageDeps} deps @param {string} chat */
+const idOf = (deps, chat) => deps.projects().find((p) => p.chat === chat)?.id ?? "";
+
+/** Opens a side beside the list, or lets it fold away with what it showed. @param {HTMLElement | null} el @param {boolean} on */
+function showSide(el, on) {
+  if (!el) return;
+  const drop = () => { for (const old of el.querySelectorAll(":scope>[data-own]")) old.remove(); };
+  if (on) { el.classList.remove("is-out"); drop(); el.hidden = false; return; }
+  if (el.hidden || el.classList.contains("is-out")) return;
+  const kids = [...el.children];
+  queueMicrotask(() => {
+    if (!el.classList.contains("is-out")) return;
+    for (const kid of kids) if (!kid.isConnected) { kid.setAttribute("data-own", ""); kid.setAttribute("inert", ""); el.append(kid); }
+  });
+  leaveWith(el, "is-out", () => { el.hidden = true; drop(); });
+}
+
+/** On the same view a menu fades and a row folds as they go. @param {HTMLElement} box @param {string} html @param {boolean} same */
+function drawPage(box, html, same) {
+  if (same) drawLeaving(box, ".au-menu", () => drawLeaving(box, ".au-list>[data-au-row]", () => redraw(box, html), true));
+  else redraw(box, html);
 }
 
 /** What runs this week, what found something, what's off; one opens beside the list. @param {PageDeps} deps */
@@ -67,9 +94,10 @@ export function createAutomationsPage(deps) {
   let aside = null;
   /** @type {HTMLElement | null} */
   let agentAside = null;
-  const side = deps.side({ shown(id) { selected = id; if (aside) aside.hidden = id === null; paint(); } });
+  const side = deps.side({ shown(id) { selected = id; showSide(aside, id !== null); paint(); },
+    openAgent(persona, chat) { setMode("agents"); agentSide.open(keyOf({ ...persona, project: idOf(deps, chat) })); } });
   const agentSide = deps.agentSide({
-    shown(key) { agentKey = key; if (agentAside) agentAside.hidden = key === null; paint(); },
+    shown(key) { agentKey = key; showSide(agentAside, key !== null); paint(); },
     openJob(id) { setMode("automations"); side.open(id); },
   });
   const agents = deps.agentList({ selected: () => agentKey, shown: () => mode === "agents", changed: () => paint() });
@@ -77,7 +105,7 @@ export function createAutomationsPage(deps) {
   /** @type {(() => void)[]} */
   const undo = [];
 
-  const rowState = () => ({ menu, confirm, selected, deleting: deps.store.state.deleting, projectName: deps.projectName });
+  const rowState = () => ({ menu, confirm, selected, ...pick(deps.store.state), projectName: deps.projectName });
 
   function pageHtml() {
     const { list } = deps.store.state;
@@ -96,18 +124,19 @@ export function createAutomationsPage(deps) {
       `<div class="au-body">${mode === "agents" ? agents.html() : bodyHtml(deps.store.state, tab, rowState(), now())}</div></div>`;
   }
 
+  let drawn = "";
   function paint() {
     if (!main) return;
-    redraw(main, pageHtml());
+    drawPage(main, pageHtml(), drawn === (drawn = `${mode}:${tab}`));
     startUndoRings(main);
-    const opened = menu ? main.querySelector(".au-row .au-menu") : null;
+    const opened = menu ? main.querySelector(".au-row .au-menu:not([data-own])") : null;
     if (opened instanceof HTMLElement && !opened.contains(document.activeElement)) focusOpened(opened);
   }
 
   /** @param {string} key @param {() => Promise<unknown>} work @param {string} words */
   const act = (key, work, words) => once(key, async () => {
     try { await work(); } catch (error) { deps.failed(error, words); }
-  });
+  }).finally(() => paint());
 
   /** @param {Event} e */
   function onClick(e) {

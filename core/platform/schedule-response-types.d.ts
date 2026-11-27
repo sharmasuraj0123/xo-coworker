@@ -15,6 +15,7 @@ export interface ScheduleResult {
   code?: string;
   reason?: string;
   found?: boolean;
+  found_count?: number | null;
   summary?: string;
 }
 
@@ -40,6 +41,7 @@ export interface AgentFire {
   code?: string | null;
   reason?: string | null;
   found?: boolean | null;
+  found_count?: number | null;
   summary?: string | null;
   thread?: ThreadRef | null;
 }
@@ -50,9 +52,15 @@ export interface AgentRun {
   status?: string | null;
   reason?: string | null;
   found?: boolean | null;
+  found_count?: number | null;
   summary?: string | null;
   thread?: ThreadRef | null;
 }
+
+/** When a run's result reaches the coordinator: when it found something, after every run, or never. */
+export type Notify = "found" | "always" | "never";
+/** Whether a failed run wakes the coordinator. */
+export type OnFailure = "tell" | "silent";
 
 export type ScheduleRule =
   | { days: "weekdays" | string[]; time: string; tz?: string }
@@ -98,6 +106,8 @@ interface AgentJob {
   schedule?: ScheduleRule | null;
   persona?: PersonaRef | null;
   upcoming?: string[];
+  notify?: Notify;
+  on_failure?: OnFailure;
 }
 
 interface CommandJob {
@@ -133,6 +143,8 @@ export interface AgentJobBody {
   schedule?: ScheduleRule | null;
   persona: PersonaRef | null;
   icon: string | null;
+  notify?: Notify;
+  on_failure?: OnFailure;
 }
 
 export interface ScheduleStarted {

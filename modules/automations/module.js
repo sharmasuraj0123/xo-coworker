@@ -1,11 +1,12 @@
 // @ts-check
 
-import { api } from "../../core/platform/api.js";
+import { api, NEWEST } from "../../core/platform/api.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { createAgentsFrame } from "./agent-frame.js";
 import { createAgentList } from "./agent-list.js";
 import { createAgentSide } from "./agent-side.js";
+import { keyOf } from "./agent-file.js";
 import { createAutomationsFrame } from "./frame.js";
 import { createAutomationsPage } from "./page.js";
 import { createPersonasStore } from "./personas.js";
@@ -19,6 +20,7 @@ import { browserZone, keepZone } from "./zone.js";
 
 /** After boot's own reads; the zone matters only when a job is next saved. */
 const ZONE_AFTER_MS = 5000;
+const REPORT_READ = 20;
 
 /** @type {ModuleDef} */
 export const automationsModule = {
@@ -57,7 +59,18 @@ export const automationsModule = {
       const id = projects().find((p) => p.chat === chat)?.id;
       return id ? personas.seen(id)?.agents ?? null : null;
     };
-    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch };
+    /** @param {string} chat */
+    const idOf = (chat) => projects().find((p) => p.chat === chat)?.id ?? "";
+    /** @param {string} chat */
+    const openProject = (chat) => { const id = idOf(chat); if (id) nav.go("p:" + id); };
+    /** @type {(chat: string, ts: string, signal: AbortSignal) => Promise<string>} */
+    const readReport = async (chat, ts, signal) => {
+      const { messages } = await api.messages(chat, { thread: ts, before_seq: NEWEST, limit: REPORT_READ }, { signal });
+      const said = messages.filter((m) => m.author_kind === "agent" && m.text?.trim()).sort((x, y) => (y.seq ?? 0) - (x.seq ?? 0));
+      return said[0]?.text ?? "";
+    };
+    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
+      openProject, readReport };
     /** @type {string[]} */
     let runtimes = [];
     api.runtimes().then((got) => { runtimes = got.runtimes.map((r) => r.name); }, reportFailure);
@@ -69,20 +82,22 @@ export const automationsModule = {
         project: owner, rel: path }, from) };
     const page = createAutomationsPage({
       store, projectName, projects, failed, announce,
-      side: ({ shown }) => createSide({ ...sideDeps, where: "page", shown }),
+      side: (hooks) => createSide({ ...sideDeps, ...hooks, where: "page" }),
       agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
       agentList: (hooks) => createAgentList({ personas, projects, projectName: nameOfId, failed, announce, ...hooks }),
     });
     const onPanel = () => stage.pageShown?.name === "automation";
     let leaving = false;
     const inPanel = createSide({ ...sideDeps, where: "panel", showAll: () => nav.go("automations"),
+      openAgent: (persona, chat) => stage.show("agent", keyOf({ ...persona, project: idOf(chat) }), { focus: true }),
+      made: (id) => stage.show("automation", id, { focus: true }),
       shown(id) { if (id === null && !leaving && onPanel()) stage.back(); else stage.repaint(); } });
     ctx.effect(() => inPanel.dispose);
     ctx.contribute("panel.page", {
       id: "automation",
-      title: () => inPanel.editing && !inPanel.id ? "New automation" : "Automation",
+      title: () => "Automations",
       mount: (box) => inPanel.mount(box),
-      onShow(key) { if (key.startsWith("new:")) inPanel.create(key.slice(4)); else inPanel.open(key); },
+      onShow: (key) => inPanel.open(key),
       close() { leaving = true; try { inPanel.close(); } finally { leaving = false; } },
       escape: () => inPanel.escape(),
     });
@@ -90,7 +105,7 @@ export const automationsModule = {
       store, changed: () => stage.repaint(),
       chatOf: (v) => { const id = place.convProject(v); return id ? world.project(id)?.chatId ?? null : null; },
       open: (id) => stage.show("automation", id, { focus: true }),
-      create: (chat) => stage.show("automation", `new:${chat}`, { focus: true }),
+      create: (chat) => inPanel.create(chat),
     }));
     const panelProject = () => place.convProject(view()) ?? "";
     const onAgent = () => stage.pageShown?.name === "agent";

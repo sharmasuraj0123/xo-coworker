@@ -38,7 +38,9 @@ const opened = [];
 const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "Alpha", runtimes: () => ["claude_code"],
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
-  side: ({ shown }) => createSide({ ...deps, store, where: "page", shown, openThread() {} }),
+  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
+    readReport: async () => "**3 commits** aren't live",
+    openProject: (/** @type {string} */ chat) => { opened.push(`project ${chat}`); } }),
   agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
   agentList: (hooks) => createAgentList({ ...deps, personas, projectName: () => "Alpha", ...hooks }) });
 const host = /** @type {HTMLElement} */ (document.getElementById("auto"));
@@ -66,7 +68,8 @@ await t("Upcoming lists what's on by day; Off lists what's off with why", async 
   assert.equal(host.querySelector(".au-day")?.textContent?.startsWith("Today"), true);
   await click('[data-au-tab="off"]');
   assert.deepEqual(names(), ["Old check"]);
-  assert.match(host.querySelector(".au-row .au-r")?.textContent ?? "", /project was removed/);
+  assert.match(host.querySelector(".au-row .au-n small")?.textContent ?? "", /project was removed/);
+  assert.equal(host.querySelector('.au-row [role="switch"]')?.getAttribute("aria-checked"), "false", "with its switch, to turn it on");
   await click('[data-au-tab="upcoming"]');
 });
 
@@ -75,8 +78,26 @@ await t("a row opens beside the list, and Esc closes it", async () => {
   assert.equal(aside().hidden, false);
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Nightly build");
   assert.ok(fake.calls.some((c) => c.name === "scheduleRuns" && c.args[0] === "j2"), "its past runs are read");
+  assert.match(aside().querySelector(".au-next")?.textContent ?? "", /next /, "when it runs next, in words");
+  await click('.au-side [data-au-act="project"]');
+  assert.deepEqual(opened.splice(0), ["project chat_a"], "its project row opens the project");
   assert.equal(page.escape(), true);
   assert.equal(aside().hidden, true);
+});
+
+await t("a run opens its report in place, read from its thread, and Back returns", async () => {
+  const api = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (fake.api)), was = api.scheduleRuns;
+  api.scheduleRuns = async () => ({ job_id: "j1", log_path: null, runs: [{ fire_at: "2026-11-26T07:30:00Z", trigger: "schedule", status: "ok",
+    found: true, summary: "3 commits aren't live", thread: { chat_id: "chat_a", ts: "171.5" } }] });
+  await click('[data-au-act="open"][data-au-id="j1"]');
+  await click('.au-side [data-au-act="report"]');
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Found something");
+  assert.equal(aside().querySelector(".au-report strong")?.textContent, "3 commits", "its thread's last word, as markdown");
+  assert.ok(aside().querySelector('[data-au-act="thread"][data-ts="171.5"]'), "with Open the run");
+  await click('.au-side [data-au-act="report-back"]');
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Morning check");
+  api.scheduleRuns = was;
+  page.escape();
 });
 
 await t("Delete asks first, then leaves an Undo in the row; Undo keeps it", async () => {
@@ -93,23 +114,23 @@ await t("Delete asks first, then leaves an Undo in the row; Undo keeps it", asyn
   assert.ok(!fake.calls.some((c) => c.name === "deleteSchedule"), "nothing was deleted");
 });
 
-await t("New asks for what's missing, then saves and shows the new one", async () => {
+await t("New is one sentence in a dialog; it asks for what's missing, then saves and shows the new one", async () => {
   await click('[data-au-act="new"]');
-  const form = aside().querySelector("form[data-au-form]");
-  assert.ok(form, "the form opens beside the list");
-  form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
+  assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");
+  const send = () => box.querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  send();
   await settle();
-  assert.equal(aside().querySelector(".au-problem")?.textContent, "Give it a name.");
-  const field = (/** @type {string} */ name) => /** @type {HTMLInputElement} */ (aside().querySelector(`[name="${name}"]`));
-  field("name").value = "Weekly notes";
-  field("prompt").value = "Sum up the week";
-  aside().querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  assert.equal(box.querySelector(".au-problem")?.textContent, "Say what it should do each time.");
+  /** @type {HTMLTextAreaElement} */ (box.querySelector('[name="prompt"]')).value = "Sum up the week";
+  send();
   await settle();
   const made = fake.calls.find((c) => c.name === "createSchedule");
   assert.ok(made, "it was sent");
-  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Weekly notes");
-  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Weekly notes");
-  assert.ok(said.includes("Weekly notes is on"));
+  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Sum up the week", "named from what it does");
+  assert.equal(box.hasAttribute("open"), false, "the dialog closes");
+  assert.equal(aside().querySelector("#au-det-h")?.textContent, "Sum up the week");
+  assert.ok(said.includes("Sum up the week is on"));
 });
 
 const agentAside = () => /** @type {HTMLElement} */ (host.querySelectorAll(".au-side")[1]);
@@ -162,6 +183,16 @@ await t("Edit saves the file over the version it read", async () => {
   assert.match(String(saved.args[2]), /\n---\n\nRead what's live, then say it.\n$/);
   assert.equal(saved.args[3], "v1");
   assert.equal(agentAside().querySelector("#ag-det-h")?.textContent, "Release checker");
+});
+
+await t("a switch pressed in the panel can be pressed again once XO Space has answered", async () => {
+  await click('[data-au-mode="automations"]');
+  await click('.au-main [data-au-act="open"][data-au-id="j2"]');
+  await click('.au-side .switch[data-au-act="toggle"]');
+  await settle();
+  const sw = aside().querySelector(".switch");
+  assert.equal(sw?.getAttribute("aria-checked"), "false", "it turned off");
+  assert.equal(sw?.hasAttribute("aria-busy") || sw?.hasAttribute("aria-disabled"), false, "and isn't left waiting");
 });
 
 page.dispose();

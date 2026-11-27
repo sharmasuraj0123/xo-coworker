@@ -1,5 +1,5 @@
 // @ts-check
-import type { PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
+import type { Notify, OnFailure, PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
 import type { MayChoice, Persona, PersonaApi } from "../../core/platform/persona-response-types";
 import type { ProjectApi } from "../../core/platform/project-response-types";
 
@@ -8,9 +8,14 @@ export interface LastRun {
   status: "ok" | "skipped" | "failed";
   found: boolean | null;
   reason: string;
+  summary: string;
   thread: { chat: string; ts: string } | null;
   manual: boolean;
+  /** How many things it found, when the run said. */
+  count: number | null;
 }
+
+export interface ReportState { text: string | null; failed: boolean }
 
 export interface RunRow extends LastRun {
   key: string;
@@ -28,6 +33,7 @@ export interface Automation {
   rule: Exclude<ScheduleRule, { every_seconds: number }> | null;
   upcoming: number[];
   anchor: number;
+  since: number;
   next: number;
   last: LastRun | null;
   offReason: string;
@@ -37,6 +43,9 @@ export interface Automation {
   askedBy: "you" | "agent";
   approved: boolean;
   persona: PersonaRef | null;
+  /** Null when XO Space doesn't keep these yet. */
+  notify: Notify | null;
+  onFailure: OnFailure | null;
   icon: string;
   job: Extract<ScheduledJob, { kind: "agent" }>;
 }
@@ -191,6 +200,7 @@ export interface RowState {
   confirm: string | null;
   selected: string | null;
   deleting: Map<string, number>;
+  turning: Map<string, boolean>;
   projectName: (chat: string) => string;
 }
 
@@ -201,6 +211,7 @@ export interface DetailState {
   confirm: boolean;
   projectName: string;
   where: "page" | "panel";
+  turning: Map<string, boolean>;
 }
 
 export type Repeat = "once" | "day" | "weekdays" | "week" | "month" | "hours";
@@ -216,6 +227,8 @@ export interface FormValues {
   dom: number | "last";
   hours: number;
   persona: PersonaRef | null;
+  notify: Notify | null;
+  onFailure: OnFailure | null;
 }
 
 export interface Project {
@@ -229,6 +242,7 @@ export interface AutomationsState {
   loaded: boolean;
   failed: boolean;
   deleting: Map<string, number>;
+  turning: Map<string, boolean>;
 }
 
 export interface StoreDeps {
@@ -246,6 +260,12 @@ export interface SideDeps {
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
+  /** The last thing a run's thread said: its report. */
+  readReport?: (chat: string, ts: string, signal: AbortSignal) => Promise<string>;
+  /** Shows one just made; the side shows it itself when absent. */
+  made?: (id: string) => void;
+  openProject?: (chat: string) => void;
+  openAgent?: (persona: PersonaRef, chat: string) => void;
   agentsFor?: (chat: string) => Agent[] | null;
   watchAgents?: (fn: () => void) => () => void;
   failed: (error: unknown, words: string) => void;
@@ -266,7 +286,7 @@ export interface SideState {
 
 export interface PageDeps {
   store: AutomationsStore;
-  side: (hooks: { shown: (id: string | null) => void }) => Side;
+  side: (hooks: { shown: (id: string | null) => void, openAgent: (persona: PersonaRef, chat: string) => void }) => Side;
   agentSide: (hooks: { shown: (key: string | null) => void, openJob: (id: string) => void }) => import("./agent-side.js").AgentSide;
   agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
   projectName: (chat: string) => string;
