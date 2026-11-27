@@ -112,6 +112,7 @@ button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-
 .lp-ck{display:grid;place-items:center start;width:var(--ic-sm);height:var(--lh-ui);color:var(--go)}
 .lp-check .is-no .lp-ck::before{content:"";width:var(--s-2);height:var(--s-2);border-radius:50%;background:var(--need)}
 .lp-ck svg{width:var(--ic-sm);height:var(--ic-sm)}
+.lp-check b{font-weight:var(--fw-regular)}
 .lp-check .is-ok b{color:var(--ink-3)}
 .lp-asked .lq-h{margin-top:var(--s-6)}
 
