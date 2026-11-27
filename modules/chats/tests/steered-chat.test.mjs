@@ -58,7 +58,7 @@ assert.doesNotMatch(html(), /Sent ·|data-interrupt/, "its next turn reads it: n
 Date.now = () => Date.parse(at("30:58.365Z"));
 await chats.send("c:s1", "done run it");
 history = [
-  said("u1", at("30:42.580Z"), "/home/coder/xo-deploy-pr.sh"),
+  said("u1", at("30:42.580Z"), "notes/release-plan.md"),
   said("u2", at("31:06.973Z"), "[Request interrupted by user for tool use]"),
   said("u3", at("31:06.982Z"), "show me the file chip of this\ndone run it"),
 ];
@@ -67,7 +67,7 @@ turns = [
   { id: "t2", session: "s1", at: at("31:06Z"), origin: "injected", wakes: [], status: "finished" },
 ];
 chats.open("c:s1");
-for (let i = 0; i < 20 && !html().includes("xo-deploy"); i++) await new Promise(setImmediate);
-assert.equal(read(), "/home/coder/xo-deploy-pr.sh [turn t1] show me the file chip of this done run it [turn t2]",
+for (let i = 0; i < 20 && !html().includes("release-plan"); i++) await new Promise(setImmediate);
+assert.equal(read(), "notes/release-plan.md [turn t1] show me the file chip of this done run it [turn t2]",
   "its answer sits under your message; the CLI's note isn't yours; what this tab sent shows once");
 console.log("ok steered-chat");
