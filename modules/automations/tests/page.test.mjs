@@ -66,7 +66,8 @@ await t("Upcoming lists what's on by day; Off lists what's off with why", async 
   assert.equal(host.querySelector(".au-day")?.textContent?.startsWith("Today"), true);
   await click('[data-au-tab="off"]');
   assert.deepEqual(names(), ["Old check"]);
-  assert.match(host.querySelector(".au-row .au-r")?.textContent ?? "", /project was removed/);
+  assert.match(host.querySelector(".au-row .au-n small")?.textContent ?? "", /project was removed/);
+  assert.equal(host.querySelector('.au-row [role="switch"]')?.getAttribute("aria-checked"), "false", "with its switch, to turn it on");
   await click('[data-au-tab="upcoming"]');
 });
 

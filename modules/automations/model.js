@@ -1,6 +1,6 @@
 // @ts-check
 
-import { DAY_MS, clock, formatDate, startOfDay, toMs } from "../../core/platform/time.js";
+import { DAY_MS, formatDate, startOfDay, toMs } from "../../core/platform/time.js";
 import { count } from "../../core/platform/words.js";
 import { foundOf, iconOf } from "./pending.js";
 
@@ -23,7 +23,7 @@ function runOf(result) {
   const skipped = result.status === "skipped";
   const failed = result.status === "failed" || result.status === "lost";
   return { at: atOf(result), status: skipped ? "skipped" : failed ? "failed" : "ok", found: foundOf(result), reason: result.reason ?? "",
-    thread: threadOf(result), manual: result.trigger === "manual" };
+    summary: result.summary ?? "", thread: threadOf(result), manual: result.trigger === "manual" };
 }
 
 /** @param {ScheduledJob} job @returns {job is Extract<ScheduledJob, { kind: "agent" }>} */
@@ -38,7 +38,8 @@ function automationOf(job) {
   return {
     id: job.id, name: job.name, about: job.description ?? "", project: job.chat, prompt: job.prompt,
     on: job.enabled, running: job.running, every: job.every_seconds, rule, upcoming: (job.upcoming ?? []).map(toMs),
-    anchor: toMs(job.first_run_at), next: job.enabled ? toMs(job.next_run) : NaN, last: job.last_result ? runOf(job.last_result) : null,
+    anchor: toMs(job.first_run_at), since: toMs(job.created_at ?? job.first_run_at), next: job.enabled ? toMs(job.next_run) : NaN,
+    last: job.last_result ? runOf(job.last_result) : null,
     offReason: job.enabled ? "" : offWords(job), runtime: job.agent, model: job.model, effort: job.effort,
     askedBy: job.created_by?.kind === "person" ? "you" : "agent", approved: !!job.approved_by, persona: job.persona ?? null,
     icon: iconOf(job), job,
@@ -51,9 +52,25 @@ const SAVED_OFF = "Saved turned off.";
 /** @param {Extract<ScheduledJob, { kind: "agent" }>} job */
 function offWords(job) {
   if (job.state === "fired") return "Done: it ran once";
-  const why = job.state_reason ?? "";
-  return !why || why === SAVED_OFF ? "Turned off by you" : why;
+  const why = job.state_reason || job.disabled_by?.reason || "";
+  const at = toMs(job.disabled_by?.at), when = Number.isFinite(at) ? `, ${dayMonth(at)}` : "";
+  return !why || why === SAVED_OFF ? `Turned off by you${when}` : why;
 }
+
+/** A time on the 24-hour clock, as automations show it: "08:30". @param {number} ms */
+export const hhmm = (ms) => {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
+/** "27 November". @param {number} ms */
+export const dateWords = (ms) => `${new Date(ms).getDate()} ${formatDate(ms, "month")}`;
+
+/** The day and its month, short. @param {number} ms */
+export const dayMonth = (ms) => `${new Date(ms).getDate()} ${formatDate(ms, "month").slice(0, 3)}`;
+
+/** "Friday 27 November". @param {number} ms */
+export const longDate = (ms) => `${formatDate(ms, "fullWeekday")} ${dateWords(ms)}`;
 
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const WORK_DAYS = [1, 2, 3, 4, 5];
@@ -97,22 +114,23 @@ function daysWords(days) {
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names.join("");
 }
 
-/** How often, in words: "Every day at 9:00 AM", "Weekdays at 9:00 AM", "Every 6 hours". @param {Automation} a */
+/** How often, in words: "Every day", "Weekdays", "Mondays", "Every 6 hours". @param {Automation} a */
 export function cadenceWords(a) {
   const { kind, at, step, days, dom } = cadenceOf(a);
-  const time = Number.isFinite(at) ? clock(at) : "";
-  const atTime = time ? ` at ${time}` : "";
-  if (kind === "once") return Number.isFinite(at) ? `Once, ${formatDate(at, "monthDay")}${atTime}` : "Once";
-  if (kind === "month") return `Monthly, on the ${dom === "last" ? "last day" : ordinal(Number(dom))}${atTime}`;
-  if (kind === "days") return `${daysWords(days)}${atTime}`;
+  if (kind === "once") return Number.isFinite(at) ? `Once, ${dateWords(at)}` : "Once";
+  if (kind === "month") return `Monthly, on the ${dom === "last" ? "last day" : ordinal(Number(dom))}`;
+  if (kind === "days") return daysWords(days);
   if (kind === "week") {
     const day = days.length ? formatDate(dayAt(days[0]), "fullWeekday") : "week";
-    return step === 1 ? `Every ${day}${atTime}` : `Every ${step} weeks on ${day}${atTime}`;
+    return step === 1 ? `${day}s` : `Every ${step} weeks on ${day}`;
   }
-  if (kind === "day") return step === 1 ? `Every day${atTime}` : `Every ${count(step, "day")}${atTime}`;
+  if (kind === "day") return step === 1 ? "Every day" : `Every ${count(step, "day")}`;
   if (kind === "hour") return step === 1 ? "Every hour" : `Every ${count(step, "hour")}`;
   return step === 1 ? "Every minute" : `Every ${count(step, "minute")}`;
 }
+
+/** The days a calendar rule runs on, for its letters, or null when it isn't one. @param {Automation} a */
+export const ruleWeek = (a) => a.rule && "days" in a.rule ? ruleDays(a.rule) : null;
 
 /** The run times from `from` up to `until`, from the next run on. @param {Automation} a @param {number} from @param {number} until */
 function upcoming(a, from, until) {
@@ -125,25 +143,43 @@ function upcoming(a, from, until) {
   return out;
 }
 
-/** This week from Monday, a dot per automation running that day. @param {Automation[]} list @param {number} now @returns {WeekDay[]} */
+/** Whether its schedule ran it on the day from `start` to `end`. @param {Automation} a @param {number} start @param {number} end */
+function ranOn(a, start, end) {
+  if (!a.on || (Number.isFinite(a.since) && a.since >= end)) return false;
+  if (a.rule) {
+    const day = new Date(start);
+    if ("day_of_month" in a.rule) {
+      const last = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+      return day.getDate() === (a.rule.day_of_month === "last" ? last : a.rule.day_of_month);
+    }
+    return ruleDays(a.rule).includes(day.getDay());
+  }
+  if (a.every === null || !Number.isFinite(a.next)) return false;
+  const step = a.every * 1000, at = a.next - Math.ceil((a.next - start) / step) * step;
+  return at < end && (!Number.isFinite(a.anchor) || at >= a.anchor);
+}
+
+/** This week from Monday, a dot per automation run that day. @param {Automation[]} list @param {number} now @returns {WeekDay[]} */
 export function weekOf(list, now) {
   const today = startOfDay(new Date(now));
   const monday = dayStart(today, -((new Date(today).getDay() + 6) % 7));
   return Array.from({ length: 7 }, (_, i) => {
     const start = dayStart(monday, i), end = dayStart(monday, i + 1);
-    const dots = list.flatMap((a) => upcoming(a, Math.max(start, now), end).slice(0, 1)
-      .map((at) => ({ id: a.id, icon: a.icon, at })));
+    const dots = list.flatMap((a) => {
+      const at = upcoming(a, Math.max(start, now), end)[0] ?? (start < now && ranOn(a, start, end) ? start : NaN);
+      return Number.isFinite(at) ? [{ id: a.id, icon: a.icon, at }] : [];
+    });
     return { start, today: start === today, past: end <= now, dots: dots.sort((x, y) => x.at - y.at) };
   });
 }
 
-/** Each day's first run of each: Today, Tomorrow, then weekdays. @param {Automation[]} list @param {number} now @returns {AgendaDay[]} */
+/** Each automation once, at its next run, by day. @param {Automation[]} list @param {number} now @returns {AgendaDay[]} */
 export function agendaOf(list, now, days = 7) {
-  const today = startOfDay(new Date(now));
+  const today = startOfDay(new Date(now)), until = dayStart(today, days);
+  const next = list.flatMap((a) => upcoming(a, now, until).slice(0, 1).map((at) => ({ automation: a, at })));
   return Array.from({ length: days }, (_, i) => {
     const start = dayStart(today, i), end = dayStart(today, i + 1);
-    const items = list.flatMap((a) => upcoming(a, Math.max(start, now), end).slice(0, 1).map((at) => ({ automation: a, at })))
-      .sort((x, y) => x.at - y.at);
+    const items = next.filter(({ at }) => at >= start && at < end).sort((x, y) => x.at - y.at);
     return { start, label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : formatDate(start, "fullWeekday"), items };
   }).filter((day) => day.items.length);
 }

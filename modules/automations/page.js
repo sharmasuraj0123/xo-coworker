@@ -2,13 +2,12 @@
 
 import { esc } from "../../core/platform/util.js";
 import { once } from "../../core/platform/pending.js";
-import { clockWords } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { focusOpened, menuKeys, radioKeys } from "../../core/ui/a11y/keynav.js";
-import { agendaOf, noticedOf, weekOf } from "./model.js";
-import { emptyHtml, lastLead, listHtml, agendaHtml, weekHtml } from "./views.js";
+import { agendaOf, dayMonth, hhmm, noticedOf, weekOf } from "./model.js";
+import { emptyHtml, foundHtml, listHtml, offHtml, agendaHtml, weekHtml } from "./views.js";
 
 /** @import { Automation, AutomationsState, PageDeps, RowState, Tab } from "./types" */
 
@@ -29,7 +28,7 @@ function upcomingHtml(list, s, t) {
   const later = on.filter((a) => !listed.has(a.id));
   return weekHtml(weekOf(on, t)) + (days.length ? agendaHtml(days, s) : `<p class="au-none">Nothing runs in the next seven days.</p>`) +
     (later.length ? `<h2 class="au-day">Later</h2>` + listHtml(later, s,
-      (a) => Number.isFinite(a.next) ? esc(clockWords(new Date(a.next).toISOString(), t)) : "") : "");
+      (a) => Number.isFinite(a.next) ? `${esc(dayMonth(a.next))} ${hhmm(a.next)}` : "") : "");
 }
 
 /** The list under the tabs. @param {AutomationsState} state @param {Tab} tab @param {RowState} s @param {number} t */
@@ -43,12 +42,12 @@ function bodyHtml({ list, loaded, failed }, tab, s, t) {
   if (tab === "found") {
     const found = noticedOf(list);
     if (!found.length) return emptyHtml("Nothing to look at", "Runs that find something or fail show here.");
-    return listHtml(found, s, lastLead);
+    return `<p class="au-intro">Runs that found something or failed, newest first.</p>${foundHtml(found, s, t)}`;
   }
   if (tab === "off") {
     const off = list.filter((a) => !a.on);
     if (!off.length) return emptyHtml("Nothing is off", "Automations you or XO turn off show here, with why.");
-    return listHtml(off, s, () => "");
+    return `<p class="au-intro">These don't run. Turn one on and it starts again at its next time.</p>${offHtml(off, s)}`;
   }
   return upcomingHtml(list, s, t);
 }

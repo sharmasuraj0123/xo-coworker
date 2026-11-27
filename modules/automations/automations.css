@@ -51,15 +51,17 @@
   font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .au-day span{font-weight:var(--fw-regular);color:var(--ink-4)}
 /* one grid per list, so times, names and results line up from row to row */
-.au-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:max-content auto minmax(0,1fr) auto auto;
+.au-list{list-style:none;margin:0;padding:0;display:grid;
+  grid-template-columns:minmax(calc(var(--h-lg) + var(--s-4)),max-content) auto minmax(0,1fr) auto auto;
   column-gap:var(--s-4)}
 .au-row{grid-column:1/-1;position:relative;display:grid;grid-template-columns:subgrid;align-items:center;
   min-height:var(--h-row-list);padding:var(--s-3) 0;border-bottom:var(--hair) solid var(--line-faint)}
 .au-row:last-child,.au-gone:last-child{border-bottom:0}
 .au-open{position:absolute;inset:0 calc(-1 * var(--s-2));border-radius:var(--r);background:none}
 .au-open:hover,.au-row.is-on .au-open{background:var(--fill-1)}
-.au-row>:not(.au-open){position:relative;pointer-events:none}
-.au-row>:is(.au-more,.au-menu,.au-confirm){pointer-events:auto}
+.au-row>:not(.au-open,.au-menu){position:relative;pointer-events:none}
+.au-row>:is(.au-more,.au-menu,.au-confirm,.switch){pointer-events:auto}
+.au-row>.switch{justify-self:end}
 .au-t{font:var(--fw-medium) var(--fs-title)/var(--lh-title) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink);
   white-space:nowrap}
 .au-n{min-width:0}
@@ -67,8 +69,13 @@
   text-overflow:ellipsis}
 .au-n small{display:block;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.au-n small span::before{content:"·";margin:0 var(--s-2);color:var(--ink-5)}
+.au-n small>span+span::before{content:"·";margin:0 var(--s-2);color:var(--ink-5)}
+.au-n small>.au-wk{display:inline-flex;gap:0;padding:0;font-size:var(--fs-meta)}
+.au-n small>.au-wk>*{display:inline-grid;place-items:center;width:var(--s-3)}
+.au-n small:has(>.au-what){white-space:normal}
+.au-intro{margin:var(--s-6) 0 0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .au-row.is-off :is(.au-t,.au-n b){color:var(--ink-5);font-weight:var(--fw-regular)}
+.au-row.is-off .au-tile{opacity:var(--opacity-muted)}
 .au-r{justify-self:end;display:inline-flex;align-items:center;gap:var(--s-2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
   color:var(--ink-4);white-space:nowrap}
 .au-r svg{width:var(--ic);height:var(--ic);color:var(--ink-5)}

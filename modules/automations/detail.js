@@ -6,7 +6,7 @@ import { clock, clockWords, formatDate } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { titleOf } from "./agent-file.js";
 import { cadenceOf, cadenceWords, dayAt, ordinal } from "./model.js";
-import { confirmHtml, menuItem, menuWrap, tile } from "./views.js";
+import { confirmHtml, menuItem, menuWrap, switchHtml, tile } from "./views.js";
 
 /** @import { Automation, DetailState, RunRow } from "./types" */
 
@@ -61,9 +61,7 @@ function actsHtml(a, s) {
     `${busyAttrs(`au-run:${a.id}`)}>${xi("play")}${a.running ? "Running…" : "Run now"}</button>`;
   const more = `<button type="button" class="au-more" data-au-act="detail-menu" aria-haspopup="menu" aria-expanded="${s.menu}"` +
     ` aria-label="More">${xi("more")}</button>`;
-  const toggle = `<button type="button" class="switch" role="switch" aria-checked="${a.on}" aria-label="${a.on ? "On" : "Off"}"` +
-    ` data-au-act="toggle" data-au-id="${id}"${busyAttrs(`au-on:${a.id}`)}>` +
-    `<span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button>`;
+  const toggle = switchHtml(a);
   return `<div class="au-acts">${run}<button type="button" class="btn" data-au-act="edit" data-au-id="${id}">${xi("edit")}Edit</button>` +
     `<span class="au-acts-end">${more}${menu}${toggle}</span></div>`;
 }

@@ -8,6 +8,7 @@ export interface LastRun {
   status: "ok" | "skipped" | "failed";
   found: boolean | null;
   reason: string;
+  summary: string;
   thread: { chat: string; ts: string } | null;
   manual: boolean;
 }
@@ -28,6 +29,7 @@ export interface Automation {
   rule: Exclude<ScheduleRule, { every_seconds: number }> | null;
   upcoming: number[];
   anchor: number;
+  since: number;
   next: number;
   last: LastRun | null;
   offReason: string;
