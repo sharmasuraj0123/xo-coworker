@@ -13,7 +13,7 @@ import { isInstalled, rtMark, rtName } from "../../core/services/runtimes.js";
 const RUNTIMES = ["claude_code", "codex", "antigravity", "grok_build"];
 
 /** @param {Runtime} rt */
-const signedIn = (rt) => (rt.lifecycle ? rt.lifecycle.signed_in : !!rt.health?.logged_in);
+const signedIn = (rt) => (rt.lifecycle ? rt.lifecycle.signed_in === true : !!rt.health?.logged_in);
 
 /** @param {Runtime} rt @returns {SetupItem} */
 function runtimeItem(rt) {
