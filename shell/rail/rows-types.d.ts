@@ -30,6 +30,7 @@ export interface SideRowsDeps<N extends SideNeed> {
   isHeld: (thread: SideThread) => boolean;
   askShort: (need: N) => string;
   projectIcon: (project: string) => string;
+  projectTint: (project: string) => number;
   folded: () => boolean;
 }
 
