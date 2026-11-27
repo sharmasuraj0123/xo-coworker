@@ -57,7 +57,7 @@ export const launchpadUrl = (id) => (id ? `${XO_ORIGIN}/launchpad/${encodeURICom
 
 /** @param {string} url */
 export const hostOf = (url) => { try { return new URL(url).host; } catch { return url || ""; } };
-/** A disk's size in GB, from Launchpad's "2Gi" or launchpad.json's 2. @param {unknown} v */
+/** A disk's size in GB, from Launchpad's "2Gi" or deploy.json's 2. @param {unknown} v */
 const gbOf = (v) => { const n = parseFloat(String(v)); return Number.isFinite(n) && n > 0 ? n : null; };
 /** A size's words: "Medium · 1 CPU, 4 GB memory" from a tier, or from Launchpad's own label, or its name as it is. @param {Tier | string | null | undefined} t @param {string} [label] */
 export const sizeWords = (t, label = "") => {
@@ -92,12 +92,12 @@ export function model(c, pre = null) {
       own: typeof repo.own === "boolean" ? repo.own : typeof f.repo?.own === "boolean" ? f.repo.own : null,
     },
     github: { connected: pre ? !!pre.github?.connected : !!c.prerequisites?.github_connected, workflow: pre ? pre.github?.workflow_scope !== false : true, login: pre?.github?.login || "", source: pre?.github?.source || c.prerequisites?.github_source || null, fix: pre?.github?.fix || "", error: pre?.github?.error || "" },
-    // the address is Launchpad's: preflight's live url (a custom domain once there is one), else launchpad.json's
+    // the address is Launchpad's: preflight's live url (a custom domain once there is one), else deploy.json's
     app: cfg?.app_id ? { id: cfg.app_id, name: nn(cfg.name), url: app?.url || nn(cfg.url), host: hostOf(app?.url || cfg.url || ""), status: app?.status || "", release: app?.release || null, at: app?.last_deploy_at ? Date.parse(app.last_deploy_at) : null, ready: nn(app?.ready), of: nn(app?.desired), gone: app?.exists === false, commit: (c.git?.deployed_head || "").slice(0, 7),
-      // its size and disk, fixed when it was created (the disk can grow): preflight's, else launchpad.json's
+      // its size and disk, fixed when it was created (the disk can grow): preflight's, else deploy.json's
       size: app?.size || cfg.size || "", sizeLabel: app?.size_label || "",
       storage: app && "storage" in app ? (app.storage ? { path: app.storage.path || "", gb: gbOf(app.storage.size) } : null) : cfg.storage ? { path: cfg.storage.path || "", gb: gbOf(cfg.storage.size_gb) } : app?.size ? null : undefined } : null,
-    // a new app's size and disk: launchpad.json's (null: the template's default, no disk), and what Launchpad offers
+    // a new app's size and disk: deploy.json's (null: the template's default, no disk), and what Launchpad offers
     size: f.size?.value || "", storage: f.storage?.value ? { path: f.storage.value.path || "", gb: gbOf(f.storage.value.size_gb) } : null,
     sizes: sizesOf(pre?.launchpad?.sizes),
     nameFree: pre?.launchpad?.name_free !== false, sameName: pre?.launchpad?.same_name || null,

@@ -53,10 +53,10 @@ export const ghCmd = (fix) => /`([^`]+)`/.exec(fix || "")?.[1] || "";
 /** @param {string} cmd @param {{ cmdCopied: number } | null | undefined} s */
 export const cmdHtml = (cmd, s) => { const on = !!s && s.cmdCopied > Date.now(); return `<div class="lp-cmd"><code>${esc(cmd)}</code><button type="button" class="lp-ib" data-lp="cmd-copy" data-v="${esc(cmd)}" title="${on ? "Copied" : "Copy the command"}" aria-label="Copy the command">${on ? ICON.check : ICON.copy}</button></div>`; };
 
-/** Where launchpad.json sends the code, and where git's origin points: both whole, so the person sees the difference. @param {DeployFrame} nd */
+/** Where deploy.json sends the code, and where git's origin points: both whole, so the person sees the difference. @param {DeployFrame} nd */
 export const repoFacts = (nd) => {
   const d = nd.data || {};
-  return `<p>launchpad.json names ${d.repo ? `<code>${esc(d.repo)}</code>` : "a repository"}. ${d.origin ? `This project's git origin is <code>${esc(d.origin)}</code>.` : "This project has no git origin."}</p>`;
+  return `<p>deploy.json names ${d.repo ? `<code>${esc(d.repo)}</code>` : "a repository"}. ${d.origin ? `This project's git origin is <code>${esc(d.origin)}</code>.` : "This project has no git origin."}</p>`;
 };
 /** The apps a push would also deploy (Space's other_apps), each by its slug or its workflow file, and where the push goes. @param {DeployFrame} nd */
 export const appsFacts = (nd) => {

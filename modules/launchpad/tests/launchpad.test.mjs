@@ -75,7 +75,7 @@ t("model: flow.json's fallback table has no default (Launchpad's catalog out of 
   assert.equal(m.sizes.source, "flow.json");
   assert.equal(model(check(), { ...GH, launchpad: { sizes: { default: "xo.large", allowed: ["xo.small"], tiers: TIERS } } }).sizes.def, "");
 });
-t("model: launchpad.json's size and disk fill a new app's form (null: the default, no disk)", () => {
+t("model: deploy.json's size and disk fill a new app's form (null: the default, no disk)", () => {
   const m = model(check({ fields: { ...check().fields, size: { value: "xo.small" }, storage: { value: { path: "/data", size_gb: 5 } } } }));
   assert.equal(m.size, "xo.small");
   assert.deepEqual(m.storage, { path: "/data", gb: 5 });
@@ -90,9 +90,9 @@ t("model: a linked app's size and disk come from preflight (Launchpad's '2Gi'); 
   assert.deepEqual(m.app.storage, { path: "/data", gb: 2 });
   assert.equal(model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running", size: "xo.small", storage: null } } }).app.storage, null, "made without a disk");
   assert.equal(model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running" } } }).app.storage, undefined, "an older Space says nothing of disks");
-  assert.deepEqual(model(check({ state: "linked", config: { ...cfg, size: "xo.large", storage: { path: "/srv", size_gb: 4 } } })).app.storage, { path: "/srv", gb: 4 }, "before preflight: launchpad.json's");
+  assert.deepEqual(model(check({ state: "linked", config: { ...cfg, size: "xo.large", storage: { path: "/srv", size_gb: 4 } } })).app.storage, { path: "/srv", gb: 4 }, "before preflight: deploy.json's");
 });
-t("model: the address is Launchpad's: preflight's live url (a custom domain) over launchpad.json's", () => {
+t("model: the address is Launchpad's: preflight's live url (a custom domain) over deploy.json's", () => {
   const cfg = { app_id: "a1", name: "p", url: "https://p-xo-1234567.apps.hello-xo.nl" };
   assert.equal(model(check({ state: "linked", config: cfg })).app.host, "p-xo-1234567.apps.hello-xo.nl");
   const m = model(check({ state: "linked", config: cfg }), { ...GH, launchpad: { app: { status: "running", url: "https://shop.example.com" } } });
@@ -105,7 +105,7 @@ t("sizeWords: a tier, Launchpad's own label, or the name as it is", () => {
   assert.equal(sizeWords(null, "something else"), "something else");
   assert.equal(sizeWords(undefined, ""), "");
 });
-t("formKey: the size catalog, launchpad.json's machine and a linked app's are in it", () => {
+t("formKey: the size catalog, deploy.json's machine and a linked app's are in it", () => {
   const a = model(check(), { ...GH, launchpad: { sizes: { default: "xo.medium", tiers: TIERS } } });
   const b = model(check(), { ...GH, launchpad: { sizes: { default: "xo.small", tiers: TIERS } } });
   assert.notEqual(formKey(a, { pre: 2 }), formKey(b, { pre: 2 }));
