@@ -5,6 +5,8 @@
 .dlg[open]{animation:sheet-in var(--d-sheet) var(--ease)}
 .dlg.is-closing{animation:sheet-out var(--d-out) var(--ease) forwards}
 .dlg::backdrop{background:var(--scrim);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.dlg[open]::backdrop{animation:fade var(--d-sheet) var(--ease)}
+.dlg.is-closing::backdrop{animation:fade var(--d-out) var(--ease) reverse forwards}
 .dlg form{display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-6) var(--s-6) var(--s-5)}
 .dlg-head{display:flex;gap:var(--s-3);align-items:flex-start}
 .failure-detail{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}

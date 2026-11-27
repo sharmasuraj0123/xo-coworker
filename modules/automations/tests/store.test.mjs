@@ -97,6 +97,20 @@ await t("run now shows it running from XO Space's answer", async () => {
   assert.equal(store.find("j2")?.running, true);
 });
 
+await t("while XO Space turns one off, its switch already shows off, and back if it can't", async () => {
+  const { store, api } = await setup();
+  const a = store.find("j2");
+  assert.ok(a);
+  const { promise, reject } = Promise.withResolvers();
+  Object.assign(api, { updateSchedule: () => promise });
+  const turning = store.setOn(a, false);
+  assert.equal(store.state.turning.get("j2"), false, "it shows where it's going");
+  reject(new Error("down"));
+  await turning.catch(() => {});
+  assert.equal(store.state.turning.has("j2"), false, "and where it is once XO Space has answered");
+  assert.equal(store.find("j2")?.on, true);
+});
+
 await t("a list that can't be read says so, and keeps what it had", async () => {
   const { store, api, errors } = await setup();
   Object.assign(api, { schedules: async () => { throw new Error("down"); } });
