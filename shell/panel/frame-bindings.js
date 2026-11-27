@@ -2,11 +2,13 @@
 
 import { ownSurface } from "../surfaces.js";
 
-/** @import { MapFrame, ChangesFrame, ChangesFrameOptions, StageDeps } from "./panel-types.d.ts" */
+/** @import { MapFrame, ChangesFrame, ChangesFrameOptions, AutomationsFrame, AutomationsPanel, StageDeps } from "./panel-types.d.ts" */
 
 /** @import { SurfaceScope } from "../surface-types.d.ts" */
 
-/** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: { map: HTMLElement, changes: HTMLElement } }} BindHosts */
+/** @typedef {{ map: HTMLElement, changes: HTMLElement, automations: HTMLElement }} FrameHosts */
+
+/** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: FrameHosts }} BindHosts */
 
 /** @typedef {{ options: ChangesFrameOptions, fallback: () => HTMLElement, refresh: () => void }} BindActions */
 
@@ -18,7 +20,11 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
   let changeFrame;
   /** @type {ReturnType<ChangesFrame["mount"]> | undefined} */
   let changes;
-  let retireMap = () => {}, retireChanges = () => {};
+  /** @type {AutomationsFrame | undefined} */
+  let autoFrame;
+  /** @type {AutomationsPanel | undefined} */
+  let autos;
+  let retireMap = () => {}, retireChanges = () => {}, retireAutos = () => {};
 
   function sync() {
     const mapEntry = places.get("panel.frame", "map");
@@ -45,6 +51,17 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
         }, fallback);
       }
     }
+    const autoEntry = places.get("panel.frame", "automations");
+    if (autoEntry !== autoFrame) {
+      retireAutos();
+      autoFrame = autoEntry;
+      if (autoEntry) {
+        const controller = autoEntry.mount(hosts.automations);
+        autos = controller;
+        const gone = () => { autoFrame = undefined; autos = undefined; controller.dispose(); };
+        retireAutos = ownSurface(scope, hosts.automations, gone, fallback);
+      }
+    }
   }
 
   scope.effect(() => places.watch("panel.frame", () => { sync(); refresh(); }));
@@ -52,6 +69,7 @@ export function bindPanelFrames({ places, scope, mapControls, hosts, options, fa
   return {
     get map() { return mapFrame ? mapControls?.() : undefined; },
     get changes() { return changes; },
+    get automations() { return autos; },
     /** @param {string} theme */
     theme(theme) { changeFrame?.theme(theme); },
   };

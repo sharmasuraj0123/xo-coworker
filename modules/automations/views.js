@@ -11,15 +11,18 @@ import { UNDO_MS } from "./store.js";
 
 /** @param {string} icon */
 export const tile = (icon, small = false) =>
-  `<span class="au-tile${small ? " is-sm" : ""}" data-k="${esc(icon)}" aria-hidden="true">${xi(icon)}</span>`;
+  `<span class="au-tile${small ? " is-sm" : ""}" data-au-k="${esc(icon)}" aria-hidden="true">${xi(icon)}</span>`;
+
+/** How its last run ended: a class, an icon and the words. @param {LastRun} last */
+export const endOf = (last) => last.status === "failed" ? ["is-err", "x-circle", "Failed"]
+  : last.status === "skipped" ? ["", "run-skipped", "Skipped"]
+  : last.found === true ? ["is-need", "found", "Found something"]
+  : ["is-ok", "check-circle", last.found === false ? "Nothing new" : "Done"];
 
 /** @param {LastRun | null} last */
 function resultHtml(last) {
   if (!last) return `<span class="au-r">Not run yet</span>`;
-  const [cls, icon, words] = last.status === "failed" ? ["is-err", "x-circle", "Failed"]
-    : last.status === "skipped" ? ["", "run-skipped", "Skipped"]
-    : last.found === true ? ["is-need", "found", "Found something"]
-    : ["is-ok", "check-circle", last.found === false ? "Nothing new" : "Done"];
+  const [cls, icon, words] = endOf(last);
   return `<span class="au-r ${cls}">${xi(icon)}${words}</span>`;
 }
 
@@ -74,7 +77,7 @@ function rowHtml(a, lead, s) {
 /** @param {WeekDay} day */
 const weekDayHtml = (day) => `<div class="${day.today ? "is-today" : day.past ? "is-past" : ""}">` +
   `<small>${esc(formatDate(day.start, "weekday"))}</small><b>${new Date(day.start).getDate()}</b>` +
-  `<i>${day.dots.slice(0, 6).map((dot) => `<u data-k="${esc(dot.icon)}"></u>`).join("")}</i></div>`;
+  `<i>${day.dots.slice(0, 6).map((dot) => `<u data-au-k="${esc(dot.icon)}"></u>`).join("")}</i></div>`;
 
 /** @param {WeekDay[]} week */
 export const weekHtml = (week) => `<div class="au-week" aria-hidden="true">${week.map(weekDayHtml).join("")}</div>`;

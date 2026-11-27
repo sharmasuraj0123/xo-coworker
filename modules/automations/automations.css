@@ -33,10 +33,10 @@
 .au-week u{width:var(--ic-map-status);height:var(--ic-map-status);border-radius:var(--r-icon-round);background:var(--c)}
 
 /* each automation's colour, from what it does */
-[data-k]{--c:var(--info)}
-[data-k="nightly"]{--c:var(--violet)}
-[data-k="sunrise"]{--c:var(--go)}
-[data-k="pulse"]{--c:var(--warn)}
+[data-au-k]{--c:var(--info)}
+[data-au-k="nightly"]{--c:var(--violet)}
+[data-au-k="sunrise"]{--c:var(--go)}
+[data-au-k="pulse"]{--c:var(--warn)}
 .au-tile{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);border-radius:var(--r-lg);
   background:color-mix(in srgb,var(--c) 16%,var(--fill-clear));color:var(--c)}
 .au-tile svg{width:var(--ic-lg);height:var(--ic-lg)}
@@ -178,3 +178,8 @@ button.au-run:hover{background:var(--fill-1)}
   .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
   .au-row .au-tile,.au-row .au-r{display:none}
 }
+.stage .fr[data-fr="automations"]{border-top:1px solid var(--fill-2)}
+.stage .fr[data-fr="automations"] .fr-b{
+  max-height:calc(var(--au-rows,1) * (var(--h-row-act) + var(--s-1)) - var(--s-1));margin-bottom:var(--s-2)
+}
+.stage .fr[data-fr="automations"] .ag-list{padding-bottom:0}

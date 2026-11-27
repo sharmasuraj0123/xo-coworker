@@ -3,6 +3,7 @@
 import { api } from "../../core/platform/api.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { reportFailure } from "../../core/platform/util.js";
+import { createAutomationsFrame } from "./frame.js";
 import { createAutomationsPage } from "./page.js";
 import { createSide } from "./side.js";
 import { createAutomationsStore } from "./store.js";
@@ -13,8 +14,8 @@ import { createAutomationsStore } from "./store.js";
 export const automationsModule = {
   manifest: {
     id: "xo.automations", version: "1.0.0", kernel: "^1.1.0",
-    needs: ["world", "announce", "navigation", "currentView"],
-    contributes: ["page:automations"],
+    needs: ["world", "announce", "navigation", "currentView", "stage", "placeContext"],
+    contributes: ["page:automations", "panel.frame:automations", "panel.page:automation"],
   },
   activate(ctx) {
     const world = ctx.use("world"), announce = ctx.use("announce");
@@ -33,11 +34,33 @@ export const automationsModule = {
       if (thread) nav.go("t:" + ts);
       else announce("That run's thread is gone.");
     }
+    const stage = ctx.use("stage"), place = ctx.use("placeContext");
+    /** @type {(chat: string, ts: string) => void} */
+    const toThread = (chat, ts) => void openThread(chat, ts);
+    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread };
     const page = createAutomationsPage({
       store, projectName, projects, failed, announce,
-      side: ({ shown }) => createSide({ store, where: "page", projectName, projects, shown, failed, announce,
-        openThread: (chat, ts) => void openThread(chat, ts) }),
+      side: ({ shown }) => createSide({ ...sideDeps, where: "page", shown }),
     });
+    const onPanel = () => stage.pageShown?.name === "automation";
+    let leaving = false;
+    const inPanel = createSide({ ...sideDeps, where: "panel", showAll: () => nav.go("automations"),
+      shown(id) { if (id === null && !leaving && onPanel()) stage.back(); else stage.repaint(); } });
+    ctx.effect(() => inPanel.dispose);
+    ctx.contribute("panel.page", {
+      id: "automation",
+      title: () => inPanel.editing && !inPanel.id ? "New automation" : "Automation",
+      mount: (box) => inPanel.mount(box),
+      onShow(key) { if (key.startsWith("new:")) inPanel.create(key.slice(4)); else inPanel.open(key); },
+      close() { leaving = true; try { inPanel.close(); } finally { leaving = false; } },
+      escape: () => inPanel.escape(),
+    });
+    ctx.contribute("panel.frame", createAutomationsFrame({
+      store, changed: () => stage.repaint(),
+      chatOf: (v) => { const id = place.convProject(v); return id ? world.project(id)?.chatId ?? null : null; },
+      open: (id) => stage.show("automation", id, { focus: true }),
+      create: (chat) => stage.show("automation", `new:${chat}`, { focus: true }),
+    }));
     ctx.effect(() => page.dispose);
     ctx.contribute("page", { id: "automations", mount: page.mount, render: page.render });
     const close = () => view() === "automations" && page.escape();

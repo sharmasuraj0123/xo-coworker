@@ -8,7 +8,6 @@ import { redraw } from "../../core/ui/redraw.js";
 import { startUndoRings } from "../../core/ui/undo-ring.js";
 import { focusOpened, menuKeys, radioKeys } from "../../core/ui/a11y/keynav.js";
 import { agendaOf, noticedOf, weekOf } from "./model.js";
-import { REFRESH_MS } from "./pending.js";
 import { emptyHtml, lastLead, listHtml, agendaHtml, weekHtml } from "./views.js";
 
 /** @import { Automation, PageDeps, Tab } from "./types" */
@@ -26,7 +25,6 @@ export function createAutomationsPage(deps) {
   /** @type {Tab} */
   let tab = "upcoming";
   let menu = noId(), confirm = noId(), selected = noId();
-  let readAt = 0;
   /** @type {HTMLElement | null} */
   let main = null;
   /** @type {HTMLElement | null} */
@@ -153,7 +151,7 @@ export function createAutomationsPage(deps) {
       undo.push(menuKeys(box, { close: closeMenu }), radioKeys(box));
     },
     render() {
-      if (now() - readAt > REFRESH_MS) { readAt = now(); void deps.store.refresh(); }
+      deps.store.fresh();
       paint();
     },
     /** Esc on the page: a menu, a confirm, the form, then what's open beside the list. */

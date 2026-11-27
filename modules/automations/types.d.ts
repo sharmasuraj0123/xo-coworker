@@ -175,3 +175,12 @@ export interface SideControl {
   readRuns: (id: string) => Promise<void>;
 }
 export type Tab = "upcoming" | "found" | "off";
+
+export interface FrameDeps {
+  store: AutomationsStore;
+  chatOf: (view: string) => string | null;
+  open: (id: string) => void;
+  create: (chat: string) => void;
+  changed: () => void;
+  now?: () => number;
+}

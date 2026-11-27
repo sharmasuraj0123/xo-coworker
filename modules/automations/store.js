@@ -1,6 +1,7 @@
 // @ts-check
 
 import { automationsOf, runRowsOf } from "./model.js";
+import { REFRESH_MS } from "./pending.js";
 
 /** @import { AgentJobBody, ScheduledJob } from "../../core/platform/schedule-response-types" */
 
@@ -24,6 +25,7 @@ export function createAutomationsStore({ api, report, timeout, now = Date.now })
   const watchers = new Set();
   /** @type {AbortController | null} */
   let reading = null;
+  let readAt = -Infinity;
 
   /** @param {Partial<AutomationsState>} next */
   const set = (next) => {
@@ -80,6 +82,12 @@ export function createAutomationsStore({ api, report, timeout, now = Date.now })
       return () => { watchers.delete(watch); };
     },
     refresh,
+    /** Read again once what was read is a minute old: the page and the panel both ask as they draw. */
+    fresh() {
+      if (now() - readAt <= REFRESH_MS) return;
+      readAt = now();
+      void refresh();
+    },
     /** @param {Automation} a @param {boolean} on */
     async setOn(a, on) {
       landOne(await api.updateSchedule(a.id, { ...definitionOf(a.job), enabled: on }));
