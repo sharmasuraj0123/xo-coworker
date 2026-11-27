@@ -322,7 +322,7 @@ code.hl{color:var(--code-ink)}
 .sp-k1{--c:var(--tone)}
 .sp-k2{--c:color-mix(in oklab,var(--tone) 62%,var(--surface))}
 .sp-k3{--c:color-mix(in oklab,var(--tone) 38%,var(--surface))}
-.sp-k4{--c:var(--ink-4)}
+.sp-k4{--c:color-mix(in oklab,var(--ink-5) 50%,var(--surface))}
 .sp-bar i{background:var(--c)}
 .sp-users{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin:0;padding:0;list-style:none;
   font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-2)}
