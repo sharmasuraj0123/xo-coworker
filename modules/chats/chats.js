@@ -137,11 +137,13 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!s) return "";
     // neutral, not amber: nothing waits on you, and nothing resumes
     if (s.retired_at) return `<span class="tg-end">${ICON.stop}</span><span>Ended. Start a new one from Chats.</span>`;
-    if (inTurn(s)) {
-      const rt = runtime(s.agent);
-      const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
-      return `<span class="tg-t">${ICON.thread}</span><span>${steer ? "Adds to the turn in progress" : "Waits for the turn in progress"}</span>`;
+    const steer = (feature(runtime(s.agent), "send_while_running") || {}).behaviour === "steered";
+    if (waiting(s)) {
+      const kind = (world.state.hosts || []).find((h) => h.id === `session:${s.id}`)?.asks.find((a) => a.item)?.kind;
+      const words = kind === "question" ? "Answer its question above" : kind ? "Decide above" : "It waits for you";
+      return `<span class="tg-warn">${ICON.needs}</span><span>${words}${steer ? "" : " · a reply here waits for its turn"}</span>`;
     }
+    if (inTurn(s)) return `<span class="tg-t">${ICON.thread}</span><span>${steer ? "Adds to the turn in progress" : "Waits for the turn in progress"}</span>`;
     // held back by a gate: a reply waits with what's already waiting, and runs with it
     if (heldOf(s)) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b> · it runs with the waiting message</span>`;
     return ""; // the box's own "Reply in this chat…" says it
