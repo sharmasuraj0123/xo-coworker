@@ -8,6 +8,20 @@ export interface BranchReceipt {
   unpushed?: number | null;
   pr?: { number?: number | null; url?: string | null; state?: string | null; draft?: boolean; merged_at?: string | null } | null;
   upstream?: { pushed?: boolean; gone?: boolean } | null;
+  tree?: TreeState | null;
+}
+
+/** The worktree's own state, kept by Space: entries as git lists them by default, so a new folder counts once; null when not known. */
+export interface TreeState {
+  exists?: boolean | null;
+  xo?: boolean | null;
+  changed?: number | null;
+  untracked?: number | null;
+  kept_ignored?: number | null;
+  local_commits?: number | null;
+  would_lose?: boolean | null;
+  error?: string | null;
+  checked_at?: string | null;
 }
 
 interface LostPaths { count: number; paths: string[] }
@@ -39,6 +53,7 @@ export interface WorktreeRow {
   git?: BranchReceipt | null;
   removed_at?: string | null;
   removed_by?: string | null;
+  checked_at?: string | null;
 }
 
 export interface ReportedTree {
@@ -54,6 +69,7 @@ export interface WorktreesReply {
   worktrees: WorktreeRow[];
   removed?: WorktreeRow[];
   reported?: ReportedTree[];
+  next_cursor?: string | null;
 }
 
 export interface WorktreeRemoveReply {

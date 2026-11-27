@@ -2,6 +2,7 @@
 import { invalidField, rejectFrame } from "../frame-failures.js";
 import { text } from "../../world/frame-values.js";
 import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
+import { isBranch } from "../../../platform/record-responses.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
 
@@ -36,6 +37,15 @@ export const threads = {
     if (!ctx.noteControl(env, d)) return;
     // a new model or effort on the same session: the thread's read carries it
     if (d.action === "setup" && env.chat_id && env.thread_ts) ctx.refetchThread(env.chat_id, env.thread_ts);
+    ctx.soon();
+  },
+  // Space's stored git state for the thread, replaced whole whenever any of it changed
+  "thread.git"(ctx, env, d) {
+    const ts = typeof d.ts === "string" ? d.ts : env.thread_ts;
+    if (!ts) return rejectFrame(ctx, "thread.git", "ts");
+    if (d.git != null && !isBranch(d.git)) return rejectFrame(ctx, "thread.git", "git");
+    if (!ctx.rawThreads.has(ts)) return;
+    ctx.threadRecords.write(ts, { git: d.git ?? null });
     ctx.soon();
   },
   card(ctx, env, d) {

@@ -11,13 +11,17 @@ const unavailableRuntime = {
     limit: null, resets_at: null, windows: {}, error: { code: "not_installed", message: "CLI missing" },
   },
 };
+const checkingRuntime = {
+  name: "cursor", default: false, cli: null, error: { code: "slow", message: "Still checking." },
+  lifecycle: { name: "cursor", state: "checking", installed: true, signed_in: null, actions: ["install", "update", "sign_in"] },
+};
 const nullableModel = {
   id: "catalog-id", name: null, description: null, family: null, family_default: false, efforts: [],
   default_effort: null, context_window: null, is_default: false, takes_effort: true,
 };
 const routes = [
   ["GET", "/chat/runtimes", () => api.runtimes(),
-    { runtimes: [...samples.runtimes.runtimes, unavailableRuntime] }, { runtimes: [{ name: "x", health: { installed: "yes" } }] }],
+    { runtimes: [...samples.runtimes.runtimes, unavailableRuntime, checkingRuntime] }, { runtimes: [{ name: "x", health: { installed: "yes" } }] }],
   ["GET", "/chat/runtimes/codex/models", () => api.models("codex"),
     { models: [...samples.models.models, nullableModel] }, { models: [{ ...nullableModel, description: {} }] }],
   ["GET", "/chat/runtime-policy", () => api.runtimePolicy(), samples.policy, {}],

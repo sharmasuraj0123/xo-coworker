@@ -29,9 +29,9 @@ export interface RuntimeFeature { values?: string[]; support?: string | null; be
 export type LifecycleAction = "install" | "update" | "uninstall" | "sign_out" | "sign_in";
 export interface Lifecycle {
   name: string;
-  state: "not_installed" | "installed" | "signed_in" | "installing" | "updating" | "uninstalling" | "failed" | string;
+  state: "not_installed" | "installed" | "signed_in" | "checking" | "installing" | "updating" | "uninstalling" | "failed" | string;
   installed: boolean;
-  signed_in: boolean;
+  signed_in: boolean | null;
   actions: string[];
   job?: string | null;
   version?: string | null;

@@ -40,13 +40,13 @@ export function firstSentence(md) {
 }
 
 /** @template {Thread} T @param {T[]} threads @param {CatchUpOptions} [opts] */
-export function catchUp(threads, { since = NaN, needing = new Set(), trees = new Map() } = {}) {
+export function catchUp(threads, { since = NaN, needing = new Set() } = {}) {
   /** @type {Map<string, CatchUpItem<T>[]>} */
   const by = new Map(GROUPS.map((g) => [g.id, []]));
   for (const t of threads) {
     const needs = needing.has(t.id);
     if (!needs && !(t.lastAt > since)) continue;
-    const git = gitState(trees.get(t.id), t.git || null);
+    const git = gitState(t.git);
     let g;
     if (needs) g = "needs";
     else if (t.state === "failed") g = "stopped";

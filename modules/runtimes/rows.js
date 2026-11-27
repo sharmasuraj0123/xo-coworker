@@ -38,7 +38,8 @@ function elapsed(ms) {
 export function landed(rt, what) {
   const lc = rt.lifecycle;
   if (!lc || !what) return true;
-  if (what === "sign_in") return lc.signed_in;
+  if ((what === "sign_in" || what === "sign_out") && lc.signed_in == null) return false;
+  if (what === "sign_in") return lc.signed_in === true;
   if (what === "sign_out") return !lc.signed_in;
   if (what === "install") return lc.installed;
   if (what === "uninstall") return !lc.installed;
@@ -114,6 +115,9 @@ function rowView(rt, { flow = null, job = null, settling = "", now = Date.now() 
   const install = act("install", "Install", { pri: true });
   if (!lc.installed && offers("install")) return view("absent", absent, "Not installed on this Space.", { next: [install] });
   if (!lc.installed) return view("absent", absent, `Not installed. Install ${n}'s CLI on this machine; XO finds it on the next check.`);
+  if (lc.signed_in == null) {
+    return view("checking", ["Checking", "off"], "Checking…", { busy: true, menu: menuOf(rt, ["sign_in", "sign_out"]) });
+  }
   if (!lc.signed_in && offers("sign_in")) {
     return view("out", out, `Installed, not signed in. XO can't run ${n} until it is.`, {
       tone: "warn", next: [act("sign_in", "Sign in", { pri: true })], menu: menuOf(rt, ["sign_in"]),

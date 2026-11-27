@@ -1,13 +1,12 @@
 // node modules/since/tests/view.test.mjs: Since you left on screen, on a DOM with a fake api: when it speaks, the line, Home's lines, Got it and leaving.
 import assert from "node:assert/strict";
 import { deferred, dom, same, settle } from "../../../tests/lib/dom.mjs";
-import { ApiError } from "../../../core/platform/http.js";
 
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) };
 const calls = [];
 let chats = { chats: [] };
-const api = { chats: () => new Promise((r) => setTimeout(() => r(chats), 0)), worktrees: async () => ({ worktrees: [] }), markSeen: async (chat) => { calls.push(`seen ${chat}`); } };
+const api = { chats: () => new Promise((r) => setTimeout(() => r(chats), 0)), markSeen: async (chat) => { calls.push(`seen ${chat}`); } };
 await dom("");
 const { createSince } = await import("../view.js");
 
@@ -166,75 +165,24 @@ await t("disposing Since aborts reads and releases its page listeners", async ()
   assert.deepEqual(late, []);
   assert.equal(JSON.parse(store.get("xo-seen"))["p:demo"], 1);
 });
-await t("repeated paints share the project worktree read; a late completion after disposal cannot schedule", async () => {
-  store.set("xo-seen", JSON.stringify({ "p:demo": now - 9 * H }));
-  const worktrees = deferred();
-  const reads = [];
-  let scheduled = 0;
-  const S = await make({
-    api: { ...api, worktrees: (chat, signal) => { reads.push({ chat, signal }); return worktrees.promise; } },
-    schedule: () => { scheduled++; },
-  });
+await t("Since reads each thread's own git state, live, and asks Space for no worktree list", async () => {
+  store.set("xo-seen", JSON.stringify({ "p:demo": now - 9 * H, home: now - 9 * H }));
+  const asked = [];
+  const S = await make({ api: new Proxy(api, { get: (target, name) => { asked.push(name); return target[name]; } }) });
+  const a = threads.find((x) => x.id === "a");
   try {
     await settle();
-    scheduled = 0;
-    for (let i = 0; i < 3; i++) S.sinceLine("demo", []);
-    await settle();
-    assert.deepEqual(reads.map(({ chat }) => chat), ["c1"]);
-    S.dispose();
-    assert.equal(reads[0].signal.aborted, true);
-    worktrees.resolve({ worktrees: [{ thread_ts: "a", git: { unpushed: 1 } }] });
-    await settle();
-    assert.equal(scheduled, 0);
+    a.git = { commits: 1, unpushed: 0, upstream: { pushed: true }, tree: { exists: true, changed: 2, untracked: 1 } };
+    S.sinceLine("demo", []);
+    const line = () => [...box.querySelectorAll(".sl-part")].map((button) => button.textContent);
+    assert.deepEqual(line(), ["1 not saved", "1 finished", "1 still going"]);
+    a.git = { commits: 1, unpushed: 0, upstream: { pushed: true } };
+    S.sinceLine("demo", []);
+    assert.deepEqual(line(), ["1 not merged", "1 finished", "1 still going"], "a tree Space hasn't reported is not known");
+    assert.deepEqual([...new Set(asked)].filter((name) => name !== "chats" && name !== "markSeen"), []);
   } finally {
+    delete a.git;
     S.dispose();
-    worktrees.resolve({});
-  }
-});
-await t("Since falls back on an older backend and reports other refresh failures once without clearing good data", async () => {
-  store.set("xo-seen", JSON.stringify({ "p:demo": now - 9 * H }));
-  const originalNow = Date.now;
-  const originalReport = Object.getOwnPropertyDescriptor(globalThis, "reportError");
-  const failures = [];
-  const unavailable = new ApiError(404, "http_404", "Route unavailable");
-  const rejected = new ApiError(500, "storage_error", "Could not read worktrees");
-  let clock = now;
-  let reads = 0;
-  Date.now = () => clock;
-  Object.defineProperty(globalThis, "reportError", { configurable: true, value: (error) => failures.push(error) });
-  const S = await make({
-    api: { ...api, worktrees: async () => {
-      if (reads++ === 0) throw unavailable;
-      if (reads === 2) return { worktrees: [{ thread_ts: "a", git: { unpushed: 1 } }] };
-      throw rejected;
-    } },
-  });
-  const line = () => [...box.querySelectorAll(".sl-part")].map((button) => button.textContent);
-  try {
-    await settle();
-    S.sinceLine("demo", []);
-    await settle();
-    S.sinceLine("demo", []);
-    assert.deepEqual(line(), ["2 finished", "1 still going"]);
-    assert.deepEqual(failures, []);
-    clock += 61_000;
-    S.sinceLine("demo", []);
-    await settle();
-    S.sinceLine("demo", []);
-    assert.deepEqual(line(), ["1 not pushed", "1 finished", "1 still going"]);
-    const retained = box.querySelector('[data-go="t:a"]');
-    clock += 61_000;
-    for (let i = 0; i < 3; i++) S.sinceLine("demo", []);
-    await settle();
-    S.sinceLine("demo", []);
-    assert.deepEqual(failures, [rejected]);
-    same(box.querySelector('[data-go="t:a"]'), retained);
-    assert.match(retained.textContent, /not pushed/);
-  } finally {
-    S.dispose();
-    Date.now = originalNow;
-    if (originalReport) Object.defineProperty(globalThis, "reportError", originalReport);
-    else Reflect.deleteProperty(globalThis, "reportError");
   }
 });
 console.log(`\n${passed} passed`);

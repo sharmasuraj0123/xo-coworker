@@ -7,7 +7,6 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { catchUp, sinceWord } from "./model.js";
-import { createSinceTrees } from "./trees.js";
 import { createVisits } from "./visits.js";
 
 /** @import {SinceNeed, SinceOptions, Thread} from "./model-types" */
@@ -47,7 +46,6 @@ export function createSince({ world, api, schedule, announce, storage }) {
     if (!scope.signal.aborted && !missingRoute(error)) reportFailure(error);
   }
   const visits = createVisits(world, api, { scope, changed: schedule, failed, storage });
-  const treesFor = createSinceTrees((chat, signal) => api.worktrees(chat, signal), scope.signal, schedule, failed);
   /** @type {WeakMap<HTMLElement, string>} */
   const rendered = new WeakMap();
 
@@ -73,9 +71,7 @@ export function createSince({ world, api, schedule, announce, storage }) {
     const place = "p:" + pid;
     const since = visits.arrive(place);
     if (since == null) return "";
-    const chat = world.project(pid)?.chatId;
-    const trees = chat ? treesFor(chat) : undefined;
-    const items = catchUp(threadsIn(pid), { since, needing: needingSet(needs), trees });
+    const items = catchUp(threadsIn(pid), { since, needing: needingSet(needs) });
     if (!items.total) return "";
     return `<p class="sl" role="status">${ICON.clock}<span class="sl-k">${sinceLabel(since)}</span>`
       + `${partsHtml(items)}${dismissButton(place)}</p>`;
@@ -85,13 +81,12 @@ export function createSince({ world, api, schedule, announce, storage }) {
   function homeSinceLines(needs) {
     const since = visits.arrive("home");
     if (since == null) return "";
-    const trees = treesFor();
     const needing = needingSet(needs);
     /** @type {{ at: number, html: string }[]} */
     const rows = [];
     for (const project of world.state.projects || []) {
       if (!project || project.id === "workspace") continue;
-      const items = catchUp(threadsIn(project.id), { since, needing, trees });
+      const items = catchUp(threadsIn(project.id), { since, needing });
       if (!items.total) continue;
       const at = Math.max(...items.groups.map((group) => group.items[0].t.lastAt));
       const link = `<button type="button" class="sl-p" data-go="p:${esc(project.id)}">${esc(project.name || project.id)}</button>`;
