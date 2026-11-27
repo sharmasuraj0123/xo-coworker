@@ -13,8 +13,9 @@ import { createListReads } from "./list-reads.js";
 
 /** @import {Detail, GithubPageOptions, Issue, PageData, Person, Pull} from "./types" */
 
-const IC = { open: xi("state-idle"), closed: xi("check-circle"), pr: xi("pull-request"), merged: xi("merge"), ok: xi("check"), fail: xi("x-circle"), run: xi("spinner"),
-  comment: xi("comment"), ext: xi("external-link"), sync: xi("sync"), thread: xi("thread"), eye: xi("eye"), thumbs: xi("thumbs-up"), back: xi("send-back"), conflict: xi("git-compare"), draft: xi("edit") };
+const IC = { open: xi("gh-issue"), closed: xi("gh-issue-closed"), skipped: xi("gh-issue-skipped"), pr: xi("gh-pr"), prClosed: xi("gh-pr-closed"), merged: xi("gh-merged"),
+  ok: xi("check"), fail: xi("x-circle"), run: xi("gh-checks-running"),
+  comment: xi("comment"), ext: xi("external-link"), sync: xi("sync"), thread: xi("thread"), eye: xi("eye"), approved: xi("gh-approved"), changes: xi("gh-changes"), conflict: xi("gh-conflict"), draft: xi("gh-pr-draft") };
 
 /** @param {number} n */
 const num = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n));
@@ -39,7 +40,7 @@ function person(v) {
 /** One mirror issue, in the page's words. @param {Issue} i */
 export function issueOf(i) {
   return { kind: "issue", number: i.number, title: i.title || "", state: i.state === "closed" ? "closed" : "open", url: i.url || "", at: i.updated_at || null,
-    author: person(i.author) || person((i.assignees || [])[0]), comments: count(i.comments ?? i.comment_count), worked: !!i.in_progress, labels: Array.isArray(i.labels) ? i.labels : [] };
+    author: person(i.author) || person((i.assignees || [])[0]), comments: count(i.comments ?? i.comment_count), worked: !!i.in_progress, skipped: up(i.state_reason) === "NOT_PLANNED", labels: Array.isArray(i.labels) ? i.labels : [] };
 }
 /** @type {Record<string, keyof typeof CHECK | undefined>} */
 const CHECKS = { SUCCESS: "ok", FAILURE: "fail", ERROR: "fail", PENDING: "run", EXPECTED: "run", IN_PROGRESS: "run", QUEUED: "run" };
@@ -58,7 +59,9 @@ export function prOf(p) {
 /** @type {Record<'ok' | 'fail' | 'run', [string, string, string]>} */
 const CHECK = { ok: [IC.ok, "is-ok", "Checks pass"], fail: [IC.fail, "is-err", "Checks failing"], run: [IC.run, "is-run", "Checks running"] };
 /** @type {Record<'requested' | 'changes' | 'approved', [string, string, string]>} */
-const REVIEW = { requested: [IC.eye, "is-warn", "Review asked"], changes: [IC.back, "is-err", "Changes asked"], approved: [IC.thumbs, "is-ok", "Approved"] };
+const REVIEW = { requested: [IC.eye, "is-warn", "Review asked"], changes: [IC.changes, "is-err", "Changes asked"], approved: [IC.approved, "is-ok", "Approved"] };
+/** @param {ReturnType<typeof prOf>} p */
+const prGlyph = (p) => (p.state === "merged" ? IC.merged : p.state === "closed" ? IC.prClosed : p.draft ? IC.draft : IC.pr);
 /** @param {ReturnType<typeof prOf>} p */
 const needsYou = (p) => p.state === "open" && !p.draft && (p.checks === "fail" || p.review === "requested" || p.conflict);
 
@@ -73,15 +76,15 @@ const comments = (n) => (n ? `<span class="gh-i gh-cm" title="${n} comment${n ==
 /** @param {ReturnType<typeof issueOf>} i */
 export function issueRow(i) {
   const open = i.state === "open";
-  return { key: `i${i.number}`, title: i.title, at: i.at, tone: open ? "open" : "done", idle: !open, icon: open ? IC.open : IC.closed, mark: i.worked && open ? ARC : "",
+  return { key: `i${i.number}`, title: i.title, at: i.at, tone: open ? "open" : "done", idle: !open, icon: open ? IC.open : i.skipped ? IC.skipped : IC.closed, mark: i.worked && open ? ARC : "",
     label: `#${i.number}, ${open ? "open" : "closed"}`, sub: `${avatar(i.author)}#${i.number}${comments(i.comments)}` };
 }
 /** @param {ReturnType<typeof prOf>} p */
 export function prRow(p) {
   const open = p.state === "open", c = CHECK[/** @type {keyof typeof CHECK} */ (p.checks)], r = REVIEW[/** @type {keyof typeof REVIEW} */ (p.review)];
-  const marks = open ? (c ? icon(...c) : "") + (r ? icon(...r) : "") + (p.conflict ? icon(IC.conflict, "is-err", `Conflicts with ${p.base || "its base"}`) : "") + (p.draft ? icon(IC.draft, "", "Draft") : "") : "";
+  const marks = open ? (c ? icon(...c) : "") + (r ? icon(...r) : "") + (p.conflict ? icon(IC.conflict, "is-err", `Conflicts with ${p.base || "its base"}`) : "") : "";
   return { key: `p${p.number}`, title: p.title, at: p.at, tone: p.state === "merged" ? "merged" : open ? (p.draft ? "draft" : "open") : "done", idle: !open,
-    icon: p.state === "merged" ? IC.merged : IC.pr, mark: open && p.worked ? ARC : needsYou(p) ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : "",
+    icon: prGlyph(p), mark: open && p.worked ? ARC : needsYou(p) ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : "",
     label: `#${p.number}, ${p.state === "merged" ? "merged" : open ? (p.draft ? "draft" : "open") : "closed"}`,
     sub: `${avatar(p.author)}#${p.number}${marks}${comments(p.comments)}`, right: p.add != null && p.del != null ? size(p.add, p.del) : "" };
 }
@@ -99,7 +102,7 @@ function itemHtml(d, key, more) {
   const it = /** @type {(ReturnType<typeof issueOf> & Partial<ReturnType<typeof prOf>>) | undefined} */ (isPr ? (prsOf(d) || []).find((p) => p.number === n) : issuesOf(d).find((i) => i.number === n));
   if (!it) return `<p class="fr-none">GitHub no longer lists ${isPr ? "pull request" : "issue"} #${n} here.</p>`;
   const st = it.state, word = st === "merged" ? "Merged" : st === "open" ? (it.draft ? "Draft" : "Open") : "Closed";
-  const badge = `<span class="badge gh-st is-${st}">${st === "merged" ? IC.merged : isPr ? IC.pr : st === "open" ? IC.open : IC.closed}${word}</span>`;
+  const badge = `<span class="badge gh-st is-${st}">${isPr ? prGlyph(/** @type {ReturnType<typeof prOf>} */ (it)) : st === "open" ? IC.open : it.skipped ? IC.skipped : IC.closed}${word}</span>`;
   const by = it.author ? `${dot}<span class="gh-by">${avatar(it.author)}${esc(it.author.login)}</span>` : "";
   const when = it.at ? `${dot}<span>${esc(longAgo(it.at))}</span>` : "";
   const cm = it.comments ? `${dot}<span class="gh-i gh-cm">${IC.comment}${it.comments}</span>` : "";

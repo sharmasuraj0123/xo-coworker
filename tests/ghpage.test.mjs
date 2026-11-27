@@ -65,6 +65,21 @@ t("a pull request in snake_case, merged: no status marks, no needs-you", () => {
   assert.equal(r.tone, "merged");
 });
 
+t("each state has its own GitHub glyph from the pack, said once on the tile", () => {
+  const glyph = (html) => /data-xi="([^"]+)"/.exec(html)?.[1];
+  assert.equal(glyph(prRow(prOf({ number: 1, title: "a", state: "open" })).icon), "gh-pr");
+  const draft = prRow(prOf({ number: 2, title: "b", state: "open", is_draft: true }));
+  assert.equal(glyph(draft.icon), "gh-pr-draft");
+  assert.equal(draft.sub.includes("gh-pr-draft"), false, "the draft is not said twice");
+  assert.equal(glyph(prRow(prOf({ number: 3, title: "c", state: "closed" })).icon), "gh-pr-closed");
+  assert.equal(glyph(prRow(prOf({ number: 4, title: "d", state: "merged" })).icon), "gh-merged");
+  assert.equal(glyph(issueRow(issueOf({ number: 5, title: "e", state: "open" })).icon), "gh-issue");
+  assert.equal(glyph(issueRow(issueOf({ number: 6, title: "f", state: "closed", state_reason: "completed" })).icon), "gh-issue-closed");
+  assert.equal(glyph(issueRow(issueOf({ number: 7, title: "g", state: "closed", state_reason: "not_planned" })).icon), "gh-issue-skipped");
+  const marks = prRow(prOf({ number: 8, title: "h", state: "open", checks: "PENDING", review_decision: "APPROVED", mergeable: "CONFLICTING" })).sub;
+  for (const name of ["gh-checks-running", "gh-approved", "gh-conflict"]) assert.equal(marks.includes(`data-xi="${name}"`), true, name);
+});
+
 t("a pull request without sizes shows no size", () => {
   assert.equal(prRow(prOf({ number: 4, title: "z", state: "open" })).right, "");
 });

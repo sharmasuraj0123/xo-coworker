@@ -20,6 +20,7 @@ export interface Issue {
   title?: string;
   url?: string;
   state?: string | null;
+  state_reason?: string | null;
   updated_at?: string | null;
   author?: Person;
   assignees?: Person[];
