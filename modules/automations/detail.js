@@ -3,9 +3,11 @@
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
+import { rtMark } from "../../core/services/runtimes.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { titleOf } from "./agent-file.js";
+import { runsOnWords } from "./agent-views.js";
 import { cadenceOf, cadenceWords, dayMonth, foundWords, hhmm, longDate, ordinal } from "./model.js";
 import { confirmHtml, lettersHtml, menuItem, menuWrap, NOTIFY, ON_FAILURE, switchHtml, tile } from "./views.js";
 
@@ -23,13 +25,24 @@ function alarmHtml(a) {
   return `<div class="au-alarm">${time}${lettersHtml(days)}</div>`;
 }
 
-/** How often, and when next: "Weekdays · next Monday 30 November". @param {Automation} a */
+/** How often, and when next: "Weekdays · next Monday 30 November"; a one-off's alarm already says both. @param {Automation} a */
 function whenWords(a) {
-  const often = cadenceWords(a), { kind } = cadenceOf(a);
+  const often = cadenceWords(a), { kind, at } = cadenceOf(a);
+  if (kind === "once" && Number.isFinite(at)) return "";
   if (!a.on || !Number.isFinite(a.next)) return often;
   const hourly = kind === "hour" || kind === "minute";
   return `${often} · next ${hourly ? `${hhmm(a.next)}, ` : ""}${longDate(a.next)}`;
 }
+
+/** @param {Automation} a */
+const nextHtml = (a) => { const w = whenWords(a); return w ? `<p class="au-next">${esc(w)}</p>` : ""; };
+
+/** Words alone, so a name taken from what it does reads as the same. @param {string} t */
+const plain = (t) => t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+/** What it does, unless its name already says all of it. @param {Automation} a */
+const promptHtml = (a) => plain(a.prompt) === plain(a.name) ? ""
+  : `<section class="au-sec"><h3>Each time</h3><p class="au-prompt">${esc(a.prompt)}</p></section>`;
 
 /** When a run was, by day and time. @param {number} at */
 function runWhen(at, now = Date.now()) {
@@ -89,16 +102,12 @@ const runsHtml = (s) => s.runsFailed ? `<p class="au-none">Couldn't read its pas
   : !s.runs ? `<p class="au-none">Reading its past runs…</p>`
   : s.runs.length ? `<ul class="au-runs">${s.runs.map(runHtml).join("")}</ul>` : `<p class="au-none">It hasn't run yet.</p>`;
 
-/** The runtime it was saved with, when it has no agent to say. @param {Automation} a */
-const runsOn = (a) => a.persona ? "" : [a.runtime, a.model, a.effort].filter(Boolean).join(" · ");
-
 /** Its agent, project, and who allowed it. @param {Automation} a @param {DetailState} s */
 function settingsHtml(a, s) {
   const who = a.persona ? `${titleOf(a.persona.name)}${a.persona.level === "space" ? " · Every project" : ""}` : "";
-  const agent = a.persona ? kv("agent", "Agent", who, "agent")
-    : kv("agent", "Agent", "None, just the runtime");
-  const on = runsOn(a);
-  return `<ul class="au-kv">${agent}${on ? kv("runtime", "Runs on", on) : ""}${kv("project", "Project", s.projectName, "project")}` +
+  const mark = a.runtime ? rtMark(a.runtime) ?? "" : "";
+  const agent = a.persona ? kv("agent", "Agent", who, "agent") : kv("agent", "Agent", runsOnWords(a)).replace("<b>", `<b>${mark}`);
+  return `<ul class="au-kv">${agent}${kv("project", "Project", s.projectName, "project")}` +
     `${a.notify ? kv("bell", "Tells you", NOTIFY.find(([v]) => v === a.notify)?.[1] ?? "") : ""}` +
     `${a.onFailure ? kv("alert", "If it fails", ON_FAILURE.find(([v]) => v === a.onFailure)?.[1] ?? "") : ""}` +
     `${a.askedBy === "agent" ? kv("shield-check", "Allowed", a.approved ? "By you" : "Not yet") : ""}</ul>`;
@@ -108,10 +117,10 @@ function settingsHtml(a, s) {
 export function detailHtml(a, s) {
   return `<article class="au-det au-view" data-key="detail:${esc(a.id)}" aria-labelledby="au-det-h">${barHtml(a, s)}` +
     `<div class="au-hd">${tile(a.icon)}<h2 id="au-det-h" tabindex="-1">${esc(a.name)}</h2></div>` +
-    alarmHtml(a) + `<p class="au-next">${esc(whenWords(a))}</p>` + actsHtml(a) +
+    alarmHtml(a) + nextHtml(a) + actsHtml(a) +
     (s.confirm ? confirmHtml(a) : "") +
     (a.on ? "" : `<p class="au-off">${xi("pause")}${esc(a.offReason)}</p>`) +
-    `<section class="au-sec"><h3>Each time</h3><p class="au-prompt">${esc(a.prompt)}</p></section>` +
+    promptHtml(a) +
     `<section class="au-sec">${settingsHtml(a, s)}</section>` +
     `<section class="au-sec"><h3>Runs</h3>${runsHtml(s)}</section></article>`;
 }

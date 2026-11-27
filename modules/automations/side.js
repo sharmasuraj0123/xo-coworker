@@ -5,7 +5,7 @@ import { redraw } from "../../core/ui/redraw.js";
 import { drawLeaving } from "../../core/ui/motion.js";
 import { menuKeys, focusOpened, radioKeys } from "../../core/ui/a11y/keynav.js";
 import { detailHtml, reportHtml } from "./detail.js";
-import { createDraft } from "./draft.js";
+import { createDraft, optionsOf, redraws } from "./draft.js";
 import { createReport } from "./report.js";
 import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf, withDay } from "./form.js";
 
@@ -109,8 +109,7 @@ export function createSide(deps) {
     if (!host) return;
     if (st.id && (!a || deps.store.state.deleting.has(st.id))) { close(); return; }
     if (st.editing && st.values && a) {
-      const busy = `au-save:${a.id}`, agents = deps.agentsFor?.(st.values.chat) ?? null;
-      redraw(host, formHtml(st.values, a, { projects: deps.projects(), problem: st.problem, busy, agents }, deps.projectName(a.project)));
+      redraw(host, formHtml(st.values, a, optionsOf(deps, st.values, st.problem, `au-save:${a.id}`, paint), deps.projectName(a.project)));
       return;
     }
     if (!a) { redraw(host, ""); return; }
@@ -173,7 +172,7 @@ export function createSide(deps) {
 
   /** @param {Event} e */
   function onInput(e) {
-    if (!st.values || !(e.target instanceof Element) || !["repeat", "chat"].includes(e.target.getAttribute("name") ?? "")) return;
+    if (!st.values || !redraws(e.target)) return;
     st.values = typed(st.values);
     paint();
   }

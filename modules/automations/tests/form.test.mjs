@@ -60,10 +60,32 @@ assert.equal(bodyOf(back, ruled, now, zone).schedule?.tz, "Asia/Kolkata", "an ed
 const agents = /** @type {never[]} */ ([persona({ name: "helper", level: "space" }), persona(),
   persona({ name: "release-checker", level: "space", shadowed: { name: "release-checker", level: "project" } }),
   persona({ name: "broken", problems: [{ line: 1, key: null, message: "No name." }] })]);
-const picker = formHtml(back, ruled, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents }, "Alpha")
-  .match(/<xo-select name="persona"[^>]*>(.*?)<\/xo-select>/)?.[1] ?? "";
-assert.deepEqual([...picker.matchAll(/value="([^"]*)"/g)].map((m) => m[1]), ["space:triage", "project:release-checker", "space:helper", ""],
-  "the project's own first, then the Space's, then none; replaced and broken ones aren't offered; a chosen one not listed stays on top");
+const runtimes = ["claude_code", "codex"];
+const alpha = { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents, runtimes, models: null };
+const picker = formHtml(back, ruled, alpha, "Alpha").match(/<xo-select name="persona"[^>]*>(.*?)<\/xo-select>/)?.[1] ?? "";
+assert.deepEqual([...picker.matchAll(/value="([^"]*)"/g)].map((m) => m[1]),
+  ["space:triage", "project:release-checker", "space:helper", "rt:claude_code", "rt:codex"],
+  "the project's own first, then the Space's, then each runtime; replaced and broken ones aren't offered; a chosen one not listed stays on top");
+assert.match(picker, /<option data-agm="openai" value="rt:codex">Codex<\/option>/, "a runtime shows its mark");
+
+const bare = { ...back, persona: null, runtime: "codex", model: null, effort: "high" };
+const models = /** @type {never[]} */ ([{ id: "gpt-6.1-terra", name: "GPT-6.1 Terra", family_default: true, is_default: false }]);
+const bareSaid = sentenceHtml(bare, { ...alpha, models });
+assert.match(bareSaid, /<option data-agm="openai" value="rt:codex" selected>Codex<\/option><\/xo-select><span>with<\/span><xo-select name="model"/,
+  "with no agent, the runtime is who runs it, then its model");
+assert.match(bareSaid, /<option value="" selected>Default model<\/option><option value="gpt-6.1-terra">GPT-6.1 Terra<\/option>/);
+assert.match(bareSaid, /<option value="high" selected>Deep thinking<\/option>/, "and how hard it thinks");
+assert.doesNotMatch(bareSaid, /An agent|None, just the runtime/);
+assert.match(sentenceHtml(bare, alpha), /<xo-select name="model"[^>]*aria-busy="true"/, "the models wait in their menu while they come");
+assert.doesNotMatch(sentenceHtml(back, { ...alpha, models }), /name="model"|name="effort"/, "an agent says its own model");
+const bareEdit = formHtml(bare, ruled, { ...alpha, models }, "Alpha");
+assert.match(bareEdit, /<span>Model<\/span><xo-select name="model"[^>]*>.*<span>Thinking<\/span><xo-select name="effort"[^>]*><option value="">Default/,
+  "Edit offers the same, a row each");
+assert.equal(sentenceHtml({ ...bare, runtime: null }, alpha).includes('<option value="" selected>Default runtime</option>'), true,
+  "one saved without a runtime says it runs on the default");
+const sent = bodyOf(bare, ruled, now, zone);
+assert.deepEqual([sent.agent, sent.model, sent.effort, sent.persona], ["codex", null, "high", null], "what is chosen is what is saved");
+assert.deepEqual([bodyOf(back, ruled, now, zone).agent], [ruled.runtime], "an agent's automation keeps what it had");
 
 /** @param {Record<string, string>} fields */
 const typedForm = (fields) => {
@@ -75,7 +97,10 @@ const typedForm = (fields) => {
 };
 const mine = { ...back, chat: "chat_a" };
 assert.deepEqual(readForm(typedForm({ persona: "project:release-checker" }), mine).persona, { level: "project", name: "release-checker" });
-assert.equal(readForm(typedForm({ persona: "" }), mine).persona, null, "No agent saves none");
+const onCodex = readForm(typedForm({ persona: "rt:codex", model: "opus" }), { ...mine, persona: null, runtime: "claude_code", model: "opus" });
+assert.deepEqual([onCodex.persona, onCodex.runtime, onCodex.model], [null, "codex", null], "a runtime instead of an agent; its model starts over");
+const kept2 = readForm(typedForm({ persona: "rt:codex", model: "gpt-6.1-terra", effort: "max" }), { ...mine, persona: null, runtime: "codex" });
+assert.deepEqual([kept2.model, kept2.effort], ["gpt-6.1-terra", "max"]);
 assert.equal(readForm(typedForm({ persona: "project:release-checker", chat: "chat_b" }), mine).persona, null,
   "a project's own agent doesn't follow the automation to another project");
 assert.deepEqual(readForm(typedForm({ persona: "space:helper", chat: "chat_b" }), mine).persona, { level: "space", name: "helper" });
@@ -89,7 +114,7 @@ assert.deepEqual([withDay(weekdays, 3).repeat, withDay(weekdays, 3).days], ["wee
 assert.equal(withDay({ ...fresh, repeat: "week", days: [2] }, 2).days.length, 1, "the last day stays on");
 
 const said = sentenceHtml({ ...fresh, repeat: "weekdays", time: "08:30" }, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }],
-  problem: "", busy: "x", agents });
+  problem: "", busy: "x", agents, runtimes: [], models: null });
 assert.match(said, /data-icon="calendar">Every weekday<\/option>/, "the cadence menu has its icons");
 assert.match(said, /<option value="event" disabled[^>]*data-desc="later">When something happens…/, "what can't be chosen yet says so");
 assert.match(said, /<span>at<\/span><input name="time"[^>]*value="08:30"/);
@@ -103,29 +128,29 @@ assert.deepEqual([toldBody.notify, toldBody.on_failure], ["found", "tell"], "bot
 const read = readForm(typedForm({ notify: "never", on_failure: "silent" }), told);
 assert.deepEqual([read.notify, read.onFailure], ["never", "silent"]);
 assert.equal(readForm(typedForm({ notify: "never" }), fresh).notify, null, "read only where XO Space keeps it");
-const toldSaid = sentenceHtml(told, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents });
+const toldSaid = sentenceHtml(told, { projects: [{ chat: "chat_a", name: "Alpha", id: "alpha" }], problem: "", busy: "x", agents, runtimes: [], models: null });
 assert.match(toldSaid, /<span>Tell me<\/span><xo-select name="notify"[^>]*><option value="found" selected[^>]*>only when it finds something/);
 assert.match(toldSaid, /<span>If a run fails,<\/span><xo-select name="on_failure"[^>]*><option value="tell" selected[^>]*>tell me/);
 const [kept] = automationsOf(/** @type {never} */ ([job({ notify: "always", on_failure: "silent" })]));
 assert.deepEqual([valuesOf(kept, "", now).notify, valuesOf(kept, "", now).onFailure], ["always", "silent"], "Edit starts from what it has");
-assert.match(formHtml(valuesOf(kept, "", now), kept, { projects: [], problem: "", busy: "x", agents }, "Alpha"),
+assert.match(formHtml(valuesOf(kept, "", now), kept, { projects: [], problem: "", busy: "x", agents, runtimes: [], models: null }, "Alpha"),
   /<span>Tells you<\/span><xo-select name="notify"[^>]*>.*value="always" selected[^>]*>After every run/);
 
-assert.match(formHtml(back, ruled, { projects: [], problem: "", busy: "x", agents }, "Alpha"), /<form class="au-form au-view" data-key="edit:/,
+assert.match(formHtml(back, ruled, { projects: [], problem: "", busy: "x", agents, runtimes: [], models: null }, "Alpha"), /<form class="au-form au-view" data-key="edit:/,
   "Edit is its own view, so it arrives like one");
 
 console.log("form: ok");
 
-const onceSaid = sentenceHtml({ ...fresh, repeat: "once", date: "2026-11-28" }, { projects: [], problem: "", busy: "x", agents: [] });
+const onceSaid = sentenceHtml({ ...fresh, repeat: "once", date: "2026-11-28" }, { projects: [], problem: "", busy: "x", agents: [], runtimes: [], models: null });
 assert.match(onceSaid, /<xo-date name="date" class="au-chip" value="2026-11-28" min="\d{4}-\d\d-\d\d" aria-label="Date">/,
   "a date is chosen in the app's own calendar, from today on");
 assert.doesNotMatch(onceSaid, /type="date"/, "never the browser's own");
 const today = new Date();
 /** @param {Date} d */
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const onDay = (date = "") => sentenceHtml({ ...fresh, repeat: "once", date }, { projects: [], problem: "", busy: "x", agents: [] });
+const onDay = (date = "") => sentenceHtml({ ...fresh, repeat: "once", date }, { projects: [], problem: "", busy: "x", agents: [], runtimes: [], models: null });
 assert.doesNotMatch(onDay(iso(today)), /<span>on<\/span>/, "Once today at 09:00");
 assert.doesNotMatch(onDay(iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))), /<span>on<\/span>/, "Once tomorrow");
 assert.match(onDay("2031-03-10"), /<span>on<\/span><xo-date/, "Once on Mon 10 March");
-const chips = [...sentenceHtml(fresh, { projects: [], problem: "", busy: "x", agents: [] }).matchAll(/<xo-select [^>]*class="au-chip"[^>]*>/g)];
+const chips = [...sentenceHtml(fresh, { projects: [], problem: "", busy: "x", agents: [], runtimes: [], models: null }).matchAll(/<xo-select [^>]*class="au-chip"[^>]*>/g)];
 assert.ok(chips.length > 2 && chips.every(([c]) => c.includes('data-mark="check"')), "a sentence's chips tick their choice at the end");

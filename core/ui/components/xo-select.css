@@ -32,7 +32,7 @@ xo-select>option{display:none}
 .dd-mk{flex:none;align-self:center;display:grid;place-items:center;width:12px;height:20px}
 .dd-dot{display:block;width:5px;height:5px;mask:var(--mask-dot);background:var(--ink-2)}
 .dd-ic{flex:none;align-self:center;width:var(--ic);height:var(--ic);color:var(--ink-4)}
-.dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dd-t{flex:0 0 auto;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* data-mark="check": the choice ticked at the row's end, as in a sentence's chips */
 .dd-menu.is-check .dd-row{gap:var(--s-3);font-weight:var(--fw-regular);color:var(--ink)}
 .dd-menu.is-check .dd-ic{color:var(--ink-3)}

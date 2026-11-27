@@ -12,6 +12,8 @@ const GAP = 4; // trigger → list
 const EDGE = 8; // the list never comes closer than this to the window's edge
 const TYPE_MS = 600; // type-ahead: keys closer than this make one word
 let seq = 0;
+/** A runtime's mark (data-agm on an option), drawn where an icon goes. @param {string} name */
+const agm = (name) => `<i class="agm agm-${name.replace(/[^\w-]/g, "")} dd-ic" aria-hidden="true"></i>`;
 /** Only one list is ever open. @type {XoSelect | null} */
 let openOne = null;
 
@@ -136,14 +138,17 @@ class XoSelect extends HTMLElement {
 
   _paint() {
     if (!this._built) return;
+    const b = this._btn;
     const o = this.options.find((x) => x.value === this.value);
-    setText(this._btn.querySelector(".dd-v"), o ? (o.textContent || "").trim() : "");
+    setText(b.querySelector(".dd-v"), o ? (o.textContent || "").trim() : "");
+    const mark = o?.dataset.agm ? agm(o.dataset.agm) : "", had = b.querySelector(".agm");
+    if ((had?.outerHTML ?? "") !== mark) { had?.remove(); if (mark) b.insertAdjacentHTML("afterbegin", mark); }
     const l = this._label();
-    if (l.name) { this._btn.setAttribute("aria-label", l.name); this._btn.removeAttribute("aria-labelledby"); this._menu.setAttribute("aria-label", l.name); }
-    if (l.by) { this._btn.setAttribute("aria-labelledby", l.by); this._btn.removeAttribute("aria-label"); this._menu.setAttribute("aria-labelledby", l.by); }
-    this._btn.disabled = this.disabled;
-    for (const a of ["aria-busy", "aria-disabled"]) { if (this.getAttribute(a) === "true") this._btn.setAttribute(a, "true"); else this._btn.removeAttribute(a); }
-    if (this.title) this._btn.title = this.title;
+    if (l.name) { b.setAttribute("aria-label", l.name); b.removeAttribute("aria-labelledby"); this._menu.setAttribute("aria-label", l.name); }
+    if (l.by) { b.setAttribute("aria-labelledby", l.by); b.removeAttribute("aria-label"); this._menu.setAttribute("aria-labelledby", l.by); }
+    b.disabled = this.disabled;
+    for (const a of ["aria-busy", "aria-disabled"]) { if (this.getAttribute(a) === "true") b.setAttribute(a, "true"); else b.removeAttribute(a); }
+    if (this.title) b.title = this.title;
   }
 
   _rows() {
@@ -161,7 +166,8 @@ class XoSelect extends HTMLElement {
       if (sel) mk.innerHTML = `<i class="dd-dot"></i>`;
       const t = document.createElement("span"); t.className = "dd-t"; t.textContent = (o.textContent || "").trim();
       if (!check) r.append(mk);
-      if (o.dataset.icon && hasIcon(o.dataset.icon)) r.insertAdjacentHTML("beforeend", xi(o.dataset.icon, "dd-ic"));
+      if (o.dataset.agm) r.insertAdjacentHTML("beforeend", agm(o.dataset.agm));
+      else if (o.dataset.icon && hasIcon(o.dataset.icon)) r.insertAdjacentHTML("beforeend", xi(o.dataset.icon, "dd-ic"));
       r.append(t);
       if (o.dataset.desc) { const d = document.createElement("span"); d.className = "dd-d"; d.textContent = o.dataset.desc; r.append(d); }
       if (check) r.insertAdjacentHTML("beforeend", `<span class="dd-ck" aria-hidden="true">${sel ? ICON.check : ""}</span>`);

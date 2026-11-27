@@ -2,9 +2,10 @@
 
 import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
-import { EFFORT_WORD, rtName } from "../../core/services/runtimes.js";
+import { EFFORT_WORD, modelWord, rtName } from "../../core/services/runtimes.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { MAY_WORDS, frontOf, keyOf, mayOf, titleOf } from "./agent-file.js";
+import { effortOpts, modelOpts, runtimeOpts } from "./runs-on.js";
 import { menuItem, tile } from "./views.js";
 
 /** @import { Importable } from "../../core/platform/persona-response-types" */
@@ -17,9 +18,9 @@ const ICON = "agent-doc";
 const levelWords = (a) => a.level === "space" ? "Every project" : "This project";
 
 /** "Claude Code · opus · Deep". @param {{ runtime: string | null, model: string | null, effort: string | null }} a */
-function runsOnWords(a) {
+export function runsOnWords(a) {
   const effort = a.effort ? /** @type {Record<string, string>} */ (EFFORT_WORD)[a.effort] ?? a.effort : null;
-  const parts = [a.runtime ? rtName(a.runtime) : null, a.model, effort].filter(Boolean);
+  const parts = [a.runtime ? rtName(a.runtime) : null, a.model ? modelWord(a.model) : null, effort].filter(Boolean);
   return parts.length ? parts.join(" · ") : "The project's default";
 }
 
@@ -126,30 +127,28 @@ export function agentDetailHtml(a, s) {
 /** @param {string} value @param {string} words @param {boolean} on */
 const opt = (value, words, on) => `<option value="${esc(value)}"${on ? " selected" : ""}>${esc(words)}</option>`;
 
+/** A setting as a row, its choice in a ticked chip, as Edit shows an automation's. @param {string} icon @param {string} label */
+const row = (icon, label, name = "", opts = "", busy = false) => `<li>${xi(icon)}<span>${label}</span>` +
+  `<xo-select name="${name}" class="au-chip" data-mark="check" aria-label="${name === "runtime" ? "Runtime" : label}"` +
+  `${busy ? ' aria-busy="true"' : ""}>${opts}</xo-select></li>`;
 
-/** @param {AgentFormState} f */
-function runsOnHtml(f) {
-  const d = f.draft;
-  const rts = [opt("", "Default", !d.runtime), ...f.runtimes.map((r) => opt(r, rtName(r), d.runtime === r)),
-    ...(d.runtime && !f.runtimes.includes(d.runtime) ? [opt(d.runtime, rtName(d.runtime), true)] : [])].join("");
-  const efforts = [opt("", "Default", !d.effort), ...Object.entries(EFFORT_WORD).map(([k, w]) => opt(k, w, d.effort === k))].join("");
-  return `<div class="au-when"><label class="field"><span>Runs on</span><xo-select name="runtime" class="set-sel" aria-label="Runtime">` +
-    `${rts}</xo-select></label><label class="field"><span>Model</span><input name="model" value="${esc(d.model ?? "")}"` +
-    ` placeholder="Default" autocomplete="off"></label><label class="field"><span>Thinking</span>` +
-    `<xo-select name="effort" class="set-sel" aria-label="Thinking">${efforts}</xo-select></label></div>`;
+/** What runs it, what it may do and where it's kept. @param {AgentFormState} f */
+function settingsHtml(f) {
+  const d = f.draft, keys = /** @type {MayKey[]} */ (["read", "edit", "run", "all"]);
+  if (f.may === "own") keys.push("own");
+  const here = d.level === "space" ? "space" : d.project;
+  return `<ul class="au-kv">${row("runtime", "Runs on", "runtime", runtimeOpts(d.runtime, f.runtimes))}` +
+    `${row("sparkles", "Model", "model", modelOpts(d.model, f.models), !f.models)}` +
+    `${row("effort-think", "Thinking", "effort", effortOpts(d.effort))}` +
+    `${row("lock", "May", "may", keys.map((k) => opt(k, MAY_WORDS[k], f.may === k)).join(""))}` +
+    (f.isNew ? row("folder", "Kept for", "level", f.places.map(([v, words]) => opt(v, words, here === v)).join("")) : "") + `</ul>`;
 }
 
 /** The form that makes or edits an agent. @param {AgentFormState} f */
 export function agentFormHtml(f) {
   const d = f.draft;
-  const keys = /** @type {MayKey[]} */ (["read", "edit", "run", "all"]);
-  if (f.may === "own") keys.push("own");
-  const may = keys.map((k) => opt(k, MAY_WORDS[k], f.may === k)).join("");
-  const here = d.level === "space" ? "space" : d.project;
-  const kept = f.isNew ? `<label class="field"><span>Kept for</span><xo-select name="level" class="set-sel" aria-label="Kept for">` +
-    `${f.places.map(([value, words]) => opt(value, words, here === value)).join("")}</xo-select></label>` : "";
   return `<form class="au-form" data-ag-form novalidate>` +
-    `<div class="au-form-bar"><button type="button" class="btn" data-ag-act="cancel">Cancel</button>` +
+    `<div class="au-bar"><button type="button" class="au-back" data-ag-act="cancel">Cancel</button>` +
     `<b>${esc(f.isNew ? "New agent" : "Edit agent")}</b>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(f.busy)}>Save</button></div>` +
     `<label class="field"><span>Name</span>` +
@@ -158,9 +157,7 @@ export function agentFormHtml(f) {
     ` placeholder="Checks what's live against the branch and says what isn't deployed.">${esc(d.description)}</textarea></label>` +
     `<label class="field"><span>Instructions</span><textarea name="body" rows="8"` +
     ` placeholder="What it does, step by step, and what it reports.">${esc(d.body)}</textarea></label>` +
-    runsOnHtml(f) +
-    `<label class="field"><span>May</span><xo-select name="may" class="set-sel" aria-label="May">${may}</xo-select></label>` +
-    kept + `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
+    settingsHtml(f) + `<button type="button" class="btn" data-ag-act="try-form">${xi("play")}Try what's here once</button>` +
     (f.problem ? `<p class="au-problem" role="alert">${esc(f.problem)}</p>` : "") + `</form>`;
 }
 
