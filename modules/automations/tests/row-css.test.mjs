@@ -16,4 +16,9 @@ assert.match(select, /\.dd-t\{flex:0 0 auto;max-width:100%;/, "a row's name stay
 assert.match(css, /\.au-kv \.au-chip\{[^}]*--dd-fill:var\(--fill-clear\);--dd-line:var\(--fill-clear\)\}/,
   "a row's choice is plain text in both themes; the light theme's fill reads these, not background:none");
 assert.doesNotMatch(css, /\.au-kv \.au-chip \.dd-btn\{[^}]*background:none/, "which would also take away its hover");
+const phone = css.slice(css.indexOf("@media (max-width:760px){"));
+assert.match(phone, /\.au-list\.is-plain \.au-tile\{display:grid\}/, "on a phone an agent row keeps its icon, not a bare name");
+assert.match(phone, /\.au-top\{display:contents\}/, "on a phone the intro takes the full width, not a column beside the button");
+assert.match(phone, /\.au-mode\{grid-row:1;grid-column:1;/, "the page switch and the create button share the top line");
+assert.match(phone, /\.au-top \.btn span\{display:none\}/, "where create is its + alone");
 console.log("row-css: ok");

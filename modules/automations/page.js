@@ -17,6 +17,9 @@ const TABS = /** @type {const} */ ([["upcoming", "Upcoming"], ["found", "Found s
 const LEADS = { automations: "Agents that run on their own, in your projects.",
   agents: "Who threads and automations run as. A project's own agent replaces the Space's of the same name." };
 const CREATE = { automations: "Create automation", agents: "Create agent" };
+/** On a phone it is its + alone. @param {string} words @param {string} shut */
+const createHtml = (words, shut) =>
+  `<button type="button" class="btn btn-pri" data-au-act="new" aria-label="${words}"${shut}>${xi("plus")}<span>${words}</span></button>`;
 const MODES = /** @type {const} */ ([["automations", "Automations"], ["agents", "Agents"]]);
 
 /** @returns {string | null} */
@@ -119,7 +122,7 @@ export function createAutomationsPage(deps) {
     const shut = mode === "agents" || deps.projects().length ? "" : " disabled";
     return `<div class="au-page"><header class="au-top"><div><h1 id="auto-h" tabindex="-1">Automations</h1>` +
       `<p>${esc(LEADS[mode])}</p></div>` +
-      `<button type="button" class="btn btn-pri" data-au-act="new"${shut}>${xi("plus")}${CREATE[mode]}</button></header>` +
+      `${createHtml(CREATE[mode], shut)}</header>` +
       `<div class="rt-seg au-mode" role="radiogroup" aria-label="Page">${modes}</div>` +
       (mode === "automations" ? `<div class="rt-seg au-tabs" role="radiogroup" aria-label="Show">${tabs}</div>` : "") +
       `<div class="au-body">${mode === "agents" ? agents.html() : bodyHtml(deps.store.state, tab, rowState(), now())}</div></div>`;
