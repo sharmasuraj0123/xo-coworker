@@ -43,10 +43,12 @@ export class ApiError extends Error {
   }
 }
 
-const INTERRUPTED = new Set(["network", "timeout", "signed_out"]);
+const INTERRUPTED = new Set(["network", "timeout", "signed_out", "upstream_unreachable", "engine_not_running"]);
+const GATEWAY = new Set([502, 503, 504]);
 
-/** A request the connection cut short: the app's connection state says so, it is no fault of the app. @param {unknown} error */
-export const interruptedRequest = (error) => error instanceof ApiError && INTERRUPTED.has(error.code);
+/** Cut short by the connection (XO restarting, a proxy that couldn't reach it): no fault of the app. @param {unknown} error */
+export const interruptedRequest = (error) => error instanceof ApiError
+  && (INTERRUPTED.has(error.code) || (GATEWAY.has(error.status) && error.code === `http_${error.status}`));
 
 /** How long a request may go unanswered: a write that never settles would stay "Sending" with no Retry. */
 const WRITE_MS = 20000;
