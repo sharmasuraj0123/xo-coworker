@@ -60,19 +60,24 @@ export function stopWords(stop) {
   return stop.reason ? `${who} · ${stop.reason}` : who;
 }
 
-/** @param {readonly {id: string, who: string}[]} msgs @param {Iterable<string>} threadIds */
+/** A reply by this chat's own coordinator or agents, never a copy. @param {{who: string, fwd?: unknown}} m */
+export const ownReply = (m) => (m.who === "coord" || m.who === "agent") && !m.fwd;
+
+/** @param {readonly {id: string, who: string, text?: string, fwd?: unknown}[]} msgs @param {Iterable<string>} threadIds */
 export function threadAnchors(msgs, threadIds) {
   const ids = new Set(threadIds);
   const on = new Map();
   const alone = new Set();
   msgs.forEach((m, i) => {
     if (!ids.has(m.id)) return;
-    let at = null;
-    for (let j = i + 1; j < Math.min(msgs.length, i + 4); j++) {
+    const near = [];
+    for (let j = i + 1; j < msgs.length && near.length < 3; j++) {
       const n = msgs[j];
       if (ids.has(n.id)) break;
-      if (n.who === "coord") { at = n.id; break; }
+      if (!n.fwd) near.push(n);
     }
+    const replies = near.filter((n) => n.who === "coord" && ownReply(n));
+    const at = (replies.find((n) => String(n.text || "").includes(`(#${m.id})`)) || replies[0])?.id;
     if (at) on.set(at, [...(on.get(at) || []), m.id]);
     else alone.add(m.id);
   });
