@@ -177,7 +177,7 @@ export function importHtml(items, busy) {
     const why = item.problems.length ? `<span class="au-r is-err">${xi("x-circle")}Can't map</span>`
       : `<button type="button" class="btn" data-ag-act="import" data-ag-i="${i}"${busyAttrs(`${busy}:${i}`)}>Bring in</button>`;
     return `<li class="au-row">${tile(ICON)}<span class="au-n"><b>${esc(titleOf(item.name))}</b>` +
-      `<small>${esc(importAbout(item) || item.from)}` +
+      `<small><span>${esc(importAbout(item) || item.from)}</span>` +
       `<span>${esc(`${item.from} · ${item.level === "space" ? "Every project" : "This project"}${left}`)}` +
       `</span></small></span>${why}<span></span></li>`;
   }).join("")}</ul>`;

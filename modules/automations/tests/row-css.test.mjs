@@ -21,4 +21,5 @@ assert.match(phone, /\.au-list\.is-plain \.au-tile\{display:grid\}/, "on a phone
 assert.match(phone, /\.au-top\{display:contents\}/, "on a phone the intro takes the full width, not a column beside the button");
 assert.match(phone, /\.au-mode\{grid-row:1;grid-column:1;/, "the page switch and the create button share the top line");
 assert.match(phone, /\.au-top \.btn span\{display:none\}/, "where create is its + alone");
+assert.match(css, /\.au-row>:is\(button,[^)]*\)\{pointer-events:auto\}/, "a button in a row, like Bring in, takes its click");
 console.log("row-css: ok");

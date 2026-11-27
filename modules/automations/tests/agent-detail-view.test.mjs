@@ -19,4 +19,7 @@ assert.doesNotMatch(importHtml(/** @type {never} */ ([{ name: "x", text: "", fro
   problems: [] }]), "b"), /class="au-t"/);
 const css = sheet(new URL("../automations.css", import.meta.url));
 assert.match(css, /\.au-list\.is-plain\{grid-template-columns:auto minmax\(0,1fr\) auto auto\}/, "tile, name, what uses it, its end");
+assert.match(importHtml(/** @type {never} */ ([{ name: "reviewer", text: "---\ndescription: Reviews diffs\n---\n", from: "Claude Code",
+  level: "space", dropped: [], problems: [] }]), "b"), /<small><span>Reviews diffs<\/span><span>Claude Code · Every project<\/span><\/small>/,
+"what it does and where it comes from are two parts, a dot between them");
 console.log("agent-detail-view: ok");
