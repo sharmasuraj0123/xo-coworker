@@ -31,8 +31,12 @@ function isUsage(value) {
   return optional(value.estimated_tokens, (flag) => typeof flag === "boolean");
 }
 
+// Claude Code's usage is counted from every transcript on the machine and can take over a minute.
+const USAGE_MS = 180000;
+
 export const usageApi = {
   /** A runtime's usage over its last `days` days. @param {string} name @param {number} days @param {AbortSignal} [signal] */
   runtime: (name, days, signal) =>
-    requestChecked(`/chat/runtimes/${encodeURIComponent(name)}/usage`, isUsage, { query: { days }, signal }),
+    requestChecked(`/chat/runtimes/${encodeURIComponent(name)}/usage`, isUsage,
+      { query: { days }, signal, timeout: USAGE_MS }),
 };

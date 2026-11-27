@@ -9,6 +9,7 @@ export interface UsageState {
   days: number;
   parts: UsagePart[] | null;
   failed: { name: string; message: string }[];
+  waiting: string[];
 }
 
 export interface UsageHost {

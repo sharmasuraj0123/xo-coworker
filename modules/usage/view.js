@@ -21,6 +21,9 @@ const percent = (share) => (share > 0 && share < 0.01 ? "&lt;1%" : `${Math.round
 /** A runtime's shade: the most-used is the flavour's full accent. @param {number} i its place, most-used first */
 const shade = (i) => `--c:var(--series-${Math.min(i + 1, 4)})`;
 
+/** @param {string[]} names */
+const andList = (names) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`);
+
 /** @param {number} usd */
 const dollars = (usd) => usd.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: usd < 100 ? 2 : 0 });
 
@@ -112,7 +115,7 @@ function modelsHtml(parts, total) {
 function costNote(parts) {
   const silent = parts.filter((p) => !(p.usage.total_cost > 0)).map((p) => rtName(p.name));
   if (!silent.length) return "";
-  const who = silent.length === 1 ? `${silent[0]} doesn't` : `${silent.slice(0, -1).join(", ")} and ${silent[silent.length - 1]} don't`;
+  const who = `${andList(silent)} ${silent.length === 1 ? "doesn't" : "don't"}`;
   return `<p class="set-lead">${esc(who)} report a cost, so none is shown for ${silent.length === 1 ? "it" : "them"}.</p>`;
 }
 
@@ -122,13 +125,18 @@ export function usageHtml(state) {
     + "XO's threads and anything you ran yourself.</p>";
   const failed = state.failed.map((f) => `<p class="set-err">Couldn't read ${esc(rtName(f.name))}'s usage. ${esc(f.message)}</p>`).join("");
   const head = `<div class="us-head">${lead}${rangeHtml(state.days)}</div>`;
-  if (!state.parts) return `${head}<p class="set-note"><i class="spin" aria-hidden="true"></i> Reading each runtime's usage…</p>`;
+  const reading = `<p class="set-note"><i class="spin" aria-hidden="true"></i> Reading each runtime's usage…</p>`;
+  if (!state.parts) return `${head}${reading}`;
   const parts = usedParts(state.parts);
+  const still = state.waiting.length ? `<p class="set-note"><i class="spin" aria-hidden="true"></i> Still reading `
+    + `${esc(andList(state.waiting.map(rtName)))}…</p>` : "";
+  if (!parts.length && state.waiting.length) return `${head}${failed}${reading}`;
   if (!parts.length) {
     return `${head}${failed}<p class="set-empty"><b>No usage in the last ${state.days} days.</b> `
       + "Tokens show here once a runtime has worked.</p>";
   }
   const total = sumTokens(parts);
-  return `${head}${failed}<div class="us-board">${heroHtml(parts, total, state.days)}${tilesHtml(parts, total)}${chartBlock(parts)}</div>`
+  return `${head}${failed}${still}<div class="us-board">${heroHtml(parts, total, state.days)}`
+    + `${tilesHtml(parts, total)}${chartBlock(parts)}</div>`
     + modelsHtml(parts, total) + costNote(parts);
 }
