@@ -7,7 +7,7 @@ test("review cleanup requires a complete listing and preserves concurrent replac
   const review = new Map([["held", {}], ["live", {}]]);
   const ctx = {
     state: { projects: [{}], review }, reads: new AbortController(), chatIdOf() {},
-    sentAt() {}, loadRuntimes() {}, loadSpacePolicy() {},
+    sentAt() {}, loadRuntimes() {}, loadSpacePolicy() {}, soon() {},
   };
   installLoad(ctx);
   ctx.loadChats = async () => {};
