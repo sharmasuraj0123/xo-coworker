@@ -84,6 +84,7 @@ class XoSelect extends HTMLElement {
     const m = document.createElement("div");
     m.className = "dd-menu"; m.id = `${id}-l`; m.hidden = true; m.tabIndex = -1;
     m.setAttribute("role", "listbox");
+    b.setAttribute("data-own", ""); m.setAttribute("data-own", ""); // a redraw keeps to the options
     this._btn = b; this._menu = m;
 
     b.addEventListener("click", () => (this._open ? this.close(true) : this.open()));

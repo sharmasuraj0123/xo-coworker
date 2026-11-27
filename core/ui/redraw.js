@@ -107,6 +107,6 @@ function syncNode(node, want, focus, hold) {
     const v = tag === "TEXTAREA" ? want.textContent : want.getAttribute("value");
     if (v != null && field.value !== v) { field.value = v; changed = true; }
   }
-  if (node.tagName === "TEXTAREA" || node.tagName.includes("-")) return changed;
+  if (node.tagName === "TEXTAREA") return changed;
   return syncChildren(node, want, focus, hold) || changed;
 }
