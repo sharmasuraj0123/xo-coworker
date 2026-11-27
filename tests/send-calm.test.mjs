@@ -155,9 +155,7 @@ frame("session", {
   chat_id: "project-chat", session_id: "demo-coordinator",
   data: { reason: "created", role: "project-coordinator", status: "running" },
 });
-await new Promise((resolve) => setTimeout(resolve, 50));
-await paint();
-assert.equal(send.getAttribute("aria-label"), "Stop the reply");
+await paintUntil(() => send.getAttribute("aria-label") === "Stop the reply", "a running coordinator turns Send into Stop");
 const expected = document.createElement("span");
 expected.innerHTML = ICON.stop;
 assert.equal(send.innerHTML, expected.innerHTML, "the wired Stop control uses the rounded-square glyph");

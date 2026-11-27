@@ -285,8 +285,7 @@ export function installActions(records) {
       case "device-cancel": cancelDevice(p); return;
       case "ask": case "ask-fix": {
         if (s.asking) return; // one thread per ask: a second click while Space answers starts nothing
-        const e = s.run?.error;
-        const note = name === "ask-fix" && e ? `The deploy failed: ${e.message || e.text || e.code}${e.step ? ` (in ${e.step})` : ""}. Fix the cause so it deploys.` : "";
+        const note = name === "ask-fix" && el.dataset.issue ? `${el.dataset.issue} Fix the cause so it deploys.` : "";
         s.asking = true; s.askErr = null; changed();
         api.askAgent(p, note).then((/** @type {{thread_ts?: string, thread?: string, title?: string}} */ g) => { s.asking = false; s.asked = { thread: g.thread_ts || g.thread, title: g.title || "Deploy to Launchpad", since: Date.now() }; s.run = null; land('[data-lp="thread"]'); announce("A thread is getting it ready."); changed(); })
           .catch((/** @type {Error} */ err) => {
