@@ -13,7 +13,8 @@ test("in a narrow top bar the total thread count is hidden, with the word Thread
 });
 
 test("the working and waiting counts stay", () => {
-  assert.deepEqual(shown(".th-seg"), ["inline-flex"]);
+  assert.equal(shown(".th-seg").includes("none"), false);
+  assert.deepEqual(declarationsFor(".th-ctl .th-seg", "display").map((row) => row.value), ["inline-flex"]);
 });
 
 test("the first count after the icon has no divider in front of it", () => {
