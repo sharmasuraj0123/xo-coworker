@@ -11,7 +11,7 @@ export function createRunsStop(RS, {
   /** @param {string} what @param {() => Promise<RunStopResult | null | undefined>} fn */
   return function stopRunsUndo(what, fn, key = what, session = RS.session) {
     if (scope.signal.aborted || stopsOut.has(key)) return;
-    const job = { what, key, session, until: Date.now() + commitMs };
+    const job = { what, key, session, until: Date.now() + commitMs, ms: commitMs };
     if (!pendingStops.add(job)) return;
     if (RS.said && RS.said.key === key) RS.said = null; // a new stop of it: the last answer is over
     stopsHerald();

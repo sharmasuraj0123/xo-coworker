@@ -311,7 +311,3 @@
 .toast-wrap{position:absolute;left:0;right:0;bottom:calc(var(--dock-h) + var(--float-inset));z-index:calc(var(--z-panel) + 10);display:flex;justify-content:center;padding:0 16px;pointer-events:none;transition:right var(--d-in) var(--ease)}
 body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .toast-wrap>.hr.bye{animation:sheet-out var(--dur-base) var(--ease) forwards}
-.toast-wrap .hr-undo{display:inline-flex;align-items:center;gap:var(--s-1);padding:0 var(--s-3) 0 var(--s-2)}
-.t-ring{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
-.t-ring path{stroke-dasharray:1;stroke-dashoffset:0;animation:ring 3s linear forwards}
-@keyframes ring{to{stroke-dashoffset:1}}

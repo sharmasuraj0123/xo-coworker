@@ -1,11 +1,11 @@
 // @ts-check
 
 import { esc } from "../../core/platform/util.js";
-import { xi } from "../../core/ui/icons/icon.js";
+import { undoRingHtml, startUndoRings } from "../../core/ui/undo-ring.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { $ } from "../../core/platform/dom.js";
 
-/** @typedef {Pick<import("./queue-types.d.ts").DecisionQueueItem, "id" | "due" | "meta">} Entry */
+/** @typedef {Pick<import("./queue-types.d.ts").DecisionQueueItem, "id" | "due" | "startedAt" | "meta">} Entry */
 
 /** @param {{queued: Entry[], undo(id: number): unknown, timeout: import("../../core/kernel/types.d.ts").ModuleContext["timeout"]}} queue */
 export function createDecisionToast(queue) {
@@ -25,11 +25,11 @@ export function createDecisionToast(queue) {
     if (toastItem === it) return;
     toastItem = it;
     const deny = !!it.meta.deny;
-    const left = Math.max(0, it.due - Date.now());
     toast.className = `hr hr-ev has-undo is-in k-${deny ? "calm" : "done"}`;
     toast.hidden = false;
     toast.innerHTML = `<span class="hr-ic ${deny ? "k-calm" : "k-ok"}">${deny ? ICON.rewind : ICON.check}</span><span class="hr-t">${esc(it.meta.verb)}: ${esc(it.meta.label)}</span>` +
-      `<button type="button" class="hr-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
+      `<button type="button" class="hr-undo" title="Undo">${undoRingHtml(it.due, it.due - it.startedAt)}Undo</button>`;
+    startUndoRings(toast);
     (/** @type {HTMLButtonElement} */ (toast.querySelector(".hr-undo"))).addEventListener("click", () => queue.undo(it.id));
   }
 

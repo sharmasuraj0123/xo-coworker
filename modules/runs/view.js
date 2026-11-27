@@ -4,6 +4,7 @@ import { esc } from "../../core/platform/util.js";
 import { count, plural } from "../../core/platform/words.js";
 import { ICON, stepMark } from "../../core/ui/icons/names.js";
 import { xi, stateMark } from "../../core/ui/icons/icon.js";
+import { undoRingHtml } from "../../core/ui/undo-ring.js";
 import { stepIcon } from "../../core/services/step-icons.js";
 import { renderMarkdown, renderInline } from "../../core/ui/markdown/markdown.js";
 
@@ -129,7 +130,7 @@ export function saidHtml(said, key) {
 /** Stops still in their 3 s Undo, inside the sheet: each with its own Undo. @param {SheetStop[]} stops */
 export function stopsHtml(stops) {
   if (!stops || !stops.length) return "";
-  return `<ul class="rn-stops" aria-label="Stopping">${stops.map((s) => `<li class="rn-stopping" data-key="stop:${esc(s.key)}"><span>Stopping ${esc(s.what)}</span><button type="button" class="t-undo" data-runs-undo="${esc(s.key)}">Undo</button></li>`).join("")}</ul>`;
+  return `<ul class="rn-stops" aria-label="Stopping">${stops.map((s) => `<li class="rn-stopping" data-key="stop:${esc(s.key)}"><span>Stopping ${esc(s.what)}</span><button type="button" class="t-undo" data-runs-undo="${esc(s.key)}">${undoRingHtml(s.until, s.ms)}Undo</button></li>`).join("")}</ul>`;
 }
 
 /** A run's transcript as a conversation (input, text, thinking, tool calls with their results, errors). @param {TranscriptItem[]} items @param {{ open?: Record<string, boolean> }} [options] */

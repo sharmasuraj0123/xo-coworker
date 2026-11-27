@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @typedef {Readonly<{ key: string, what: string, session: string | null, until: number }>} PendingRunStop */
+/** @typedef {Readonly<{ key: string, what: string, session: string | null, until: number, ms?: number }>} PendingRunStop */
 
 export function createPendingRunStops() {
   /** @type {Map<string, PendingRunStop>} */

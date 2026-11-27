@@ -3,4 +3,4 @@ export type { Ancestry, RunCounts, TranscriptItem } from "../../core/platform/ru
 
 export interface Said { key: string; kind: string; text: string; sub?: string }
 
-export interface SheetStop { key: string; what: string }
+export interface SheetStop { key: string; what: string; until: number; ms?: number }

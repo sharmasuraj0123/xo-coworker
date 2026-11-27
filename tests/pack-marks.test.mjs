@@ -64,8 +64,11 @@ t("spinners, needs-you marks and status dots draw from the pack's files, not CSS
   }
 });
 t("the Undo ring is the pack's undo-countdown; key caps show the pack's key icons", () => {
-  assert.match(readSource("modules/decisions/toast.js"), /xi\("undo-countdown", "t-ring"\)/);
-  assert.doesNotMatch(readSource("modules/decisions/toast.js"), /<circle cx="10"/);
+  assert.match(readSource("core/ui/undo-ring.js"), /xi\("undo-countdown", "undo-ring"\)/);
+  for (const f of ["modules/decisions/toast.js", "modules/conversation/notice-line.js", "modules/runs/view.js"]) {
+    assert.match(readSource(f), /undoRingHtml\(/, f);
+    assert.doesNotMatch(readSource(f), /<circle cx="10"|undo-countdown/, f);
+  }
   const keys = readSource("core/ui/a11y/keycap.js");
   for (const k of ["key-command", "key-option", "key-shift", "key-control", "key-return"]) assert.ok(keys.includes(`"${k}"`), k);
   assert.match(readSource("modules/settings/keys-page.js"), /<kbd>\$\{keyHtml\(K\.label\(a\.id\)\)\}<\/kbd>/);

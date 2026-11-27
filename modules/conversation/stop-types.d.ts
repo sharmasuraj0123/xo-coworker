@@ -23,6 +23,8 @@ type Notice = {
   back?: Focus[];
   undo?: () => void;
   undoLabel?: string;
+  undoUntil?: number;
+  undoMs?: number;
 };
 
 export type StopDeps = {
