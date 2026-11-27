@@ -28,6 +28,7 @@ button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil
   text-overflow:ellipsis}
 .att-m{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.att-open{display:flex;align-items:center;gap:var(--s-2);min-width:0;flex:1;align-self:stretch;color:inherit;text-decoration:none}
 .att-err{color:var(--err-ink)}
 .att-b{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);
   transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
