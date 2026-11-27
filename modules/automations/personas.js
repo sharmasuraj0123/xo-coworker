@@ -1,6 +1,7 @@
 // @ts-check
 
-import { AGENTS_DIR, keyOf, ownerOf, pathOf } from "./agent-file.js";
+import { ApiError } from "../../core/platform/http.js";
+import { AGENTS_DIR, keyOf, ownerOf, pathOf, scopeOf } from "./agent-file.js";
 import { REFRESH_MS } from "./pending.js";
 
 /** @import { Importable, Persona } from "../../core/platform/persona-response-types" */
@@ -23,8 +24,9 @@ export function createPersonasStore({ api, report, now = Date.now }) {
   const watchers = new Set();
   const changed = () => { for (const watch of watchers) watch(); };
 
-  /** @param {string} project */
-  function read(project) {
+  /** @param {string} asked */
+  function read(asked) {
+    const project = scopeOf(asked);
     const going = reading.get(project);
     if (going) return going;
     const work = api.personas(project || null).then((got) => {
@@ -32,14 +34,15 @@ export function createPersonasStore({ api, report, now = Date.now }) {
     }, (error) => {
       const had = lists.get(project);
       lists.set(project, { agents: had?.agents ?? [], may: had?.may ?? {}, failed: true, at: now() });
-      report(error);
+      if (!(error instanceof ApiError) || error.code === "bad_answer") report(error);
     }).finally(() => { reading.delete(project); changed(); });
     reading.set(project, work);
     return work;
   }
 
-  /** What a project sees now, read again once a minute old; null until first read. @param {string} project */
-  function seen(project) {
+  /** What a project sees now, read again once a minute old; null until first read. @param {string} asked */
+  function seen(asked) {
+    const project = scopeOf(asked);
     const had = lists.get(project);
     if (!had || now() - had.at > REFRESH_MS) void read(project);
     return had ?? null;

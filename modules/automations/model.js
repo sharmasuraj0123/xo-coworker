@@ -6,10 +6,16 @@ import { foundOf, iconOf } from "./pending.js";
 
 /** @import { AgentFire, AgentRun, ScheduledJob, ScheduleResult, ScheduleRun } from "../../core/platform/schedule-response-types" */
 
-/** @import { Automation, Cadence, LastRun, RunRow, AgendaDay, WeekDay } from "./types" */
+/** @import { Automation, Cadence, LastRun, Project, RunRow, AgendaDay, WeekDay } from "./types" */
 
 const HOUR = 3600, DAY = 86400, WEEK = 7 * DAY;
 const MAX_UPCOMING = 400;
+
+/** @typedef {{ id: string, name: string, kind: string, chatId?: string | null, hasChat?: boolean }} WorldProject */
+
+/** Where a job runs and an agent lives: a project with a chat, never the Workspace. @param {WorldProject[]} all @returns {Project[]} */
+export const projectsOf = (all) => all.flatMap((p) => p.chatId && p.hasChat !== false && p.kind !== "workspace"
+  ? [{ chat: p.chatId, name: p.name, id: p.id }] : []);
 
 /** @param {ScheduleResult | ScheduleRun | AgentFire | AgentRun} r */
 const atOf = (r) => toMs("at" in r ? r.at : "started_at" in r ? r.fire_at ?? r.started_at : r.fire_at);

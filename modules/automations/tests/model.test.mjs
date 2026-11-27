@@ -1,7 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { agendaOf, automationsOf, cadenceWords, foundWords, hhmm, longDate, noticedOf, runRowsOf, weekOf } from "../model.js";
+import { agendaOf, automationsOf, cadenceWords, foundWords, hhmm, longDate, noticedOf, projectsOf, runRowsOf, weekOf } from "../model.js";
 
 const HOUR = 3600, DAY = 86400;
 const now = new Date(2026, 10, 25, 8, 0).getTime();
@@ -105,3 +105,10 @@ assert.deepEqual([one({}).notify, one({}).onFailure], [null, null], "nothing to 
 assert.deepEqual([one({ notify: "always", on_failure: "silent" }).notify, one({ on_failure: "silent" }).onFailure], ["always", "silent"]);
 
 console.log("model: ok");
+
+{
+  const world = [{ id: "workspace", name: "Workspace", kind: "workspace", chatId: "chat_w", hasChat: true },
+    { id: "alpha", name: "alpha", kind: "project", chatId: "chat_a", hasChat: true },
+    { id: "quiet", name: "quiet", kind: "project", chatId: null }, { id: "gone", name: "gone", kind: "project", chatId: "chat_g", hasChat: false }];
+  assert.deepEqual(projectsOf(world), [{ chat: "chat_a", name: "alpha", id: "alpha" }], "the Workspace runs no job and holds no agent");
+}

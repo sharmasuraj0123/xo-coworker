@@ -8,6 +8,15 @@ const SPACE_ID = ".space";
 
 /** Level, project ("" for the Space's) and name. @param {{ level: string, project: string, name: string }} a */
 export const keyOf = (a) => `${a.level}:${a.project}:${a.name}`;
+
+/** The Workspace has no folder: it sees the Space's agents and holds none of its own. */
+const WORKSPACE = "workspace";
+
+/** The list a project's agents are read from: the Space's ("") for the Workspace. @param {string} project */
+export const scopeOf = (project) => project === WORKSPACE ? "" : project;
+
+/** The key of the agent an automation names, run in a project. @param {{ level: string, name: string }} ref @param {string} project */
+export const refKeyOf = (ref, project) => keyOf({ ...ref, project: ref.level === "space" ? "" : scopeOf(project) });
 export const AGENTS_DIR = ".xo/agents";
 const NAME = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const FRONT = /^﻿?---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;

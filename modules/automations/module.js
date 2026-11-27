@@ -6,8 +6,9 @@ import { reportFailure } from "../../core/platform/util.js";
 import { createAgentsFrame } from "./agent-frame.js";
 import { createAgentList } from "./agent-list.js";
 import { createAgentSide } from "./agent-side.js";
-import { keyOf } from "./agent-file.js";
+import { refKeyOf, scopeOf } from "./agent-file.js";
 import { createAutomationsFrame } from "./frame.js";
+import { projectsOf } from "./model.js";
 import { createAutomationsPage } from "./page.js";
 import { createPersonasStore } from "./personas.js";
 import { createSide } from "./side.js";
@@ -38,8 +39,7 @@ export const automationsModule = {
     const syncZone = keepZone({ api, zone: browserZone, report: reportFailure });
     ctx.timeout(() => void syncZone(), ZONE_AFTER_MS);
     ctx.listen(document, "visibilitychange", () => { if (!document.hidden) void syncZone(); });
-    const projects = () => world.state.projects.filter((p) => p.chatId && p.hasChat !== false)
-      .map((p) => ({ chat: p.chatId, name: p.name, id: p.id }));
+    const projects = () => projectsOf(world.state.projects);
     /** @param {string} chat */
     const projectName = (chat) => projects().find((p) => p.chat === chat)?.name ?? "A removed project";
     /** @param {unknown} error @param {string} words */
@@ -77,8 +77,9 @@ export const automationsModule = {
     /** @param {string} id */
     const nameOfId = (id) => projects().find((p) => p.id === id)?.name ?? "A removed project";
     /** @type {Omit<AgentSideDeps, "where" | "project" | "shown" | "openJob">} */
-    const agentDeps = { personas, find: personas.find, projects, projectName: nameOfId, runtimes: () => runtimes, openThread: toThread,
-      failed, announce, openFile: (owner, path, from) => ctx.optional("files")?.viewer.open({ path, name: path.split("/").pop() ?? path,
+    const agentDeps = { personas, find: personas.find, projects, projectName: nameOfId, runtimes: () => runtimes,
+      openThread: toThread, failed, announce,
+      openFile: (owner, path, from) => ctx.optional("files")?.viewer.open({ path, name: path.split("/").pop() ?? path,
         project: owner, rel: path }, from) };
     const page = createAutomationsPage({
       store, projectName, projects, failed, announce,
@@ -89,7 +90,7 @@ export const automationsModule = {
     const onPanel = () => stage.pageShown?.name === "automation";
     let leaving = false;
     const inPanel = createSide({ ...sideDeps, where: "panel", showAll: () => nav.go("automations"),
-      openAgent: (persona, chat) => stage.show("agent", keyOf({ ...persona, project: idOf(chat) }), { focus: true }),
+      openAgent: (persona, chat) => stage.show("agent", refKeyOf(persona, idOf(chat)), { focus: true }),
       made: (id) => stage.show("automation", id, { focus: true }),
       shown(id) { if (id === null && !leaving && onPanel()) stage.back(); else stage.repaint(); } });
     ctx.effect(() => inPanel.dispose);
@@ -107,7 +108,7 @@ export const automationsModule = {
       open: (id) => stage.show("automation", id, { focus: true }),
       create: (chat) => inPanel.create(chat),
     }));
-    const panelProject = () => place.convProject(view()) ?? "";
+    const panelProject = () => scopeOf(place.convProject(view()) ?? "");
     const onAgent = () => stage.pageShown?.name === "agent";
     let agentLeaving = false;
     const agentPanel = createAgentSide({ ...agentDeps, where: "panel", project: panelProject,
@@ -123,7 +124,7 @@ export const automationsModule = {
       escape: () => agentPanel.escape(),
     });
     ctx.contribute("panel.frame", createAgentsFrame({
-      personas, changed: () => stage.repaint(), projectOf: (v) => place.convProject(v) || null,
+      personas, changed: () => stage.repaint(), projectOf: (v) => scopeOf(place.convProject(v) ?? "") || null,
       open: (key) => stage.show("agent", key, { focus: true }),
       create: () => stage.show("agent", "new", { focus: true }),
     }));

@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fileOf, frontOf, instructionsOf, keyOf, mayOf, ownerOf, pathOf, slugOf, titleOf, toolsOf } from "../agent-file.js";
+import { fileOf, frontOf, instructionsOf, keyOf, mayOf, ownerOf, pathOf, refKeyOf, scopeOf, slugOf, titleOf, toolsOf } from "../agent-file.js";
 import { MAY } from "./fakes.mjs";
 
 const draft = { name: "release-checker", description: "Checks: what's live.", body: "Read what's live.\n\nSay what isn't.", runtime: "claude_code",
@@ -37,4 +37,11 @@ test("each May choice keeps what the narrower ones allow, and a list matching no
   assert.equal(mayOf(toolsOf("run", MAY), MAY), "run");
   assert.equal(mayOf(null, MAY), "all");
   assert.equal(mayOf(["read"], MAY), "own");
+});
+
+test("an automation's agent opens by the key its list keeps, and the Workspace's are the Space's", () => {
+  assert.equal(refKeyOf({ level: "space", name: "helper" }, "alpha"), "space::helper");
+  assert.equal(refKeyOf({ level: "space", name: "helper" }, "workspace"), "space::helper");
+  assert.equal(refKeyOf({ level: "project", name: "zed" }, "alpha"), "project:alpha:zed");
+  assert.deepEqual([scopeOf("workspace"), scopeOf("alpha"), scopeOf("")], ["", "alpha", ""]);
 });
