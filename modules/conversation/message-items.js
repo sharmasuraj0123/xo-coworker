@@ -47,6 +47,23 @@ function copyHead(m, fwd, src, P) {
   return { by, from, name: ws ? by : `${by} ${src ? `${coord ? "of" : "in"} ${P(src)}` : "in another chat"}` };
 }
 
+/** A Space notice: its number and meter first, then who uses the memory. @param {Message} m @param {(p: string) => boolean} isProject */
+function spaceHtml(m, isProject) {
+  const n = /** @type {NonNullable<Message["space"]>} */ (m.space), via = m.fwd ? " · via the Workspace" : "";
+  if (n.percent == null || n.total == null) return `<span class="ev-t"><b>Space advisory</b>${via} · ${esc(m.text || "")}</span>`;
+  const who = n.users.map((u) => {
+    const name = isProject(u.name) ? `<button type="button" class="rt-go" data-go="p:${esc(u.name)}">${esc(u.name)}</button>`
+      : esc(u.name[0].toUpperCase() + u.name.slice(1));
+    const threads = u.threads != null ? ` · ${u.threads} thread${u.threads === 1 ? "" : "s"}` : "";
+    return `<li><b>${name}</b> ${u.gb} GB${threads}</li>`;
+  }).join("");
+  const bar = `<span class="rt-bar sp-bar" role="meter" aria-valuemin="0" aria-valuemax="100"`
+    + ` aria-valuenow="${Math.round(n.percent)}" aria-label="Memory used"><i style="--u:${Math.min(1, n.percent / 100)}"></i></span>`;
+  return `<div class="ev-t sp-body"><p class="sp-head"><b>Memory at ${n.percent}%</b> of ${n.total} GB`
+    + `<span class="via"> · Space advisory${via}</span></p>${bar}`
+    + `${who ? `<ul class="sp-users" aria-label="Largest users">${who}</ul>` : ""}</div>`;
+}
+
 /** @param {MessageItemsDeps} deps */
 export function createMessageItems({
   limitStatus, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
@@ -137,8 +154,7 @@ export function createMessageItems({
         if (again > 1) items.pop();
         notices = again;
         html = `<div class="ev ev-space${hot ? " is-hot" : ""}" role="status"><span class="ev-ic">${ICON.warn}</span>` +
-          `<span class="ev-t"><b>Space advisory</b>${m.fwd ? `<span class="via"> · via the Workspace</span>` : ""}` +
-          ` · ${esc(m.text || "")}</span>` +
+          `${spaceHtml(m, (p) => !!world.project(p))}` +
           `${again > 1 ? `<span class="ev-n">updated ${again}×</span>` : ""}<time>${clock(m.at)}</time></div>`;
       } else if (m.who === "system" && m.back) {
         const b = m.back, q = b.text.replace(/\s+/g, " ").trim(), via = (b.via || []).find((v) => v !== "workspace" && v !== "project" && world.project(v));

@@ -311,6 +311,15 @@ code.hl{color:var(--code-ink)}
   border-radius:var(--r-block);background:var(--warn-subtle);color:var(--ink-2)}
 .ev-space .ev-ic{height:var(--lh-ui);color:var(--warn)}
 .ev-space .ev-t{white-space:normal}
+.sp-body{display:grid;gap:var(--s-2);flex:1}
+.sp-head{margin:0;color:var(--ink-3)}
+.sp-head .via{color:var(--ink-4)}
+.ev-space .sp-bar i{background:var(--warn)}
+.ev-space.is-hot .sp-bar i{background:var(--err)}
+.sp-users{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin:0;padding:0;list-style:none;
+  font-size:var(--fs-meta);color:var(--ink-3)}
+.sp-users b{font-weight:var(--fw-medium);color:var(--ink-2)}
+.sp-users .rt-go{color:inherit}
 .ev-space b{color:var(--ink);font-weight:var(--fw-strong)}
 .ev-space .ev-n{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
 .ev-space.is-hot{background:var(--err-subtle)}
