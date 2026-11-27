@@ -30,7 +30,7 @@ test("one unreadable review item is dropped and said; the rest of the list loads
   const rejectedFrames = new Map();
   const ctx = {
     state: { projects: [{}], review, rejectedFrames }, reads: new AbortController(), chatIdOf() {},
-    sentAt() {}, loadRuntimes() {}, loadSpacePolicy() {},
+    sentAt() {}, loadRuntimes() {}, loadSpacePolicy() {}, soon() {},
   };
   installLoad(ctx);
   ctx.loadChats = async () => {};
