@@ -63,7 +63,8 @@ function isReported(value) {
 
 /** @param {unknown} value @returns {value is Wire.WorktreesReply} */
 export const isWorktrees = (value) => isResponseObject(value) && arrayOf(value.worktrees, isWorktree)
-  && optional(value.removed, (rows) => arrayOf(rows, isWorktree)) && optional(value.reported, (rows) => arrayOf(rows, isReported));
+  && optional(value.removed, (rows) => arrayOf(rows, isWorktree)) && optional(value.reported, (rows) => arrayOf(rows, isReported))
+  && nullable(value.next_cursor, text);
 
 /** @param {unknown} value @returns {value is Wire.WorktreeRemoveReply} */
 export const isWorktreeRemoval = (value) => isResponseObject(value) && value.removed === true

@@ -22,11 +22,12 @@ const treeKey = (tree) => `${tree.chat_id}/${tree.thread_ts}`;
 function lossHtml(loss) {
   const changed = (loss.changed?.paths ?? []).map((path) => `changed · ${path}`);
   const untracked = (loss.untracked?.paths ?? []).map((path) => `new · ${path}`);
-  const paths = [...changed, ...untracked];
-  const more = paths.length > LOSS_PATH_LIMIT ? `\n… ${paths.length - LOSS_PATH_LIMIT} more` : "";
+  const paths = [...changed, ...untracked].slice(0, LOSS_PATH_LIMIT);
+  const hidden = Math.max(0, (loss.changed?.count ?? 0) + (loss.untracked?.count ?? 0) - paths.length);
+  const more = hidden ? `\n… ${hidden} more` : "";
   const commits = loss.commits
     ? `<p>${loss.commits} commit${loss.commits === 1 ? "" : "s"} only on ${esc(loss.branch || "its branch")}</p>` : "";
-  const files = paths.length ? `<pre class="tb-out">${esc(paths.slice(0, LOSS_PATH_LIMIT).join("\n"))}${more}</pre>` : "";
+  const files = paths.length ? `<pre class="tb-out">${esc(paths.join("\n"))}${more}</pre>` : "";
   return `<div class="wt-loss"><p><b>${esc(loss.summary || "Work that isn't kept anywhere else")}</b></p>${commits}${files}</div>`;
 }
 
@@ -101,6 +102,27 @@ function treesHtml(view, host, { world, PROJ }) {
       + `<ul class="wt-list">${reported}</ul></section>` : "");
 }
 
+/** Every page of Space's stored listing. @param {AbortSignal} signal @returns {Promise<WorktreesResponse>} */
+async function readAllTrees(signal) {
+  /** @type {WorktreesResponse} */
+  const all = { worktrees: [], reported: [] };
+  /** @type {Set<string>} */
+  const seen = new Set();
+  /** @type {string | null} */
+  let cursor = null;
+  do {
+    const reply = await chatActivityApi.worktrees(null, signal, cursor);
+    all.worktrees.push(...reply.worktrees);
+    all.reported?.push(...(reply.reported ?? []));
+    if (cursor) seen.add(cursor);
+    cursor = reply.next_cursor && !seen.has(reply.next_cursor) ? reply.next_cursor : null;
+  } while (cursor);
+  return all;
+}
+
+/** @param {Worktree[]} trees @param {WorktreesOptions["world"]} world */
+const gitSignature = (trees, world) => JSON.stringify(trees.map((tree) => world.thread(tree.thread_ts)?.git ?? null));
+
 /** @param {WorktreesHost} host @param {WorktreesOptions} options */
 export function createWorktreesPage(host, options) {
   const scope = createScope();
@@ -109,15 +131,26 @@ export function createWorktreesPage(host, options) {
   const state = { trees: null, reported: [], listError: null, confirmation: null, removalError: null };
   /** @type {WeakSet<HTMLElement>} */
   const holds = new WeakSet();
+  let signature = "";
+
+  scope.effect(() => options.world.subscribe?.(() => {
+    const page = host.box(PAGE)?.closest("[data-page]");
+    if (!state.trees || !page || page.hasAttribute("hidden") || document.getElementById("settings")?.hidden) return;
+    const next = gitSignature(state.trees, options.world);
+    if (next === signature) return;
+    signature = next;
+    void loadTrees();
+  }));
 
   async function loadTrees() {
     try {
-      await latest(requestKey, (signal) => chatActivityApi.worktrees(undefined, signal), {
+      await latest(requestKey, readAllTrees, {
         signal: scope.signal,
-        /** @param {WorktreesResponse | null} reply */
+        /** @param {WorktreesResponse} reply */
         commit(reply) {
-          state.trees = reply?.worktrees ?? [];
-          state.reported = reply?.reported ?? [];
+          state.trees = reply.worktrees;
+          state.reported = reply.reported ?? [];
+          signature = gitSignature(state.trees, options.world);
           state.listError = null;
           render();
         },

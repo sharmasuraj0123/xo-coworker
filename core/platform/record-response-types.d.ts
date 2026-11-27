@@ -68,6 +68,7 @@ export interface WorktreesReply {
   worktrees: WorktreeRow[];
   removed?: WorktreeRow[];
   reported?: ReportedTree[];
+  next_cursor?: string | null;
 }
 
 export interface WorktreeRemoveReply {

@@ -128,3 +128,54 @@ test("an unexpected refresh failure reports once and keeps the last list", async
     else Reflect.deleteProperty(globalThis, "reportError");
   }
 });
+
+test("the listing is read page by page, and a thread.git change re-reads it while the page shows", async () => {
+  const host = await mountSettingsPage("worktrees");
+  const subs = new Set();
+  const git = new Map();
+  const world = {
+    thread: (ts) => ({ title: ts, git: git.get(ts) }), act: { projectOf: () => "project" },
+    subscribe: (fn) => { subs.add(fn); return () => subs.delete(fn); },
+  };
+  const page = createWorktreesPage(host, { world, announce() {}, PROJ: () => "Example project" });
+  const asked = [];
+  globalThis.fetch = async (url) => {
+    const cursor = new URL(String(url), "https://space.invalid").searchParams.get("cursor");
+    asked.push(cursor);
+    return cursor
+      ? Response.json({ worktrees: [{ ...tree, thread_ts: "b", path: "/b" }], next_cursor: cursor })
+      : Response.json({ worktrees: [{ ...tree, thread_ts: "a", path: "/a" }], next_cursor: "page-2" });
+  };
+  try {
+    await page.open();
+    assert.deepEqual([...document.querySelectorAll(".wt-row code")].map((code) => code.textContent), ["/a", "/b"]);
+    assert.deepEqual(asked, [null, "page-2"], "a cursor already read ends the walk");
+    for (const fn of subs) fn();
+    assert.equal(asked.length, 2, "nothing changed: no read");
+    git.set("b", { commits: 1, tree: { exists: true, changed: 1 } });
+    for (const fn of subs) fn();
+    for (const fn of subs) fn();
+    await settle();
+    assert.deepEqual(asked, [null, "page-2", null, "page-2"]);
+  } finally {
+    page.dispose();
+  }
+  assert.equal(subs.size, 0);
+});
+
+test("a long loss says how many more there are from Space's counts, not the paths it sent", async () => {
+  const { page } = await mount();
+  const paths = Array.from({ length: 50 }, (_, i) => `f${i}`);
+  const what = { summary: "120 files not committed", changed: { count: 120, paths }, untracked: { count: 0, paths: [] }, commits: 0 };
+  globalThis.fetch = async (_url, init) => init.method === "DELETE"
+    ? Response.json({ detail: { code: "would_lose_work", message: "Would lose work", what, confirm: "tok" } }, { status: 409 })
+    : Response.json({ worktrees: [{ ...tree, removable: false, xo: true, would_lose: what }] });
+  try {
+    await page.open();
+    page.click(document.querySelector("[data-wt]"));
+    await settle();
+    assert.match(document.querySelector(".wt-loss pre").textContent, /… 90 more$/);
+  } finally {
+    page.dispose();
+  }
+});

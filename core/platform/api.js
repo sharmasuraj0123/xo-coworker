@@ -52,8 +52,8 @@ export const chatActivityApi = {
   chats: (signal) => requestChecked("/chat/chats", isChats, { signal }),
   /** @param {string} chat @param {AbortSignal} [signal] */
   markSeen: (chat, signal) => requestChecked(`/chat/chats/${enc(chat)}/seen`, isSeenAck, { method: "PUT", body: {}, signal }),
-  /** @param {string | null} [chat] @param {AbortSignal} [signal] */
-  worktrees: (chat, signal) => requestChecked("/chat/worktrees", isWorktrees, { query: chat ? { chat } : undefined, signal }),
+  /** @param {string | null} [chat] @param {AbortSignal} [signal] @param {string | null} [cursor] */
+  worktrees: (chat, signal, cursor) => requestChecked("/chat/worktrees", isWorktrees, { query: { chat, cursor }, signal }),
   /** @param {string} chat @param {string} thread @param {string | null} [confirm] @param {AbortSignal} [signal] */
   removeWorktree: (chat, thread, confirm, signal) => requestChecked(`/chat/worktrees/${enc(chat)}/${enc(thread)}`, isWorktreeRemoval, {
     method: "DELETE", query: confirm ? { confirm } : undefined, signal,
