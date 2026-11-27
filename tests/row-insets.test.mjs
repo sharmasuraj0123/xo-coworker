@@ -28,23 +28,18 @@ test("icon ink margins use the shared glyph proportions", () => {
   assert.equal(tokens.get("--mark-ink"), "calc(2 / 24)");
 });
 
-test("folded asks use concentric controls in their bar", () => {
-  const bars = ".dock-fold";
-  containsValue(bars, "--nest-r", "var(--r-card)");
-  containsValue(bars, "--nest-in", "calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px)");
-  containsValue(bars, "border-radius", "var(--nest-r)");
-  containsValue(".dock-fold", "min-height", "calc(var(--dock-bar) + 2px)");
-  for (const button of [".df-go"]) {
-    containsValue(button, "height", "var(--dock-btn)");
-    containsValue(button, "border-radius", "calc(var(--nest-r) - var(--nest-in))");
-  }
-  phoneToken("--dock-bar", "var(--h-hit)");
-  phoneToken("--dock-btn", "var(--h-touch)");
+test("a folded ask is a notice line: the --note-h pill with a --note-btn button", () => {
+  assert.ok(!tokens.has("--dock-bar") && !tokens.has("--dock-btn"), "no size pair of its own");
+  containsValue(".dock-fold", "--note-in", "calc((var(--note-h) - var(--note-btn)) / 2)");
+  containsValue(".dock-fold", "height", "calc(var(--note-h) + 2px)");
+  containsValue(".dock-fold", "border-radius", "var(--r-pill)");
+  containsValue(".df-go", "height", "var(--note-btn)");
+  containsValue(".df-go", "border-radius", "var(--r-pill)");
 });
 
 test("row edges preserve concentric control and glyph insets", () => {
   assert.equal(tokens.get("--edge-text"), "var(--s-3)");
-  containsValue(".dock-fold", "padding", "0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))");
+  containsValue(".dock-fold", "padding", "0 calc(var(--note-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))");
   containsValue(".hr", "padding", "0 calc(var(--edge-text) - 1px) 0 calc(var(--edge-text) - 1px)");
   containsValue(".ck-tog", "padding", "0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text)");
 });
