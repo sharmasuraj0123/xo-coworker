@@ -28,10 +28,10 @@
 .us-sw{flex:none;width:var(--s-2);height:var(--s-2);border-radius:var(--r-tight);background:var(--c)}
 .us-chart{--viz-1:var(--series-1); --viz-2:var(--series-2); --viz-3:var(--series-3); --viz-4:var(--series-4); --mc-h:calc(8 * var(--h-ctl))}
 .us-chart .md-chart{--mc-bg:var(--surface);margin:0;padding:0;border:0;background:none}
-.us-models{display:flex;flex-direction:column}
+.us-models{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto auto;column-gap:var(--s-4)}
 .us-models li{
-  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto calc(3 * var(--s-4)); align-items:center; gap:var(--s-4);
-  min-height:var(--h-row); border-bottom:var(--hair) solid var(--line-faint); font-variant-numeric:tabular-nums
+  display:grid; grid-template-columns:subgrid; grid-column:1/-1; align-items:center; min-height:var(--h-row);
+  border-bottom:var(--hair) solid var(--line-faint); font-variant-numeric:tabular-nums
 }
 .us-mn{
   display:flex; align-items:baseline; gap:var(--s-2); min-width:0; font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
@@ -45,6 +45,6 @@
 .us-mt{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);text-align:right}
 @media (max-width:760px){
   .us-total{font-size:var(--fs-display);line-height:var(--lh-display)}
-  .us-models li{grid-template-columns:minmax(0,1fr) auto calc(3 * var(--s-4))}
+  .us-models{grid-template-columns:minmax(0,1fr) auto auto}
   .us-bar{display:none}
 }
