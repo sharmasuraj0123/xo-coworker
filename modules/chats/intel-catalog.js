@@ -84,7 +84,8 @@ export function createIntelCatalog(P, { world, PROJ, simple }) {
   }
   /** @param {string} s @param {boolean} [phone] */
   function chipHtml(s, phone) {
-    if (!live(s)) return "";
+    // models are named from the runtimes' read: until it lands there is no chip, never a raw id like "opus"
+    if (!live(s) || !world.state.runtimes) return "";
     const c = current(s);
     const mark = rtMark((/** @type {string} */ (runtimeOf(s))), { lead: true }) || "";
     if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l">${mark}<span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
