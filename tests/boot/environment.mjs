@@ -21,7 +21,7 @@ const audioAccess = [];
 for (const name of ["Audio", "AudioContext", "webkitAudioContext"]) {
   Object.defineProperty(globalThis, name, { configurable: true, get() { audioAccess.push(name); return undefined; } });
 }
-const sinceReads = [];
+const earlyWorktreeReads = [];
 const settingsReads = new Map();
 const runtimeWrites = [];
 let heldRuntimes;
@@ -252,7 +252,7 @@ Object.assign(globalThis, {
     if (path === "/api/chat/worktrees" || path === "/api/chat/rules") {
       const response = deferred();
       const pending = { response, signal: init.signal };
-      if (resource === "worktrees" && !settingsStarted) sinceReads.push(pending);
+      if (resource === "worktrees" && !settingsStarted) earlyWorktreeReads.push(pending);
       else settingsReads.set(resource, pending);
       return response.promise;
     }
@@ -347,7 +347,7 @@ export {
   resizeTargets, runSignal, lateRunRead, run, deferred,
   threadDeletes, setHoldRunRead, setLateRunRead, checkSettingsPreferences, checkConversationFileRoutes,
   runtimeWrites, heldRuntimes, heldRuntimeReads, runtimeList, settingsReads,
-  sinceReads, githubSignal, shellSignal, setHeldRuntimes, setSettingsStarted,
+  earlyWorktreeReads, githubSignal, shellSignal, setHeldRuntimes, setSettingsStarted,
   outgoingPosts, stageLayoutObservers, mainFollowObservers, mainDecorationObservers, keyboardLayerObservers,
   heldStatusSignal, stormSignal, shellRelocationObservers, threadResolves, frames,
   shapeReads, createGithubSignal, createCloneSignal, readFileSync, createCloneWrite,

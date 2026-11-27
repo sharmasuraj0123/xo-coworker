@@ -3,16 +3,14 @@ import { count } from "../platform/words.js";
 
 export const GIT_ICON = { unsaved: "edit", unpushed: "cloud-upload", unmerged: "pull-request", shipped: "merge" };
 
-// A thread's git state in words, from its worktree entry (`would_lose`, maybe `git`) or, on a newer backend, its branch's `git` state.
+// A thread's git state in words, from Space's stored state; a tree Space hasn't reported is not known.
 
-/** @param {import("./git-state-types").WorktreeGit | null | undefined} w @param {import("./git-state-types").BranchGit | null} [git] @returns {{ group: "unsaved" | "unpushed" | "unmerged" | "shipped" | "saved" | "none", word: string, n: number, url?: string | null }} */
-export function gitState(w, git = null) {
-  const tree = w && w.exists !== false && !w.error ? w : null;
-  const lost = tree ? tree.would_lose : null;
-  const files = lost ? ((lost.changed && lost.changed.count) || 0) + ((lost.untracked && lost.untracked.count) || 0) : 0;
-  if (files) return { group: "unsaved", word: `${count(files, "file")} not committed`, n: files };
-  const g = (w && w.git) || git;
-  if (g && typeof g === "object") {
+/** @param {import("./git-state-types").BranchGit | null | undefined} g @returns {{ group: "unsaved" | "unpushed" | "unmerged" | "shipped" | "saved" | "none", word: string, n: number, url?: string | null }} */
+export function gitState(g) {
+  const tree = g && g.tree && g.tree.exists ? g.tree : null;
+  const changes = tree ? (tree.changed || 0) + (tree.untracked || 0) : 0;
+  if (changes) return { group: "unsaved", word: `${count(changes, "file")} not committed`, n: changes };
+  if (g) {
     const pr = g.pr && g.pr.number ? `PR #${g.pr.number}` : "";
     if (g.merged) return { group: "shipped", word: pr ? `merged · ${pr}` : "merged", n: 0, url: g.pr && g.pr.url };
     if (g.commits === 0) return { group: "saved", word: "", n: 0 };
@@ -24,6 +22,6 @@ export function gitState(w, git = null) {
     }
   }
   if (!tree) return { group: "none", word: "", n: 0 };
-  if (lost && lost.commits) return { group: "unpushed", word: `${count(lost.commits, "commit")} not pushed`, n: lost.commits };
+  if (tree.local_commits) return { group: "unpushed", word: `${count(tree.local_commits, "commit")} not pushed`, n: tree.local_commits };
   return { group: "saved", word: "", n: 0 };
 }

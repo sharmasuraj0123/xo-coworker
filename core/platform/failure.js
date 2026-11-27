@@ -1,5 +1,7 @@
 // @ts-check
 
+import { interruptedRequest } from "./http.js";
+
 const RETAINED_DETAILS = 8;
 const QUIET_MS = 30000;
 const MAX_STACK = 2048;
@@ -15,7 +17,7 @@ function messageOf(error) {
 
 /** @param {unknown} error @param {string} message */
 function ignored(error, message) {
-  return (error && typeof error === "object" && "name" in error && error.name === "AbortError")
+  return (error && typeof error === "object" && "name" in error && error.name === "AbortError") || interruptedRequest(error)
     || /^(?:Uncaught )?ResizeObserver loop (?:limit exceeded|completed with undelivered notifications)\.?$/.test(message);
 }
 

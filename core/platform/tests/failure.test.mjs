@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createFailureSurface } from "../failure.js";
+import { ApiError } from "../http.js";
 
 test("one burst presents plain words and counted, bounded details", () => {
   const frames = [], notices = [];
@@ -41,4 +42,13 @@ test("one broken listener on many topics retains a bounded stack and one diagnos
   for (let i = 0; i < 30; i++) surface.report(fault, { module: "bus", phase: "listener", subject: "topic-" + i });
   assert.equal(notice.text, "Something went wrong in the app. (30 reports)");
   assert.equal(notice.details, "bus / listener / topic-0: Read failed (×30)\n" + fault.stack.slice(0, 2048));
+});
+
+test("a request the connection cut short is no application error; a bad answer still is", () => {
+  const notices = [];
+  const surface = createFailureSurface(notice => notices.push(notice), fn => fn());
+  for (const code of ["timeout", "network", "signed_out"]) surface.report(new ApiError(0, code, "XO didn't answer in 30 s."), "Application error");
+  assert.equal(notices.length, 0);
+  surface.report(new ApiError(0, "bad_answer", "XO's answer wasn't readable."), "Application error");
+  assert.equal(notices.length, 1);
 });

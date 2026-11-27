@@ -51,7 +51,7 @@ test("Settings retires each built-in read and its keyboard controls together", a
   await settle();
   const routes = ["/api/chat/router", "/api/chat/router/models", "/api/chat/rules", "/api/chat/worktrees"];
   assert.deepEqual([...reads.keys()].sort(), [...routes].sort());
-  assert.equal(subscribers, 1);
+  assert.equal(subscribers, 2, "Routing and Worktrees each follow the world");
   const [first, second] = document.querySelectorAll('[role="radio"]');
   const right = () => first.dispatchEvent(Object.assign(
     new window.Event("keydown", { bubbles: true, cancelable: true }), { key: "ArrowRight" },
@@ -63,7 +63,7 @@ test("Settings retires each built-in read and its keyboard controls together", a
   const root = document.getElementById("settings");
   const painted = root.innerHTML;
   await kernel.disable(settingsModule.manifest.id);
-  assert.equal(subscribers, 0, "disposing Settings removes Routing's subscription");
+  assert.equal(subscribers, 0, "disposing Settings removes both subscriptions");
   for (const path of routes) assert.equal(reads.get(path).signal.aborted, true, `disposing Settings aborts ${path}`);
   first.focus();
   assert.equal(right(), true, "disposed radio controls no longer intercept the key");

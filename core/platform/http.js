@@ -34,7 +34,7 @@ export function captureCoderToken() {
 export const coderHeaders = () => (coderToken ? { "Coder-Session-Token": coderToken } : {});
 
 export class ApiError extends Error {
-  /** @param {number} status @param {string} code @param {string} message @param {Record<string, unknown>} [extra] storm's feature, count, sentence, what, confirm, summary, current; a runtime's sessions, job, install */
+  /** @param {number} status @param {string} code @param {string} message @param {Record<string, unknown>} [extra] storm's feature, count, sentence, what, confirm, summary, current, row; a runtime's sessions, job, install */
   constructor(status, code, message, extra = {}) {
     super(message);
     this.status = status;
@@ -42,6 +42,11 @@ export class ApiError extends Error {
     Object.assign(this, extra);
   }
 }
+
+const INTERRUPTED = new Set(["network", "timeout", "signed_out"]);
+
+/** A request the connection cut short: the app's connection state says so, it is no fault of the app. @param {unknown} error */
+export const interruptedRequest = (error) => error instanceof ApiError && INTERRUPTED.has(error.code);
 
 /** How long a request may go unanswered: a write that never settles would stay "Sending" with no Retry. */
 const WRITE_MS = 20000;
@@ -154,7 +159,7 @@ function errorOf(status, statusText, raw) {
   /** @type {Record<string, unknown>} */
   const extra = {};
   if (isResponseObject(d)) {
-    for (const key of ["feature", "count", "sentence", "what", "confirm", "summary", "current", "sessions", "job", "install"]) {
+    for (const key of ["feature", "count", "sentence", "what", "confirm", "summary", "current", "row", "sessions", "job", "install"]) {
       if (Object.hasOwn(d, key)) extra[key] = d[key];
     }
   }

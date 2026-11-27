@@ -2,7 +2,7 @@
 import {
   setImmediate, flushFrames, document, assert, storage, lastHomeVisit, checkSettingsPreferences,
   checkConversationFileRoutes, stream, encoder, window, runtimeWrites, heldRuntimes, deferred,
-  heldRuntimeReads, runtimeList, settingsReads, sinceReads, githubSignal, artifactsSignal, shellSignal,
+  heldRuntimeReads, runtimeList, settingsReads, earlyWorktreeReads, githubSignal, artifactsSignal, shellSignal,
   setHeldRuntimes, setSettingsStarted,
 } from "./environment.mjs";
 import {
@@ -120,7 +120,7 @@ await new Promise(setImmediate);
 const rules = settingsReads.get("rules");
 const worktrees = settingsReads.get("worktrees");
 assert.ok(rules && worktrees, "Settings opens Rules and Worktrees through the app");
-assert.ok(sinceReads.length, "Since checks worktrees when boot restores a prior Home visit");
+assert.equal(earlyWorktreeReads.length, 0, "restoring a prior Home visit reads no worktree list: each thread carries its git state");
 assert.ok(githubSignal, "the visible panel checks for the project's GitHub remote");
 assert.ok(artifactsSignal, "the app reads project artifacts");
 assert.ok(shellSignal, "the mounted Shells dock starts a cancellable status read");

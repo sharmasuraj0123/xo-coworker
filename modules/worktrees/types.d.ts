@@ -32,7 +32,8 @@ export interface WorktreesHost {
 
 export interface WorktreesOptions {
   world: {
-    thread(id: string): { title?: string } | undefined;
+    thread(id: string): { title?: string; git?: unknown } | undefined;
+    subscribe?(fn: () => void): () => unknown;
     act: { projectOf?: (chat: string) => string | null };
   };
   announce(words: string): void;
