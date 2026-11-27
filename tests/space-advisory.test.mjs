@@ -55,4 +55,5 @@ assert.match(rows[0].textContent, /via the Workspace/);
 assert.equal(rows[0].querySelector(".ev-n")?.textContent, "updated 2×");
 
 assert.match(css, /\.ev-space\.is-hot\{background:var\(--err-subtle\)\}/);
+assert.match(css, /\.sp-body\{display:flex;flex-direction:column;/, "one column: the shared meter's grid-area would split a grid into two");
 console.log("space-advisory: ok");

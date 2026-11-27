@@ -311,7 +311,7 @@ code.hl{color:var(--code-ink)}
   border-radius:var(--r-block);background:var(--warn-subtle);color:var(--ink-2)}
 .ev-space .ev-ic{height:var(--lh-ui);color:var(--warn)}
 .ev-space .ev-t{white-space:normal}
-.sp-body{display:grid;gap:var(--s-2);flex:1}
+.sp-body{display:flex;flex-direction:column;gap:var(--s-2);flex:1}
 .sp-head{margin:0;color:var(--ink-3)}
 .sp-head .via{color:var(--ink-4)}
 .ev-space .sp-bar i{background:var(--warn)}
