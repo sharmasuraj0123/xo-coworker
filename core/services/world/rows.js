@@ -27,13 +27,25 @@ function forwarded(value) {
 const isReaction = (value) => isRecord(value) && typeof value.emoji === "string" && !!value.emoji
   && (value.by == null || typeof value.by === "string") && (value.at == null || typeof value.at === "string");
 
-/** A Space notice's percent: extra.advisory's, else the first "N%" in its words. @param {MessageRow} row */
+const GB = String.raw`(\d+(?:\.\d+)?)\s*GB`;
+/** One "xo-space 2 GB across 9 threads" part of a notice. @param {string} part */
+function spaceUser(part) {
+  const m = new RegExp(String.raw`^(.+?)\s+${GB}(?:\s+across\s+(\d+)\s+threads?)?$`).exec(part.trim());
+  return m ? { name: m[1].replace(/^the\s+/i, ""), gb: Number(m[2]), threads: m[3] ? Number(m[3]) : null } : null;
+}
+
+/** A Space notice's numbers: extra.advisory's percent, else what its words say. @param {MessageRow} row */
 function spaceNotice(row) {
   if (row.author_kind !== "system" || row.author_id !== "space-advisory") return null;
   const a = isRecord(row.extra?.advisory) ? row.extra.advisory : null;
-  const said = /(\d+(?:\.\d+)?)\s*%/.exec(String(row.text ?? ""));
+  const text = String(row.text ?? "");
+  const said = /(\d+(?:\.\d+)?)\s*%/.exec(text);
   const percent = typeof a?.percent === "number" ? a.percent : said ? Number(said[1]) : null;
-  return { percent };
+  const of = new RegExp(String.raw`%\s+of\s+${GB}`).exec(text);
+  const list = /Largest users:\s*(.+?)\.?\s*$/.exec(text);
+  const users = list ? list[1].split(";").map(spaceUser) : [];
+  const known = /** @type {NonNullable<ReturnType<typeof spaceUser>>[]} */ (users.every(Boolean) ? users : []);
+  return { percent, total: of ? Number(of[1]) : null, users: known };
 }
 
 /** @param {MessageRow} row */
