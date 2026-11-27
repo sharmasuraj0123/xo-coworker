@@ -113,6 +113,7 @@ export interface AgentSideDeps {
   find: (key: string) => Agent | null;
   project: () => string;
   projects: () => Project[];
+  here: () => Project | null;
   projectName: (id: string) => string;
   runtimes: () => string[];
   mainRuntime: () => string | null;
@@ -269,6 +270,7 @@ export interface SideDeps {
   where: "page" | "panel";
   projectName: (chat: string) => string;
   projects: () => Project[];
+  here: () => Project | null;
   openThread: (chat: string, ts: string) => void;
   shown: (id: string | null) => void;
   showAll?: () => void;
@@ -306,6 +308,7 @@ export interface PageDeps {
   agentList: (hooks: { selected: () => string | null, shown: () => boolean, changed: () => void }) => AgentListApi;
   projectName: (chat: string) => string;
   projects: () => Project[];
+  here: () => Project | null;
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;
   now?: () => number;

@@ -21,10 +21,12 @@ const jobs = [
 ];
 const fake = fakeApi(jobs), timers = fakeTimers();
 const store = createAutomationsStore({ api: fake.api, report() {}, timeout: timers.timeout, now });
-const projects = () => [{ chat: "chat_a", name: "Alpha", id: "alpha" }];
+const projects = () => [{ chat: "chat_a", name: "Alpha", id: "alpha" }, { chat: "chat_b", name: "Beta", id: "beta" }];
+let last = "alpha";
+const here = () => projects().find((p) => p.id === last) ?? null;
 /** @type {string[]} */
 const said = [];
-const deps = { projectName: () => "Alpha", projects, failed() {}, announce: (/** @type {string} */ w) => { said.push(w); }, now };
+const deps = { projectName: () => "Alpha", projects, here, failed() {}, announce: (/** @type {string} */ w) => { said.push(w); }, now };
 const agentLists = {
   "": [persona({ name: "helper", level: "space", path: "helper.md", description: "Helps anywhere." })],
   alpha: [persona(), persona({ name: "helper", level: "space", path: "helper.md" })],
@@ -128,7 +130,9 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   const cta = document.querySelector('.au-top [data-au-act="new"]');
   assert.equal(cta?.classList.contains("btn-pri"), true, "the page's one call to action, in the flavour's colour");
   assert.equal(cta?.textContent, "Create automation");
+  last = "beta";
   await click('[data-au-act="new"]');
+  last = "alpha";
   const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
   assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");
   assert.equal(box.querySelector('[name="persona"] option[selected]')?.getAttribute("value"), "rt:claude_code",
@@ -148,6 +152,7 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   const body = /** @type {Record<string, unknown>} */ (made.args[0]);
   assert.equal(body.name, "Sum up the week", "named from what it does");
   assert.equal(body.agent, "claude_code", "and saved with the runtime it showed");
+  assert.equal(body.chat, "chat_b", "in the project the owner was last in, not the first one listed");
   assert.equal(box.hasAttribute("open"), false, "the dialog closes");
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Sum up the week");
   assert.ok(said.includes("Sum up the week is on"));
@@ -188,6 +193,18 @@ await t("an agent opens beside the list with its instructions, and Try once open
   assert.deepEqual(people.calls.find((c) => c.name === "tryOnce")?.args[0],
     { persona: { name: "release-checker", level: "project" }, project: "alpha" });
   assert.deepEqual(opened, ["chat_a/1764000000.000100"]);
+  await click('[data-ag-act="open"][data-ag-key="space::helper"]');
+  await settle();
+  last = "beta";
+  await click('[data-ag-act="try"]');
+  last = "alpha";
+  agentAside().querySelector("form[data-ag-try]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  await settle();
+  assert.equal(/** @type {{ project: string }} */ (people.calls.filter((c) => c.name === "tryOnce")[1]?.args[0])?.project, "beta",
+    "a Space agent's try starts where the owner was last, not in the first project listed");
+  opened.splice(0);
+  await click('[data-ag-act="open"][data-ag-key="project:alpha:release-checker"]');
+  await settle();
 });
 
 await t("Edit saves the file over the version it read", async () => {

@@ -60,6 +60,7 @@ export function createNavigationState(initialView = "home") {
   return {
     view: () => state.get().view, parentOf, scrollOf, saveScroll,
     hasTrail: () => trail.length > 0,
+    recent: () => [state.get().view, ...[...trail].reverse()],
     visit, takeReturnRow, previousPlace,
   };
 }

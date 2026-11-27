@@ -42,7 +42,7 @@ async function readBody(st, deps, a, paint) {
 /** A button on an agent. @param {string} what @param {Element} target @param {Agent} a @param {Calls & { paint: () => void }} c */
 function act(what, target, a, { st, deps, show, close, paint }) {
   if (what === "edit") { if (st.body !== null) show(st.key, true); return; }
-  const project = deps.project() || a.project || deps.projects()[0]?.id || "";
+  const project = deps.project() || a.project || deps.here()?.id || "";
   if (what === "try") st.trying = { task: "", project, busy: `ag-try:${st.key}` };
   else if (what === "try-cancel") st.trying = null;
   else if (what === "ag-file") deps.openFile(a.owner, a.path, target);
@@ -168,7 +168,7 @@ export function createAgentSide(deps) {
     if (what === "try-form" && st.values) {
       const form = st.host.querySelector("form[data-ag-form]");
       const v = st.values = form instanceof HTMLElement ? readAgentForm(form, st.values, may()) : st.values;
-      void tryOnce({ text: agentText(v) }, v.draft.project || deps.project() || deps.projects()[0]?.id || "", "");
+      void tryOnce({ text: agentText(v) }, v.draft.project || deps.project() || deps.here()?.id || "", "");
       return;
     }
     const a = current();

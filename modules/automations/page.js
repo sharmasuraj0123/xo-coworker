@@ -160,7 +160,7 @@ export function createAutomationsPage(deps) {
     const what = target.getAttribute("data-au-act"), id = target.getAttribute("data-au-id") ?? "";
     const a = deps.store.find(id);
     menu = null;
-    if (what === "new") { if (mode === "agents") agentSide.create(); else side.create(deps.projects()[0]?.chat ?? ""); return; }
+    if (what === "new") { if (mode === "agents") agentSide.create(); else side.create(deps.here()?.chat ?? ""); return; }
     if (what === "reload") { void deps.store.refresh(); return; }
     if (what === "undo") { deps.store.undoRemove(id); deps.announce("Kept"); return; }
     if (!a) { paint(); return; }

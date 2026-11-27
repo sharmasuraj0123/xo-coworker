@@ -32,3 +32,7 @@ assert.equal(stepBack(), true);
 assert.deepEqual(visits, ["thread back", "p:open", "home"]);
 assert.equal(canBack(), false);
 assert.equal(stepBack(), false);
+
+const seen = createNavigationState("p:a");
+for (const view of ["p:b", "t:x", "automations"]) seen.visit(view, {});
+assert.deepEqual(seen.recent(), ["automations", "t:x", "p:a"], "where the owner is, then where they were, newest first");
