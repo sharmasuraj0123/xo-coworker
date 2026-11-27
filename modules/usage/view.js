@@ -131,6 +131,7 @@ export function usageHtml(state) {
   const still = state.waiting.length ? `<p class="set-note"><i class="spin" aria-hidden="true"></i> Still reading `
     + `${esc(andList(state.waiting.map(rtName)))}…</p>` : "";
   if (!parts.length && state.waiting.length) return `${head}${failed}${reading}`;
+  if (!parts.length && state.failed.length) return `${head}${failed}`;
   if (!parts.length) {
     return `${head}${failed}<p class="set-empty"><b>No usage in the last ${state.days} days.</b> `
       + "Tokens show here once a runtime has worked.</p>";

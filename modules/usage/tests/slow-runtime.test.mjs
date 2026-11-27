@@ -22,3 +22,13 @@ assert.match(painted, /<b class="us-total">1,000<\/b>/, "Claude Code joins the t
 assert.doesNotMatch(painted, /Still reading/);
 page.dispose();
 console.log("usage slow runtime: passed");
+
+const down = createUsagePage({ paint: (_, html) => { painted = html; } }, {
+  runtimes: async () => { throw new Error("offline"); },
+  usage: async () => usage(1),
+});
+await down.open();
+assert.match(painted, /set-err/, "a failed read says so");
+assert.doesNotMatch(painted, /No usage in the last/, "and doesn't claim there was no usage");
+down.dispose();
+console.log("usage failed read: passed");
