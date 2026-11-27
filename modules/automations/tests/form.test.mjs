@@ -11,8 +11,8 @@ const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:00[+-]\d\d:\d\d$/;
 
 const fresh = { ...valuesOf(null, "chat_a", now), name: " Weekly ", prompt: "Sum up " };
 assert.equal(problemOf({ ...fresh, name: "" }, now), "", "a new one without a name takes it from what it does");
-assert.equal(bodyOf({ ...fresh, name: "", prompt: "compare what's live on :3000 with coworker/modular, and say. Then stop." }, null, now).name,
-  "Compare whats live on 3000 with coworker modular", "its first words, as XO Space allows a name, cut at a word");
+assert.equal(bodyOf({ ...fresh, name: "", prompt: "check what's new in the docs/ folder on main, and say. Then stop." }, null, now).name,
+  "Check whats new in the docs folder on main and", "its first words, as XO Space allows a name, cut at a word");
 assert.equal(bodyOf({ ...fresh, name: "", prompt: "... ?" }, null, now).name, "Automation");
 assert.equal(problemOf({ ...fresh, time: "8.30pm" }, now), "Write the time as 24-hour, like 08:30.");
 assert.equal(problemOf({ ...fresh, prompt: " " }, now), "Say what it should do each time.");

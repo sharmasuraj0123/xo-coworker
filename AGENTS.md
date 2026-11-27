@@ -34,7 +34,7 @@ The exit code is the verdict. A `note` line doesn't fail the check.
 ## The owner's rules
 
 - Nothing is pushed or deployed without the owner's OK.
-- Only the owner's picks reach `:3000`: no switchers, test flags or demo pages.
+- Only what the owner has picked ships: no switchers, test flags or demo pages.
 - Files save only on ⌘S.
 - Browser suites (`e2e/`, `tests/browser/`) run only when the owner asks.
 - Apps use xo-space's local routes.
