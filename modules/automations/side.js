@@ -20,8 +20,7 @@ const focusIn = (root, selector) => {
 const act = (key, work, x, words) => once(key, async () => {
   x.paint();
   try { await work(); } catch (error) { x.deps.failed(error, words); }
-  x.paint();
-});
+}).finally(() => x.paint());
 
 /** What a button on one automation does. @param {string} what @param {Automation} a @param {SideControl} x */
 function actOn(what, a, x) {

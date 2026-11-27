@@ -106,7 +106,7 @@ function settingsHtml(a, s) {
 
 /** One automation: when it runs, what it does, its settings and its runs. @param {Automation} a @param {DetailState} s */
 export function detailHtml(a, s) {
-  return `<article class="au-det" aria-labelledby="au-det-h">${barHtml(a, s)}` +
+  return `<article class="au-det au-view" data-key="detail:${esc(a.id)}" aria-labelledby="au-det-h">${barHtml(a, s)}` +
     `<div class="au-hd">${tile(a.icon)}<h2 id="au-det-h" tabindex="-1">${esc(a.name)}</h2></div>` +
     alarmHtml(a) + `<p class="au-next">${esc(whenWords(a))}</p>` + actsHtml(a) +
     (s.confirm ? confirmHtml(a) : "") +
@@ -127,7 +127,7 @@ export function reportHtml(a, run, r) {
   const open = to ? `<div class="au-acts"><button type="button" class="btn" data-au-act="thread" data-chat="${esc(to.chat)}"` +
     ` data-ts="${esc(to.ts)}">${xi("thread")}Open the run</button></div>` : "";
   const when = [runWhen(run.at), a.persona ? titleOf(a.persona.name) : ""].filter(Boolean).join(" · ");
-  return `<article class="au-det ${cls}" aria-labelledby="au-det-h"><div class="au-bar">` +
+  return `<article class="au-det au-view ${cls}" data-key="report:${esc(run.key)}" aria-labelledby="au-det-h"><div class="au-bar">` +
     `<button type="button" class="au-back" data-au-act="report-back">${xi("chevron-left")}${esc(a.name)}</button></div>` +
     `<div class="au-hd"><span class="au-tile au-run-tile" aria-hidden="true">${xi(icon)}</span>` +
     `<h2 id="au-det-h" tabindex="-1">${esc(words)}</h2></div><p class="au-next">${esc(when)}</p>` +

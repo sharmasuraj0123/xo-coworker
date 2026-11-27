@@ -2,7 +2,7 @@
 
 import { once } from "../../core/platform/pending.js";
 import { redraw } from "../../core/ui/redraw.js";
-import { createDialog } from "../../core/ui/components/dialog.js";
+import { closeDialog, createDialog } from "../../core/ui/components/dialog.js";
 import { bodyOf, problemOf, readForm, sentenceHtml, withDay } from "./form.js";
 
 /** @import { FormValues, SideDeps } from "./types" */
@@ -30,9 +30,7 @@ export function createDraft(deps, made) {
 
   function close() {
     values = null;
-    if (!box?.hasAttribute("open")) return;
-    if (typeof box.close === "function") box.close();
-    else box.removeAttribute("open");
+    if (box) closeDialog(box);
   }
 
   async function save() {
@@ -88,6 +86,7 @@ export function createDraft(deps, made) {
     open(start) {
       values = start; problem = "";
       const d = box ??= make();
+      d.classList.remove("is-closing");
       paint();
       if (!d.hasAttribute("open")) { if (typeof d.showModal === "function") d.showModal(); else d.setAttribute("open", ""); }
       const text = d.querySelector("textarea[name=prompt]");
@@ -97,6 +96,6 @@ export function createDraft(deps, made) {
     /** Esc closes it; true when it did. */
     escape() { if (!values) return false; close(); return true; },
     repaint: paint,
-    dispose() { close(); box?.remove(); box = null; },
+    dispose() { values = null; box?.remove(); box = null; },
   };
 }

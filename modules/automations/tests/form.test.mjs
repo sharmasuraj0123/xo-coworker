@@ -111,4 +111,7 @@ assert.deepEqual([valuesOf(kept, "", now).notify, valuesOf(kept, "", now).onFail
 assert.match(formHtml(valuesOf(kept, "", now), kept, { projects: [], problem: "", busy: "x", agents }, "Alpha"),
   /<span>Tells you<\/span><xo-select name="notify"[^>]*>.*value="always" selected[^>]*>After every run/);
 
+assert.match(formHtml(back, ruled, { projects: [], problem: "", busy: "x", agents }, "Alpha"), /<form class="au-form au-view" data-key="edit:/,
+  "Edit is its own view, so it arrives like one");
+
 console.log("form: ok");

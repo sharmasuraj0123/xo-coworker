@@ -4,8 +4,11 @@
 .auto[hidden]{display:none}
 .au-wrap{display:flex;height:100%}
 .au-main{flex:1;min-width:0;overflow-y:auto;container-type:inline-size;scrollbar-width:thin}
-.au-side{flex:none;width:var(--sw);overflow-y:auto;border-left:var(--hair) solid var(--line-soft);
-  background:var(--canvas);scrollbar-width:thin}
+.au-side{flex:none;width:var(--sw);overflow:hidden auto;border-left:var(--hair) solid var(--line-soft);
+  display:flex;flex-direction:column;align-items:flex-end;background:var(--canvas);scrollbar-width:thin;
+  transition:width var(--d-move) var(--ease)}
+.au-side>*{flex:none;box-sizing:border-box;width:100%;min-width:var(--sw)}
+@starting-style{.au-side{width:0}}
 .au-side[hidden]{display:none}
 .au-page{width:var(--col-w);margin-left:var(--col-x);padding:var(--s-12) 0}
 
@@ -230,7 +233,8 @@ div.au-problem{margin-top:var(--s-4)}
   .auto{top:var(--h-phonebar)}
   .au-page{padding:var(--s-4) 0 var(--s-12)}
   .au-top h1{display:none}
-  .au-side{position:absolute;inset:0;width:auto;border:0;z-index:var(--z-panel)}
+  .au-side{position:absolute;inset:0;width:auto;border:0;z-index:var(--z-panel);transition:none}
+  .au-side>*{min-width:0}
   .au-list{grid-template-columns:max-content minmax(0,1fr) auto;column-gap:var(--s-3)}
   .au-row .au-tile,.au-row .au-r{display:none}
 }
@@ -239,3 +243,4 @@ div.au-problem{margin-top:var(--s-4)}
   max-height:calc(var(--au-rows,1) * (var(--h-row-act) + var(--s-1)) - var(--s-1));margin-bottom:var(--s-2)
 }
 .stage .fr:is([data-fr="automations"],[data-fr="personas"]) .ag-list{padding-bottom:0}
+.au-view{animation:rise-in var(--d-in) var(--ease)}

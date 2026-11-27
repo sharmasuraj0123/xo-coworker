@@ -111,7 +111,7 @@ export function createAutomationsPage(deps) {
   /** @param {string} key @param {() => Promise<unknown>} work @param {string} words */
   const act = (key, work, words) => once(key, async () => {
     try { await work(); } catch (error) { deps.failed(error, words); }
-  });
+  }).finally(() => paint());
 
   /** @param {Event} e */
   function onClick(e) {

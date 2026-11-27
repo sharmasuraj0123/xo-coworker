@@ -214,7 +214,7 @@ const sayTells = (v) => {
 export function formHtml(v, a, { problem, busy, agents }, projectName) {
   const repeat = `<div class="field"><span class="au-field-hd"><span>Repeat</span>${repeatPick(v)}</span>` +
     (ON_DAYS.has(v.repeat) ? daysHtml(v) : `<span class="au-say">${sinceHtml(v)}</span>`) + `</div>`;
-  return `<form class="au-form" data-au-form novalidate aria-label="Edit ${esc(a.name)}">` +
+  return `<form class="au-form au-view" data-key="edit:${esc(a.id)}" data-au-form novalidate aria-label="Edit ${esc(a.name)}">` +
     `<div class="au-bar"><button type="button" class="au-back" data-au-act="cancel">Cancel</button>` +
     `<button type="submit" class="btn btn-pri"${busyAttrs(busy)}>Save</button></div>` +
     `<div class="au-hd">${tile(a.icon)}` +

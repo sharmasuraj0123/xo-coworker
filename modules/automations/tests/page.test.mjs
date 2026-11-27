@@ -185,5 +185,15 @@ await t("Edit saves the file over the version it read", async () => {
   assert.equal(agentAside().querySelector("#ag-det-h")?.textContent, "Release checker");
 });
 
+await t("a switch pressed in the panel can be pressed again once XO Space has answered", async () => {
+  await click('[data-au-mode="automations"]');
+  await click('.au-main [data-au-act="open"][data-au-id="j2"]');
+  await click('.au-side .switch[data-au-act="toggle"]');
+  await settle();
+  const sw = aside().querySelector(".switch");
+  assert.equal(sw?.getAttribute("aria-checked"), "false", "it turned off");
+  assert.equal(sw?.hasAttribute("aria-busy") || sw?.hasAttribute("aria-disabled"), false, "and isn't left waiting");
+});
+
 page.dispose();
 console.log(`\n${passed} passed`);
