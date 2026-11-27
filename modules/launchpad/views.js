@@ -14,12 +14,14 @@ export function installViews(L) {
   const { S, proj, nameOf, findThread, screen, summary } = L;
   const { track, details } = createSystem(L);
   /** @param {{action?: string, url?: string}} e */
-  const actionHtml = (e) => {
+  const stepBtn = (e, primary = true) => {
     const a = nextStep(e.action || "");
-    if (!a) return e.action === "none" ? "" : `<div class="lq-acts lp-acts">${btn("retry", "Deploy again once that's done", ICON.retry)}</div>`;
-    if (a[1] === "log") return e.url ? `<div class="lq-acts lp-acts">${out(e.url, a[0], true)}</div>` : "";
-    return `<div class="lq-acts lp-acts">${btn(a[1], a[0], a[1] === "reconnect" ? LP_ICON.github : a[1] === "retry" ? ICON.retry : "", true)}</div>`;
+    if (!a) return e.action === "none" ? "" : btn("retry", "Deploy again once that's done", ICON.retry, false);
+    if (a[1] === "log") return e.url ? out(e.url, a[0], primary) : "";
+    return a[1] === "ask-fix" ? "" : btn(a[1], a[0], a[1] === "reconnect" ? LP_ICON.github : a[1] === "retry" ? ICON.retry : "", primary);
   };
+  /** @param {{action?: string, url?: string}} e */
+  const actionHtml = (e) => { const b = stepBtn(e); return b ? `<div class="lq-acts lp-acts">${b}</div>` : ""; };
   /** @param {string} act @param {string} label */
   const btn = (act, label, icon = "", lit = false, more = "") => `<button type="button" class="btn ${lit ? "btn-pri lp-go" : "lp-b"}" data-lp="${act}"${more}>${icon}<span>${label}</span></button>`;
   /** @param {string} href @param {string} label */
@@ -33,11 +35,16 @@ export function installViews(L) {
   const addrHtml = (s, a, on = true) => (a?.host ? `<p class="lq-addr${on ? "" : " is-off"}"><a class="lq-host" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${esc(a.host)}</a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button></p>` : "");
 
   /** @param {string} title @param {string} text @param {string} act @param {string} label @param {LaunchpadProject | null} s */
-  const rec = (title, text, act, label, icon = "", s = null, alts = "", tone = "") => {
+  const rec = (title, text, act, label, icon = "", s = null, alts = "", tone = "", issue = "") => {
     const asking = s && s.asking && /^ask/.test(act), err = s && !s.asking && s.askErr && /^ask/.test(act) ? s.askErr : "";
     return `<div class="lq-note lp-rec${tone ? ` t-${tone}` : ""}"><div class="lq-nc"><b>${title}</b><p>${text}</p>${err ? `<p class="lp-err" role="status">Couldn't start the thread: ${esc(err)}.</p>` : ""}</div>` +
-      `<div class="lq-acts">${alts}<button type="button" class="btn btn-pri lp-go" data-lp="${act}"${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="spin lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button></div></div>`;
+      `<div class="lq-acts">${alts}<button type="button" class="btn btn-pri lp-go" data-lp="${act}"${issue ? ` data-issue="${esc(issue)}"` : ""}${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="spin lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button></div></div>`;
   };
+  /** @param {string} p @param {string} issue what went wrong, as the agent is told it */
+  const fixCard = (p, issue, alts = "", tone = "stop") => proj(p).asked ? "" :
+    rec("Ask an agent to fix it", "In a new thread it finds the cause and fixes it. Deploy again here once its work is merged.", "ask-fix", "Ask an agent", "", proj(p), alts, tone, issue);
+  /** @param {string} issue */
+  const askBtn = (issue) => btn("ask-fix", "Ask an agent", "", false, ` data-issue="${esc(issue)}"`);
   /** @param {string} p */
   function setupHtml(p) {
     const s = proj(p), c = s.check, f = s.form;
@@ -56,10 +63,11 @@ export function installViews(L) {
     return (sm ? top({ tone: sm.tone, words: sm.words, title: `${esc(nameOf(p))}'s settings`, sub: `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.` })
       : top({ words: "Not on the web yet", title: `Put ${esc(nameOf(p))} on the web`, sub: guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it at an address of its own. Nothing goes out until you press Deploy." })) +
       askedHtml(p) +
-      (nd ? `<div class="lq-note lp-rec lp-ask t-need"><div class="lq-nc"><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${decline || ask ? `<div class="lq-acts">${decline}${ask ? btn(ask[1], esc(ask[0]), "", true) : ""}</div>` : ""}</div>` : "") +
+      (nd ? `<div class="lq-note lp-rec lp-ask t-need"><div class="lq-nc"><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${decline || ask ? `<div class="lq-acts">${decline}${ask ? btn(ask[1], esc(ask[0]), "", true, ask[1] === "ask-fix" ? ` data-issue="${esc(nd.message || "")}"` : "") : ""}</div>` : ""}</div>` : "") +
       (c.blockers.length ? `<p class="lp-note t-need">Deploy would stop here: ${esc(c.blockers.join("; "))}.</p>` : "") +
       // what Space warned of before the button is pressed (a repository that isn't the person's own, uncommitted changes, …)
       (c.warnings.length ? c.warnings.map((/** @type {string} */ w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("") : "") +
+      (c.blockers.length || c.warnings.length ? fixCard(p, `Launchpad's check found: ${[...c.blockers, ...c.warnings].join("; ")}.`, "", "need") : "") +
       (editing ? "" : track(p, "preview")) +
       (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lq-acts">${s.pre === 1 ? `<button type="button" class="btn lp-b" data-lp="recheck-gh" aria-disabled="true"><i class="spin lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span></button>` : btn("recheck-gh", "I ran it: check again", ICON.retry)}</div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
@@ -179,7 +187,7 @@ export function installViews(L) {
     const menu = `<span class="lp-mw"><button type="button" class="lp-ib lq-more-b" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More" tabindex="-1">${appUrl ? `<a role="menuitem" tabindex="-1" href="${esc(appUrl)}" target="_blank" rel="noopener">Open in Launchpad</a>` : ""}<button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span>`;
     return top({ tone, words: tone === "go" ? "Live" : words, meta: rel ? `Release #${rel}${a.at ? ` · ${ago(a.at)}` : ""}` : a.at ? ago(a.at) : "", title: name, addr: addrHtml(s, a, tone === "go"), sub: sentence,
       acts: btn("again", "Deploy again", LP_ICON.rocket) + (a.url ? out(a.url, "Open", true) : "") + menu }) +
-      askedHtml(p) + track(p, "live") + (s.run?.live ? warnHtml(s) : "") + details(p);
+      askedHtml(p) + track(p, "live") + (tone === "stop" ? fixCard(p, `${nameOf(p)} is on Launchpad but its instances aren't answering (status: ${app?.status}).`) : "") + (s.run?.live ? warnHtml(s) : "") + details(p);
   }
 
   /** @param {string} p */
@@ -188,17 +196,18 @@ export function installViews(L) {
     if (!e) throw new Error("Launchpad failed screen requires a deploy error");
     /** @param {string} tone @param {string} sub */
     const head = (tone, sub, acts = "") => top({ tone, words: failWords(e), meta: e.release ? `Release #${e.release}` : "", title: name, addr: addrHtml(s, was), sub, acts });
+    const issue = `The deploy failed: ${e.message || e.text || e.code}${e.step ? ` (in ${e.step})` : ""}.`;
     if (e.code === "build_failed") return head("stop", `${esc(e.text || "")}${e.step ? ` in <code>${esc(e.step)}</code>` : ""}`.trim() || "GitHub Actions couldn't build the image.", e.url ? out(e.url, "Logs on GitHub") : "") +
       track(p, "run") + (e.log ? `<pre class="lp-log" aria-label="The build log's last lines">${e.log.map(esc).join("\n")}</pre>` : "") +
-      rec("Ask an agent to fix it", "In a new thread it reads the log and fixes the cause. Deploy again here once it's merged.", "ask-fix", "Ask an agent", "", s, btn("retry", "Try again", ICON.retry), "stop") + details(p);
+      fixCard(p, issue, btn("retry", "Try again", ICON.retry)) + details(p);
     if (e.code === "health_check_failed" && e.declared && e.declared !== e.port) return head("stop", "") + track(p, "run") +
-      rec(`Nothing answered on port ${e.port}`, `The image listens on ${e.declared}.${e.last ? ` Release #${e.last} keeps serving.` : ""}`, "fix-port", `Use port ${e.declared}`, "", null, btn("retry", "Try again", ICON.retry), "stop") + details(p);
+      rec(`Nothing answered on port ${e.port}`, `The image listens on ${e.declared}.${e.last ? ` Release #${e.last} keeps serving.` : ""}`, "fix-port", `Use port ${e.declared}`, "", null, btn("retry", "Try again", ICON.retry) + askBtn(issue), "stop") + details(p);
     if (NEEDS_YOU.has(e.code)) return top({ tone: "need", words: failWords(e), title: e.code === "github_workflow_scope" ? "GitHub needs one more permission" : "GitHub isn't connected", sub: e.code === "github_workflow_scope" ? "Launchpad adds a build workflow to the repository, which takes GitHub's <code>workflow</code> permission. Nothing else changes." : esc(e.message || "") }) +
       track(p, "run") + (e.source === "gh" && ghCmd(e.fix || "")
         ? `<div class="lq-note lp-rec"><div class="lq-nc"><b>Grant it to this machine's gh login</b><p>Run this, then check again.</p>${cmdHtml(ghCmd(e.fix || ""), s)}${s.ghErr ? `<p class="lp-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div><div class="lq-acts">${btn("reconnect", "Reconnect GitHub here", LP_ICON.github)}${btn("recheck-gh", "I ran it: check again", ICON.retry, true)}</div></div>`
         : rec("Reconnect GitHub", "Grant it once; then deploy again.", "reconnect", e.code === "github_workflow_scope" ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github));
     return top({ tone: "stop", words: failWords(e), title: `${name} didn't deploy`, addr: addrHtml(s, was), sub: esc(e.message || e.text || "Something went wrong on the way.") }) + track(p, "run") +
-      fixOf(e) + actionHtml(e) + details(p);
+      fixOf(e) + (e.code === "cancelled" || s.asked ? askedHtml(p) + actionHtml(e) : fixCard(p, issue, stepBtn(e, false))) + details(p);
   }
 
   /** @param {string} p @param {PrepThread | null | undefined} g */
@@ -294,7 +303,7 @@ export function installViews(L) {
       key,
       html: sc === "checking" ? checkingHtml(p) : sc === "check-failed"
         ? top({ words: "Couldn't check", title: "Couldn't check this project", sub: esc(message || "XO Space didn't answer."),
-          acts: btn("recheck", "Try again", ICON.retry) })
+          acts: btn("recheck", "Try again", ICON.retry) }) + askedHtml(p) + fixCard(p, `XO couldn't check the project for Launchpad: ${message || "XO Space didn't answer"}.`)
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "lost" ? lostHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
       form: sc === "setup",
