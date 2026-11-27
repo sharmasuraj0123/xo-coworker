@@ -6,7 +6,7 @@ import { EFFORT_WORD, modelWord, rtName } from "../../core/services/runtimes.js"
 import { xi } from "../../core/ui/icons/icon.js";
 import { MAY_WORDS, frontOf, keyOf, mayOf, titleOf } from "./agent-file.js";
 import { effortOpts, modelOpts, runtimeOpts } from "./runs-on.js";
-import { menuItem, tile } from "./views.js";
+import { tile } from "./views.js";
 
 /** @import { Importable } from "../../core/platform/persona-response-types" */
 
@@ -40,7 +40,7 @@ function agentRowHtml(a, selected) {
   const key = esc(keyOf(a)), name = esc(titleOf(a.name));
   return `<li class="au-row${a.shadowed ? " is-off" : ""}${selected === keyOf(a) ? " is-on" : ""}">` +
     `<button type="button" class="au-open" data-ag-act="open" data-ag-key="${key}" aria-label="${name}, ${esc(aboutWords(a))}"></button>` +
-    `<span class="au-t"></span>${tile(ICON)}<span class="au-n"><b>${name}</b><small>${esc(aboutWords(a))}</small></span>` +
+    `${tile(ICON)}<span class="au-n"><b>${name}</b><small>${esc(aboutWords(a))}</small></span>` +
     `<span class="au-r${a.problems.length ? " is-err" : ""}">` +
     `${a.problems.length ? `${xi("x-circle")}Can't run` : esc(usedWords(a))}</span>` +
     `<span></span></li>`;
@@ -48,7 +48,7 @@ function agentRowHtml(a, selected) {
 
 /** @param {string} title @param {Agent[]} list @param {string | null} selected */
 export const agentGroupHtml = (title, list, selected) => list.length
-  ? `<h2 class="au-day">${esc(title)}</h2><ul class="au-list">${list.map((a) => agentRowHtml(a, selected)).join("")}</ul>` : "";
+  ? `<h2 class="au-day">${esc(title)}</h2><ul class="au-list is-plain">${list.map((a) => agentRowHtml(a, selected)).join("")}</ul>` : "";
 
 /** @param {string} icon @param {string} k @param {string} v */
 const kv = (icon, k, v) => `<li>${xi(icon)}<span>${esc(k)}</span><b>${esc(v)}</b></li>`;
@@ -60,11 +60,15 @@ const mayWords = (a, may) => {
 };
 
 
+/** A menu row the agent side acts on. @param {string} act @param {string} icon @param {string} words */
+const agItem = (act, icon, words, cls = "") =>
+  `<button type="button" role="menuitem" data-ag-act="${act}"${cls ? ` class="${cls}"` : ""}>${xi(icon)}${words}</button>`;
+
 /** @param {Agent} a @param {AgentDetailState} s */
 function actsHtml(a, s) {
   const key = keyOf(a);
-  const menu = s.menu ? `<span class="au-menu" role="menu" tabindex="-1">${menuItem("ag-file", "", "file", "Edit as file")}` +
-    `<span class="au-sep" role="separator"></span>${menuItem("ag-delete", "", "delete", "Delete…", "is-danger")}</span>` : "";
+  const menu = s.menu ? `<span class="au-menu" role="menu" tabindex="-1">${agItem("ag-file", "doc", "Edit as file")}` +
+    `<span class="au-sep" role="separator"></span>${agItem("ag-delete", "delete", "Delete…", "is-danger")}</span>` : "";
   return `<div class="au-acts"><button type="button" class="btn" data-ag-act="try"${a.problems.length ? " disabled" : ""}` +
     `${busyAttrs(`ag-try:${key}`)}>${xi("play")}Try once</button>` +
     `<button type="button" class="btn" data-ag-act="edit">${xi("edit")}Edit</button>` +
@@ -168,11 +172,11 @@ const importAbout = (item) => { const about = frontOf(item.text).description; re
 export function importHtml(items, busy) {
   if (!items) return `<p class="au-none">Looking for agents…</p>`;
   if (!items.length) return `<p class="au-none">No agents to bring in.</p>`;
-  return `<ul class="au-list">${items.map((item, i) => {
+  return `<ul class="au-list is-plain">${items.map((item, i) => {
     const left = item.dropped.length ? ` · Leaves out ${item.dropped.join(", ")}` : "";
     const why = item.problems.length ? `<span class="au-r is-err">${xi("x-circle")}Can't map</span>`
       : `<button type="button" class="btn" data-ag-act="import" data-ag-i="${i}"${busyAttrs(`${busy}:${i}`)}>Bring in</button>`;
-    return `<li class="au-row"><span class="au-t"></span>${tile(ICON)}<span class="au-n"><b>${esc(titleOf(item.name))}</b>` +
+    return `<li class="au-row">${tile(ICON)}<span class="au-n"><b>${esc(titleOf(item.name))}</b>` +
       `<small>${esc(importAbout(item) || item.from)}` +
       `<span>${esc(`${item.from} · ${item.level === "space" ? "Every project" : "This project"}${left}`)}` +
       `</span></small></span>${why}<span></span></li>`;
