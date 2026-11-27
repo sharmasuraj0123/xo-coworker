@@ -188,6 +188,9 @@ export interface FormOptions {
   problem: string;
   busy: string;
   agents: Agent[] | null;
+  /** What runs it when no agent does: the runtimes, and the chosen one's models (null while they come). */
+  runtimes: string[];
+  models: RuntimeModel[] | null;
 }
 
 export interface AgentListDeps {
@@ -233,6 +236,9 @@ export interface FormValues {
   dom: number | "last";
   hours: number;
   persona: PersonaRef | null;
+  runtime: string | null;
+  model: string | null;
+  effort: string | null;
   notify: Notify | null;
   onFailure: OnFailure | null;
 }
@@ -273,6 +279,9 @@ export interface SideDeps {
   openProject?: (chat: string) => void;
   openAgent?: (persona: PersonaRef, chat: string) => void;
   agentsFor?: (chat: string) => Agent[] | null;
+  runtimes?: () => string[];
+  mainRuntime?: () => string | null;
+  models?: (runtime: string, loaded: () => void) => RuntimeModel[] | null;
   watchAgents?: (fn: () => void) => () => void;
   failed: (error: unknown, words: string) => void;
   announce: (words: string) => void;

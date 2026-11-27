@@ -25,4 +25,7 @@ assert.doesNotMatch(once, /Each time/, "nor does it repeat its name as what it d
 const daily = page({ name: "Morning check", prompt: "Look at what changed overnight" });
 assert.match(daily, /<p class="au-next">Every day · next /, "a repeating one still says how often and when next");
 assert.match(daily, /<h3>Each time<\/h3><p class="au-prompt">Look at what changed overnight/, "and what it does, when the name doesn't");
+const bare = page({ agent: "codex", model: "gpt-6.1-terra", effort: "high" });
+assert.match(bare, /<span>Agent<\/span><b>Codex · GPT-6.1 Terra · Deep<\/b>/, "with no agent, what runs it, as people read it");
+assert.doesNotMatch(bare, /None, just the runtime|Runs on/, "said once");
 console.log("detail: ok");

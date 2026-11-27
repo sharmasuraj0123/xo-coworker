@@ -47,7 +47,8 @@ const agentDeps = { ...deps, personas, find: personas.find, projectName: () => "
   mainRuntime: () => "claude_code", models,
   openThread: (/** @type {string} */ chat, /** @type {string} */ ts) => { opened.push(`${chat}/${ts}`); }, openFile() {} };
 const page = createAutomationsPage({ ...deps, store,
-  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {},
+  side: (hooks) => createSide({ ...deps, ...hooks, store, where: "page", openThread() {}, runtimes: () => ["claude_code"],
+    mainRuntime: () => "claude_code", models,
     readReport: async () => "**3 commits** aren't live",
     openProject: (/** @type {string} */ chat) => { opened.push(`project ${chat}`); } }),
   agentSide: (hooks) => createAgentSide({ ...agentDeps, ...hooks, where: "page", project: () => "" }),
@@ -130,6 +131,11 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   await click('[data-au-act="new"]');
   const box = /** @type {HTMLElement} */ (document.querySelector("dialog.au-dlg"));
   assert.ok(box?.hasAttribute("open") && box.querySelector("form[data-au-form] .au-say"), "the sentence opens over the page");
+  assert.equal(box.querySelector('[name="persona"] option[selected]')?.getAttribute("value"), "rt:claude_code",
+    "with no agent, the main runtime runs it");
+  await settle();
+  assert.deepEqual([...box.querySelectorAll('[name="model"] option')].map((o) => o.textContent), ["Default model", "Opus 5.5", "Sonnet 5.5"],
+    "its own models, once they come");
   const send = () => box.querySelector("form[data-au-form]")?.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
   send();
   await settle();
@@ -139,7 +145,9 @@ await t("New is one sentence in a dialog; it asks for what's missing, then saves
   await settle();
   const made = fake.calls.find((c) => c.name === "createSchedule");
   assert.ok(made, "it was sent");
-  assert.equal(/** @type {Record<string, unknown>} */ (made.args[0]).name, "Sum up the week", "named from what it does");
+  const body = /** @type {Record<string, unknown>} */ (made.args[0]);
+  assert.equal(body.name, "Sum up the week", "named from what it does");
+  assert.equal(body.agent, "claude_code", "and saved with the runtime it showed");
   assert.equal(box.hasAttribute("open"), false, "the dialog closes");
   assert.equal(aside().querySelector("#au-det-h")?.textContent, "Sum up the week");
   assert.ok(said.includes("Sum up the week is on"));

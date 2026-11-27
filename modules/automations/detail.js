@@ -6,6 +6,7 @@ import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
 import { titleOf } from "./agent-file.js";
+import { runsOnWords } from "./agent-views.js";
 import { cadenceOf, cadenceWords, dayMonth, foundWords, hhmm, longDate, ordinal } from "./model.js";
 import { confirmHtml, lettersHtml, menuItem, menuWrap, NOTIFY, ON_FAILURE, switchHtml, tile } from "./views.js";
 
@@ -100,16 +101,11 @@ const runsHtml = (s) => s.runsFailed ? `<p class="au-none">Couldn't read its pas
   : !s.runs ? `<p class="au-none">Reading its past runs…</p>`
   : s.runs.length ? `<ul class="au-runs">${s.runs.map(runHtml).join("")}</ul>` : `<p class="au-none">It hasn't run yet.</p>`;
 
-/** The runtime it was saved with, when it has no agent to say. @param {Automation} a */
-const runsOn = (a) => a.persona ? "" : [a.runtime, a.model, a.effort].filter(Boolean).join(" · ");
-
 /** Its agent, project, and who allowed it. @param {Automation} a @param {DetailState} s */
 function settingsHtml(a, s) {
   const who = a.persona ? `${titleOf(a.persona.name)}${a.persona.level === "space" ? " · Every project" : ""}` : "";
-  const agent = a.persona ? kv("agent", "Agent", who, "agent")
-    : kv("agent", "Agent", "None, just the runtime");
-  const on = runsOn(a);
-  return `<ul class="au-kv">${agent}${on ? kv("runtime", "Runs on", on) : ""}${kv("project", "Project", s.projectName, "project")}` +
+  const agent = a.persona ? kv("agent", "Agent", who, "agent") : kv("agent", "Agent", runsOnWords(a));
+  return `<ul class="au-kv">${agent}${kv("project", "Project", s.projectName, "project")}` +
     `${a.notify ? kv("bell", "Tells you", NOTIFY.find(([v]) => v === a.notify)?.[1] ?? "") : ""}` +
     `${a.onFailure ? kv("alert", "If it fails", ON_FAILURE.find(([v]) => v === a.onFailure)?.[1] ?? "") : ""}` +
     `${a.askedBy === "agent" ? kv("shield-check", "Allowed", a.approved ? "By you" : "Not yet") : ""}</ul>`;

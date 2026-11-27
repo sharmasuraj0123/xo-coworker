@@ -69,8 +69,6 @@ export const automationsModule = {
       const said = messages.filter((m) => m.author_kind === "agent" && m.text?.trim()).sort((x, y) => (y.seq ?? 0) - (x.seq ?? 0));
       return said[0]?.text ?? "";
     };
-    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
-      openProject, readReport };
     /** @type {string[]} */
     let runtimes = [];
     /** @type {string | null} */
@@ -90,6 +88,8 @@ export const automationsModule = {
       }
       return modelLists.get(rt) ?? null;
     };
+    const sideDeps = { store, projectName, projects, failed, announce, openThread: toThread, agentsFor, watchAgents: personas.watch,
+      openProject, readReport, runtimes: () => runtimes, mainRuntime: () => mainRt, models };
     /** @param {string} id */
     const nameOfId = (id) => projects().find((p) => p.id === id)?.name ?? "A removed project";
     /** @type {Omit<AgentSideDeps, "where" | "project" | "shown" | "openJob">} */
