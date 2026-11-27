@@ -63,6 +63,7 @@ const real = {
   preflight: async (p, name) => {
     const pre = await api.launchpadPreflight(p, name);
     const c = checks.get(p) || await real.check(p).then(() => checks.get(p));
+    if (!c) throw new Error("Launchpad's check left no result");
     return model(c, pre);
   },
   /** @param {string} p @param {object} body @param {(e: DeployFrame) => void} on */
