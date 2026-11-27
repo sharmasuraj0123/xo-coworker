@@ -4,9 +4,9 @@ import { once } from "../../core/platform/pending.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { menuKeys, focusOpened, radioKeys } from "../../core/ui/a11y/keynav.js";
 import { detailHtml } from "./detail.js";
-import { bodyOf, formHtml, problemOf, readForm, valuesOf } from "./form.js";
+import { bodyOf, copyName, formHtml, problemOf, readForm, valuesOf, withDay } from "./form.js";
 
-/** @import { Automation, SideControl, SideDeps, SideState } from "./types" */
+/** @import { Automation, FormValues, SideControl, SideDeps, SideState } from "./types" */
 
 /** @param {ParentNode | null} root @param {string} selector */
 const focusIn = (root, selector) => {
@@ -39,6 +39,12 @@ function actOn(what, a, x) {
   }
 }
 
+/** The values as typed so far. @param {HTMLElement | null} host @param {FormValues} v */
+function typedIn(host, v) {
+  const form = host?.querySelector("form[data-au-form]");
+  return form instanceof HTMLElement ? readForm(form, v) : v;
+}
+
 /** One automation, or the form that makes or edits one, in a host the page or the panel gives it. @param {SideDeps} deps */
 export function createSide(deps) {
   const now = deps.now ?? Date.now;
@@ -48,6 +54,8 @@ export function createSide(deps) {
   let reading = /** @type {AbortController | null} */ (null);
   const unwatch = deps.store.watch(() => paint());
   const current = () => st.id ? deps.store.find(st.id) : null;
+  /** @param {FormValues} v */
+  const typed = (v) => typedIn(st.host, v);
 
   /** @param {string} which */
   async function readRuns(which) {
@@ -97,7 +105,7 @@ export function createSide(deps) {
     const a = deps.store.find(from);
     if (!a) return;
     show(null, true);
-    st.values = { ...valuesOf(a, a.project, now()), name: `${a.name} (copy)` };
+    st.values = { ...valuesOf(a, a.project, now()), name: copyName(a.name) };
     paint();
   }
 
@@ -109,12 +117,11 @@ export function createSide(deps) {
   }
 
   async function save() {
-    const form = st.host?.querySelector("form[data-au-form]");
     if (!st.values) return;
-    if (form instanceof HTMLElement) st.values = readForm(form, st.values);
-    st.problem = problemOf(st.values, now());
+    const v = st.values = typed(st.values);
+    st.problem = problemOf(v, now());
     if (st.problem) { paint(); return; }
-    const a = current(), body = bodyOf(st.values, a, now());
+    const a = current(), body = bodyOf(v, a, now());
     await once(`au-save:${st.id ?? "new"}`, async () => {
       paint();
       try {
@@ -135,7 +142,7 @@ export function createSide(deps) {
     const target = e.target instanceof Element ? e.target.closest("[data-au-act], [data-au-day]") : null;
     if (!target || !st.host?.contains(target)) { if (st.menu) { st.menu = false; paint(); } return; }
     const day = target.getAttribute("data-au-day"), what = target.getAttribute("data-au-act") ?? "";
-    if (day !== null && st.values) { st.values = { ...st.values, weekday: Number(day) }; paint(); return; }
+    if (day !== null && st.values) { st.values = withDay(typed(st.values), Number(day)); paint(); return; }
     if (what === "detail-menu") { st.menu = !st.menu; paint(); return; }
     st.menu = false;
     if (what === "cancel") { if (st.id) show(st.id, false); else close(); }
@@ -147,9 +154,9 @@ export function createSide(deps) {
 
   /** @param {Event} e */
   function onInput(e) {
-    const form = st.host?.querySelector("form[data-au-form]");
     if (!st.values || !(e.target instanceof Element) || e.target.getAttribute("name") !== "repeat") return;
-    if (form instanceof HTMLElement) { st.values = readForm(form, st.values); paint(); }
+    st.values = typed(st.values);
+    paint();
   }
 
   /** @param {Event} e */

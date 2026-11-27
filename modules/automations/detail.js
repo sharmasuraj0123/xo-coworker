@@ -4,18 +4,21 @@ import { esc } from "../../core/platform/util.js";
 import { busyAttrs } from "../../core/platform/pending.js";
 import { clock, clockWords, formatDate } from "../../core/platform/time.js";
 import { xi } from "../../core/ui/icons/icon.js";
-import { cadenceOf, cadenceWords, dayAt } from "./model.js";
+import { cadenceOf, cadenceWords, dayAt, ordinal } from "./model.js";
 import { confirmHtml, menuItem, menuWrap, tile } from "./views.js";
 
 /** @import { Automation, DetailState, RunRow } from "./types" */
 
 /** The alarm: the time it runs, big, and the days. @param {Automation} a */
 function alarmHtml(a) {
-  const { kind, at } = cadenceOf(a);
+  const { kind, at, days, dom } = cadenceOf(a);
   if (!Number.isFinite(at) || kind === "hour" || kind === "minute") return "";
   const time = `<b>${esc(clock(at))}</b>`;
-  if (kind === "once") return `<div class="au-alarm">${time}<span class="au-wk">${esc(formatDate(at, "monthDay"))}</span></div>`;
-  const days = kind === "day" ? [0, 1, 2, 3, 4, 5, 6] : [new Date(at).getDay()];
+  if (kind === "once" || kind === "month") {
+    const day = kind === "once" ? formatDate(at, "monthDay")
+      : dom === "last" ? "Last day of each month" : `The ${ordinal(Number(dom))} of each month`;
+    return `<div class="au-alarm">${time}<span class="au-wk">${esc(day)}</span></div>`;
+  }
   const week = [1, 2, 3, 4, 5, 6, 0].map((d) => {
     const name = formatDate(dayAt(d), "weekday"), letter = esc(name.slice(0, 1));
     return days.includes(d) ? `<em title="${esc(name)}">${letter}</em>` : `<i>${letter}</i>`;

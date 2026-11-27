@@ -14,7 +14,7 @@ const now = () => Date.parse("2026-11-26T08:00:00Z");
 const jobs = [
   job({ id: "late", name: "Late check", next_run: "2026-11-26T23:00:00Z" }),
   job({ id: "soon", name: "Soon check", next_run: "2026-11-26T09:00:00Z" }),
-  job({ id: "off", name: "Off check", enabled: false, next_run: null, disabled_by: { kind: "person" } }),
+  job({ id: "off", name: "Off check", enabled: false, next_run: null, state: "cancelled", state_reason: "Saved turned off." }),
   job({ id: "other", name: "Elsewhere", chat: "chat_b" }),
 ];
 const fake = fakeApi(jobs);

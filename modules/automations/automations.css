@@ -165,7 +165,7 @@ button.au-run:hover{background:var(--fill-1)}
 .au-days{display:flex;gap:var(--s-1)}
 .au-days button{flex:1;height:var(--h-ctl);border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/1 var(--sans);
   color:var(--ink-4);background:var(--fill-1)}
-.au-days button[aria-checked="true"]{background:var(--ink);color:var(--on-ink)}
+.au-days button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink)}
 .au-note{margin:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .au-problem{margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--err-ink)}
 

@@ -13,7 +13,8 @@ const now = () => Date.parse("2026-11-26T08:00:00Z");
 const jobs = [
   job(),
   job({ id: "j2", name: "Nightly build", next_run: "2026-11-26T23:00:00Z" }),
-  job({ id: "j3", name: "Old check", enabled: false, next_run: null, disabled_by: { kind: "xo", reason: "Its project was removed." } }),
+  job({ id: "j3", name: "Old check", enabled: false, next_run: null, state: "cancelled",
+    state_reason: "Its project was removed." }),
 ];
 const fake = fakeApi(jobs), timers = fakeTimers();
 const store = createAutomationsStore({ api: fake.api, report() {}, timeout: timers.timeout, now });

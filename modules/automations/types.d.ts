@@ -1,5 +1,5 @@
 // @ts-check
-import type { ScheduleApi, ScheduledJob } from "../../core/platform/schedule-response-types";
+import type { PersonaRef, ScheduleApi, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types";
 
 export interface LastRun {
   at: number;
@@ -23,6 +23,8 @@ export interface Automation {
   on: boolean;
   running: boolean;
   every: number | null;
+  rule: Exclude<ScheduleRule, { every_seconds: number }> | null;
+  upcoming: number[];
   anchor: number;
   next: number;
   last: LastRun | null;
@@ -32,14 +34,17 @@ export interface Automation {
   effort: string | null;
   askedBy: "you" | "agent";
   approved: boolean;
+  persona: PersonaRef | null;
   icon: string;
   job: Extract<ScheduledJob, { kind: "agent" }>;
 }
 
 export interface Cadence {
-  kind: "once" | "week" | "day" | "hour" | "minute";
+  kind: "once" | "week" | "day" | "days" | "month" | "hour" | "minute";
   at: number;
   step: number;
+  days: number[];
+  dom: number | "last" | null;
 }
 
 export interface WeekDay {
@@ -96,7 +101,7 @@ export interface DetailState {
   where: "page" | "panel";
 }
 
-export type Repeat = "once" | "day" | "week" | "hours";
+export type Repeat = "once" | "day" | "weekdays" | "week" | "month" | "hours";
 
 export interface FormValues {
   name: string;
@@ -105,8 +110,10 @@ export interface FormValues {
   repeat: Repeat;
   time: string;
   date: string;
-  weekday: number;
+  days: number[];
+  dom: number | "last";
   hours: number;
+  persona: PersonaRef | null;
 }
 
 export interface Project {

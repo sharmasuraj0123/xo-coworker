@@ -70,9 +70,23 @@ await t("turning one off sends its whole definition back, only enabled changed",
   await store.setOn(a, false);
   const put = calls.find((c) => c.name === "updateSchedule");
   assert.deepEqual(put?.args, ["j1", { kind: "agent", name: "Morning check", description: "Checks", chat: "chat_a", prompt: "Look",
-    agent: "claude", model: "opus", effort: "high", every_seconds: 86400, first_run_at: "2026-11-20T09:00:00+00:00", enabled: false }]);
+    agent: "claude", model: "opus", effort: "high", every_seconds: 86400, first_run_at: "2026-11-20T09:00:00+00:00", enabled: false,
+    persona: null, icon: null }]);
   assert.equal(store.find("j1")?.on, false);
   assert.equal(store.find("j1")?.offReason, "Turned off by you");
+});
+
+await t("a calendar job keeps its rule, without an interval or a start, and the list asks for a fortnight", async () => {
+  const rule = { days: "weekdays", time: "09:00", tz: "Asia/Kolkata" };
+  const { store, calls } = await setup([job({ every_seconds: null, first_run_at: null, schedule: rule, persona: { name: "triage", level: "project" },
+    icon: "sunrise" })]);
+  assert.deepEqual(calls.find((c) => c.name === "schedules")?.args, [14]);
+  const a = store.find("j1");
+  assert.ok(a);
+  await store.setOn(a, false);
+  const body = /** @type {Record<string, unknown>} */ (calls.find((c) => c.name === "updateSchedule")?.args[1]);
+  assert.deepEqual([body.schedule, body.every_seconds, body.first_run_at], [rule, null, null]);
+  assert.deepEqual([body.persona, body.icon], [{ name: "triage", level: "project" }, "sunrise"], "its agent and icon stay");
 });
 
 await t("run now shows it running from XO Space's answer", async () => {

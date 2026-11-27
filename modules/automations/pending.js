@@ -2,11 +2,11 @@
 
 // What the screens read that XO Space doesn't send yet; connecting each changes only this file.
 
-/** @import { ScheduleResult, ScheduledJob } from "../../core/platform/schedule-response-types" */
+/** @import { ScheduledJob } from "../../core/platform/schedule-response-types" */
 
 const ICONS = new Set(["automation", "nightly", "sunrise", "backup-check", "pulse", "package-up"]);
 
-/** Whether a run found something; null when the run doesn't say. @param {ScheduleResult} result */
+/** Whether a run found something; null when the run doesn't say. @param {{ found?: boolean | null }} result */
 export const foundOf = (result) => typeof result.found === "boolean" ? result.found : null;
 
 /** @param {ScheduledJob} job */

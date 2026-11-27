@@ -3,17 +3,24 @@
 import { automationsOf, runRowsOf } from "./model.js";
 import { REFRESH_MS } from "./pending.js";
 
-/** @import { AgentJobBody, ScheduledJob } from "../../core/platform/schedule-response-types" */
+/** @import { AgentJobBody, ScheduledJob, ScheduleRule } from "../../core/platform/schedule-response-types" */
 
 /** @import { Automation, AutomationsState, StoreDeps } from "./types" */
 
 export const UNDO_MS = 10_000;
 
+/** A fortnight of a calendar job's run times, for the week and the agenda. */
+const UPCOMING = 14;
+
 /** The definition a job was saved with, ready to send back changed. @param {Automation["job"]} job @returns {AgentJobBody} */
 const definitionOf = (job) => ({
   kind: "agent", name: job.name, description: job.description, chat: job.chat, prompt: job.prompt, agent: job.agent,
   model: job.model, effort: job.effort, every_seconds: job.every_seconds, first_run_at: job.first_run_at ?? null, enabled: job.enabled,
+  ...calendarOf(job.schedule), persona: job.persona ?? null, icon: job.icon ?? null,
 });
+
+/** A calendar rule says when it runs by itself, without an interval or a start. @param {ScheduleRule | null | undefined} rule */
+const calendarOf = (rule) => rule && !("every_seconds" in rule) ? { schedule: rule, every_seconds: null, first_run_at: null } : {};
 
 /** @param {StoreDeps} deps */
 export function createAutomationsStore({ api, report, timeout, now = Date.now }) {
@@ -62,7 +69,7 @@ export function createAutomationsStore({ api, report, timeout, now = Date.now })
     reading?.abort();
     const mine = reading = new AbortController();
     try {
-      land((await api.schedules(mine.signal)).jobs);
+      land((await api.schedules(mine.signal, UPCOMING)).jobs);
     } catch (error) {
       if (mine.signal.aborted) return;
       set({ loaded: true, failed: true });

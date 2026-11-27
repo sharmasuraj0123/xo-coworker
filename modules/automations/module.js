@@ -7,8 +7,12 @@ import { createAutomationsFrame } from "./frame.js";
 import { createAutomationsPage } from "./page.js";
 import { createSide } from "./side.js";
 import { createAutomationsStore } from "./store.js";
+import { browserZone, keepZone } from "./zone.js";
 
 /** @import { ModuleDef } from "../../core/kernel/types" */
+
+/** After boot's own reads; the zone matters only when a job is next saved. */
+const ZONE_AFTER_MS = 5000;
 
 /** @type {ModuleDef} */
 export const automationsModule = {
@@ -22,6 +26,9 @@ export const automationsModule = {
     const nav = ctx.use("navigation"), view = ctx.use("currentView");
     const store = createAutomationsStore({ api, report: reportFailure, timeout: ctx.timeout });
     ctx.effect(() => store.dispose);
+    const syncZone = keepZone({ api, zone: browserZone, report: reportFailure });
+    ctx.timeout(() => void syncZone(), ZONE_AFTER_MS);
+    ctx.listen(document, "visibilitychange", () => { if (!document.hidden) void syncZone(); });
     const projects = () => world.state.projects.filter((p) => p.chatId && p.hasChat !== false)
       .map((p) => ({ chat: p.chatId, name: p.name }));
     /** @param {string} chat */
