@@ -128,7 +128,7 @@
 /* Charts identify each series with its swatch and label. */
 :root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
 :root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
-.md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
+.md-chart{container:mc/inline-size;--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
 .mc-title{font:var(--fw-strong) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink)}
 .mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .mc-key{display:inline-flex;align-items:center;gap:8px}
@@ -142,6 +142,7 @@
 .mc-plot>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .mc-x{position:relative;grid-column:2;grid-row:3}
 .mc-x>span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap}
+@container mc (max-width:480px){.mc-x>span:nth-child(even){visibility:hidden}}
 .mc-xl{grid-column:2;grid-row:4;margin-top:4px;text-align:center}
 .mc-grid{stroke:var(--line-faint);stroke-width:1;vector-effect:non-scaling-stroke}
 .mc-grid.is-zero{stroke:var(--line-strong)}
