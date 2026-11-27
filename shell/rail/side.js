@@ -48,6 +48,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
       { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
       { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
+      { set: true, id: "usage", name: "Usage", ic: () => ICON.chart },
       { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
       { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
       { set: true, id: "worktrees", name: "Worktrees", ic: () => ICON.branch },

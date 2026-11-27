@@ -14,6 +14,7 @@ import { shapeViewModule } from "../modules/settings/application.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
 import { worktreesModule } from "../modules/worktrees/module.js";
+import { usageModule } from "../modules/usage/module.js";
 import { chatModelModule, chatControlsModule } from "../modules/chats/surface.js";
 import { mainViewportModule, conversationContentModule } from "../modules/conversation/main-viewport.js";
 import { runControlsModule } from "../modules/conversation/run-controls.js";
@@ -112,4 +113,5 @@ export default await bootShell([
   routingModule,
   rulesModule,
   worktreesModule,
+  usageModule,
 ]);

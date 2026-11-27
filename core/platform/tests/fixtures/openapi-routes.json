@@ -209,6 +209,9 @@
   "/api/chat/runtimes/{name}/update": [
    "POST"
   ],
+  "/api/chat/runtimes/{name}/usage": [
+   "GET"
+  ],
   "/api/chat/sessions": [
    "GET"
   ],

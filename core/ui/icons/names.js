@@ -73,6 +73,7 @@ export const ICON = {
   changes: xi("changes"),
   map: xi("map"),
   graph: xi("graph"),
+  chart: xi("chart-bar"),
   follow: xi("follow"),
   toMain: xi("open-in-main"),
   fit: xi("fit"),
