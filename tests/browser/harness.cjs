@@ -1,31 +1,11 @@
 // The browser suite's world: the app served from this folder by a small static server, and every /api request
 // answered in the page from a mock world (a Workspace and one project, "demo"). Nothing reaches a Space.
-// Used by tests/browser/flows.test.cjs and design-research/2026-11-lg/tools/inventory-states.cjs.
+// Used by tests/browser/flows.test.cjs.
 "use strict";
-const http = require("http"), fs = require("fs"), path = require("path");
-const { install: installLaunchpad, SCENARIOS: LP } = require("../../design-research/2026-11-vision/launchpad/tools/mockspace.cjs");
-
-const ROOT = path.resolve(__dirname, "..", "..");
-const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
-// a stream the test writes to as it goes (Launchpad's /watch, routed here): SSE.push(event, end)
-const SSE = { clients: [], head: [], push(ev, end = false) { for (const c of this.clients) { c.write(`data: ${JSON.stringify(ev)}\n\n`); if (end) c.end(); } if (end) this.clients = []; } };
-function serve() {
-  const server = http.createServer((q, s) => {
-    let p = decodeURIComponent(new URL(q.url, "http://x").pathname);
-    if (p === "/__sse") {
-      s.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store" });
-      for (const ev of SSE.head) s.write(`data: ${JSON.stringify(ev)}\n\n`);
-      SSE.clients.push(s); q.on("close", () => { SSE.clients = SSE.clients.filter((c) => c !== s); });
-      return;
-    }
-    if (p === "/") p = "/index.html";
-    const f = path.join(ROOT, p);
-    if (!f.startsWith(ROOT + path.sep) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { s.writeHead(404); s.end(); return; }
-    s.writeHead(200, { "Content-Type": TYPES[path.extname(f)] || "application/octet-stream", "Cache-Control": "no-store" });
-    fs.createReadStream(f).pipe(s);
-  });
-  return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok(server)));
-}
+const fs = require("fs"), path = require("path");
+const projectReplies = require("../../core/platform/tests/fixtures/project-schedule-responses.json");
+const { install: installLaunchpad, SCENARIOS: LP } = require("../../e2e/fixtures/mockspace-harness.cjs");
+const { ROOT, SSE, serve } = require("../../e2e/fixtures/browser-static-server.cjs");
 
 // ── the mock world: a Workspace, one project ("demo"), no threads; files and saves per test ──
 const NOW = new Date().toISOString();
@@ -50,6 +30,9 @@ function mockApi(W) {
     if (u.origin !== W.base) return r.abort();
     if (!p.startsWith("/api/")) return r.fallback();
     const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
+    if (m === "PUT" && /^\/api\/chat\/chats\/[^/]+\/seen$/.test(p)) return json({ seen: { seen_at: NOW, seen_seq: null } });
+    if (m === "GET" && /^\/api\/coworker\/xo-projects\/[^/]+\/paths$/.test(p)) return json({ paths: Object.keys(W.files || {}) });
+    if (m === "GET" && /^\/api\/xo-projects\/[^/]+\/github\/issues$/.test(p)) return json({ repo: null, state: "no_repo", issues: [] });
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
     if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
     // W.pins: what a chat's PATCH saved (model, effort), so the world's refresh reads it back as the server would
@@ -104,7 +87,18 @@ function mockApi(W) {
       const head = { project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false };
       // W.changesGateFor[path]: one file's own read held (the test says when it answers)
       // W.changeReads[path]: how many times one file's change was read; W.changesFailFor[path]: refused that many times
-      if (one) { W.changeReads = W.changeReads || {}; W.changeReads[one] = (W.changeReads[one] || 0) + 1; if (W.changesGate) await W.changesGate; if (W.changesGateFor && W.changesGateFor[one]) await W.changesGateFor[one]; if (W.changesFailFor && W.changesFailFor[one] > 0) { W.changesFailFor[one]--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); } return json({ ...head, total_files: 1, files: all.filter((f) => f.path === one).map(({ full, ...f }) => ({ ...f, patch: full || f.patch, patch_omitted: null })) }); }
+      if (one) {
+        W.changeReads = W.changeReads || {};
+        W.changeReads[one] = (W.changeReads[one] || 0) + 1;
+        if (W.changesGate) await W.changesGate;
+        if (W.changesGateFor?.[one]) await W.changesGateFor[one];
+        if (W.changesFailFor?.[one] > 0) {
+          W.changesFailFor[one]--;
+          return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+        }
+        const files = all.filter((f) => f.path === one).map(({ full, patch_omitted, ...f }) => ({ ...f, patch: full || f.patch }));
+        return json({ ...head, total_files: files.length, files });
+      }
       return json({ ...head, total_files: all.length, files: all.map(({ full, ...f }) => f) });
     }
     // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
@@ -115,29 +109,42 @@ function mockApi(W) {
       W.cloneN = (W.cloneN || 0) + 1;
       const id = JSON.parse(req.postData() || "{}").project_id;
       if (id) W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id));
-      return json({ clone_id: `clone-${W.cloneN}` }, 202);
+      const clone = { ...projectReplies.clone, clone_id: `clone-${W.cloneN}`, project_id: id };
+      (W.clones ||= new Map()).set(clone.clone_id, clone);
+      return json(clone, 202);
     }
     if ((k = /^\/api\/xo-projects\/clones\/([^/]+)$/.exec(p))) {
       const id = decodeURIComponent(k[1]);
+      const clone = W.clones?.get(id);
+      if (!clone) return json({ detail: { code: "not_found", message: "No such clone" } }, 404);
       if (m === "DELETE") {
         W.cloneStops = (W.cloneStops || 0) + 1;
         if (W.cloneStopGates && W.cloneStopGates[id]) await W.cloneStopGates[id];
-        return W.cloneStopMode === "503" ? json({ detail: { code: "unavailable", message: `Fixture unavailable (${id})` } }, 503) : json({ cancelled: true });
+        if (W.cloneStopMode === "503") return json({ detail: { code: "unavailable", message: `Fixture unavailable (${id})` } }, 503);
+        return json({ ...projectReplies.cancelledClone, clone_id: id, project_id: clone.project_id });
       }
-      if (W.cloneDone && W.cloneDone.has(id)) return json({ state: "done", phase: "done", percent: 100, received_bytes: 2048, idle_seconds: 0 });
-      return json({ state: "running", phase: "receiving", percent: 12, received_bytes: 1024, idle_seconds: 0 });
+      if (W.cloneDone?.has(id)) {
+        return json({ ...clone, state: "done", phase: "done", percent: 100, received_bytes: 2048, finished_at: NOW });
+      }
+      return json({ ...clone, phase: "receiving", percent: 12, received_bytes: 1024 });
     }
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
+      const tree = { project_id: p.split("/")[3], relative_path: rel,
+        parent_relative_path: rel ? rel.split("/").slice(0, -1).join("/") : null };
       if (!rel && W.rootFails) { W.rootFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (!rel && W.rootGate) await W.rootGate;
-      if (!rel && W.rootEmpty) return json({ dirs: [], files: [] });
+      if (!rel && W.rootEmpty) return json({ ...tree, dirs: [], files: [] });
       if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (rel === "bad" && W.treeGate) await W.treeGate; // the test says when the second read answers
-      if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
+      if (rel === "bad") return json({ ...tree, dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
       // W.dirs: more folders at the top (a wide map), each empty
-      if (W.dirs && W.dirs.includes(rel)) return json({ dirs: [], files: [] });
-      return json({ dirs: [{ name: "bad", relative_path: "bad" }, ...(W.dirs || []).map((d) => ({ name: d, relative_path: d }))], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
+      if (W.dirs?.includes(rel)) return json({ ...tree, dirs: [], files: [] });
+      const dirs = ["bad", ...(W.dirs || [])].map((name) => ({ name, relative_path: name }));
+      const files = Object.keys(W.files).filter((f) => !f.includes("/")).map((name) => ({
+        name, relative_path: name, size_bytes: Buffer.byteLength(W.files[name].content),
+      }));
+      return json({ ...tree, dirs, files });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
@@ -153,7 +160,8 @@ function mockApi(W) {
         if (W.editStatusFor && W.editStatusFor[rel]) return json({ detail: { code: W.editStatusFor[rel] === 413 ? "too_large" : "unavailable", message: "Fixture" } }, W.editStatusFor[rel]);
         if (W.editReadFails) { W.editReadFails--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); }
       }
-      return json({ kind: "code", name: rel, content: f.content, version: f.version, editable: true, size_bytes: f.content.length, place: "ordinary" });
+      return json({ project_id: p.split("/")[3], relative_path: rel, kind: "code", name: rel, content: f.content,
+        version: f.version, editable: true, size_bytes: Buffer.byteLength(f.content), truncated: false, place: "ordinary" });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "PUT") {
       const b = JSON.parse(req.postData() || "{}");
@@ -169,7 +177,8 @@ function mockApi(W) {
         return json({ detail: { code: "file_changed", message: "changed", current: { content: f.content, version: f.version } } }, 409);
       }
       f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
-      return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
+      return json({ relative_path: b.relative_path, version: f.version, edit_id: `edit-${W.saves.length}`,
+        saved_at: new Date().toISOString(), size_bytes: Buffer.byteLength(f.content), unchanged: false });
     }
     // a picture a thread made: the app's own mark stands in for it (W.pictures: answer image reads)
     if (W.pictures && /^\/api\/xo-projects\/[^/]+\/image$/.test(p)) return r.fulfill({ status: 200, contentType: "image/svg+xml", body: W.pictures });
@@ -182,7 +191,8 @@ function mockApi(W) {
     }
     if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
       W.undos = (W.undos || 0) + 1;
-      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
+      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503)
+        : json({ ...projectReplies.undo, relative_path: W.saves.at(-1)?.relative_path ?? "README.md" });
     }
     if ((k = /^\/api\/chat\/sessions\/([^/]+)\/runs$/.exec(p))) {
       const sid = decodeURIComponent(k[1]);
@@ -199,13 +209,15 @@ function mockApi(W) {
       if (W.createMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       const b = JSON.parse(req.postData() || "{}"), id = String(b.path || "").split("/").pop();
       W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id)); // this test's world only
-      return json({ created: true, path: b.path });
+      return json({ name: id, path: b.path, copied: [] });
     }
     if (p === "/api/connectors/github/status") return json({ status: "needs_auth" });
     if (p === "/api/connectors/github/cli/start" && m === "POST") {
       W.ghStarts = (W.ghStarts || 0) + 1;
       if (W.ghGate) await W.ghGate;
-      return W.ghMode === "connected" ? json({ status: "connected", username: "tester" }) : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
+      return W.ghMode === "connected"
+        ? json({ status: "connected", username: "tester", session_id: "s1", user_code: "", verification_uri: "", expires_in: 30 })
+        : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
     }
     // continuing a thread on another runtime: held by W.continueGate, then refused (409 still_busy)
     if (/^\/api\/chat\/chats\/[^/]+\/threads\/[^/]+\/continue$/.test(p) && m === "POST") {
@@ -221,8 +233,14 @@ function mockApi(W) {
 // test hooks, added to the served modules in the page only (the files on disk are untouched)
 async function hooks(page) {
   await page.route("**/js/app.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()) + "\nwindow.__t={VW,S,world,go,typingRender,lrefRender,render,D,openRuns,IQ,heraldShow,CHG};" }); });
-  await page.route("**/js/viewer.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("function startEdit() {", "function startEdit() { window.__ED=ED; window.__V=V;") }); });
-  await page.route("**/js/storm.js", async (r) => { const x = await r.fetch(); await r.fulfill({ response: x, body: (await x.text()).replace("  boot();", "  window.__storm={apply,stop:()=>{stream?.close();clearTimeout(statusT);clearTimeout(runtimesT);clearTimeout(recoverT);}};\n  boot();") }); });
+  await page.route("**/core/services/storm/stream.js", async (r) => {
+    const response = await r.fetch();
+    const source = await response.text();
+    const anchor = "  boot().catch(";
+    if (source.split(anchor).length !== 2) throw new Error("Storm hook needs one boot anchor");
+    const hook = "  window.__storm={apply:ctx.apply,stop:()=>{stream?.close();ctx.renewReads();}};\n";
+    await r.fulfill({ response, body: source.replace(anchor, hook + anchor) });
+  });
 }
 
 /** The app in a new browser context, against the mock world W (files, saves, messages, hops …). */
@@ -257,7 +275,7 @@ async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, moti
   page.on("pageerror", (e) => errors.push(e.message));
   if (W.launchpad) await installLaunchpad(page, W.launchpad);
   await page.route("**/*", mockApi(W));
-  await hooks(page);
+  if (W.hooks !== false) await hooks(page);
   // W.beforeLoad(page): a case's own routes, in place before the first request (a module held from startup)
   if (W.beforeLoad) await W.beforeLoad(page);
   // a loaded machine (other threads' crawls) can make a first load slow: that isn't what's being tested
@@ -284,11 +302,10 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
   const cut = [], seen = new Set(), floor = [], wrapped = [];
-  // a button's label sits on one line (the coordinator's ruling, S045): the lines its words take, a line being the text
+  // Measure the number of visual lines in the label.
   // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
   // the lines a label wraps onto: counted within each run of words that flows as one (the text under one block, flex or
   // grid box): a control drawn as two lines on purpose (a name over its meta, each its own block, an Artifacts row on a
-  // phone) hasn't wrapped; one run taking two lines has (Files over Artifacts at 390 on fa49c3c: "a.js" over "demo · Code
   // · 6m ago", two blocks, was read as a wrap)
   const linesOf = (e) => {
     const runs = new Map(), rg = document.createRange(), w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
@@ -308,7 +325,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     el.focus({ preventScroll: false });
     if (document.activeElement !== el) continue;
     await frame();
-    // the ring may be its box's (a field in a box: the box draws the ring while its field has focus, C053/C020)
+    // A wrapper can own the focus ring for its input.
     let ringEl = el;
     if (getComputedStyle(el).outlineStyle === "none") for (let a = el.parentElement, k = 0; a && k < 3; a = a.parentElement, k++) if (getComputedStyle(a).outlineStyle !== "none") { ringEl = a; break; }
     const s = getComputedStyle(ringEl), r = ringEl.getBoundingClientRect();
@@ -336,7 +353,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
       if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
       if (sides.length) { const k = `${name(ringEl)}${ringEl !== el ? ` (for ${name(el)})` : ""} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
     }
-    // the screen's own edges clip too: a control at the very top of a phone's Files (S070: Back at y=2, its ring 4 out)
+    // The viewport can clip a ring as well as its scroll containers.
     // loses what's past them, whatever box it sits in
     const vw = document.documentElement.clientWidth, vh = innerHeight, vs = [];
     if (ring.top < -0.5 && r.top >= -0.5) vs.push("top");
@@ -366,10 +383,7 @@ function pngPixels(buf) {
       out[y * stride + x] = (line[x] + [0, a, b, (a + b) >> 1, pr][f]) & 255; } }
   return { w, h, bpp, data: out };
 }
-// whether a state visibly differs, by grader A's bar (the coordinator, 11 Nov 05:03Z), crops of the same box: a pixel
-// has changed when |ΔR|+|ΔG|+|ΔB| > 30; a fill or an edge passes when ≥10% of the box changed; a hover of the words
-// alone passes when ≥50% of the glyph pixels (those that differ from the box's own background, its commonest colour,
-// by more than 30) changed. Held identical to hovered (0%) always fails
+// Compare equal crops by changed RGB pixels and, for text-only changes, changed glyph pixels.
 const px = (P, i) => [P.data[i], P.data[i + 1], P.data[i + 2]];
 const d3 = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
 function visible(A, B) {

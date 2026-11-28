@@ -1,0 +1,176 @@
+:root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
+:root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
+:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:var(--h-sm);height:var(--h-sm);margin-top:0;border-radius:var(--r-sm)}
+:root:not([data-msgx]) .m-them>.av svg{width:var(--ic-sm);height:var(--ic-sm)}
+:root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
+/* a speaker already known (the same as just before, or the one a project's chat is with) goes unnamed and unmarked */
+:root:not([data-msgx]) .m-anon>.av,:root:not([data-msgx]) .m-anon>.mb>.mh{display:none}
+/* the name line is a label above the words: body size at 500 in the third ink, a role or model trailing in the fourth */
+:root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
+:root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-3)}
+:root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
+:root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
+/* words from another project or the Workspace sit in a card whose header says where they came from */
+:root:not([data-msgx]) .m-ext{border:var(--hair) solid var(--line);border-radius:var(--r-block);background:var(--surface)}
+:root:not([data-msgx]) .m-ext>.av{margin:var(--s-2) 0 0 var(--s-4);background:none;border-color:var(--fill-clear)}
+:root:not([data-msgx]) .m-ext>.mb{padding-bottom:var(--s-4)}
+:root:not([data-msgx]) .m-ext>.mb>.mh{margin-bottom:var(--s-3);border-bottom:var(--hair) solid var(--line);
+  padding:var(--s-2) var(--s-4) var(--s-2) calc(var(--s-4) + var(--tile))}
+:root:not([data-msgx]) .m-ext>.mb>:not(.mh){margin-inline:var(--s-4)}
+:root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-4)}
+:root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
+:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
+/* a reply's text lines stop at --measure; code, tables, charts, pictures and cards keep the whole column */
+.prose>:is(p,ul,ol,blockquote,.md-h){max-width:min(var(--measure),42em)}
+.prose hr{height:0;margin:var(--s-6) 0;border:0;border-top:var(--hair) solid var(--line)}
+:root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
+:root:not([data-msgx]) .msgs>.ev{gap:8px}
+:root:not([data-msgx]) .msgs>.ev>.ev-ic{margin:0 var(--s-1)}
+/* someone replying: the dots lead its line, on the text's edge, no mark */
+:root:not([data-msgx]) .typing{grid-template-columns:minmax(0,1fr)}
+:root:not([data-msgx]) .typing>.av{display:none}
+:root:not([data-msgx]) .ty-b{align-items:center;gap:8px}
+/* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
+:root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
+
+:root:not([data-msgx]) .msgs>:not(.m-start){margin-block:var(--s-4)}
+:root:not([data-msgx]) .msgs>.m:not(.m-card){margin-top:var(--s-6)}
+:root:not([data-msgx]) .msgs>.ev{min-height:var(--h-sm);margin-block:var(--s-4)}
+:root:not([data-msgx]) .msgs>:first-child:not(.m-start){margin-top:0}
+/* words under the line that introduces them (a question and its answer, a steer and its note) read as one exchange: 8 under the line */
+:root:not([data-msgx]) .msgs>.ev.is-lead{margin-bottom:var(--s-2)}
+/* event lines in a row read as one short list */
+:root:not([data-msgx]) .msgs>.ev:has(+.ev){margin-bottom:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev+.ev{margin-top:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev+.m.m-under{margin-top:var(--s-2)}
+/* a message's action row sits in the gap under it, out of the flow: an unseen row never widens a gap */
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-gap) + var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-gap) + var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m>.mb:has(>.mx-actrow){position:relative}
+:root:not([data-msgx]) .typing{padding-bottom:16px}
+/* A new speaker's margin collapses through the intervening containers. */
+:root:not([data-msgx]) :is(#typing,#ttyping)>.typing{margin-top:24px}
+/* inside a reply */
+:root:not([data-msgx]) .prose>*+*{margin-top:12px}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack),
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack)+*{margin-block:16px 0}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):first-child{margin-top:0}
+:root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):last-child{margin-bottom:0}
+:root:not([data-msgx]) .mb>:is(.tcard,.mx-stack,.m-reacts){margin-top:16px}
+:root:not([data-msgx]) .mb>.mh+:is(.tcard,.mx-stack){margin-top:0}
+:root:not([data-msgx]) .turn{gap:4px}
+:root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
+
+:root:not([data-msgx]) .turn .tb-live{display:none}
+:root[data-msgx] :is(.tb-wh,.ty-b)>.dots{display:none}
+:root:not([data-msgx]) :is(:is(#typing,#ttyping),.msgs) .shimmer{font-weight:var(--fw-regular)}
+
+/* Offset the action row by half the extra button width to align the glyph with the text. */
+.mx-actrow{display:none}
+:root:not([data-msgx]) .msgs{--mx-b:var(--h-ctl);--mx-gap:var(--s-2)}
+:root:not([data-msgx]) .mx-actrow{position:absolute;top:calc(100% + var(--mx-gap));left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
+:root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
+:root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
+.mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
+.mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.mx-actrow svg{width:var(--ic);height:var(--ic)}
+.mx-actrow [aria-pressed="true"]{color:var(--ink)}
+.mx-actrow [aria-pressed="true"] svg{fill:currentColor;fill-opacity:.2}
+.mx-actrow time{padding:0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mx-actrow time:empty{display:none}
+@media (max-width:760px){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}}
+@media (hover:none){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
+
+:root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--fill-1);box-shadow:none}
+:root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
+:root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}
+:root:not([data-msgx]) .tcard:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+:root:not([data-msgx]) .tc-open{gap:4px;padding:0 16px 12px;border-radius:var(--r-block-in)}
+/* the band: full width, flush with the card's top, its progress 16 px in on each side (the text column) */
+:root:not([data-msgx]) .tc-segs{order:-1;width:calc(100% + 32px);margin:0 -16px 8px;padding:12px 16px;gap:4px;border-radius:var(--r-block-in) var(--r-block-in) 0 0;background:color-mix(in srgb,var(--st) 10%,transparent);transition:background var(--d-hover) var(--ease)}
+:root:not([data-msgx]) .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st) 14%,transparent)}
+:root:not([data-msgx]) .tc-segs .sg{max-width:none;height:6px;border-radius:var(--r-pill)}
+:root:not([data-msgx]) .tc-segs.is-empty::before{content:"";flex:1;height:6px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--st) 24%,transparent)}
+/* the title on the text edge (the band already says the state: no glyph before it), where it stands on the right */
+:root:not([data-msgx]) .tc-top{gap:16px}
+:root:not([data-msgx]) .tc-top>.g{display:none}
+:root:not([data-msgx]) .tc-st{font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--st)}
+:root:not([data-msgx]) .tcard.st-working .tc-st{color:var(--ink-3)}
+:root:not([data-msgx]) .tc-now{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+:root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
+:root:not([data-msgx]) .tc-go{gap:4px}
+:root:not([data-msgx]) .tc-go svg{width:var(--ic-sm);height:var(--ic-sm)}
+:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:calc(var(--s-3) + (var(--lh-ui) - var(--h-sm)) / 2);width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+:root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
+@media (max-width:760px){
+  /* a phone: Decide is a 36 px control, its own line under the foot, on the text edge */
+  :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:static;align-self:flex-start;width:auto;height:var(--h-touch);margin:0 16px 12px;padding:0 16px}
+  :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:0}
+  :root:not([data-msgx]) .tc-top{flex-direction:column;align-items:flex-start;gap:0}
+  :root:not([data-msgx]) .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
+}
+
+/* Display math scrolls within its column when it is wider than the text. */
+.md-math:not(.is-done){font:var(--fw-regular) .9em/inherit var(--mono);color:var(--ink-3)}
+.md-math.is-failed{color:var(--ink-3)}
+.md-math.is-block{display:block;text-align:center}
+.md-math.is-block:not(.is-done){white-space:pre-wrap}
+.md-display{margin:16px 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;padding:4px 0}
+.prose .md-math.is-block{margin:16px 0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;padding:4px 0}
+.md-display>.md-math.is-block{margin:0;padding:0;overflow:visible}
+.prose>.md-display:first-child{margin-top:0}
+.md-math .katex{font-size:1.1em;color:inherit}
+.md-math .katex-display{margin:0}
+/* inline, a formula keeps the line's height: tall pieces (fractions, sums) sit in it rather than push lines apart */
+.md-math:not(.is-block) .katex{line-height:1}
+
+/* Charts identify each series with its swatch and label. */
+:root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
+:root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
+.md-chart{container:mc/inline-size;--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--mc-bg);font-variant-numeric:tabular-nums}
+.mc-title{font:var(--fw-strong) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink)}
+.mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
+.mc-key{display:inline-flex;align-items:center;gap:8px}
+.mc-sw{flex:none;width:8px;height:8px;border-radius:2px;background:var(--c)}
+.mc-sw.is-line{width:12px;height:2px;border-radius:1px}
+.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto var(--mc-h,200px) 24px auto;column-gap:8px;margin-top:12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.mc-yl{grid-column:1/-1;grid-row:1;margin-bottom:12px}
+.mc-y{position:relative;grid-column:1;grid-row:2}
+.mc-y>span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
+.mc-plot{position:relative;grid-column:2;grid-row:2}
+.mc-plot>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mc-x{position:relative;grid-column:2;grid-row:3}
+.mc-x>span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap}
+@container mc (max-width:480px){.mc-x>span:nth-child(even){visibility:hidden}}
+.mc-xl{grid-column:2;grid-row:4;margin-top:4px;text-align:center}
+.mc-grid{stroke:var(--line-faint);stroke-width:1;vector-effect:non-scaling-stroke}
+.mc-grid.is-zero{stroke:var(--line-strong)}
+.mc-line{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.mc-area{fill:var(--c);fill-opacity:.1;stroke:none}
+.mc-dot{position:absolute;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px var(--mc-bg)}
+/* a category's columns side by side, 2 px apart, each at most 24 px and 70 % of the band shared, centred on it */
+.mc-bar{--w:min(24px,calc((70% / var(--n) - (var(--k) - 1) * 2px) / var(--k)));position:absolute;width:var(--w);margin-left:calc((var(--k) * var(--w) + (var(--k) - 1) * 2px) / -2 + var(--i) * (var(--w) + 2px));border-radius:var(--r-xs) var(--r-xs) 0 0;background:var(--c)}
+.mc-bar.is-neg{border-radius:0 0 var(--r-xs) var(--r-xs)}
+.mc-bar.is-under{border-radius:0;box-shadow:inset 0 var(--hair) 0 var(--mc-bg)}   /* a stacked segment with another on it */
+.mc-hover{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--d-out) var(--ease)}
+.mc-hover.is-on{opacity:1;transition-duration:var(--d-hover-in)}
+.mc-cross{position:absolute;top:0;bottom:0;left:var(--at);width:1px;background:var(--line-strong)}
+.mc-tip{position:absolute;top:0;left:calc(var(--at) + 12px);display:grid;gap:4px;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--float);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);white-space:nowrap}
+.mc-hover.is-left .mc-tip{left:auto;right:calc(100% - var(--at) + 12px)}
+.mc-tip b{font-weight:var(--fw-strong)}
+.mc-tip span{display:flex;align-items:center;gap:8px}
+.mc-tip em{flex:1;font-style:normal;color:var(--ink-2)}
+.mc-tip strong{font-weight:var(--fw-medium)}
+@media (max-width:760px){.mc-frame{grid-template-rows:auto 168px 24px auto}.md-chart{padding:12px 12px 8px}}
+
+.md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-block);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+/* its natural width at most; never under 80 % of it (a phone scrolls the card sideways rather than shrink the words) */
+.md-diagram>svg{display:block;width:100%;max-width:var(--dg-w,100%)!important;min-width:calc(var(--dg-w,0px) * .8);height:auto;margin:0 auto}
+.md-diagram>svg .node>rect:not([rx]),.md-diagram>svg .node>rect[rx="0"]{rx:var(--r);ry:var(--r)}
+.md-diagram>svg :is(.node,.cluster)>:is(rect,polygon,circle,path){filter:none}
+.md-dg-src{margin:0;font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-4);white-space:pre-wrap;text-align:left}
+.md-dg-src code{background:none;border:0;padding:0;font:inherit}
+.md-diagram.is-done>.md-dg-src{display:none}
+.md-diagram.is-failed>.md-dg-src{color:var(--ink-2)}
+.md-dg-why{margin:0 0 8px;text-align:left}

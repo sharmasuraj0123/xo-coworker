@@ -1,0 +1,178 @@
+// @ts-check
+
+import { folderOf, placeOf } from "../../core/services/places.js";
+import { prefetch } from "./diffview.js";
+/** @import { ChangeThread, ChangesWorld } from "../../core/services/change-types.d.ts" */
+
+/** @import { Turns } from "../../core/services/types.d.ts" */
+/** @import { Scope, PlaceChanges, Activity, ChangeFile, HttpError, ChangesApi } from "./types.d.ts" */
+
+const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
+const QUIET = 250; // ms: edits that finish together are read once
+
+/** @param {string | null | undefined} view @param {Pick<ChangesWorld, "thread">} world @returns {Scope | null} */
+export function scopeOf(view, world) {
+  if (view && view.startsWith("t:")) {
+    const t = world.thread(view.slice(2));
+    const f = t && folderOf(t);
+    if (t && f) return { key: `${f.project}|${f.base}`, project: f.project, worktree: f.base.split("/").pop() || null, root: f.root, tid: t.id };
+    return null;
+  }
+  if (view && view.startsWith("p:")) return { key: `${view.slice(2)}|`, project: view.slice(2), worktree: null, root: null };
+  return null;
+}
+
+/** @param {Scope | null} scope @param {readonly (ChangeThread | null)[]} threads @param {Turns | null | undefined} turns @returns {Activity} */
+export function activityIn(scope, threads, turns) {
+  /** @type {Activity} */
+  const out = { sig: "", busy: false, live: new Set(), last: null };
+  if (!scope || !turns) return out;
+  let done = 0, seq = 0, lastSeq = -1;
+  for (const t of threads) {
+    if (!t || !t.sessionId) continue;
+    const f = folderOf(t);
+    if (!f || `${f.project}|${f.base}` !== scope.key) continue;
+    for (const tu of turns.list((x) => x.session === t.sessionId)) {
+      const running = tu.status === "running";
+      if (running) out.busy = true;
+      for (const b of turns.blocksOf(tu)) {
+        if (b.type !== "activity") continue;
+        for (const r of b.rows || []) {
+          seq++;
+          if (!EDITS.has(r.kind) || !r.target) continue;
+          const at = placeOf(f.root, r.target);
+          if (!at || at.rel == null) continue;
+          const on = running && r.status === "running";
+          if (on) out.live.add(at.rel);
+          if (r.status === "ok") done++;
+          if ((on || r.status === "ok") && seq > lastSeq) { lastSeq = seq; out.last = at.rel; }
+        }
+      }
+    }
+  }
+  out.sig = `${done}`;
+  return out;
+}
+
+/** @typedef {Pick<import("../../core/kernel/types").ModuleContext, "timeout" | "signal">} ChangeScope */
+
+/** @param {{ world: ChangesWorld, api: ChangesApi, scope: ChangeScope, onChange?: () => void }} deps */
+export function createChanges({ world, api, scope: lifetime, onChange }) {
+  /** @type {Map<string, PlaceChanges>} */
+  const P = new Map();
+  /** @type {Set<string>} */
+  const NO = new Set();
+  /** @type {{ k: string, a: Activity } | null} */
+  let memo = null;
+  /** @type {Map<string, Promise<string | null>>} */
+  const one = new Map();
+
+  /** @param {string} key @returns {PlaceChanges} */
+  const placeOf_ = (key) => { if (!P.has(key)) P.set(key, { state: "idle", data: null, files: new Map(), total: { add: 0, del: 0 }, sig: null, inflight: false, again: false, cancel: null }); return /** @type {PlaceChanges} */ (P.get(key)); };
+
+  /** @param {Scope} s @param {PlaceChanges} p */
+  async function read(s, p) {
+    if (p.inflight) { p.again = true; return; }
+    p.inflight = true; p.again = false;
+    if (p.state === "idle") p.state = "loading";
+    try {
+      const d = await api.projectChanges(s.project, { worktree: s.worktree ?? undefined, signal: lifetime.signal });
+      if (lifetime.signal.aborted) return;
+      /** @type {Map<string, ChangeFile>} */
+      const files = new Map();
+      let add = 0, del = 0;
+      for (const f of d.files || []) { files.set(f.path, f); add += f.additions || 0; del += f.deletions || 0; }
+      Object.assign(p, { state: "ok", data: d, files, total: { add, del }, err: null });
+      // the library, its worker and the languages' grammars get ready while the browser is idle
+      prefetch([...files.keys()].slice(0, 24));
+    } catch (e) {
+      if (lifetime.signal.aborted) return;
+      const err = /** @type {HttpError} */ (e);
+      // where Space can't say what changed (no route yet, not a git repository, a gone worktree, git too old), the panel and Files show what the turns say agents touched instead.
+      if ((err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) || (err.status === 501 && err.code === "git_too_old")) { NO.add(s.project); p.state = "unsupported"; }
+      else if (err.status === 404 && err.code === "worktree_not_found") p.state = "unsupported";
+      else if (p.state !== "ok") { p.state = "error"; p.err = err.message || "Couldn't read what changed."; }
+    }
+    p.inflight = false;
+    onChange && onChange();
+    if (p.again) read(s, p);
+  }
+
+  /** @param {Scope | null} s @param {string} path @returns {Promise<string | null>} */
+  function patchIn(s, path) {
+    const p = s && P.get(s.key), f = p && p.files.get(path);
+    if (!s || !p || !f) return Promise.resolve(null);
+    if (f.patch) return Promise.resolve(f.patch);
+    if (f.patch_omitted !== "response_budget") return Promise.resolve(null);
+    const k = `${s.key}|${path}|${p.data?.computed_at}`;
+    if (!one.has(k)) one.set(k, api.projectChanges(s.project, { worktree: s.worktree ?? undefined, signal: lifetime.signal, path })
+      .then((d) => d.files?.find((file) => file.path === path)?.patch || null).catch((e) => { one.delete(k); throw e; }));
+    return /** @type {Promise<string | null>} */ (one.get(k));
+  }
+
+  const api_ = {
+    /** Every render: read a place when it opens and after each edit an agent finishes there. @param {string} view */
+    sync(view) {
+      const s = scopeOf(view, world);
+      memo = null;
+      if (!s || NO.has(s.project)) return;
+      const p = placeOf_(s.key);
+      const a = api_.activity(view);
+      if (p.sig === a.sig && p.state !== "idle") return;
+      const first = p.sig == null;
+      p.sig = a.sig;
+      p.cancel?.();
+      if (first) read(s, p);
+      else p.cancel = lifetime.timeout(() => { p.cancel = null; void read(s, p); }, QUIET);
+    },
+    /** A view's changes: {state: idle|loading|ok|error|unsupported, files, total, data, err}, or null. @param {string} view @returns {PlaceChanges | { state: "unsupported", files: Map<string, ChangeFile>, total: { add: number, del: number } } | null} */
+    of(view) {
+      const s = scopeOf(view, world);
+      if (!s) return null;
+      if (NO.has(s.project)) return { state: "unsupported", files: new Map(), total: { add: 0, del: 0 } };
+      return placeOf_(s.key);
+    },
+    /** One file's entry in a view's changes, by its path in the place. @param {string} view @param {string} path */
+    entry(view, path) { const p = api_.of(view); return p && p.state === "ok" ? p.files.get(path) || null : null; },
+    /** A file an agent's step names (absolute, or relative to the place), as {path, file} when it changed. @param {string} view @param {string} target */
+    forTarget(view, target) {
+      const s = scopeOf(view, world), p = api_.of(view);
+      if (!s || !p || p.state !== "ok") return null;
+      const at = s.root ? placeOf(s.root, target) : { rel: String(target || "").replace(/^\.\//, "") };
+      const rel = at && at.rel;
+      const file = rel ? p.files.get(rel) : null;
+      return rel && file ? { path: rel, file } : null;
+    },
+    /** git's patch for one file in a view's place: the list's, or read on its own when the list left it out. @param {string} view @param {string} path */
+    patch(view, path) { return patchIn(scopeOf(view, world), path); },
+    /** A project file (project-relative, a worktree's included) in its place's changes: {scope, path, file, base}, or null when that place didn't change it. @param {string} project @param {string} rel */
+    at(project, rel) {
+      const m = /^(\.xo\/worktrees\/[^/]+)\/(.+)$/.exec(String(rel || ""));
+      const base = m ? m[1] : "", path = m ? m[2] : String(rel || "");
+      const key = `${project}|${base}`, p = P.get(key);
+      const file = p?.files.get(path);
+      if (!p || p.state !== "ok" || !file) return null;
+      const scope = { key, project, worktree: base.split("/").pop() || null, base };
+      return { scope, path, file, base: p.data?.base_commit ?? null };
+    },
+    /** @param {{ scope: Scope, path: string }} c */
+    patchAt(c) { return patchIn(c.scope, c.path); },
+    /** You saved a file (Files › Edit): its place's changes are read again (counts, patch). @param {string} project @param {string} rel */
+    saved(project, rel) {
+      const m = /^(\.xo\/worktrees\/[^/]+)\//.exec(String(rel || "")), base = m ? m[1] : "";
+      const key = `${project}|${base}`, p = P.get(key);
+      if (p && p.state === "ok") read({ key, project, worktree: base ? base.split("/").pop() || null : null }, p);
+    },
+    /** What agents are doing in a view's place right now (see activityIn); worked out once per render. @param {string} view */
+    activity(view) {
+      const s = scopeOf(view, world), k = s ? s.key : "";
+      if (!memo || memo.k !== k) memo = { k, a: activityIn(s, world.state.threads, world.state.turns) };
+      return memo.a;
+    },
+    scope: (/** @type {string} */ view) => scopeOf(view, world),
+    /** The reads an image change draws from. */
+    read: api,
+  };
+  return api_;
+}
+/** @typedef {ReturnType<typeof createChanges>} Changes */

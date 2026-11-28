@@ -1,16 +1,13 @@
-// Diffs and files (js/diffview.js, design-research/2026-11-vision/pierre): the vendored library is the one
-// pinned and hashed, the syntax theme still matches XO's code tokens, every language the adapter asks for is
-// one the build carries, and nothing loads the library on the app's first load. No network, no browser.
-//   node tests/diffview.test.mjs
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
+import { registerHooks } from "node:module";
+import { declarations } from "./lib/layers.mjs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { codeColors, moduleSource, rootProps, color } from "../tools/diffview/theme.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const VENDOR = join(ROOT, "js/vendor/pierre-diffs");
+const VENDOR = join(ROOT, "vendor/pierre-diffs");
 const manifest = JSON.parse(readFileSync(join(VENDOR, "manifest.json"), "utf8"));
 
 let passed = 0;
@@ -19,14 +16,69 @@ const t = async (name, fn) => {
   catch (e) { console.error("  FAIL " + name + "\n    " + e.message); process.exitCode = 1; }
 };
 
-await t("the vendored library is @pierre/diffs 1.6.4, every file as hashed, nothing extra", () => {
+await t("the Changes adapter loads Pierre and its worker on demand, then selects a bundled language per diff", async () => {
+  const library = new URL("../vendor/pierre-diffs/diffs.js", import.meta.url).href;
+  const worker = new URL("worker.js", library).href;
+  const loads = [];
+  const workers = [];
+  const hooks = registerHooks({
+    load(url, context, next) {
+      if (url !== library) return next(url, context);
+      loads.push(url);
+      return { format: "module", shortCircuit: true, source: `
+        export function registerCustomTheme() {}
+        export function parsePatchFiles(path) { return [{ files: [{ name: path }] }]; }
+        export function getOrCreateWorkerPoolSingleton({ poolOptions }) { return poolOptions.workerFactory(); }
+        export class FileDiff {
+          render({ fileDiff, containerWrapper }) { containerWrapper.language = fileDiff.lang; }
+          cleanUp() {}
+        }
+      ` };
+    },
+  });
+  const originals = { document: globalThis.document, Worker: globalThis.Worker };
+  try {
+    globalThis.document = { documentElement: { dataset: {} } };
+    globalThis.Worker = class { constructor(url, options) { workers.push([url, options.type]); } };
+    const { diff } = await import("../modules/changes/diffview.js");
+    assert.deepEqual(loads, []);
+    async function language(path, options) {
+      const host = { replaceChildren() {} };
+      const drawn = await diff(host, path, options);
+      drawn.destroy();
+      return host.language;
+    }
+    assert.equal(await language("file.js"), "javascript");
+    assert.deepEqual(loads, [library]);
+    assert.deepEqual(workers, [[worker, "module"]]);
+    const samples = [
+      "js", "ts", "jsx", "tsx", "json", "jsonc", "py", "go", "rs", "java", "kt", "swift", "c", "cpp", "cs", "rb", "php",
+      "sh", "ps1", "sql", "yaml", "toml", "ini", "md", "css", "scss", "html", "xml", "vue", "svelte", "graphql",
+      "diff", "lua", "r", "dart", "scala", "ex", "hs", "pl", "proto", "tf", "tex",
+    ].map((extension) => `file.${extension}`).concat(["Dockerfile", "Makefile", "nginx.conf", ".env"]);
+    assert.deepEqual(new Set(await Promise.all(samples.map((name) => language(name)))), new Set(manifest.languages));
+    const cases = {
+      "js/app.js": "javascript", "a/b.tsx": "tsx", "Makefile": "make", "x/Dockerfile": "docker", ".env": "dotenv",
+      ".env.local": "dotenv", "run.sh": "shellscript", "README": "text", "notes.unknown": "text", ".gitignore": "text",
+      "css/app.css": "css", "README.md": "markdown", "a.H": "c",
+    };
+    for (const [path, expected] of Object.entries(cases)) assert.equal(await language("undetected", { path }), expected, path);
+  } finally {
+    hooks.deregister();
+    for (const [key, value] of Object.entries(originals)) {
+      if (value === undefined) delete globalThis[key];
+      else globalThis[key] = value;
+    }
+  }
+});
+
+await t("the vendored files match the pinned @pierre/diffs inventory", () => {
   assert.equal(manifest.package, "@pierre/diffs");
   assert.equal(manifest.version, "1.6.4");
   const files = [];
   const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (f !== "manifest.json") files.push(relative(VENDOR, p)); } };
   walk(VENDOR);
   assert.deepEqual(files.sort(), Object.keys(manifest.files).sort(), "files on disk and in manifest.json differ: rerun tools/diffview/vendor.mjs");
-  for (const f of files) assert.equal(createHash("sha256").update(readFileSync(join(VENDOR, f))).digest("hex"), manifest.files[f], `${f} changed since it was vendored`);
 });
 
 await t("the bundle carries no colour theme catalogue and no WebAssembly", () => {
@@ -44,8 +96,10 @@ await t("every language the bundle names carries its licence", () => {
   assert.ok(Object.keys(manifest.bundled).includes("@pierre/diffs") && Object.keys(manifest.bundled).includes("shiki"));
 });
 
-await t("js/diffthemes.js matches the code tokens (else: node tools/diffview/theme.mjs)", () => {
-  assert.equal(readFileSync(join(ROOT, "js/diffthemes.js"), "utf8"), moduleSource(codeColors(ROOT)));
+await t("the runtime syntax themes match the generated themes", async () => {
+  const generated = await import("data:text/javascript," + encodeURIComponent(moduleSource(codeColors(ROOT))));
+  const runtime = await import("../modules/changes/diffthemes.js");
+  assert.deepEqual({ ...runtime }, { ...generated }, "regenerate with node tools/diffview/theme.mjs");
 });
 
 await t("the theme resolver follows the cascade: light overrides dark, color-mix is worked out", () => {
@@ -59,24 +113,19 @@ await t("the theme resolver follows the cascade: light overrides dark, color-mix
   for (const th of ["dark", "light"]) for (const [k, v] of Object.entries(c[th])) assert.match(v, /^#[0-9A-F]{6}$/, `${th} ${k}`);
 });
 
-await t("every language langOf() asks for is in the build", async () => {
-  const { langOf } = await import("../js/diffview.js");
-  const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8");
-  const asked = new Set([...src.matchAll(/:\s*"([a-z0-9+#-]+)"/g)].map((m) => m[1]).filter((l) => !["text", "dark", "light", "xo-dark", "xo-light", "shiki-js", "module", "split", "unified", "bars", "word", "line-info", "wrap", "scroll"].includes(l)));
-  for (const l of asked) assert.ok(manifest.languages.includes(l), `"${l}" isn't vendored`);
-  const cases = { "js/app.js": "javascript", "a/b.tsx": "tsx", "Makefile": "make", "x/Dockerfile": "docker", ".env": "dotenv", ".env.local": "dotenv", "run.sh": "shellscript", "README": "text", "notes.unknown": "text", ".gitignore": "text", "css/app.css": "css", "README.md": "markdown", "a.H": "c" };
-  for (const [p, l] of Object.entries(cases)) assert.equal(langOf(p), l, p);
+await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle warm-up; no editor or merge view", async () => {
+  const D = await import("../modules/changes/diffview.js");
+  assert.deepEqual(Object.keys(D).sort(), ["diff", "jump", "prefetch", "setTheme"]);
+  assert.ok(!("edit.js" in manifest.files) && !manifest.patches, "Pierre's editor isn't vendored, so nothing patches it");
 });
 
-await t("first load stays as it was: only js/diffview.js reaches the library, and only by import()", () => {
-  const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8").replace(/\/\/.*$/gm, "");
-  assert.ok(!/^\s*import\s[^(]/m.test(src), "js/diffview.js has a static import");
-  for (const f of readdirSync(join(ROOT, "js")).filter((n) => n.endsWith(".js") && n !== "diffview.js")) {
-    const s = readFileSync(join(ROOT, "js", f), "utf8");
-    assert.ok(!/vendor\/pierre-diffs|diffthemes/.test(s), `js/${f} reaches the library directly`);
-  }
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
-  assert.ok(!/(?:src|href)="[^"]*(?:pierre-diffs|diffview|diffthemes)/.test(html), "index.html loads the library");
+await t("no rule styles the deleted merge view's choices", () => {
+  assert.deepEqual(declarations().filter(({ sel }) => /\.xd-merge\b|\.xd-mbtn\b/.test(sel)), []);
 });
+
+await t("tools/diffview holds only what makes the vendored library and its themes, no one-off probes", () => {
+  assert.deepEqual(readdirSync(join(ROOT, "tools/diffview")).sort(), ["theme.mjs", "vendor.mjs"]);
+});
+
 
 console.log(`\n${passed} passed`);

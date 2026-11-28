@@ -1,0 +1,205 @@
+// @ts-check
+
+import { createScope } from "../../core/kernel/scope.js";
+import { esc } from "../../core/platform/index.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { seedList, setText } from "../../core/ui/motion.js";
+import { radioKeys, rovingTab } from "../../core/ui/a11y/keynav.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { galleryLines, linesIn } from "../../core/ui/virtual.js";
+import { artsView, KINDS } from "./model.js";
+import { artsMetrics } from "./gallery-metrics.js";
+
+/** @import { GalleryState, GalleryDeps } from "./page-types.d.ts" */
+
+/** @param {GalleryState} A @param {Pick<GalleryDeps, "PV" | "syncCards" | "sk">} deps @param {WeakSet<Element>} observed */
+function placeCards(A, { PV, syncCards, sk }, observed) {
+  const box = A.box, be = box?.querySelector("#arts-body");
+  if (!box || !(be instanceof HTMLElement) || box.hidden || !A.lines || !A.M) return;
+  const top = box.scrollTop - be.offsetTop, H = box.clientHeight;
+  const want = linesIn(A.lines, top - H, top + 2 * H);
+  const keep = new Set(want.map((l) => l.key));
+  const ae = document.activeElement && be.contains(document.activeElement) ? document.activeElement : null;
+  const fCard = /** @type {HTMLElement | null} */ (ae && ae.closest(".md-it")), fKey = fCard && fCard.dataset.k, fCtl = ae && (ae.matches(".md-pin") ? ".md-pin" : ae.matches(".md-from") ? ".md-from" : ".md-open");
+  const focusLine = fKey ? A.lines.find((l) => l.kind === "row" && l.g.items.slice(l.start, l.start + l.n).some((it) => it.key === fKey)) : null;
+  const moved = !!focusLine && !A.els.get(focusLine.key)?.contains(fCard);
+  if (focusLine && moved && !keep.has(focusLine.key)) { want.push(focusLine); want.sort((a, b) => a.y - b.y); keep.add(focusLine.key); }
+  const focus = ae && !moved ? ae.closest(".ar-line") : null;
+  for (const [k, el] of A.els) {
+    if (keep.has(k) || el === focus) continue;
+    if (A.tio) for (const c of el.querySelectorAll(".md-it")) A.tio.unobserve(c);
+    el.remove();
+    A.els.delete(k);
+  }
+  let prev = be.querySelector(":scope > .ar-probe");
+  for (const l of want) {
+    let el = A.els.get(l.key);
+    if (!el) {
+      if (l.kind === "head") { el = document.createElement("h2"); el.className = "ar-gh ar-line"; }
+      else if (l.kind === "row") { el = document.createElement("ul"); el.className = "md-grid ar-grid ar-line"; seedList(el, !!A.arrive); }
+      else { el = document.createElement("div"); el.className = "ar-line"; el.setAttribute("aria-hidden", "true"); }
+      A.els.set(l.key, el);
+    }
+    if (l.kind === "tail") redraw(el, `<ul class="md-grid ar-grid">${Array.from({ length: l.rows * A.M.cols }, (_, i) => sk.tile("page", i)).join("")}</ul>`);
+    const y = `${l.y}px`;
+    if (el.style.top !== y) el.style.top = y;
+    if (l.kind === "head") setText(el, l.g.label);
+    else if (l.kind === "row") {
+      const items = l.g.items.slice(l.start, l.start + l.n);
+      syncCards(el, items, "page");
+      if (A.tio) for (const c of /** @type {HTMLElement[]} */ ([...el.children])) {
+        const m = A.byKey.get(c.dataset.k || "");
+        if (!observed.has(c) && m && ((m.kind === "image" && !PV.thumbs.has(m.key)) || PV.wantsText(m))) {
+          observed.add(c); A.tio.observe(c);
+        }
+      }
+    }
+    const at = prev ? prev.nextElementSibling : be.firstElementChild;
+    if (at !== el) be.insertBefore(el, at);
+    prev = el;
+  }
+  if (moved) (/** @type {HTMLElement | null} */ (be.querySelector(`.md-it[data-k="${CSS.escape(/** @type {string} */ (fKey))}"] ${fCtl}`)))?.focus();
+  A.arrive = false;
+}
+
+/** @param {GalleryDeps} deps */
+export function createArtifactsPage({ MS, PV, syncCards, PROJ, sk, scope = createScope() }) {
+  const A = /** @type {GalleryState} */ ({ kind: "all", pid: "", q: "", els: new Map(), byKey: new Map() });
+  const observed = new WeakSet();
+  const artsPlace = () => placeCards(A, { PV, syncCards, sk }, observed);
+  function artsWatch(/** @type {HTMLElement} */ box) {
+    const be = /** @type {HTMLElement} */ (box.querySelector("#arts-body"));
+    scope.listen(box, "scroll", () => {
+      if (A.placeQueued) return;
+      A.placeQueued = true;
+      scope.frame(() => { A.placeQueued = false; artsPlace(); });
+    }, { passive: true });
+    if (typeof ResizeObserver === "function") {
+      let width = 0;
+      const observer = new ResizeObserver(() => {
+        if (!scope.signal.aborted && !box.hidden && be.clientWidth && be.clientWidth !== width) {
+          width = be.clientWidth;
+          if (A.lines) artsRender();
+        }
+      });
+      scope.observe(observer);
+      observer.observe(be);
+    }
+    if (typeof IntersectionObserver === "function") {
+      A.tio = new IntersectionObserver((entries) => {
+        if (scope.signal.aborted) return;
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          A.tio?.unobserve(e.target);
+          const m = A.byKey.get((/** @type {HTMLElement} */ (e.target)).dataset.k || "");
+          if (m) { PV.nearY.set(m.key, { y: e.boundingClientRect.top - (e.rootBounds?.top || 0) + box.scrollTop }); PV.loadThumbs([m]); PV.loadTexts([m]); }
+        }
+      }, { root: box, rootMargin: "50% 0px" });
+      scope.observe(A.tio);
+    }
+  }
+  function artsRender() {
+    if (scope.signal.aborted) return;
+    const box = A.box;
+    if (!box || box.hidden) return; // nothing is measured or drawn unseen
+    if (!A.built) {
+      box.innerHTML = `<header class="ar-head"><span class="tw-ic" aria-hidden="true">${ICON.stack}</span><span class="tw-t"><h1 id="arts-h" tabindex="-1">Artifacts</h1><p class="pj-s ar-sub" id="arts-sub"></p></span></header><div class="ar-wrap">` +
+        `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
+        `<label class="ar-pj"><span class="sr-only">Project</span><xo-select id="arts-pj"></xo-select></label></div>` +
+        `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div data-arts-history hidden></div><div class="ar-body" id="arts-body"></div></div>`;
+      A.built = true;
+      const kinds = box.querySelector("#arts-f");
+      if (kinds instanceof HTMLElement) scope.effect(() => radioKeys(kinds));
+      scope.listen(box, "input", (e) => {
+        const target = e.target;
+        if (target instanceof HTMLInputElement && target.id === "arts-q") { A.q = target.value; artsRender(); }
+      });
+      scope.listen(box, "change", (e) => {
+        const target = e.target;
+        if (target instanceof HTMLElement && target.id === "arts-pj" && "value" in target && typeof target.value === "string") {
+          A.pid = target.value;
+          artsRender();
+        }
+      });
+      scope.listen(box, "click", (e) => {
+        if (!(e.target instanceof Element)) return;
+        const retry = e.target.closest("[data-arts-retry]");
+        if (retry && MS.olderPages(true)) {
+          if (document.activeElement === retry) box.querySelector("h1")?.focus({ preventScroll: true });
+          artsRender();
+        }
+        const kind = e.target.closest("[data-arts-kind]");
+        if (kind) { A.kind = kind.getAttribute("data-arts-kind") || "all"; artsRender(); }
+      });
+      scope.listen(box, "keydown", (e) => {
+        const target = e.target;
+        if (!("key" in e) || e.key !== "Escape" || !(target instanceof HTMLInputElement)
+          || target.id !== "arts-q" || !target.value) return;
+        e.preventDefault();
+        e.stopPropagation();
+        target.value = "";
+        A.q = "";
+        artsRender();
+      });
+      artsWatch(box);
+    }
+    const pending = MS.madePending(null);
+    const all = pending ? [] : MS.madeOf(null);
+    if (!pending) MS.olderPages(); // what's older than each chat's newest page, read in the background
+    const history = /** @type {HTMLElement} */ (box.querySelector("[data-arts-history]"));
+    history.hidden = !MS.olderFailed();
+    redraw(history, history.hidden ? "" : '<button type="button" class="btn" data-arts-retry>Retry older artifacts</button>');
+    const v = artsView(all, { pid: A.pid, kind: A.kind, q: A.q });
+    redraw(box.querySelector("#arts-sub"), pending ? sk.bar("18em") : all.length ? esc(`${all.length} ${all.length === 1 ? "thing" : "things"} your threads made, newest first`) : "What your threads make shows up here");
+    const made = new Set(all.map((m) => m.project));
+    const pids = MS.projectsMade().filter((p) => made.has(p.id));
+    const opts = `<option value="">All projects</option>` + pids.map((p) => `<option value="${esc(p.id)}"${A.pid === p.id ? " selected" : ""}>${esc(p.name || p.id)}</option>`).join("");
+    redraw(box.querySelector("#arts-pj"), opts, { preserve: (node) => node instanceof Element && node.tagName !== "OPTION" });
+    const kf = box.querySelector("#arts-f"), kh = KINDS.filter(([k]) => k === "all" || v.counts[k] || k === A.kind).map(([k, w]) => `<button type="button" role="radio" data-arts-kind="${k}" aria-checked="${A.kind === k}"${rovingTab(A.kind === k)}>${w}<span>${pending ? "" : v.counts[k] || 0}</span></button>`).join("");
+    redraw(kf, kh);
+    box.classList.toggle("is-pics", A.kind === "image");
+    const be = /** @type {HTMLElement} */ (box.querySelector("#arts-body"));
+    const filter = `${A.pid}|${A.kind}|${A.q}|${pending ? "…" : ""}`;
+    if (A.filter !== filter) {
+      A.arrive = /…$/.test(A.filter || "");
+      A.filter = filter; A.placeholder = ""; redraw(be, ""); be.style.height = ""; A.tio?.disconnect();
+      A.els = new Map(); A.lines = null;
+    }
+    if (pending || !v.groups.length) {
+      const html = pending ? `<section class="ar-g" aria-hidden="true"><h2 class="ar-gh">${sk.bar("64px")}</h2><ul class="md-grid ar-grid">${Array.from({ length: 12 }, (_, i) => sk.tile("page", i)).join("")}</ul></section>`
+        : `<p class="ar-none">${!all.length ? "<b>Nothing made yet.</b> Files, pages and pictures your threads share land here, newest first."
+          : A.q ? `Nothing matches “${esc(A.q)}”.`
+          : `No ${esc(((KINDS.find(([k]) => k === A.kind) || [])[1] || "things").toLowerCase())} ${A.pid ? "in this project" : "yet"}.`}</p>`;
+      if (A.placeholder !== html) { redraw(be, html); A.placeholder = html; be.style.height = ""; A.els.clear(); A.lines = null; }
+      return;
+    }
+    if (A.placeholder) { redraw(be, ""); A.placeholder = ""; A.els.clear(); }
+    const M = (A.M = artsMetrics(be, sk.tile));
+    A.byKey = new Map();
+    for (const g of v.groups) for (const m of g.items) A.byKey.set(m.key, m);
+    const reading = MS.olderLeft();
+    const view = box.scrollTop - be.offsetTop;
+    let anchor = null;
+    if (A.lines && view > 0) {
+      const l = linesIn(A.lines, view, view).find((x) => x.kind === "row");
+      if (l) anchor = { key: l.g.items[l.start]?.key, off: l.y - view };
+    }
+    const { lines, height } = galleryLines(v.groups, { cols: M.cols, cardH: M.cardH, headH: M.headH, gap: M.gap, tail: reading ? 2 : 0 });
+    A.lines = lines;
+    const h = `${height}px`;
+    if (be.style.height !== h) be.style.height = h;
+    if (anchor && anchor.key) {
+      const l = lines.find((x) => x.kind === "row" && x.g.items.slice(x.start, x.start + x.n).some((m) => m.key === anchor.key));
+      const to = l ? Math.round(be.offsetTop + l.y - anchor.off) : null;
+      if (to != null && Math.abs(to - box.scrollTop) >= 1) box.scrollTop = to;
+    }
+    artsPlace();
+  }
+
+  return {
+    /** @param {HTMLElement} box */
+    mount: (box) => { A.box = box; },
+    render: artsRender,
+    box: () => A.box ?? null,
+  };
+}

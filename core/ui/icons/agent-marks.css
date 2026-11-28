@@ -1,0 +1,21 @@
+/* Agent marks align to the capital height of adjacent text. */
+.agm{
+  display:inline-block;flex:none;width:var(--ic);height:var(--ic);vertical-align:calc(var(--cap-mid) - var(--ic) / 2);
+  background:center/contain no-repeat
+}
+.agm-claude{background-image:url(../../../vendor/agent-marks/claude.svg)}
+.agm-antigravity{background-image:url(../../../vendor/agent-marks/antigravity.svg)}
+.agm-openai{
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat
+}
+.agm-cursor{
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/cursor.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/cursor.svg) center/contain no-repeat
+}
+.agm-grok{
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/grok.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/grok.svg) center/contain no-repeat
+}
+.agm-n{white-space:nowrap}
+.agm-n>.agm,.agm.is-lead{margin-right:var(--gap-icon)}

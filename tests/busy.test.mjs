@@ -1,12 +1,7 @@
-// "Working": is an agent at work right now? Storm's `busy` on session and thread views (xo-space 8c6bc03:
-// on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the
-// stream's session status and sub-agent runs (timeline.js sessionBusy, storm.js). Waiting on the person is
-// never Working, and nor is a session a gate holds back (queued: the usage limit…, no process): that one is
-// Waiting, saying for what and until when (timeline.js heldOf). The pure rule first, then storm.js end to end: fetch and the stream are fakes, nothing is
-// sent anywhere, and nothing but GETs is asked.
-//   node tests/busy.test.mjs
 import assert from "node:assert/strict";
-import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../js/timeline.js";
+import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, queuedButWorking, statusLater } from "../core/services/world/sessions.js";
+import { heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "../core/services/world/held.js";
+import { threadState } from "../core/services/world/threads.js";
 const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
 
 let passed = 0;
@@ -78,7 +73,7 @@ t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, w
   // the backend's own word
   assert.deepEqual(heldOf({ state: "queued", waiting: { for: "limit", until: reset, pool: "claude_code:a", why: "usage limit" } }),
     { for: "limit", until: reset, why: "usage limit", asked: false });
-  assert.deepEqual(heldOf({ state: "queued", waiting: { for: "memory", until: null } }), { for: "memory", until: null, why: null, asked: false });
+  assert.deepEqual(heldOf({ state: "queued", waiting: { for: "memory", until: null, why: "waiting for memory to free up" } }), { for: null, until: null, why: "waiting for memory to free up", asked: false }, "storm no longer holds for memory: an older backend's memory wait is a wait it names");
   assert.equal(heldOf({ state: "queued", waiting: { for: "founder", until: reset } }).for, "founder");
   assert.equal(heldOf({ state: "queued", waiting: { for: "something new" } }).for, null, "a reason this UI doesn't know: held, not named");
   // its words name no time: the pool's reset fills it in
@@ -95,7 +90,7 @@ t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, w
   assert.deepEqual(heldOf({ state: "queued" }), { for: null, until: null, why: null, asked: false });
 });
 t("held words: one verb (starts), the reset while it's ahead, never a time gone by; each gate in plain words", () => {
-  const now = new Date(2026, 10, 14, 5, 0).getTime(); // local time: the owner's clock
+  const now = new Date(2026, 10, 14, 5, 0).getTime();
   const at = (d, h, m = 0) => new Date(2026, 10, 14 + d, h, m).toISOString();
   const limit = (until) => ({ for: "limit", until, why: null, asked: false });
   assert.match(sp(heldWords(limit(at(0, 6, 50)), now)), /^Waiting for the usage limit · starts at 6:50\sAM$/);
@@ -118,7 +113,7 @@ t("held words: one verb (starts), the reset while it's ahead, never a time gone 
   assert.equal(heldWords({ for: "paid", asked: false }, now), "Waiting before paid usage · see Settings › Runtimes");
   assert.ok(!/Never/.test(heldWords({ for: "paid", asked: false }, now)));
   assert.match(heldWords({ for: "near_limit" }, now), /^Waiting · near the usage limit/);
-  assert.equal(heldWords({ for: "memory" }, now), "Waiting for memory to free up");
+  assert.equal(heldWords({ for: null, why: "waiting for memory to free up" }, now), "Waiting for memory to free up");
   assert.match(sp(heldWords({ for: "founder", until: at(0, 6, 50) }, now)), /^Paused by you · until 6:50\sAM$/);
   assert.equal(heldShort({ for: "founder" }, now), "Paused");
   assert.equal(heldBadge({ for: "founder" }), "Paused");
@@ -130,7 +125,7 @@ t("held words: one verb (starts), the reset while it's ahead, never a time gone 
 });
 t("of several held, the soonest start; one with no time when none has", () => {
   const now = Date.parse("2026-11-14T05:00:00Z");
-  const a = { for: "limit", until: "2026-11-14T09:00:00Z" }, b = { for: "limit", until: "2026-11-14T06:00:00Z" }, c = { for: "memory", until: null }, gone = { for: "limit", until: "2026-11-14T04:00:00Z" };
+  const a = { for: "limit", until: "2026-11-14T09:00:00Z" }, b = { for: "limit", until: "2026-11-14T06:00:00Z" }, c = { for: "founder", until: null }, gone = { for: "limit", until: "2026-11-14T04:00:00Z" };
   assert.equal(soonestHeld([a, null, c, b, gone], now), b);
   assert.equal(soonestHeld([c, gone], now), c);
   assert.equal(soonestHeld([null], now), null);
@@ -175,8 +170,8 @@ t("the newest word wins: the runs counts after a read, a run named after the cou
   assert.equal(sessionBusy({ id: "s", state: "warm", sub: false, readAt: 50 }, { runs: [{ session: "s", state: "running", seen: 30 }] }), false);
 });
 
-// ── storm.js end to end ───────────────────────────────────────────────────
-// A browser-ish global: storm.js listens for the tab coming back and the network returning.
+// ── storm end to end ───────────────────────────────────────────────────
+// A browser-ish global: storm listens for the tab coming back and the network returning.
 globalThis.addEventListener = () => {};
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 // its housekeeping interval mustn't keep node alive
@@ -209,7 +204,7 @@ function fakeBackend(routes) {
 const until = async (cond, ms = 3000) => { const t0 = Date.now(); while (!cond()) { if (Date.now() - t0 > ms) throw new Error("timed out"); await new Promise((r) => setTimeout(r, 5)); } };
 const settle = () => new Promise((r) => setTimeout(r, 80)); // storm commits a burst of frames after 30 ms
 
-t("storm.js: a thread's Working follows busy from its view, then the stream's status and sub-agents; waiting on you never", async () => {
+t("storm: a thread's Working follows busy from its view, then the stream's status and sub-agents; waiting on you never", async () => {
   const at = "2026-11-04T10:00:00Z";
   const thread = (ts, session, view, extra = {}) => ({ ts, chat_id: "chat_p", title: ts, state: "working", session_id: session, created_at: at, updated_at: at, session: view, ...extra });
   const be = fakeBackend({
@@ -227,7 +222,7 @@ t("storm.js: a thread's Working follows busy from its view, then the stream's st
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 1, turns: [] } });
   await until(() => world.state.loaded);
@@ -278,7 +273,7 @@ t("storm.js: a thread's Working follows busy from its view, then the stream's st
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: held by the usage limit is Waiting, never Working or replying, on an older backend and a newer one; it starts at the reset", async () => {
+t("storm: held by the usage limit is Waiting, never Working or replying, on an older backend and a newer one; it starts at the reset", async () => {
   const at = "2026-11-13T21:00:00Z", reset = new Date(Date.now() + 3 * 3600e3).toISOString();
   const pool = "claude_code:acct-1";
   const thread = (ts, session, view, extra = {}) => ({ ts, chat_id: "chat_p", title: ts, state: "working", session_id: session, created_at: at, updated_at: at, session: view, ...extra });
@@ -303,7 +298,7 @@ t("storm.js: held by the usage limit is Waiting, never Working or replying, on a
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 1, turns: [] } });
   await until(() => world.state.loaded);
@@ -333,20 +328,25 @@ t("storm.js: held by the usage limit is Waiting, never Working or replying, on a
   // the older backend's session, still queued once its pool is open: held for a reason it doesn't name, never Working
   assert.equal(world.thread("old").busy, false);
   assert.deepEqual(world.thread("old").held, { for: null, until: null, why: null, asked: false });
-  // a newer backend's frame holds it again, saying why (here the memory guard)
-  be.push("session", { session_id: "cse_new", seq: 22, data: { status: "queued", reason: "memory", waiting: { for: "memory", until: null, pool: null, why: "memory" } } });
+  // near the limit, the coordinator's queued wake is background work: nobody waits on it, so it shows no hold
+  be.push("session", { session_id: "cse_co", seq: 24, data: { status: "queued", waiting: { for: "near_limit", until: null, pool, why: "pool warn" } } });
+  await settle();
+  assert.equal(world.act.coordinatorHeld("demo"), null);
+  assert.equal(world.act.replying("demo"), false);
+  // a newer backend's frame holds it again, saying why (here the founder)
+  be.push("session", { session_id: "cse_new", seq: 22, data: { status: "queued", reason: "held by the founder", waiting: { for: "founder", until: null, pool: null, why: "held by the founder" } } });
   await settle();
   assert.equal(world.thread("new").busy, false);
-  assert.equal(world.thread("new").held.for, "memory");
+  assert.equal(world.thread("new").held.for, "founder");
   // and any other status ends the wait, whatever the frame says beside it
-  be.push("session", { session_id: "cse_new", seq: 23, data: { status: "running", waiting: { for: "memory" } } });
+  be.push("session", { session_id: "cse_new", seq: 23, data: { status: "running", waiting: { for: "founder" } } });
   await settle();
   assert.equal(world.thread("new").held, null);
   assert.equal(world.state.sessions.cse_new.waiting, null);
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: held is one shown state, and work seen after a stale queued wins (a turn started, a newer read)", async () => {
+t("storm: held is one shown state, and work seen after a stale queued wins (a turn started, a newer read)", async () => {
   const at = "2026-11-13T21:00:00Z", reset = new Date(Date.now() + 3 * 3600e3).toISOString();
   const pool = "claude_code:acct-1";
   const thread = (ts, session, state, view) => ({ ts, chat_id: "chat_p", title: ts, state, session_id: session, created_at: at, updated_at: at, session: view, busy: false });
@@ -364,7 +364,7 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 100, turns: [] } });
   await until(() => world.state.loaded);
@@ -398,7 +398,7 @@ t("storm.js: held is one shown state, and work seen after a stale queued wins (a
   assert.ok(be.asked.every((a) => a.startsWith("GET ")), "only GETs");
 });
 
-t("storm.js: at boot a listed queued session stands at the snapshot's seq: a turn left running in history doesn't make it Working", async () => {
+t("storm: at boot a listed queued session stands at the snapshot's seq: a turn left running in history doesn't make it Working", async () => {
   const at = "2026-11-13T21:00:00Z";
   const be = fakeBackend({
     "/chat/chats": { chats: [{ id: "chat_ws", kind: "workspace" }, { id: "chat_p", kind: "project", project: "demo" }] },
@@ -410,7 +410,7 @@ t("storm.js: at boot a listed queued session stands at the snapshot's seq: a tur
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   // the snapshot at seq 500 lists a turn of that session that started at 50 and never said it ended
   be.push("snapshot", { data: { seq: 500, turns: [{ turn_id: "turn_old", session_id: "cse_3", chat_id: "chat_p", thread_ts: "t3", seq: 50, blocks: [] }] } });
@@ -426,7 +426,7 @@ t("storm.js: at boot a listed queued session stands at the snapshot's seq: a tur
   assert.equal(world.thread("t3").busy, true);
 });
 
-t("storm.js: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {
+t("storm: a read sent before a status frame and answered after it doesn't undo that frame (it stands where it was sent)", async () => {
   const at = "2026-11-13T21:00:00Z";
   let release;
   const gate = new Promise((r) => { release = r; });
@@ -443,7 +443,7 @@ t("storm.js: a read sent before a status frame and answered after it doesn't und
     "/chat/runtimes": { runtimes: [] },
     "/chat/router": { mode: "auto" },
   });
-  const { createWorld } = await import("../js/world.js");
+  const { createWorld } = await import("../core/services/world/store.js");
   const world = createWorld();
   be.push("snapshot", { data: { seq: 5, turns: [] } });
   await until(() => world.state.loaded);

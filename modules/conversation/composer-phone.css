@@ -1,0 +1,8 @@
+/* Keep the target mark and the model visible together. */
+@media (max-width:760px){
+  :root:root .target :is(.tg-w,.muted){display:none}
+  :root:root .target b{display:none}
+  :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
+  :root:root .iq{padding:0 var(--s-model-chip-phone)}
+  :root:root .iq-sep{margin:0 var(--s-1)}
+}

@@ -1,12 +1,11 @@
 // Browser tests for Launchpad and the Shells dock: how each control answers, in the app itself.
-// The rows they lock are listed in design-research/2026-11-lg/LAUNCHPAD-SHELL.md.
 //   Launchpad: errors are whole · name taken · size dropdown · undo · stop window · copy is truthful · menu keys ·
 //              ask pending
 //   Shells: toggle · close says so · close all detached · tab keys · rename in the tab · close asks in its row · new shell pending · retry counts ·
 //           ended · terminal copy
 //
 // Self-contained: the app is served from this folder, every /api request is answered in the page by
-// design-research/2026-11-lg/lp-shell/world.cjs (Launchpad's routes by design-research's mockspace, the shells'
+// e2e/worlds/lp-shell.cjs (Launchpad's routes by the mockspace, the shells'
 // REST routes and WebSocket mocked). Nothing reaches a Space; nothing is written anywhere.
 //   node tests/browser/lpshell.test.cjs [name-regex]
 // Needs Playwright's core and a Chromium: PLAYWRIGHT_CORE (default /tmp/pw/node_modules/playwright-core).
@@ -14,15 +13,12 @@
 "use strict";
 const assert = require("assert/strict");
 let W;
-try { W = require("../../design-research/2026-11-lg/lp-shell/world.cjs"); } catch (e) { console.error(`not run: ${e.message.split("\n")[0]}`); process.exit(2); }
+try { W = require("../../e2e/worlds/lp-shell.cjs"); } catch (e) { console.error(`not run: ${e.message.split("\n")[0]}`); process.exit(2); }
 
 let env, WIDTH = 1440, THEME = "dark", MOTION = "reduce", passed = 0, failed = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, theme: THEME, motion: MOTION, ...o });
-// every case ends with both focus checks: Launchpad's own (a redraw with no place named) and the main build's
-// (window.__focusDrops: focus fell to the page because its control was removed or hidden)
-// Missing instrumentation fails the check: it never reads as "no drops" (Astra on 93b99ca).
 async function done(page) {
   const { lost, drops } = await page.evaluate(() => ({ lost: typeof window.__t?.LP?.lostFocus === "function" ? window.__t.LP.lostFocus() : null, drops: Array.isArray(window.__focusDrops) ? window.__focusDrops : null }));
   const errs = page.errors; await page.context().close();
@@ -52,8 +48,6 @@ t("LP10: every hint and error is whole, under its field; an invalid field takes 
   // each hint sits under its own field
   const under = await page.evaluate(() => ["name", "port"].every((k) => { const i = document.querySelector(`[data-lp-f="${k}"]`).getBoundingClientRect(), h = document.querySelector(`#lp-h-${k}`).getBoundingClientRect(); return h.top >= i.bottom - 1 && Math.abs(h.left - i.left) < 2; }));
   assert.ok(under, "hints under their fields, on their edge");
-  // every field and lit button is on the 24/32/40 scale; on a phone at least the shared 36 px floor (32fa270, b7cf1ec:
-  // every control and text field on a phone is 36 tall), so 36 or 40
   const sizes = await page.evaluate(() => [...document.querySelectorAll(".lp .lp-in, .lp .lp-go, .lp .lp-b, .lp .lp-a, .lp .lp-ib")].filter((n) => n.offsetParent).map((n) => Math.round(n.getBoundingClientRect().height)));
   assert.ok(sizes.every((h) => (WIDTH < 760 ? [36, 40] : [24, 32, 40]).includes(h)), `heights ${[...new Set(sizes)]}`);
   await done(page);
@@ -346,7 +340,6 @@ t("LP15: Size is the app's dropdown (xo-select), by keyboard, and the deploy car
   await done(page);
 });
 
-// ── Astra on 10f2580 ──
 const sse = (r, events) => r.fulfill({ status: 200, contentType: "text/event-stream", body: events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("") });
 t("LP15: Esc in the open Size list closes the list, not the panel; focus stays on Size", async () => {
   const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => (/\/preflight$/.test(p) ? json(r, PRE) : r.fallback()) });
@@ -479,7 +472,6 @@ t("LP10: a repository name to choose keeps its field while you fix it, through a
   await done(page);
 });
 
-// Astra on 6d0a428 (LP-READ-ERROR-OWNERSHIP): an older read's refusal never beats a newer answer
 const gate = () => { let open; const p = new Promise((ok) => (open = ok)); return { p, open }; };
 t("LP1A: an older check refused after a newer GitHub check answered: the screen stays, nothing says Couldn't check", async () => {
   const held = gate(); let holdCheck = false, checks = 0, armedOk = false;
@@ -529,7 +521,6 @@ t("LP1A: an older GitHub check refused after a newer read answered: no stale 'Co
   await done(page);
 });
 
-// Astra on 6d0a428 (LP-ASK-EXACT-THREAD): the asked thread by its id, whatever its title, past older same-title ones
 for (const kase of ["older same-title thread", "renamed", "resolved"]) {
   t(`LP40: the asked thread's state comes from that exact thread (${kase})`, async () => {
     const at = new Date().toISOString();
@@ -576,8 +567,15 @@ t("LP44: a cancelled GitHub code's late answer doesn't clear the newer code", as
   let n = 0, cancelled = 0;
   const page = await open({ launchpad: "scope", api: async (r, m, p, answer) => {
     if (p.endsWith("/connectors/github/cli/start")) { n++; return answer({ session_id: `s${n}`, user_code: `CODE-${n}`, verification_uri: "https://github.com/login/device", expires_in: 900 }); }
-    if (p.endsWith("/connectors/github/cli/poll")) { const id = JSON.parse(r.request().postData() || "{}").session_id; if (id === "s1") { await new Promise((ok) => setTimeout(ok, 2500)); return answer({ status: "failed", error: "expired" }); } return answer({ status: "pending" }); }
-    if (p.endsWith("/connectors/github/cli/cancel")) { cancelled++; return answer({}); }
+    if (p.endsWith("/connectors/github/cli/poll")) {
+      const id = JSON.parse(r.request().postData() || "{}").session_id;
+      if (id === "s1") {
+        await new Promise((ok) => setTimeout(ok, 2500));
+        return answer({ status: "failed", error: "expired" }, 502);
+      }
+      return answer({ status: "pending", user_code: "CODE-2", verification_uri: "https://github.com/login/device" });
+    }
+    if (p.endsWith("/connectors/github/cli/cancel")) { cancelled++; return answer({ status: "cancelled" }); }
     return undefined;
   } });
   await W.openLaunchpad(page);
@@ -608,13 +606,17 @@ t("LP21: the notice's Undo for Stop puts focus back on Stop; no stop is asked fo
 });
 
 for (const where of ["section put away", "another place on screen"]) {
-  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "Launchpad's own head in the panel" : "that page's work, or on a phone the panel's Close"}; no stop`, async () => {
+  t(`LP21: Stop's notice Undo with the ${where}: focus goes to ${where === "section put away" ? "the project's own Deploy" : "that page's work"}, or on a phone the panel's Close; no stop`, async () => {
     const calls = [];
     const page = await open({ launchpad: "building", onDeploy: (r, m, p) => { if (/\/api\/deploy\/[^/]+$/.test(p) && m === "DELETE") { calls.push(m); return json(r, { stopped: true }); } return r.fallback(); } });
     await W.openLaunchpad(page);
     await page.waitForFunction(() => document.querySelector(".lp")?.dataset.screen === "run");
     await page.locator('[data-lp="stop"]').click();
-    if (where === "section put away") await page.locator('[data-lp="hide"]').click();
+    if (where === "section put away") {
+      await page.locator('[data-lp="hide"]').click();
+      const hid = await page.evaluate(() => { const a = document.activeElement; return { deploy: a.hasAttribute("data-lp-open"), close: a.hasAttribute("data-stg-close") }; });
+      assert.ok(WIDTH <= 760 ? hid.close : hid.deploy, `Hide puts focus on ${WIDTH <= 760 ? "the covering panel's Close" : "the project's own Deploy"}`);
+    }
     // another place: the page changes by script (window.__t.go). A person changes place by pressing something, which
     // takes focus off Launchpad first, so the case lets go of it deliberately before the script moves the page (a
     // navigation by script with focus left in a section it hides is the test's own move, not a person's path)
@@ -623,12 +625,12 @@ for (const where of ["section put away", "another place on screen"]) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(3300);
     assert.deepEqual(calls, [], "no stop was asked for");
-    // what Undo kept is the run, in Launchpad's section: its head (folded, in the panel) has focus. With another place on
-    // screen: that page's work, unless the open panel covers the page (a phone): then the panel's own Close
-    const at = await page.evaluate(() => { const a = document.activeElement; return { fold: a.getAttribute("data-fr-fold"), close: a.hasAttribute("data-stg-close"), id: a.id, inPanel: !!a.closest("#stage"), drawn: a.getClientRects().length > 0 }; });
-    if (where === "section put away") assert.deepEqual([at.fold, at.inPanel, at.drawn], ["launch", true, true], "Launchpad's head, in the panel");
-    else if (WIDTH > 760) assert.equal(at.id, "scroller", "the Workspace's conversation");
-    else assert.deepEqual([at.close, at.drawn], [true, true], "the covering panel's Close");
+    // put away, Launchpad leaves the panel (it shows only when Deploy opens it): the run Undo kept is reached by the
+    // project's own Deploy, or that page's work with another place on screen; on a phone, the covering panel's Close
+    const at = await page.evaluate(() => { const a = document.activeElement; return { deploy: a.hasAttribute("data-lp-open"), close: a.hasAttribute("data-stg-close"), id: a.id, drawn: a.getClientRects().length > 0 }; });
+    if (WIDTH <= 760) assert.deepEqual([at.close, at.drawn], [true, true], "the covering panel's Close");
+    else if (where === "section put away") assert.deepEqual([at.deploy, at.drawn], [true, true], "the project's own Deploy");
+    else assert.equal(at.id, "scroller", "the Workspace's conversation");
     await done(page);
   });
 }
@@ -733,11 +735,6 @@ t("SH31: Retry now hands focus to the shell", async () => {
   await done(page);
 });
 
-// ── RINGCLIP · C076: no clipping box cuts a focused control's ring in Launchpad and Shells ──
-// grader B on 24be023 (r23), 390 both themes: Launchpad's Deploy in its folded head ([data-lp="open"], 36 tall on a
-// phone in the 40 px head of a frame that clips) showed its ring only left and right. The sweep (harness.cjs
-// ringClips) focuses every control in view and checks every clipping box around it: Launchpad open, its section
-// folded with Deploy in the head and unfolded again, and the Shells dock with a shell open.
 const { ringClips } = require("./harness.cjs");
 t("RINGCLIP C076: no clipping box cuts a focused control's ring: Launchpad open, folded (Deploy) and open again, the Shells dock", async () => {
   const cuts = [], counts = [], small = [];

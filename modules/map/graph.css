@@ -1,0 +1,45 @@
+:root{
+  --map-dot-hover:1.35;
+  --d-map-hit:calc(var(--d-land) + var(--d-wait));
+}
+/* the graph: the same boxes as dots on a living layout */
+.k-graph .gn{position:absolute;left:0;top:0;display:flex;align-items:center;gap:var(--s-2);height:var(--ic-base);
+  margin-top:var(--offset-half-icon);padding:0;background:none;border:0;white-space:nowrap;
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:pointer}
+.k-graph div.gn{cursor:default}
+/* Keep the dot's edge, gap, focus ring and presence halo in separate layers. */
+.gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;
+  background:var(--map-dot);--gn-gap:var(--canvas);
+  box-shadow:var(--gn-in,inset 0 0 var(--palette-shadow-clear)),0 0 0 var(--gap-control-tight) var(--gn-gap),
+    var(--gn-focus,0 0 var(--palette-shadow-clear)),var(--gn-halo,0 0 var(--palette-shadow-clear));
+  transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
+.gn-l{text-shadow:0 0 var(--blur-map-label) var(--canvas),0 0 var(--blur-map-label) var(--canvas);
+  transition:opacity var(--d-hover) var(--ease)}
+.gn.k-root .gn-d{background:var(--accent)}
+.gn.k-root{font-size:var(--fs-ui);font-weight:var(--fw-strong);color:var(--ink)}
+.gn.k-project{font-size:var(--fs-meta);font-weight:var(--fw-medium);color:var(--ink-2)}
+.gn.k-project .gn-d{background:var(--ink-3)}
+.gn.k-dir{font-size:var(--fs-meta);font-weight:var(--fw-medium);color:var(--ink-2)}
+.gn.k-dir .gn-d{background:var(--ink-3)}
+.gn.k-dir:not(.is-open) .gn-d{background:var(--palette-transparent);--gn-in:inset 0 0 0 var(--stroke-outline-icon) var(--ink-3)}
+.gn.k-file .gn-l,.gn.k-more .gn-l,.gn.k-note .gn-l{opacity:0}
+.k-graph.is-near .gn .gn-l,.gn:hover .gn-l,.gn:focus-visible .gn-l,.gn.is-here .gn-l,.gn.m-new .gn-l,.gn.m-edited .gn-l{opacity:1}
+.gn:hover .gn-d{transform:scale(var(--map-dot-hover))}
+.gn:focus-visible{outline:none}
+/* The inner gap leaves two pixels of the focus colour visible. */
+.gn:focus-visible .gn-d{--gn-focus:0 0 0 var(--s-1) var(--focus)}
+.gn.m-new .gn-d{background:var(--accent)}
+.gn.m-edited .gn-d{background:var(--violet)}
+.gn.m-deleted{opacity:var(--opacity-muted)}
+.gn.is-here .gn-d{background:var(--c);--gn-halo:0 0 0 var(--inset-badge) color-mix(in srgb,var(--c) 25%,var(--palette-transparent))}
+.gn.is-here{color:var(--ink)}
+.gn.is-hit .gn-d{animation:gn-hit var(--d-map-hit) var(--ease)}
+@keyframes gn-hit{
+  0%{box-shadow:var(--gn-in,inset 0 0 var(--palette-shadow-clear)),0 0 0 var(--gap-control-tight) var(--gn-gap),
+    var(--gn-focus,0 0 var(--palette-shadow-clear)),
+    0 0 0 0 color-mix(in srgb,var(--c,var(--info)) 60%,var(--palette-transparent))}
+  100%{box-shadow:var(--gn-in,inset 0 0 var(--palette-shadow-clear)),0 0 0 var(--gap-control-tight) var(--gn-gap),
+    var(--gn-focus,0 0 var(--palette-shadow-clear)),
+    0 0 0 var(--s-4) var(--palette-transparent)}
+}
+.k-graph ~ .dg-key{display:none}

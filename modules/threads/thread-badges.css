@@ -1,0 +1,19 @@
+/* paused: it waits on you (shape: an outlined diamond, amber) */
+.st-paused{--st:var(--warn)}
+
+/* a thread's own header: its label, Resolve / Reopen (R1), rename and label */
+.tw-label{
+  flex:none;display:inline-flex;align-items:center;height:var(--h-thread-label);padding:0 var(--s-thread-label-inline);
+  border-radius:var(--r-sm);background:var(--fill-2);border:var(--hair) solid var(--line-soft);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);max-width:var(--w-thread-label);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+/* Runtime identity in the thread header and thread list. */
+.tw-rt{
+  flex:none;height:var(--h-sm);padding:0 var(--halo);margin-left:calc(-1 * var(--s-1));border-radius:var(--r-sm);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);white-space:nowrap;
+  transition:color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)
+}
+.tw-rt:hover,.tw-rt:focus-visible{color:var(--ink-2);background:var(--hover-fill)}
+.tw-rt.is-warn,.ar-r.is-warn{color:var(--warn)}
+.ar-r{color:var(--ink-4)}

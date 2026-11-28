@@ -1,16 +1,18 @@
-// Pictures and files in the conversation (js/media.js): the box a picture gets before its pixels, the
-// album's justified rows, the dedupe of a turn's shared files against its messages, and the data that
-// feeds them (attach.js attachmentsOf, timeline.js updateMessage). No network, no browser.
-//   node tests/media.test.mjs
 import assert from "node:assert/strict";
+import { parseHTML } from "linkedom";
+
+const mediaRoot = (html) => parseHTML(`<main>${html}</main>`).document.querySelector("main");
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const M = await import("../js/media.js");
-const { attachmentsOf } = await import("../js/attach.js");
-const { uiMsg, updateMessage } = await import("../js/timeline.js");
-const { turnHtml } = await import("../js/turnview.js");
-const MD = await import("../js/markdown.js");
+const { galleryOf } = await import("../core/services/media/hydrate.js");
+const { mediaItemOf } = await import("../core/services/media/stack-data.js");
+const { markWebGone, webGone } = await import("../core/services/media/cache.js");
+const M = { ...await import("../core/services/media/render.js"), ...await import("../core/services/media/items.js"), ...await import("../core/services/media/layout.js"), galleryOf, mediaItemOf, markWebGone, webGone };
+const { attachmentsOf } = await import("../core/services/world/rows.js");
+const { uiMsg, updateMessage } = await import("../core/services/world/rows.js");
+const { turnHtml } = await import("../modules/conversation/blocks/turn.js");
+const MD = await import("../core/ui/markdown/markdown.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -125,6 +127,17 @@ t("updateMessage: files shared after the last reply land on it; reactions and th
 });
 
 // ── items and HTML ────────────────────────────────────────────────────────
+t("items: a project picture is keyed by the version shared, so an overwrite shared again loads fresh", () => {
+  const f = { name: "c.png", type: "image/png", project_id: "billing", relative_path: "out/c.png" };
+  const v1 = M.fromSharedFile({ ...f, mtime: "2026-11-23T10:00:00Z" }), v2 = M.fromSharedFile({ ...f, mtime: "2026-11-23T10:05:00Z" });
+  assert.equal(v1.key, "prj:billing:out/c.png@2026-11-23T10:00:00Z");
+  assert.ok(v1.key !== v2.key);
+  assert.equal(M.fromAttachment({ ...f, mtime: "2026-11-23T10:05:00Z" }).key, v2.key);
+  assert.equal(M.fromSharedFile(f).key, "prj:billing:out/c.png");
+  const row = { id: "m1", extra: { attachments: [{ ...f, mtime: "2026-11-23T10:05:00Z" }] } };
+  assert.equal(M.fromAttachment(attachmentsOf(row)[0]).key, v2.key);
+});
+
 t("items: an upload reads through its chat, an agent's file through its project; no route → a card that says why", () => {
   const up = M.fromAttachment({ id: "att_9", name: "me.png", type: "image/png", bytes: 10 }, { chat: "chat_p", by: "You" });
   assert.equal(up.kind, "image"); assert.equal(up.key, "att:chat_p:att_9"); assert.match(up.src, /chat\/chats\/chat_p\/attachments\/att_9$/);
@@ -168,16 +181,16 @@ t("mediaHtml: six pictures → an album of four tiles, the fourth +3, the lightb
   assert.equal((html.match(/class="mx-tile"/g) || []).length, 4);
   assert.match(html, /<span class="mx-more" aria-hidden="true">\+3<\/span>/);
   assert.match(html, /aria-label="Open p3\.png and 2 more pictures"/);
-  const keys = JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"'));
+  const root = mediaRoot(html);
+  const keys = M.galleryOf(root).map((it) => it.key);
   assert.deepEqual(keys, ["p0", "p1", "p2", "p3", "p4", "p5"]);
   assert.match(html, /class="tb-fb" data-mx="f1"/);
   assert.match(html, /<span class="tb-fm">Markdown · 2 KB<\/span>/);
   assert.match(html, /data-fi=/); // Pierre's coloured icon, not the plain doc glyph
-  assert.equal(M.mediaItemOf("p4").name, "p4.png"); // registered for the lightbox and the click handler
+  assert.equal(M.mediaItemOf("f1", root.querySelector(".tb-fb")).name, "notes.md");
   assert.equal(M.mediaHtml([]), "");
 });
 
-// ── titles: a shared file named in plain words (xo-space 8c6bc03) ───────────
 t("midName: a long file name is cut in its middle, its extension and its stem's end kept; short ones stay whole", () => {
   assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 17), "r3-dark…title.png");
   assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 32), "r3-dark-panel-narrow-3…title.png");
@@ -276,8 +289,7 @@ t("markdown: a bare http(s) picture address on its own line is one; in a sentenc
   const mid = seen("Look ![the pool](https://ex.com/pool.jpg) before you book.");
   assert.deepEqual(mid.runs, []);
   assert.ok(!mid.html.includes("!"), mid.html);
-  // an outbound link's last word holds the ↗ (QA F3)
-  assert.match(mid.html, /<span class="lk-t">the <\/span><span class="lk-end"><span class="lk-t">pool<\/span><svg class="lk-ar"/);
+  assert.match(mid.html, /<span class="lk-t">the <\/span><span class="lk-end"><span class="lk-t">pool<\/span><svg class="xi lk-ar"/);
 });
 t("markdown: only http(s): data:, javascript: and blob: are never pictures, never links", () => {
   for (const src of ["![x](data:image/png;base64,iVBORw0KGgo=)", "![x](javascript:alert)", "![x](blob:https://ex.com/1234)", "![x](//ex.com/a.png)", "![x](ftp://ex.com/a.png)"]) {
@@ -293,7 +305,7 @@ t("markdown without the app's renderer (or the setting off): the same lines are 
   MD.setWebImages(() => null);
   const html = MD.renderMarkdown("![The loft](https://ex.com/loft.jpg)\nhttps://ex.com/b.png");
   MD.setWebImages(null);
-  assert.match(html, /^<p><a href="https:\/\/ex\.com\/loft\.jpg"[^>]*class="lk lk-out"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="lk-ar"/);
+  assert.match(html, /^<p><a href="https:\/\/ex\.com\/loft\.jpg"[^>]*class="lk lk-out"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="xi lk-ar"/);
   assert.match(html, /<br><a href="https:\/\/ex\.com\/b\.png"[^>]*class="lk lk-out is-bare"/);
   assert.ok(!/<img/.test(html));
 });
@@ -305,20 +317,20 @@ t("web pictures: no referrer, lazy, async, no crossorigin; the 16:10 frame (size
   assert.ok(!/crossorigin/i.test(one));
   assert.match(one, /aria-label="Open The loft, living room, image"/);
   assert.match(one, /title="The loft, living room · ex\.com"/);
-  const it = M.mediaItemOf("web:https://ex.com/p/loft.jpg");
+  const it = M.mediaItemOf("web:https://ex.com/p/loft.jpg", mediaRoot(one).querySelector("button"));
   assert.deepEqual([it.kind, it.name, it.title, it.by, it.web.host, it.w, it.h], ["image", "loft.jpg", "The loft, living room", "ex.com", "ex.com", null, null]);
   const album = M.webImagesHtml([1, 2, 3].map((i) => ({ alt: `Room ${i}`, url: `https://www.ex.com/r${i}.jpg` })));
   assert.match(album, /class="mx-album"/);
   assert.equal((album.match(/class="mx-tile"/g) || []).length, 3);
   assert.equal(M.fromWebImage({ alt: "", url: "https://www.ex.com/" }).name, "ex.com", "no file name: its host");
-  assert.equal(M.mediaItemOf("web:https://www.ex.com/r1.jpg").by, "ex.com");
+  assert.equal(M.galleryOf(mediaRoot(album))[0].by, "ex.com");
 });
 t("a web picture that can't show becomes its outbound link (alt or host, ↗), no broken image; it isn't tried again", () => {
   const titled = M.fromWebImage({ alt: "The loft", url: "https://ex.com/gone.jpg" });
   const link = M.webLinkHtml(titled);
-  assert.match(link, /^<a href="https:\/\/ex\.com\/gone\.jpg" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="https:\/\/ex\.com\/gone\.jpg"><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="lk-ar"/);
+  assert.match(link, /^<a href="https:\/\/ex\.com\/gone\.jpg" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="https:\/\/ex\.com\/gone\.jpg"><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span><svg class="xi lk-ar"/);
   assert.ok(!/<img/.test(link));
-  assert.match(M.webLinkHtml(M.fromWebImage({ alt: "", url: "https://www.blocked.example/x.png" })), /<span class="lk-t">blocked<\/span><span class="lk-end"><span class="lk-t">\.example<\/span><svg class="lk-ar"/);
+  assert.match(M.webLinkHtml(M.fromWebImage({ alt: "", url: "https://www.blocked.example/x.png" })), /<span class="lk-t">blocked<\/span><span class="lk-end"><span class="lk-t">\.example<\/span><svg class="xi lk-ar"/);
   assert.equal(M.webGone("https://ex.com/gone.jpg"), false);
   M.markWebGone("https://ex.com/gone.jpg");
   assert.equal(M.webGone("https://ex.com/gone.jpg"), true);
@@ -326,7 +338,7 @@ t("a web picture that can't show becomes its outbound link (alt or host, ↗), n
   assert.ok(!/data-mx-img="web:https:\/\/ex\.com\/gone\.jpg"/.test(html), "the failed one isn't drawn as a picture again");
   assert.match(html, /class="mx-one is-frame" data-mx="web:https:\/\/ex\.com\/pool\.jpg"/);
   assert.match(html, /<p class="mx-weblinks"><a href="https:\/\/ex\.com\/gone\.jpg"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span>/);
-  assert.deepEqual(JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"')), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
+  assert.deepEqual(M.galleryOf(mediaRoot(html)).map((it) => it.key), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
   // all of them gone: only their links
   assert.equal(M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }]).includes("<img"), false);
 });

@@ -1,0 +1,37 @@
+{
+ "modules/artifacts/page.js": {
+  "observer": 2
+ },
+ "modules/decisions/dock.js": {
+  "observer": 1
+ },
+ "modules/files/files.js": {
+  "observer": 1
+ },
+ "modules/launchpad/actions.js": {
+  "setInterval": 2,
+  "setTimeout": 2
+ },
+ "modules/launchpad/notices.js": {
+  "setTimeout": 2
+ },
+ "modules/map/drawing.js": {
+  "requestAnimationFrame": 3,
+  "setTimeout": 1
+ },
+ "modules/map/map.js": {
+  "observer": 1
+ },
+ "modules/shells/panel.js": {
+  "observer": 1
+ },
+ "modules/shells/term.js": {
+  "observer": 2
+ },
+ "shell/panel/panel.js": {
+  "observer": 1
+ },
+ "shell/panel/width.js": {
+  "observer": 1
+ }
+}

@@ -1,79 +1,70 @@
-// The conversation's buttons are on the 24/32/40 scale on a desktop, from the size tokens (grader A on c767cbf, C052:
-// Copy beside a message was 28 × 28 at 1440, in both themes). Reply and Copy are buttons: the standard --h-ctl (32);
-// the room a bubble leaves them, and the space held under pictures, follow that token, never a number of their own.
-// The reply quote's × is an inline dismiss: --h-sm (24), concentric with the quote's corner. A phone keeps its 36.
-// No browser: the stylesheets.
-//   node tests/conv-ctl-scale.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { list } from "postcss";
+import { declarationsFor, resolveValue, stylesheetRows, tokenValuesFor } from "./lib/css-snapshot.mjs";
 
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const msgx = read("msgx.css"), tokens = read("tokens.css"), phone = read("phone.css");
-const body = (css, sel) => { const m = new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{([^}]*)\\}`).exec(css); assert.ok(m, `${sel} is declared`); return m[1]; };
-const px = (b, prop) => (new RegExp(`(?:^|;)${prop}:([^;]+)`).exec(b) || [])[1];
+const compact = ":root[data-msgx] .m-turn";
+const pill = compact + " .turn>.tb>.tb-h";
+const rail = compact + " .tb-work.is-open .tb-rail>.tb>.tb-h";
+const railRow = compact + " .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh";
+const openRow = compact + " .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh";
 
-t("the scale itself: --h-sm 24, --h-ctl 32, --h-lg 40", () => {
-  assert.match(tokens, /--h-sm:24px;\s*--h-ctl:32px;\s*--h-lg:40px;/);
+/** @param {string} selector @param {string} property @param {string} [media] */
+function value(selector, property, media) {
+  const rows = declarationsFor((group) => list.comma(group).includes(selector), property);
+  const row = rows.find((candidate) => candidate.context.find((scope) => scope.at === "media")?.params === media);
+  assert.ok(row, selector + " " + property);
+  return row.value;
+}
+
+test("the control height scale has three desktop steps", () => {
+  const tokens = tokenValuesFor();
+  assert.deepEqual(["--h-sm", "--h-ctl", "--h-lg"].map((name) => tokens.get(name)), ["24px", "32px", "40px"]);
 });
 
-t("C052: Reply and Copy beside a message are the standard control height, from --h-ctl (they were 28)", () => {
-  const b = body(msgx, ".mx-acts button");
-  assert.equal(px(b, "width"), "var(--h-ctl)");
-  assert.equal(px(b, "height"), "var(--h-ctl)");
+test("Reply and Copy use the standard control size and the bubbles leave enough space", () => {
+  for (const property of ["width", "height"]) assert.equal(value(".mx-acts button", property), "var(--h-ctl)");
+  const bubbleWidths = stylesheetRows.filter((row) => ["width", "max-width"].includes(row.property)
+    && row.context.some((scope) => scope.selector?.includes("[data-msgx]") || scope.selector?.endsWith(" .bubble")));
+  assert.equal(bubbleWidths.filter((row) => row.value.includes("calc(100% - 2 * var(--h-ctl) - 10px)")).length, 4);
+  assert.ok(bubbleWidths.every((row) => row.value !== "66px"));
+  assert.equal(resolveValue(value(".mx-acts", "gap")), "2px");
+  assert.equal(resolveValue(value(".mx-acts", "left")), "calc(100% + 8px)");
 });
 
-t("the room a bubble leaves them is two of them, their gap and the 8 px between: from the token, never 66", () => {
-  assert.doesNotMatch(msgx, /\b66px\b/, "no number of its own");
-  const room = /calc\(100% - 2 \* var\(--h-ctl\) - 10px\)/g;
-  assert.equal((msgx.match(room) || []).length, 4, "a person's bubble, an agent's, and a table's width and max-width");
-  assert.match(body(msgx, ".mx-acts"), /gap:2px/, "the 2 px of the 10");
-  assert.match(body(msgx, ".mx-acts"), /left:calc\(100% \+ 8px\)/, "the 8 px of the 10");
+test("images leave space below for the actions", () => {
+  const bubble = ":root[data-msgx] .msgs>.m.mx-nobub";
+  assert.equal(value(bubble, "margin-bottom"), "calc(var(--h-ctl) + 26px)");
+  assert.equal(resolveValue(value(".mx-nobub .mx-acts.is-foot", "top")), "calc(100% + 6px)");
 });
 
-t("under pictures, the row holds the buttons' height plus its 6 and 20 (it held 28's)", () => {
-  assert.match(msgx, /:root\[data-msgx\] #msgs>\.m\.mx-nobub\{margin-bottom:calc\(var\(--h-ctl\) \+ 26px\)\}/);
-  assert.match(body(msgx, ".mx-nobub .mx-acts.is-foot"), /top:calc\(100% \+ 6px\)/);
-});
-
-t("the reply quote's ×: --h-sm (it was 28), 6 px in on every side of the quote's 36, so concentric with its 18 corner", () => {
-  const x = body(msgx, ".mx-r-x"), q = body(msgx, ".mx-reply");
-  assert.equal(px(x, "width"), "var(--h-sm)"); assert.equal(px(x, "height"), "var(--h-sm)");
-  assert.equal(px(x, "border-radius"), "50%");
-  assert.equal(px(q, "height"), "36px");
-  assert.equal(px(q, "padding"), "0 6px 0 12px", "(36 − 24) / 2 = 6 on the right as above and below");
-  assert.equal(px(q, "border-radius"), "calc(var(--r-3xl) - 10px)", "28 − 10 = 18; 18 − 6 = 12, the ×'s radius");
-  assert.match(tokens, /--r-3xl:28px/);
-});
-
-t("no button in the conversation's stylesheet takes a literal size off the scale", () => {
-  for (const sel of [".mx-acts button", ".mx-r-x"]) {
-    const b = body(msgx, sel);
-    for (const p of ["width", "height", "min-height"]) { const v = px(b, p); assert.ok(!v || !/^\d+px$/.test(v), `${sel} ${p}: ${v}`); }
+test("the quote dismiss button fits concentrically in the quote", () => {
+  for (const property of ["width", "height"]) {
+    assert.equal(value(".mx-r-x", property), "var(--h-sm)");
+  }
+  assert.equal(value(".mx-reply", "height"), "var(--comp-ctl)");
+  assert.equal(value(".mx-reply", "padding"), "0 calc((var(--comp-ctl) - var(--h-sm)) / 2) 0 12px");
+  for (const selector of [".mx-acts button", ".mx-r-x"]) {
+    const sizes = declarationsFor(selector).filter((row) => /^(?:width|height|min-height)$/.test(row.property));
+    assert.ok(sizes.every((row) => !/^\d+px$/.test(row.value)));
   }
 });
 
-t("a phone keeps its 36: the quote's × stays at the floor, 4 px in; Reply and Copy show only where a pointer hovers", () => {
-  assert.match(phone, /\.mx-r-x[,)]/, "the phone's 36 floor names the ×");
-  assert.match(msgx, /@media \(max-width:760px\)\{\.mx-reply\{padding-right:4px\}\}/);
-  assert.match(msgx, /@media \(hover:none\)\{\.mx-acts\{display:none\}\}/);
+test("the tool pill and rail share control heights at each viewport", () => {
+  for (const selector of [pill, rail, railRow, openRow]) {
+    assert.equal(value(selector, "min-height"), "var(--h-ctl)");
+    assert.equal(resolveValue(value(selector, "min-height", "(max-width:760px)")), "36px");
+  }
+  assert.equal(resolveValue(value(pill, "padding")), "4px 12px 4px 16px");
+  assert.equal(resolveValue(value(pill, "line-height")), "20px");
 });
 
-// The census of 30bd6d0 (tests/ctl-scale.test.mjs) listed one more in this stylesheet: the folded tool pill, 28. It's a
-// button: the compact control height, --h-ctl, as the rail's header and rows it opens to (a literal 32 till now).
-t("the folded tool pill is --h-ctl (it was 28), and so are the rail's header and rows: the token, not a literal 32", () => {
-  for (const sel of [":root[data-msgx] .m-turn .turn>.tb>.tb-h", ":root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h",
-    ":root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh", ":root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh"])
-    assert.equal(px(body(msgx, sel), "min-height"), "var(--h-ctl)", sel);
-  const pill = body(msgx, ":root[data-msgx] .m-turn .turn>.tb>.tb-h");
-  assert.equal(px(pill, "padding"), "4px 12px 4px 16px", "its words keep their 16 px edge");
-  assert.equal(px(pill, "line-height"), "20px", "centred: (32 − 20) / 2 = 6 above and below");
+test("the quote stays touchable and message actions require hover", () => {
+  const floor = declarationsFor((selector) => selector.includes(".mx-r-x") && selector.includes(":where("), "min-width");
+  assert.ok(floor.some((row) => row.context.some((scope) => scope.at === "media")
+    && resolveValue(row.value) === "36px"));
+  assert.equal(resolveValue(value(".mx-reply", "padding-right", "(max-width:760px)")), "4px");
+  assert.equal(value(".mx-acts", "display", "(hover:none)"), "none");
 });
-
-t("a phone keeps the pill and the rail's header and rows at its 36 floor", () => {
-  assert.match(phone, /:root\[data-msgx\] \.m-turn \.turn>\.tb>\.tb-h,\s*:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail>\.tb>\.tb-h,\s*\[data-density="compact"\] \.tb-h\{min-height:36px\}/);
-  assert.match(phone, /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-rows>\.tb-row>\.tb-rh,\s*:root\[data-msgx\] \.m-turn \.turn>\.tb\.tb-act\.is-unfolded>\.tb-rows>\.tb-row>\.tb-rh\{min-height:36px\}/);
-});
-
-console.log(`${passed} passed`);

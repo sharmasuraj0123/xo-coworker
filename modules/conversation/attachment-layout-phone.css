@@ -1,0 +1,4 @@
+@media (max-width:760px){
+  .att{max-width:100%;flex:1 1 100%}
+  .att-b{width:var(--h-touch);height:var(--h-touch)}
+}

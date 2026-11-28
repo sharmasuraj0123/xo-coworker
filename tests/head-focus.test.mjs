@@ -1,29 +1,62 @@
-// Where focus goes when what had it goes, in the viewer (the controls grader on 9d1f71b, S138, all four cells: Enter on
-// the Created notice's Close, while editing the new file, put focus on the viewer's own section, which shows no ring:
-// headFocus took Edit, which the head doesn't have while editing, else the section). Checked from the source: while
-// editing, the editor; else Edit where it shows; else the head's first control that shows; the section only with
-// none. The walk is the flows case "S138 (Created)".
-//   node tests/head-focus.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { registerHooks } from "node:module";
+import { test } from "node:test";
+import { createViewerHead } from "../modules/files/viewer-head.js";
+import { dom, same, settle } from "./lib/dom.mjs";
+import { MAIN_LAYERS } from "../shell/overlays.js";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
-const body = (name) => { const i = src.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0; const j = src.indexOf("{", i); for (let k = j; k < src.length; k++) { if (src[k] === "{") d++; else if (src[k] === "}" && --d === 0) return src.slice(j, k + 1); } return null; };
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("headFocus: the editor while editing; Edit where it shows; the head's first shown control; the section last", () => {
-  const b = body("headFocus");
-  assert.ok(b, "headFocus");
-  const order = ["(ED.on && ED.ed)", 'shown(el, ".vw-top [data-vw-edit]")', "head.querySelectorAll(", "|| el;"].map((x) => b.indexOf(x));
-  assert.ok(order.every((i) => i > 0), `each step is there (${order})`);
-  assert.deepEqual([...order].sort((a, c) => a - c), order, "in that order");
-  assert.ok(/getClientRects\(\)\.length && !x\.closest\("\[inert\]"\)/.test(b), "a control that shows, and can take focus");
+test("viewer focus prefers the editor, then the first visible usable header control", async () => {
+  const { document } = await dom(`<section id="viewer" tabindex="-1">
+    <header class="vw-top">
+      <button disabled>Disabled</button>
+      <button hidden>Hidden</button>
+      <span inert><button>Inert</button></span>
+      <button id="next">First visible choice</button>
+    </header>
+    <div id="editor" contenteditable="true"></div>
+  </section>`);
+  const el = document.querySelector("#viewer"), editor = document.querySelector("#editor");
+  let editing = true;
+  const TX = { h: { view: { contentDOM: editor } } };
+  const { headFocus } = createViewerHead({ el, TX, showsText: () => editing });
+  same(headFocus(), editor);
+  same(document.activeElement, editor);
+  editing = false;
+  const next = document.querySelector("#next");
+  same(headFocus(false), next);
+  same(document.activeElement, editor, "the lookup alone leaves focus where it was");
+  headFocus();
+  same(document.activeElement, next);
+  next.hidden = true;
+  headFocus();
+  same(document.activeElement, el);
 });
-t("the Created notice's Close hands focus there", () => {
-  const i = src.indexOf('if (e.target.closest("[data-vw-toastx]")) {'), h = src.slice(i, i + 600);
-  assert.ok(i > 0, "the Close handler");
-  assert.ok(/const to = headFocus\(false\);/.test(h), "where focus goes, from headFocus");
-  assert.ok(/if \(to === ED\.ed\) \{ Promise\.resolve\(ED\.ed\.focus\(\{ preventScroll: true \}\)\)\.then\(go, go\); return; \}/.test(h), "the notice waits for the editor to have focus");
-  assert.ok(/to\.focus\(\{ preventScroll: true \}\); go\(\);/.test(h), "else focus first, then the notice goes");
+
+test("a file just made moves focus to its editor after the mount finishes", async () => {
+  const { document } = await dom(`<button id="opener">Make file</button>${MAIN_LAYERS}`);
+  const { api } = await import("../core/platform/api.js");
+  api.projectFile = async () => ({ kind: "code", content: "hello", version: "v1", editable: true });
+  api.projectVersions = async () => ({ versions: [] });
+  const hooks = registerHooks({
+    load(url, context, next) {
+      if (!url.endsWith("/modules/files/editor.js")) return next(url, context);
+      return { format: "module", shortCircuit: true, source: `
+        export function prefetch() {}
+        export async function mount(host) {
+          const input = document.createElement("textarea");
+          input.setAttribute("aria-label", "File editor");
+          host.append(input);
+          return { view: { contentDOM: input }, focus: () => input.focus(), destroy: () => input.remove() };
+        }` };
+    },
+  });
+  const { createFileViewer } = await import("../modules/files/viewer.js").finally(() => hooks.deregister());
+  const viewer = createFileViewer({ announce() {} }, { $: (selector) => document.querySelector(selector) });
+  document.querySelector("#opener").focus();
+  viewer.open({ project: "demo", name: "new.txt", rel: "new.txt", created: true });
+  await settle();
+  const field = document.querySelector('[aria-label="File editor"]');
+  assert.equal(Boolean(field), true);
+  same(document.activeElement, field);
+  viewer.close();
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

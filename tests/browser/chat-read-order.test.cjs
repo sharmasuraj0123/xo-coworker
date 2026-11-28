@@ -54,9 +54,9 @@ const CELLS = [[1440, "dark"], [1440, "light"], [390, "dark"], [390, "light"]]
       await frame({ status: "queued", reason: `pool closed until ${RESET}`, waiting });
       await page.waitForFunction(() => window.__t.world.state.sessions.pc.state === "queued");
       R.release(); R.gate = null;
-      await page.waitForFunction(() => /Starts|Waiting/.test(document.querySelector('[data-go="c:pc"] .ch-a')?.textContent || ""));
+      await page.waitForFunction(() => /Starts|Waiting/.test(document.querySelector('[data-go="c:pc"] .chl-a')?.textContent || ""));
       assert.equal(await stateNow(), "queued", `${cell}: the frame that landed mid-read stands`);
-      assert.match(await page.locator('[data-go="c:pc"] .ch-a').textContent(), /Starts|Waiting/, cell);
+      assert.match(await page.locator('[data-go="c:pc"] .chl-a').textContent(), /Starts|Waiting/, cell);
 
       // ── the list again, "running" landing while it's out (it says queued): Working stays ──
       before = R.asked.filter((x) => x === "list").length;
@@ -66,7 +66,7 @@ const CELLS = [[1440, "dark"], [1440, "light"], [390, "dark"], [390, "light"]]
       await frame({ status: "running" });
       await page.waitForFunction(() => window.__t.world.state.sessions.pc.state === "running");
       R.release(); R.gate = null;
-      await page.waitForFunction(() => /Working/.test(document.querySelector('[data-go="c:pc"] .ch-a')?.textContent || ""));
+      await page.waitForFunction(() => /Working/.test(document.querySelector('[data-go="c:pc"] .chl-a')?.textContent || ""));
       assert.equal(await stateNow(), "running", `${cell}: running stands`);
 
       // ── the chat's own read, both ways (it has no native id yet, so opening it reads it) ──
@@ -85,7 +85,7 @@ const CELLS = [[1440, "dark"], [1440, "light"], [390, "dark"], [390, "light"]]
       await page.evaluate(() => { window.__t.go("home"); window.__t.go("chats"); });
       await outOf("list", before);
       await page.waitForFunction(() => window.__t.world.state.sessions.pc.state === "queued");
-      await page.waitForFunction(() => /Starts|Waiting/.test(document.querySelector('[data-go="c:pc"] .ch-a')?.textContent || ""));
+      await page.waitForFunction(() => /Starts|Waiting/.test(document.querySelector('[data-go="c:pc"] .chl-a')?.textContent || ""));
 
       assert.deepEqual(page.errors, [], `${cell}: no page errors`);
       await page.context().close();

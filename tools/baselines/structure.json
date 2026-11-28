@@ -1,0 +1,1059 @@
+{
+ "apps-host/apps-host.css": {
+  "lineLength": 2
+ },
+ "apps-host/bridge.js": {
+  "lineLength": 6,
+  "unusedExport": 4
+ },
+ "apps-host/card.js": {
+  "domExpando": 1,
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "apps-host/client.js": {
+  "lineLength": 16,
+  "unusedExport": 1
+ },
+ "apps-host/contributions.js": {
+  "lineLength": 10,
+  "unusedExport": 1
+ },
+ "apps-host/frame.js": {
+  "lineLength": 11,
+  "unusedExport": 6
+ },
+ "apps-host/host.js": {
+  "functionLines": 1,
+  "lineLength": 14,
+  "unusedExport": 2
+ },
+ "apps-host/index.js": {
+  "unusedExport": 6
+ },
+ "apps-host/manifest.js": {
+  "lineLength": 25,
+  "unusedExport": 5
+ },
+ "apps-host/routes.js": {
+  "lineLength": 3,
+  "unusedExport": 2
+ },
+ "apps-host/settings-view.js": {
+  "lineLength": 32
+ },
+ "apps-host/settings.js": {
+  "functionLines": 1,
+  "lineLength": 10
+ },
+ "apps-host/when.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "core/kernel/index.js": {
+  "unusedExport": 3
+ },
+ "core/kernel/kernel.js": {
+  "functionLines": 1,
+  "lineLength": 9
+ },
+ "core/kernel/places.js": {
+  "lineLength": 5
+ },
+ "core/kernel/semver.js": {
+  "unusedExport": 1
+ },
+ "core/platform/api.js": {
+  "lineLength": 7,
+  "unusedExport": 2
+ },
+ "core/platform/clipboard.js": {
+  "lineLength": 1
+ },
+ "core/platform/diff.js": {
+  "lineLength": 6
+ },
+ "core/platform/fuzzy.js": {
+  "lineLength": 4,
+  "unusedExport": 1
+ },
+ "core/platform/gestures.js": {
+  "lineLength": 5
+ },
+ "core/platform/http.js": {
+  "lineLength": 9
+ },
+ "core/platform/keys.js": {
+  "lineLength": 6
+ },
+ "core/platform/latest.js": {
+  "lineLength": 1
+ },
+ "core/platform/pending.js": {
+  "lineLength": 1
+ },
+ "core/platform/sse.js": {
+  "lineLength": 2,
+  "unusedExport": 1
+ },
+ "core/platform/tests/exports-used.test.mjs": {
+  "sourceRead": 2
+ },
+ "core/platform/util.js": {
+  "lineLength": 1
+ },
+ "core/services/agent-activity.js": {
+  "lineLength": 2
+ },
+ "core/services/comms.js": {
+  "lineLength": 7
+ },
+ "core/services/git-state.js": {
+  "lineLength": 2,
+  "unusedExport": 1
+ },
+ "core/services/media/attachment-rules.js": {
+  "lineLength": 8,
+  "unusedExport": 6
+ },
+ "core/services/media/attachment-tray.js": {
+  "lineLength": 5
+ },
+ "core/services/media/hydrate.js": {
+  "lineLength": 3,
+  "unusedExport": 2
+ },
+ "core/services/media/intersection.js": {
+  "lineLength": 1
+ },
+ "core/services/media/items.js": {
+  "lineLength": 10,
+  "unusedExport": 5
+ },
+ "core/services/media/layout.js": {
+  "lineLength": 1,
+  "unusedExport": 5
+ },
+ "core/services/media/picture-load.js": {
+  "lineLength": 1
+ },
+ "core/services/media/project-images.js": {
+  "lineLength": 1
+ },
+ "core/services/media/render.js": {
+  "lineLength": 13
+ },
+ "core/services/notices.js": {
+  "lineLength": 6,
+  "unusedExport": 1
+ },
+ "core/services/paths.js": {
+  "lineLength": 3
+ },
+ "core/services/places.js": {
+  "lineLength": 2
+ },
+ "core/services/review.js": {
+  "lineLength": 7,
+  "unusedExport": 1
+ },
+ "core/services/runtimes.js": {
+  "lineLength": 20,
+  "unusedExport": 3
+ },
+ "core/services/shape/changes.js": {
+  "lineLength": 4
+ },
+ "core/services/shape/model.js": {
+  "lineLength": 29,
+  "unusedExport": 8
+ },
+ "core/services/shape/store.js": {
+  "functionLines": 1,
+  "lineLength": 5,
+  "unusedExport": 1
+ },
+ "core/services/step-icons.js": {
+  "lineLength": 8,
+  "unusedExport": 1
+ },
+ "core/services/storm/account.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/act.js": {
+  "lineLength": 4
+ },
+ "core/services/storm/client.js": {
+  "lineLength": 2
+ },
+ "core/services/storm/commands.js": {
+  "lineLength": 7
+ },
+ "core/services/storm/history.js": {
+  "functionLines": 1,
+  "lineLength": 2
+ },
+ "core/services/storm/hops.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/index.js": {
+  "unusedExport": 1
+ },
+ "core/services/storm/load.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/reducers/apps.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/reducers/index.js": {
+  "lineLength": 2
+ },
+ "core/services/storm/reducers/review.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/reducers/sessions.js": {
+  "lineLength": 3
+ },
+ "core/services/storm/reducers/threads.js": {
+  "lineLength": 1
+ },
+ "core/services/storm/selectors/commit.js": {
+  "lineLength": 5
+ },
+ "core/services/storm/selectors/sessions.js": {
+  "lineLength": 4
+ },
+ "core/services/storm/selectors/threads.js": {
+  "lineLength": 3
+ },
+ "core/services/storm/stream.js": {
+  "lineLength": 2
+ },
+ "core/services/types.d.ts": {
+  "lineLength": 2
+ },
+ "core/services/world/checklist.js": {
+  "lineLength": 2,
+  "unusedExport": 1
+ },
+ "core/services/world/conn.js": {
+  "lineLength": 6,
+  "unusedExport": 1
+ },
+ "core/services/world/conversation.js": {
+  "lineLength": 5
+ },
+ "core/services/world/held.js": {
+  "lineLength": 2
+ },
+ "core/services/world/hops.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "core/services/world/paid.js": {
+  "lineLength": 9,
+  "unusedExport": 4
+ },
+ "core/services/world/relay.js": {
+  "lineLength": 7
+ },
+ "core/services/world/rows.js": {
+  "lineLength": 2,
+  "unusedExport": 1
+ },
+ "core/services/world/sessions.js": {
+  "lineLength": 12,
+  "unusedExport": 3
+ },
+ "core/services/world/store.js": {
+  "lineLength": 1
+ },
+ "core/services/world/threads.js": {
+  "lineLength": 7,
+  "unusedExport": 1
+ },
+ "core/services/world/turns.js": {
+  "functionLines": 1,
+  "lineLength": 5
+ },
+ "core/ui/a11y/focus.js": {
+  "lineLength": 17,
+  "unusedExport": 8
+ },
+ "core/ui/a11y/keycap.js": {
+  "lineLength": 1
+ },
+ "core/ui/a11y/keynav.js": {
+  "lineLength": 4,
+  "unusedExport": 2
+ },
+ "core/ui/a11y/ring.js": {
+  "lineLength": 6,
+  "unusedExport": 2
+ },
+ "core/ui/components/counts.js": {
+  "lineLength": 2
+ },
+ "core/ui/components/hold.js": {
+  "lineLength": 3
+ },
+ "core/ui/components/xo-select.css": {
+  "lineLength": 4
+ },
+ "core/ui/components/xo-select.js": {
+  "lineLength": 9
+ },
+ "core/ui/flavours.js": {
+  "lineLength": 1
+ },
+ "core/ui/foundation.css": {
+  "important": 6,
+  "lineLength": 5
+ },
+ "core/ui/icons/fileicons.js": {
+  "lineLength": 3,
+  "unusedExport": 3
+ },
+ "core/ui/icons/icon.js": {
+  "lineLength": 3
+ },
+ "core/ui/lightbox.js": {
+  "functionLines": 1,
+  "lineLength": 16
+ },
+ "core/ui/markdown/chart.js": {
+  "lineLength": 21,
+  "unusedExport": 3
+ },
+ "core/ui/markdown/highlight.js": {
+  "lineLength": 15,
+  "unusedExport": 1
+ },
+ "core/ui/markdown/inline.js": {
+  "lineLength": 17,
+  "unusedExport": 4
+ },
+ "core/ui/markdown/markdown.js": {
+  "lineLength": 6,
+  "unusedExport": 8
+ },
+ "core/ui/markdown/plain.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "core/ui/markdown/rich.css": {
+  "important": 2,
+  "lineLength": 17
+ },
+ "core/ui/markdown/rich.js": {
+  "lineLength": 10
+ },
+ "core/ui/motion.js": {
+  "lineLength": 14,
+  "unusedExport": 3
+ },
+ "core/ui/redraw.js": {
+  "lineLength": 3,
+  "unusedExport": 1
+ },
+ "core/ui/theme.js": {
+  "lineLength": 2
+ },
+ "core/ui/tokens.css": {
+  "lineLength": 27
+ },
+ "core/ui/virtual.js": {
+  "lineLength": 4
+ },
+ "css/app.css": {
+  "lineLength": 29
+ },
+ "css/diffs.css": {
+  "lineLength": 30
+ },
+ "css/foundation.css": {
+  "important": 11,
+  "lineLength": 11
+ },
+ "css/panel.css": {
+  "important": 10,
+  "lineLength": 56
+ },
+ "index.html": {
+  "lineLength": 19
+ },
+ "modules/artifacts/artifacts.css": {
+  "important": 1,
+  "lineLength": 12
+ },
+ "modules/artifacts/cards.js": {
+  "lineLength": 8
+ },
+ "modules/artifacts/made.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "modules/artifacts/model.js": {
+  "lineLength": 12
+ },
+ "modules/artifacts/page.js": {
+  "lineLength": 14
+ },
+ "modules/artifacts/previews.js": {
+  "lineLength": 6
+ },
+ "modules/changes/diffthemes.js": {
+  "lineLength": 2
+ },
+ "modules/changes/diffview.js": {
+  "lineLength": 1
+ },
+ "modules/changes/frame.js": {
+  "functionLines": 1,
+  "lineLength": 29,
+  "unusedExport": 2
+ },
+ "modules/changes/imagechange.js": {
+  "lineLength": 11,
+  "unusedExport": 2
+ },
+ "modules/changes/store.js": {
+  "lineLength": 9,
+  "unusedExport": 2
+ },
+ "modules/changes/types.d.ts": {
+  "lineLength": 1
+ },
+ "modules/chats/chats.js": {
+  "functionLines": 1,
+  "lineLength": 36
+ },
+ "modules/chats/effort.js": {
+  "lineLength": 1
+ },
+ "modules/chats/intel-catalog.js": {
+  "functionLines": 1,
+  "lineLength": 16
+ },
+ "modules/chats/intel-input.js": {
+  "lineLength": 14
+ },
+ "modules/chats/intel-types.d.ts": {
+  "lineLength": 1
+ },
+ "modules/chats/intel-view.js": {
+  "lineLength": 32
+ },
+ "modules/chats/intel.js": {
+  "functionLines": 1,
+  "lineLength": 18
+ },
+ "modules/chats/list.js": {
+  "lineLength": 9
+ },
+ "modules/chats/record-lines.js": {
+  "lineLength": 1
+ },
+ "modules/chats/setup.js": {
+  "lineLength": 21
+ },
+ "modules/chats/types.d.ts": {
+  "lineLength": 1
+ },
+ "modules/conversation/blocks/turn.js": {
+  "lineLength": 50
+ },
+ "modules/conversation/checklist.js": {
+  "lineLength": 7
+ },
+ "modules/conversation/composer-attachments.js": {
+  "lineLength": 14
+ },
+ "modules/conversation/composer-controls.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/composer.css": {
+  "lineLength": 9
+ },
+ "modules/conversation/composer.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/conversation.css": {
+  "lineLength": 53
+ },
+ "modules/conversation/decoration-types.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/decoration.js": {
+  "functionLines": 1,
+  "lineLength": 24
+ },
+ "modules/conversation/delivery.js": {
+  "functionLines": 1,
+  "lineLength": 4
+ },
+ "modules/conversation/dock.css": {
+  "lineLength": 9
+ },
+ "modules/conversation/draw.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/file-question.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/follow.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/header.js": {
+  "lineLength": 9
+ },
+ "modules/conversation/history.css": {
+  "lineLength": 5
+ },
+ "modules/conversation/latest-button.js": {
+  "lineLength": 4
+ },
+ "modules/conversation/lightbox.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/live.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/media/media.css": {
+  "lineLength": 16
+ },
+ "modules/conversation/mention.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/message-context.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/message-details.js": {
+  "lineLength": 14
+ },
+ "modules/conversation/message-items.js": {
+  "lineLength": 41
+ },
+ "modules/conversation/message-reply.js": {
+  "lineLength": 9
+ },
+ "modules/conversation/message-swipes.js": {
+  "lineLength": 3
+ },
+ "modules/conversation/message-types.d.ts": {
+  "lineLength": 2
+ },
+ "modules/conversation/messages.js": {
+  "functionLines": 1,
+  "lineLength": 32
+ },
+ "modules/conversation/msgx.css": {
+  "important": 7,
+  "lineLength": 46
+ },
+ "modules/conversation/notice-line.js": {
+  "lineLength": 6
+ },
+ "modules/conversation/paging.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/reading-layout.js": {
+  "lineLength": 6
+ },
+ "modules/conversation/return-pill.css": {
+  "lineLength": 1
+ },
+ "modules/conversation/start.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/stops.js": {
+  "lineLength": 4
+ },
+ "modules/conversation/target.js": {
+  "lineLength": 7
+ },
+ "modules/conversation/thread-page-html.js": {
+  "lineLength": 7
+ },
+ "modules/conversation/thread-page.js": {
+  "lineLength": 1
+ },
+ "modules/conversation/typing.js": {
+  "lineLength": 6
+ },
+ "modules/conversation/words.js": {
+  "lineLength": 5
+ },
+ "modules/conversation/working-turn.js": {
+  "functionLines": 1,
+  "lineLength": 14
+ },
+ "modules/create-project/create.js": {
+  "functionLines": 1,
+  "lineLength": 16
+ },
+ "modules/decisions/card-events.js": {
+  "functionLines": 1,
+  "lineLength": 18
+ },
+ "modules/decisions/card.js": {
+  "lineLength": 33
+ },
+ "modules/decisions/cardparts.js": {
+  "lineLength": 21,
+  "unusedExport": 1
+ },
+ "modules/decisions/cards/evidence.js": {
+  "lineLength": 13
+ },
+ "modules/decisions/cards/paid.js": {
+  "lineLength": 1
+ },
+ "modules/decisions/controller.js": {
+  "functionLines": 1,
+  "lineLength": 16
+ },
+ "modules/decisions/decisions.css": {
+  "important": 2,
+  "lineLength": 50
+ },
+ "modules/decisions/dock.js": {
+  "lineLength": 12
+ },
+ "modules/decisions/keyboard.js": {
+  "lineLength": 5
+ },
+ "modules/decisions/needs.js": {
+  "lineLength": 2
+ },
+ "modules/decisions/pacing.js": {
+  "lineLength": 1,
+  "unusedExport": 2
+ },
+ "modules/decisions/panel-view.js": {
+  "functionLines": 1,
+  "lineLength": 13
+ },
+ "modules/decisions/queue.js": {
+  "lineLength": 7
+ },
+ "modules/decisions/rank.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "modules/decisions/toast.js": {
+  "lineLength": 2
+ },
+ "modules/files/conversation-files.js": {
+  "lineLength": 1
+ },
+ "modules/files/documents.js": {
+  "functionLines": 1,
+  "lineLength": 9,
+  "unusedExport": 6
+ },
+ "modules/files/drafts.js": {
+  "lineLength": 1
+ },
+ "modules/files/drag.js": {
+  "lineLength": 1
+ },
+ "modules/files/editor.js": {
+  "lineLength": 7,
+  "unusedExport": 2
+ },
+ "modules/files/files-types.d.ts": {
+  "lineLength": 1
+ },
+ "modules/files/files.js": {
+  "functionLines": 1,
+  "lineLength": 33,
+  "unusedExport": 1
+ },
+ "modules/files/folder-reads.js": {
+  "lineLength": 3
+ },
+ "modules/files/marks.js": {
+  "lineLength": 5
+ },
+ "modules/files/operation-types.d.ts": {
+  "lineLength": 2
+ },
+ "modules/files/operations.js": {
+  "functionLines": 1,
+  "lineLength": 20
+ },
+ "modules/files/page.js": {
+  "lineLength": 5
+ },
+ "modules/files/section-folds.js": {
+  "lineLength": 1
+ },
+ "modules/files/tree-types.d.ts": {
+  "lineLength": 2
+ },
+ "modules/files/tree.js": {
+  "functionLines": 1,
+  "lineLength": 34
+ },
+ "modules/files/version-time.js": {
+  "lineLength": 1
+ },
+ "modules/files/viewer-diff.js": {
+  "lineLength": 13
+ },
+ "modules/files/viewer-events.js": {
+  "lineLength": 14
+ },
+ "modules/files/viewer-head.js": {
+  "functionLines": 1,
+  "lineLength": 39
+ },
+ "modules/files/viewer-reads.js": {
+  "lineLength": 4
+ },
+ "modules/files/viewer-text.js": {
+  "lineLength": 6
+ },
+ "modules/files/viewer.js": {
+  "functionLines": 1,
+  "lineLength": 21
+ },
+ "modules/github/page.js": {
+  "lineLength": 42,
+  "unusedExport": 4
+ },
+ "modules/home/handled.js": {
+  "lineLength": 4
+ },
+ "modules/home/next-card.js": {
+  "lineLength": 13
+ },
+ "modules/home/open-next.js": {
+  "lineLength": 1
+ },
+ "modules/home/parts.js": {
+  "lineLength": 1
+ },
+ "modules/home/skeleton.js": {
+  "lineLength": 8,
+  "unusedExport": 2
+ },
+ "modules/home/view.js": {
+  "lineLength": 8
+ },
+ "modules/launchpad/actions.js": {
+  "functionLines": 1,
+  "lineLength": 29
+ },
+ "modules/launchpad/client.js": {
+  "lineLength": 1,
+  "unusedExport": 1
+ },
+ "modules/launchpad/launchpad.css": {
+  "lineLength": 37
+ },
+ "modules/launchpad/launchpad.js": {
+  "functionLines": 1,
+  "lineLength": 21,
+  "unusedExport": 1
+ },
+ "modules/launchpad/model.js": {
+  "lineLength": 24
+ },
+ "modules/launchpad/notices.js": {
+  "lineLength": 4,
+  "sharedStateParameter": 1
+ },
+ "modules/launchpad/page.css": {
+  "lineLength": 5
+ },
+ "modules/launchpad/page.js": {
+  "lineLength": 12
+ },
+ "modules/launchpad/store.js": {
+  "functionLines": 1,
+  "lineLength": 18
+ },
+ "modules/launchpad/system.js": {
+  "lineLength": 9
+ },
+ "modules/launchpad/tests/mockspace-scenarios.test.mjs": {
+  "sourceRead": 1
+ },
+ "modules/launchpad/views.js": {
+  "functionLines": 1,
+  "lineLength": 70
+ },
+ "modules/launchpad/window.css": {
+  "lineLength": 3
+ },
+ "modules/launchpad/window.js": {
+  "lineLength": 2
+ },
+ "modules/launchpad/words.js": {
+  "lineLength": 14
+ },
+ "modules/map/agents.js": {
+  "lineLength": 6
+ },
+ "modules/map/camera.js": {
+  "lineLength": 4
+ },
+ "modules/map/drawing.js": {
+  "lineLength": 9
+ },
+ "modules/map/graph-physics.js": {
+  "lineLength": 1
+ },
+ "modules/map/head.js": {
+  "lineLength": 8
+ },
+ "modules/map/map.js": {
+  "unusedExport": 1
+ },
+ "modules/map/tree.js": {
+  "lineLength": 13
+ },
+ "modules/projects/icon-choice.js": {
+  "lineLength": 1
+ },
+ "modules/projects/icon-picker-keys.js": {
+  "lineLength": 1
+ },
+ "modules/projects/icon-picker.js": {
+  "lineLength": 5
+ },
+ "modules/projects/projicons.js": {
+  "lineLength": 5
+ },
+ "modules/routing/page.js": {
+  "lineLength": 14
+ },
+ "modules/runs/controller.js": {
+  "lineLength": 1
+ },
+ "modules/runs/escape.js": {
+  "lineLength": 1
+ },
+ "modules/runs/panel.js": {
+  "lineLength": 7
+ },
+ "modules/runs/read.js": {
+  "lineLength": 2
+ },
+ "modules/runs/view.js": {
+  "lineLength": 51,
+  "unusedExport": 3
+ },
+ "modules/runtimes/settings.js": {
+  "functionLines": 1,
+  "lineLength": 29,
+  "unusedExport": 1
+ },
+ "modules/runtimes/thread.js": {
+  "lineLength": 7
+ },
+ "modules/search/jump-items.js": {
+  "lineLength": 3
+ },
+ "modules/search/jump.js": {
+  "lineLength": 4
+ },
+ "modules/search/quickopen.js": {
+  "functionLines": 1,
+  "lineLength": 15
+ },
+ "modules/settings/accounts.js": {
+  "lineLength": 29,
+  "unusedExport": 5
+ },
+ "modules/settings/appearance.js": {
+  "lineLength": 9
+ },
+ "modules/settings/apply-shape.js": {
+  "lineLength": 1
+ },
+ "modules/settings/host.js": {
+  "lineLength": 2
+ },
+ "modules/settings/keys-page.js": {
+  "lineLength": 5
+ },
+ "modules/settings/keys-sheet.js": {
+  "lineLength": 2
+ },
+ "modules/settings/sections.js": {
+  "lineLength": 2
+ },
+ "modules/settings/settings.css": {
+  "lineLength": 5
+ },
+ "modules/settings/shape-page.js": {
+  "functionLines": 1,
+  "lineLength": 28
+ },
+ "modules/settings/types.d.ts": {
+  "lineLength": 1
+ },
+ "modules/shells/dock-actions.js": {
+  "lineLength": 5
+ },
+ "modules/shells/dock-input.js": {
+  "lineLength": 9
+ },
+ "modules/shells/dock-view.js": {
+  "domExpando": 6,
+  "functionLines": 1,
+  "lineLength": 22
+ },
+ "modules/shells/dock.js": {
+  "functionLines": 1,
+  "lineLength": 8
+ },
+ "modules/shells/model.js": {
+  "lineLength": 4,
+  "unusedExport": 3
+ },
+ "modules/shells/term.js": {
+  "lineLength": 9,
+  "unusedExport": 1
+ },
+ "modules/since/model.js": {
+  "lineLength": 2,
+  "unusedExport": 4
+ },
+ "modules/threads/editing.js": {
+  "lineLength": 7
+ },
+ "modules/threads/groups.js": {
+  "lineLength": 5
+ },
+ "modules/threads/header.js": {
+  "lineLength": 2
+ },
+ "modules/threads/intelligence.css": {
+  "lineLength": 19
+ },
+ "modules/threads/menu.js": {
+  "lineLength": 5
+ },
+ "modules/threads/resolve.js": {
+  "lineLength": 3
+ },
+ "serve.py": {
+  "lineLength": 2
+ },
+ "shell/dialogs.css": {
+  "important": 1,
+  "lineLength": 9
+ },
+ "shell/elapsed.js": {
+  "lineLength": 1
+ },
+ "shell/favicon.js": {
+  "lineLength": 2
+ },
+ "shell/frame-icons.js": {
+  "lineLength": 2
+ },
+ "shell/frame.css": {
+  "lineLength": 10
+ },
+ "shell/frame.js": {
+  "lineLength": 1
+ },
+ "shell/gestures.js": {
+  "lineLength": 11
+ },
+ "shell/header.js": {
+  "lineLength": 1
+ },
+ "shell/keyboard-layers.js": {
+  "lineLength": 3
+ },
+ "shell/layer-queries.js": {
+  "lineLength": 1
+ },
+ "shell/layers.js": {
+  "lineLength": 1
+ },
+ "shell/overlays.js": {
+  "lineLength": 29
+ },
+ "shell/panel/frames.js": {
+  "lineLength": 4,
+  "unusedExport": 4
+ },
+ "shell/panel/lists.js": {
+  "lineLength": 13,
+  "unusedExport": 1
+ },
+ "shell/panel/pages.js": {
+  "functionLines": 1,
+  "lineLength": 5
+ },
+ "shell/panel/panel.js": {
+  "functionLines": 1,
+  "lineLength": 20
+ },
+ "shell/phone.css": {
+  "lineLength": 7
+ },
+ "shell/phone.js": {
+  "lineLength": 1
+ },
+ "shell/places.js": {
+  "lineLength": 8
+ },
+ "shell/rail/rows.js": {
+  "lineLength": 7
+ },
+ "shell/rail/side.js": {
+  "functionLines": 1,
+  "lineLength": 10
+ },
+ "shell/responsive.css": {
+  "lineLength": 6
+ },
+ "shell/sidebar.css": {
+  "lineLength": 16
+ },
+ "shell/sideorder.js": {
+  "lineLength": 2,
+  "unusedExport": 2
+ },
+ "shell/top-header.js": {
+  "lineLength": 2
+ },
+ "shell/workspace-header.js": {
+  "lineLength": 1
+ },
+ "tests/coord-colour.test.mjs": {
+  "sourceRead": 1
+ },
+ "tests/flavours.test.mjs": {
+  "sourceRead": 1
+ },
+ "tests/hover-veil.test.mjs": {
+  "sourceRead": 1
+ },
+ "tests/lib/cascade.mjs": {
+  "sourceRead": 1
+ },
+ "tests/lib/panel-src.mjs": {
+  "sourceRead": 1
+ },
+ "tests/lib/sources.mjs": {
+  "sourceRead": 1
+ },
+ "tests/names.test.mjs": {
+  "sourceRead": 1
+ },
+ "tests/pack-where-it-fits.test.mjs": {
+  "sourceRead": 1
+ },
+ "tests/refusal-mark.test.mjs": {
+  "sourceRead": 1
+ }
+}

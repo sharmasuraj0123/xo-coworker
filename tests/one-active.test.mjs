@@ -1,23 +1,81 @@
-// A list whose active row the keyboard moves (aria-activedescendant on its field: the @ recipients, Jump) shows one
-// active row: the mouse moves that row too, and :hover never paints a second one like it (Astra C058 on 517af1c:
-// hovering the second recipient painted it as the keyboard's first, and Enter took the first). The menus share it
-// through keynav.js's pointerFollows (tests/keynav.test.mjs). No browser.
-//   node tests/one-active.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { test } from "node:test";
+import { list } from "postcss";
+import { createKernel } from "../core/kernel/kernel.js";
+import { createScope } from "../core/kernel/scope.js";
+import { createWorkspaceJump } from "../modules/search/jump-items.js";
+import { createJump } from "../modules/search/jump.js";
+import { declarationsFor } from "./lib/css-snapshot.mjs";
+import { dom } from "./lib/dom.mjs";
 
-const css = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-
-for (const [list, cls, el] of [["the @ recipients", ".at-list", "atList"], ["Jump", ".jump-list", "jl"]]) {
-  t(`${list}: :hover doesn't paint a row as active, and a moving mouse makes its row the active one`, () => {
-    // a rule that names the list only to leave it out (the chosen state's shared hover layer, foundation.css) paints nothing on it
-    const rules = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => s.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").includes(cls));
-    const bad = rules.filter((s) => s.split(",").some((x) => /:hover/.test(x)) && s.split(",").some((x) => /aria-selected/.test(x)));
-    assert.deepEqual(bad, [], "no rule paints :hover and the active row alike");
-    assert.match(app, new RegExp(`${el}\\.addEventListener\\("pointermove"`), `${el} follows the pointer`);
+for (const target of [".at-list", ".jump-list"]) {
+  test(target + " does not paint a second active row on hover", () => {
+    const duplicate = declarationsFor((selector) => {
+      const relevant = selector.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "");
+      if (!relevant.includes(target)) return false;
+      const parts = list.comma(relevant);
+      return parts.some((part) => part.includes(":hover")) && parts.some((part) => part.includes("aria-selected"));
+    });
+    assert.deepEqual(duplicate, []);
   });
 }
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+test("Jump changes the active descendant and picks the pointed row by keyboard", async () => {
+  const { document, window } = await dom('<div hidden><input><ul class="jump-list"></ul></div>');
+  const host = document.body.firstElementChild, field = host.querySelector("input"), results = host.querySelector("ul");
+  const visited = [];
+  const jump = createJump({
+    host, field, list: results,
+    places: () => ["First", "Second"].map((name) => ({ name, sub: "", icon: "", v: name })),
+    actions: () => [], more: () => [], go: (id) => visited.push(id),
+    announce() {}, focusIn: (el) => el.focus(), onHidden() {},
+  });
+  jump.open();
+  results.lastElementChild.dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+  assert.equal(field.getAttribute("aria-activedescendant"), "j-1");
+  assert.deepEqual(Array.from(results.querySelectorAll('[aria-selected="true"]'), (node) => node.id), ["j-1"]);
+  const enter = Object.assign(new window.Event("keydown", { bubbles: true, cancelable: true }), { key: "Enter" });
+  field.dispatchEvent(enter);
+  assert.deepEqual(visited, ["Second"]);
+});
+
+test("Jump reconciles contributed results while open and releases its listeners on disposal", async () => {
+  const { document, window } = await dom('<div hidden><input><ul></ul></div>');
+  const host = document.body.firstElementChild, field = host.querySelector("input"), results = host.querySelector("ul");
+  const { places } = createKernel();
+  places.define({ id: "search.provider", kind: "list", scope: "app", description: "Jump results." });
+  const scope = createScope();
+  const noop = () => {};
+  const picked = [];
+  const jump = createWorkspaceJump({
+    host, sources: places, go: noop, announce: noop, focusIn: (el) => el.focus(), onHidden: noop,
+    items: {
+      D: { needItems: () => [] }, projects: () => [], threadsOf: () => [],
+      projectIcon: () => "", glyphOf: () => "", wordOf: () => "",
+    },
+    actions: {
+      create: noop, settings: noop, keys: noop, theme: noop, intelligence: () => false,
+      openIntelligence: noop, stage: () => false, toggleStage: noop,
+    },
+  }, scope);
+  jump.open();
+  field.value = "example";
+  field.dispatchEvent(new window.Event("input"));
+  const undo = places.contribute("search.provider", {
+    id: "example", items: () => [{ name: "Example file", sub: "", icon: "" }], pick: (item) => picked.push(item.name),
+  }, "test.search");
+  const retired = results.querySelector('[role="option"]');
+  assert.match(retired.textContent, /Example file/);
+  undo();
+  assert.doesNotMatch(results.textContent, /Example file/);
+  retired.dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.deepEqual(picked, []);
+  const html = results.innerHTML;
+  scope.dispose();
+  field.value = "workspace";
+  field.dispatchEvent(new window.Event("input"));
+  assert.equal(results.innerHTML, html);
+  assert.equal(scope.size, 0);
+});

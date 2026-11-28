@@ -1,0 +1,4 @@
+.app{grid-template-rows:minmax(0,1fr) auto}
+.side{grid-column:1;grid-row:1/-1}
+.main{grid-column:2;grid-row:1}
+.top-end{gap:var(--s-2)}

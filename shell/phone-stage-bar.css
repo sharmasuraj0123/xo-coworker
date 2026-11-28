@@ -1,0 +1,3 @@
+@media (max-width:760px){
+  .stg-bar{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
+}

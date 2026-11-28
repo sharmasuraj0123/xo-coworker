@@ -1,13 +1,8 @@
-// Settings and the page agree on every key that works anywhere (the controls grader's C118 on c055e74: Settings took
-// Ctrl+Shift+J for All shortcuts, stored and announced it, and pressing it did nothing: the page answered ⌘/Ctrl keys
-// for four actions only). The real js/keys.js: for each "Anywhere" action and each candidate key, if set() takes it,
-// the keydown that key makes sets that action off (globalFor), while typing too when it has ⌘/Ctrl, and never while
-// typing when it hasn't; and app.js asks globalFor, not a list of its own. Also: ⌥ alone is refused (it types).
-//   node tests/keys-dispatch.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { wireGlobalKeys } from "../shell/global-keys.js";
 
-const K = await import("../js/keys.js");
+const K = await import("../core/platform/keys.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -27,7 +22,7 @@ const CANDIDATES = [
 const GLOBAL = K.ACTIONS.filter((a) => a.scope === "global" && !a.fixed).map((a) => a.id);
 
 t("every key Settings takes for an Anywhere action, the page answers with that action", () => {
-  assert.equal(typeof K.globalFor, "function", "js/keys.js globalFor(e, { typing })");
+  assert.equal(typeof K.globalFor, "function");
   const wrong = [];
   let taken = 0;
   for (const id of GLOBAL) {
@@ -53,7 +48,7 @@ t("the grader's case: Ctrl+Shift+J for All shortcuts is taken, and opens it; the
   assert.equal(K.set("keys", "mod+shift+j").ok, true);
   assert.equal(K.globalFor(keydown("mod+shift+j"), { typing: false }), "keys");
   assert.equal(K.globalFor(keydown("mod+shift+j"), { typing: true }), "keys", "a ⌘/Ctrl key works while typing");
-  assert.equal(K.globalFor(keydown("mod+j"), { typing: false }), "chatFold", "⌘J is still the chat's fold");
+  assert.equal(K.globalFor(keydown("mod+j"), { typing: false }), null, "⌘J is the browser's again: it folded the chat docked beside a file, which is gone (Files is a page of the panel)");
   K.resetAll();
   assert.equal(K.globalFor(keydown("?"), { typing: false }), "keys", "? by default");
   assert.equal(K.globalFor(keydown("?"), { typing: true }), null, "never while typing");
@@ -66,12 +61,67 @@ t("⌥ alone (it types a character of its own) is refused for an Anywhere action
   assert.equal(K.set("keys", "mod+alt+j").ok, true, "with ⌘/Ctrl it's fine");
   K.resetAll();
 });
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-t("the page asks the one rule, not a list of its own", () => {
-  assert.doesNotMatch(app, /for \(const id of \["jump", "intel", "shells", "map"\]\)/, "the four-action list is gone");
-  assert.match(app, /const g = K\.globalFor\(e\);\s*if \(g && K\.hasMod\(g\) && runGlobal\(g\)\)/, "⌘/Ctrl keys: the one rule, everywhere");
-  assert.match(app, /const s = K\.globalFor\(e, \{ typing: false \}\);\s*if \(s && !K\.hasMod\(s\) && runGlobal\(s\)\)/, "symbol keys: the one rule, not while typing");
-  assert.match(app, /function runGlobal\(id\) \{[\s\S]*?chatFold[\s\S]*?treeFold[\s\S]*?GLOBAL\[id\]\(\);/, "every Anywhere action runs from it, the folds included");
-  for (const id of ["jump", "intel", "write", "keys", "shells", "map"]) assert.match(app, new RegExp(`^  ${id}: \\(\\) =>`, "m"), `GLOBAL.${id}`);
+const { document, window } = await dom('<button id="page"></button><textarea></textarea><div id="jump" hidden></div><div id="keys" hidden></div>');
+const page = document.querySelector("#page"), editor = document.querySelector("textarea");
+const S = { view: "t:thread", recording: false }, jump = document.querySelector("#jump");
+const calls = [];
+let terminal = false, modal = false, handlesEscape = false;
+const dispose = wireGlobalKeys({
+  view: () => S.view, capturing: () => S.recording, jump, keys: document.querySelector("#keys"),
+  SH: { owns: () => terminal }, IQ: { isOpen: false }, CREATE: { isOpen: () => modal },
+  GLOBAL: Object.fromEntries(GLOBAL.map((id) => [id, () => calls.push(id)])),
+  LAYERS: { escape() { calls.push("escape"); return handlesEscape; } },
+  FP: { toggleTree() { calls.push("treeFold"); return true; } },
+  QO: { isOpen: false, open(mode) { calls.push(mode); return true; } },
+  back: () => calls.push("back"), go: (view) => calls.push(view),
+});
+function press(target, combo, composing = false) {
+  const props = keydown(combo);
+  delete props.composedPath;
+  const event = new window.Event("keydown", { bubbles: true, cancelable: true });
+  Object.assign(event, props, { isComposing: composing });
+  target.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+t("custom chords, symbol shortcuts and Files keys dispatch through the live listener", () => {
+  assert.equal(K.set("keys", "mod+shift+j").ok, true);
+  assert.equal(press(editor, "mod+shift+j"), true);
+  K.resetAll();
+  assert.equal(press(editor, "?"), false);
+  assert.equal(press(page, "?"), true);
+  assert.equal(press(page, "mod+b"), true);
+  assert.equal(press(page, "mod+p"), true);
+  assert.deepEqual(calls.splice(0), ["keys", "keys", "treeFold", "files"]);
+});
+t("editor, recording, native modal, composition and terminal retain their keys", () => {
+  editor.addEventListener("keydown", (e) => e.preventDefault(), { once: true });
+  press(editor, "mod+b");
+  S.recording = true;
+  press(page, "mod+k");
+  S.recording = false;
+  modal = true;
+  press(page, "Escape");
+  modal = false;
+  press(editor, "Escape", true);
+  terminal = true;
+  press(page, "Escape");
+  press(page, "mod+k");
+  assert.deepEqual(calls.splice(0), []);
+  press(page, K.binding("shells"));
+  assert.deepEqual(calls.splice(0), ["shells"]);
+  terminal = false;
+});
+t("Escape falls through to thread Back or Chats when the shell has no closing layer", () => {
+  press(page, "Escape");
+  S.view = "c:chat";
+  press(page, "Escape");
+  handlesEscape = true;
+  press(page, "Escape");
+  jump.hidden = false;
+  assert.equal(press(page, "Escape"), true);
+  assert.deepEqual(calls.splice(0), ["escape", "back", "escape", "chats", "escape", "escape"]);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+dispose();
+assert.equal(press(page, "mod+k"), false, "the retired global listener no longer handles shortcuts");
+assert.deepEqual(calls, []);

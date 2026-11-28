@@ -1,0 +1,48 @@
+.hm-body{position:relative}
+/* Include each block’s margins in the height measured for its loading placeholder. */
+#hm-body>div{display:flow-root}
+.hm-in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-home-panel-card);
+  padding:0 var(--s-5);border-radius:var(--r-xl);border:var(--hair) dashed var(--line);color:var(--ink-3);font-size:var(--fs-ui)}
+.hm-in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.handled{margin-top:var(--s-8)}
+.hd-row0{display:flex;align-items:stretch;gap:var(--s-2)}
+.hd-row0>div:first-child{flex:1;min-width:0}
+.hd{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-act);padding:0 var(--s-4) 0 var(--s-3);
+  border-radius:var(--r-lg);background:var(--surface);border:var(--hair) solid var(--edge-home-handled);
+  text-align:left;color:var(--ink-3);font-size:var(--fs-ui);
+  transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.hd:hover{background:var(--fill-home-handled-hover)}
+.hd-ic{flex:none;display:grid;place-items:center;width:var(--ic-home-handled-badge);height:var(--ic-home-handled-badge);
+  border-radius:var(--r-home-handled-badge);background:var(--fill-home-handled-badge);color:var(--accent)}
+.hd-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
+.hd-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd-t b{color:var(--ink);font-weight:var(--fw-strong)}
+.hd>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transition:transform var(--d-move) var(--ease)}
+.handled.is-open .hd>svg{transform:rotate(180deg)}
+.hd-in{padding-top:var(--s-2)}
+.hd-ul,.cw-ul{list-style:none;display:grid;gap:var(--s-home-card-row-gap)}
+.hd-r{display:grid;grid-template-columns:var(--w-home-handled-project) minmax(0,1fr) minmax(0,.9fr) var(--w-home-handled-progress);
+  align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row);padding:var(--s-1) var(--s-3);
+  border-radius:var(--r-sm);text-align:left;font-size:var(--fs-ui);transition:background var(--d-hover) var(--ease)}
+.hd-r:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+.hd-p{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd-tt{display:block;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hd-tt>:is(i:not(.agm),svg){display:inline-block;margin-right:var(--gap-icon);
+  vertical-align:calc(var(--cap-mid) - var(--offset-home-handled-icon))}
+.hd-now{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini{display:block;height:var(--h-home-progress-track);border-radius:var(--r-home-progress-track);
+  background:var(--fill-3);overflow:hidden}
+.mini i{display:block;height:100%;border-radius:var(--r-home-progress-track);background:var(--info);
+  transform-origin:left;transform:scaleX(var(--p));transition:transform var(--d-land) var(--ease)}
+.hd-k{margin:var(--s-4) var(--s-3) var(--s-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.cw{display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-home-wait-card);
+  padding:var(--s-home-wait-card-block) var(--s-2) var(--s-home-wait-card-block) var(--s-3);
+  border-radius:var(--r-lg);border:var(--hair) dashed var(--line)}
+.cw+.cw{margin-top:var(--s-home-wait-card-gap)}
+.cw-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--s-home-wait-detail-gap)}
+.cw-t{font-size:var(--fs-ui);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-t code{font:var(--fw-medium) .9em/1 var(--mono)}
+.cw-why{font-size:var(--fs-meta);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-in{flex:none;height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r-sm);border:var(--hair) solid var(--line);
+  color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease)}
+.cw-in:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}

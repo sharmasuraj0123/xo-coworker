@@ -1,11 +1,12 @@
-// The UI's shape (js/shape.js): merge semantics, per-key fallback, unknown keys, ordering, capability
-// gating, versions and the cv-hops migration; and mine kept on Storm (GET/PUT /api/chat/shape, xo-space
-// 8c6bc03): read on load, written only on a change, conflicts, the live event, a backend without the route.
-// No network: the presets are read from disk, and Storm is a fake.
-//   node tests/shape.test.mjs
+// Local shape, preset files and synchronization against a fake Storm.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../js/shape.js";
+import {
+  merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, SURFACES, SHAPE_VERSION,
+} from "../core/services/shape/model.js";
+import { changesOf, applyChanges, oneKey, sameDoc } from "../core/services/shape/changes.js";
+import { createShapeStore, KEYS } from "../core/services/shape/store.js";
+import { createScope } from "../core/kernel/scope.js";
 
 let passed = 0;
 const pending = [];
@@ -14,7 +15,7 @@ const t = (name, fn) => {
   const fail = (e) => { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; };
   try { const r = fn(); if (r && r.then) pending.push(r.then(done, fail)); else done(); } catch (e) { fail(e); }
 };
-const preset = (id) => JSON.parse(readFileSync(new URL(`../presets/${id}.json`, import.meta.url), "utf8"));
+const preset = (id) => JSON.parse(readFileSync(new URL(`../core/services/shape/presets/${id}.json`, import.meta.url), "utf8"));
 const P = (id) => ({ from: "preset", doc: preset(id) });
 const mem = (init = {}) => { const m = new Map(Object.entries(init)); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; };
 
@@ -297,9 +298,23 @@ function test_store_more() {
     assert.equal(S.on("xo:thread/runtime"), true, "no file: the built-in defaults");
     assert.match(S.problems[0].text, /couldn't be read/);
   });
+  t("store: your sidebar and project icons are yours, kept for every device (layout.side, layout.icons; patchMine)", async () => {
+    const st = mem();
+    const S = createShapeStore({ storage: st, load: async (id) => preset(id) });
+    await S.setMine({ preset: "everything" });
+    assert.ok(S.patchMine({ layout: { side: { order: ["arts", "home"], shown: ["arts"] } } }).ok);
+    assert.deepEqual(S.get("layout").side, { order: ["arts", "home"], shown: ["arts"] });
+    assert.ok(S.patchMine({ layout: { icons: { "xo-space": "research" } } }).ok);
+    assert.deepEqual(S.get("layout").icons, { "xo-space": "research" });
+    assert.deepEqual(S.get("layout").side.shown, ["arts"], "a patch keeps what it doesn't name");
+    assert.equal(JSON.parse(st.getItem(KEYS.mine)).layout.icons["xo-space"], "research", "kept in mine (Storm's copy follows)");
+    assert.equal(S.problems.length, 0, "both are shape keys");
+    S.patchMine({ layout: { side: null } });
+    assert.equal(S.get("layout").side, undefined, "null removes it");
+    assert.ok(S.patchMine([1]).error);
+  });
   t("store: the chosen preset's file read at last applies at once, as a choice of it does (C101/C102/S119)", async () => {
-    // the create-project grader on dead20c: the preset's read refused, the preset chosen (XO shows everything), the
-    // read allowed and Shape opened again: its error cleared, but XO stayed as Everything until a reload
+    // A recovered preset changes the current page without a reload.
     const st = mem();
     let refuse = true;
     const S = createShapeStore({ storage: st, load: async (id) => { if (refuse) throw new Error("Preset fixture unavailable"); return preset(id); } });
@@ -379,7 +394,13 @@ function fakeStorm({ doc = null, route = true } = {}) {
   return F;
 }
 const puts = (F) => F.calls.filter((c) => c[0] === "PUT");
-const store = (opts) => { const notes = []; const S = createShapeStore({ load: async (id) => preset(id), notice: (n) => notes.push(n), ...opts }); return { S, notes }; };
+const storeScopes = [];
+const store = (opts) => {
+  const notes = [], scope = createScope();
+  storeScopes.push(scope);
+  const S = createShapeStore({ load: async (id) => preset(id), notice: (n) => notes.push(n), ...opts }, scope);
+  return { S, notes };
+};
 
 t("Storm without the route (404): this browser's copy, as before; nothing is written, on load or on a change", async () => {
   const st = mem({ [KEYS.mine]: JSON.stringify({ shape: 1, preset: "marketing" }) });
@@ -710,7 +731,7 @@ t("neither kept here nor taken by XO: it says so plainly, never \"saved on this 
   assert.match(notes[0].sub, /won't keep it after a reload, and XO couldn't be reached/);
 });
 
-// ── Astra on a63139f: held changes across an offline reload, an unkept note, both refusing, a replacement in flight ──
+// Held changes across offline reloads, storage refusals and in-flight replacements.
 t("a reload while XO can't be reached, with a change held: the retry is scheduled, and it lands once XO answers", async () => {
   const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
   const st = mem();
@@ -939,4 +960,5 @@ t("SRC-SET-QUEUE-7 as Astra ran it: the stale note, a newer comfortable + word c
 });
 
 await Promise.all(pending);
+for (const scope of storeScopes) scope.dispose();
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

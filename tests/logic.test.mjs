@@ -1,13 +1,20 @@
 // Exercises the UI's pure modules (markdown, model, timeline) against fixed
 // cases and against live storm data through the proxy (GET only: nothing is written).
 //   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
-//   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
+//   XO_UI=<ui url> node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
-import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../js/markdown.js";
-import { parseChecklist, tasksOf } from "../js/model.js";
-import { request } from "../js/api.js";
-import { highlight, langOf } from "../js/highlight.js";
-import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, sendBlock, mapLimit, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
+import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../core/ui/markdown/markdown.js";
+import { parseChecklist, tasksOf } from "../core/services/world/checklist.js";
+import { api } from "../core/platform/api.js";
+import { requestJson } from "../core/platform/http.js";
+import { highlight, langOf } from "../core/ui/markdown/highlight.js";
+import { uiMsg, mergeRows, addReaction } from "../core/services/world/rows.js";
+import { echoes, threadAnchors, ownReply, parseTarget, stripTarget, waitsForTurn, chatOrder, reactionGroups } from "../core/services/world/conversation.js";
+import { askText, stormAsks, plainText, threadState } from "../core/services/world/threads.js";
+import { sendErrorTitle, connLine, sendBlock } from "../core/services/world/conn.js";
+import { currentPools, mainRuntime } from "../core/services/world/sessions.js";
+import { sharedFileRoute, relayedInto, forwardOrigin, hopLine, hopNotes } from "../core/services/world/relay.js";
+import { mapLimit } from "../core/services/storm/load.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -46,11 +53,11 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   try {
     const live = renderInline("[the panel](#cmsg_live)");
     assert.match(live, /class="lk lk-in lk-thread"/);
-    assert.match(live, /<i class="g g-working"/);
+    assert.match(live, /<svg class="xi g g-working"[^>]*data-xi="state-working"/);
     assert.match(live, /title="Working · thread"/);
     const gone = renderInline("[other](#cmsg_gone)");
     assert.match(gone, /is-unknown/);
-    assert.ok(!gone.includes('class="g '), gone);
+    assert.ok(!gone.includes(' g g-'), gone);
     // the app's word can never inject a class
     setThreadInfo(() => ({ state: 'x" onclick="1', word: "<b>", title: "t" }));
     const odd = renderInline("[t](#cmsg_odd)");
@@ -58,8 +65,7 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   } finally { setThreadInfo(null); }
   const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
   assert.match(web, /class="lk lk-out"/);
-  // the last word and the ↗ never part (QA F3)
-  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="lk-ar"/);
+  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="xi lk-ar"/);
   const bare = renderInline("at http://localhost:3000/ now");
   assert.match(bare, /lk-out is-local is-bare/);
   assert.match(bare, /<span class="lk-t">localhost:3000<\/span>/);
@@ -68,7 +74,7 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
 });
 t("a bare address wraps only at its seams, and its last piece keeps the arrow (QA F3)", () => {
   const out = renderInline("https://github.com/pierrecomputer/pierre");
-  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="lk-ar"/);
+  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="xi lk-ar"/);
   // a long last piece keeps only its last 6 characters with the arrow, so it can still wrap
   const sha = renderInline("https://x.io/c/4f765da0b2c1d3e4f5a6b7c8");
   assert.match(sha, /<span class="lk-end"><span class="lk-t">a6b7c8<\/span><svg/);
@@ -78,7 +84,7 @@ t("a bare address wraps only at its seams, and its last piece keeps the arrow (Q
 t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
   const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
   assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
-  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
+  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from core/ui/icons/fileicons.js, whichever set it draws
   assert.match(f, /data-file="README.md"/);
   for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
     const out = renderInline(bad);
@@ -133,7 +139,6 @@ t("tasks leave notes out of the count and the bar", () => {
   assert.deepEqual([c.total, c.done, c.doing], [2, 1, 1]);
 });
 
-// ── storm rows and the live timeline (js/timeline.js) ────────────────────
 t("an agent's reactions: read from extra, applied live, grouped by emoji", () => {
   const row = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", author_kind: "owner", author_id: "owner", text: "hi", extra: { reactions: [{ emoji: "👀", by: "cse_1", at: "x" }, { emoji: null }] } };
   assert.deepEqual(uiMsg(row).reactions, [{ emoji: "👀", by: "cse_1", at: "x" }]);
@@ -208,12 +213,41 @@ t("thread cards sit under the coordinator's reply to the root, else alone", () =
   assert.deepEqual([...on], [["c1", ["r1"]]]);
   assert.deepEqual([...alone].sort(), ["r2", "r3"]);
 });
-t("@project targets: only a known project is stripped", () => {
+t("a copy from another project never takes this chat's thread card", () => {
+  const fwd = { chatId: "chat_other", id: "orig", via: ["xo-coworker", "workspace"] };
+  const rows = [
+    { id: "root", who: "you", fwd },
+    { id: "copy", who: "coord", fwd, text: "This went to [the runtime sign-in thread](#elsewhere)" },
+    { id: "said", who: "coord", text: "Auditing adapter parity" },
+    { id: "told", who: "coord", text: "I started a read-only audit: [Runtime adapters](#root)." },
+  ];
+  assert.deepEqual([...threadAnchors(rows, ["root"]).on], [["told", ["root"]]], "it sits under our coordinator's reply that links the thread");
+  assert.deepEqual([...threadAnchors(rows.filter((r) => r.id !== "told"), ["root"]).on], [["said", ["root"]]]);
+  assert.deepEqual([...threadAnchors(rows.slice(0, 2), ["root"]).alone], ["root"], "with only a copy after it, the card stands alone");
+  const turn = [{ id: "ask", who: "you" }, { id: "t1", who: "coord" }, { id: "t2", who: "coord" }, { id: "t3", who: "coord" }, { id: "said", who: "coord" }];
+  assert.deepEqual([...threadAnchors(turn, ["t1", "t2", "t3"]).on], [["t1", ["t1"]], ["t2", ["t2"]], ["t3", ["t3"]]], "threads opened in one turn each keep their card");
+  assert.equal(ownReply(rows[1]), false);
+  assert.equal(ownReply(rows[2]), true);
+});
+t("@project targets: only a known project routes; any other @ is text", () => {
   const ps = [{ id: "workspace", name: "Workspace" }, { id: "billing-api", name: "billing-api" }];
-  assert.deepEqual(parseTarget("@billing-api add tests", ps), { pid: "billing-api", token: "billing-api", unknown: null });
+  const none = { pid: null, token: null };
+  assert.deepEqual(parseTarget("@billing-api add tests", ps), { pid: "billing-api", token: "billing-api" });
   assert.equal(parseTarget("@Workspace hi", ps).pid, "workspace");
-  assert.deepEqual(parseTarget("ask @nope about it", ps), { pid: null, token: null, unknown: "nope" });
-  assert.equal(parseTarget("mail me at a@b.c", ps).unknown, null);
+  assert.deepEqual(parseTarget("ask @nope about it", ps), none);
+  assert.deepEqual(parseTarget("mail me at a@b.c", ps), none);
+  assert.deepEqual(parseTarget("meet @ 5pm", ps), none);
+  assert.deepEqual(parseTarget("ping @ankit please", ps), none);
+  assert.deepEqual(parseTarget("cc @someone.", ps), none);
+  assert.deepEqual(parseTarget("```py\n@dataclass\nclass A: pass\n```", ps), none);
+  assert.deepEqual(parseTarget("use `@billing-api` as the handle", ps), none);
+  assert.deepEqual(parseTarget("```\n@billing-api", ps), none); // a fence still being typed
+  // the first @ that names a project routes, past unknown ones and code; the rest stays text
+  assert.deepEqual(parseTarget("see @jkdsf then @billing-api", ps), { pid: "billing-api", token: "billing-api" });
+  assert.deepEqual(parseTarget("`@workspace` then @Billing-API", ps), { pid: "billing-api", token: "Billing-API" });
+  assert.deepEqual(parseTarget("ask @billing-api.", ps), { pid: "billing-api", token: "billing-api" });
+  assert.equal(stripTarget("see @jkdsf then @billing-api", "billing-api"), "see @jkdsf then");
+  assert.equal(stripTarget("ask @billing-api. now", "billing-api"), "ask . now");
   assert.equal(stripTarget("add @billing-api tests", "billing-api"), "add tests");
   assert.equal(stripTarget("@billing-api.x keep", "billing-api"), "@billing-api.x keep");
   assert.equal(stripTarget("no token", null), "no token");
@@ -261,7 +295,6 @@ t("a plain chat pairs each turn with the prompt that woke it, whenever the CLI w
   const at = (s) => Date.parse(`2026-10-26T11:${s}Z`);
   const turn = (id, s, n = 1) => ({ id, at: `2026-10-26T11:${s}Z`, origin: "person", wakes: Array.from({ length: n }, (_, i) => `msg:prompt:${id}${i}`) });
   const said = (out) => out.map((x) => (x.kind === "you" ? x.m.text : x.t.id)).join(" ");
-  // codex, cold: the prompt is written ~3.7 s after its turn began (live, 0.164)
   assert.equal(said(chatOrder([{ text: "hey", at: at("44:51.708") }], [turn("T1", "44:48")])), "hey T1");
   // and later turns, written well after their start, still under their own turn
   assert.equal(said(chatOrder(
@@ -381,6 +414,28 @@ t("a message relayed into a thread shows there under its true author: yours as y
   assert.equal(relayedInto(th, hops, tl, new Set(["cmsg_fwd", "cmsg_co"])).shown.length, 0, "never twice in the thread");
 });
 
+t("a forwarded copy is followed to where you wrote it (a copy of a copy is no new message)", () => {
+  const rows = {
+    ffcd: { id: "ffcd", chat_id: "chat_co", text: "status?", extra: {} },
+    "9ee8": { id: "9ee8", chat_id: "chat_sp", text: "status?", extra: { forwarded_from: { chat_id: "chat_co", message_id: "ffcd", via: ["xo-coworker", "workspace"] } } },
+  };
+  const find = (id) => rows[id] || null;
+  const o = forwardOrigin({ chatId: "chat_sp", id: "9ee8", via: ["xo-space", "workspace"] }, find);
+  assert.deepEqual([o.known, o.chatId, o.id], [true, "chat_co", "ffcd"], "the copy's source is a copy: its own source is where you wrote it");
+  assert.equal(forwardOrigin({ chatId: "chat_co", id: "ffcd" }, find).chatId, "chat_co", "one written there is its own origin");
+  const u = forwardOrigin({ chatId: "chat_sp", id: "nope" }, find);
+  assert.deepEqual([u.known, u.chatId, u.id], [false, "chat_sp", "nope"], "a source not read yet stays unknown, never guessed");
+  // XO names the root on a copy: no walk, and the root need not be read
+  const r = forwardOrigin({ chatId: "chat_sp", id: "9ee8", root: { chatId: "chat_co", id: "ffcd" } }, () => null);
+  assert.deepEqual([r.known, r.chatId, r.id, r.row], [true, "chat_co", "ffcd", undefined], "root named: known without reading anything");
+  assert.equal(forwardOrigin({ chatId: "chat_sp", id: "9ee8", root: { chatId: "chat_co", id: "ffcd" } }, find).row.id, "ffcd", "its row, when held");
+  const viaRow = { cp: { id: "cp", chat_id: "chat_x", extra: { forwarded_from: { chat_id: "chat_sp", message_id: "9ee8", root: { chat_id: "chat_co", message_id: "ffcd" } } } } };
+  assert.equal(forwardOrigin({ chatId: "chat_x", id: "cp" }, (id) => viaRow[id] || rows[id] || null).id, "ffcd", "a copy on the way that names a root ends the walk");
+  assert.deepEqual(uiMsg({ id: "c", chat_id: "x", seq: 1, created_at: "2026-11-19T10:00:00Z", author_kind: "owner", author_id: "owner", extra: { forwarded_from: { chat_id: "a", message_id: "b", via: [], root: { chat_id: "r", message_id: "q" } } } }).fwd.root, { chatId: "r", id: "q" });
+  const loop = { a: { id: "a", extra: { forwarded_from: { chat_id: "c", message_id: "b" } } }, b: { id: "b", extra: { forwarded_from: { chat_id: "c", message_id: "a" } } } };
+  assert.equal(forwardOrigin({ chatId: "c", id: "a" }, (id) => loop[id]).known, false, "a loop ends");
+});
+
 t("a thread message sent during a turn waits for it (Interrupt)", () => {
   const turn = { id: "turn_1", status: "running", seq: 500, wakes: ["msg:cmsg_a"] };
   const you = (id, seq) => ({ id, seq, who: "you" });
@@ -421,13 +476,14 @@ t("what a thread and its coordinators wrote each other shows in the thread", () 
     { id: "r", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 20, note: "A follow-up" },
     { id: "a", kind: "answer", from_role: "workspace-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 30, note: "Yes" },
     { id: "u", kind: "relay", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 40, note: "Which branch?" },
+    { id: "q", kind: "ask", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 45, note: "Is :3000 free?" },
     { id: "s", kind: "status", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 50, note: "Done" },
     { id: "k", kind: "ask", from_role: "project-coordinator", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 60, note: "On its behalf" },
     { id: "n", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 70 },
     { id: "o", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_other", seq: 80, note: "Elsewhere" },
   ];
   const out = hopNotes(th, hops);
-  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"]]);
+  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"], ["q", "up", "thread", "ask"]]);
   assert.equal(out[0].text, "Build the UI.", "trimmed");
   assert.equal(out[0].at, Date.parse("2026-10-24T10:00:00Z"));
   assert.equal(out[0].seq, 10);
@@ -445,7 +501,9 @@ await (async () => {
   try {
     let err = null;
     const t0 = Date.now();
-    try { await request("/chat/chats/x/messages", { method: "POST", body: { text: "hi", client_id: "ui_1" }, timeout: 60 }); } catch (e) { err = e; }
+    try {
+      await requestJson("/chat/chats/x/messages", { method: "POST", body: { text: "hi", client_id: "ui_1" }, timeout: 60 });
+    } catch (e) { err = e; }
     t("a write that never settles fails as a timeout", () => {
       assert.ok(err && err.code === "timeout" && err.status === 0, String(err && err.code));
       assert.equal(sendErrorTitle(err), "No answer from XO");
@@ -453,15 +511,14 @@ await (async () => {
       assert.equal(JSON.parse(seen[0].body).client_id, "ui_1", "a retry is the same request");
     });
     const ctl = new AbortController();
-    const p = request("/chat/status", { signal: ctl.signal, timeout: 5000 });
+    const p = api.status({ signal: ctl.signal });
     ctl.abort();
     let err2 = null;
     try { await p; } catch (e) { err2 = e; }
     t("a caller's own abort stays an AbortError, not a timeout", () => assert.equal(err2 && err2.name, "AbortError"));
-    // Coder's sign-in redirect (c7f1e12): fetch never follows it, and it reads as signed out, not a CORS error
     let opts3 = null, err3 = null;
     globalThis.fetch = async (url, opts) => { opts3 = opts; return { type: "opaqueredirect", ok: false, status: 0 }; };
-    try { await request("/chat/status"); } catch (e) { err3 = e; }
+    try { await api.status(); } catch (e) { err3 = e; }
     t("a Coder sign-in redirect is not followed and reads as signed out (Rohan's fix stays)", () => {
       assert.equal(opts3.redirect, "manual");
       assert.equal(err3 && err3.code, "signed_out");

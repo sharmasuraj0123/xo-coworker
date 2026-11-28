@@ -1,0 +1,154 @@
+
+/* the model chip never shrinks for the target, only to leave Attach and Send their room */
+
+.iq{flex:0 1 auto;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
+.iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
+.iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.is-fixed:is(.target,.iq),.is-fixed:is(.target,.iq):is(:hover,:active){cursor:default;background:none}
+.is-fixed.target:hover{color:var(--ink-4)}
+.is-fixed.iq:hover{color:var(--ink-3)}
+.iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.iq-t{color:var(--ink-2)}
+.iq-a{color:var(--ink-4)}
+.iq-e{color:var(--ink-3)}
+.iq-sep{margin:0 6px;color:var(--ink-5)}
+
+.iq-l.is-pending{display:flex;align-items:baseline;gap:8px;overflow:visible}
+.iq-cur{flex:0 0 auto;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.iq-next{flex:0 1 auto;display:inline-flex;align-items:baseline;gap:4px;min-width:0;color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.iq-nk{flex:none;color:var(--ink-4)}
+.iq-nk::before{content:"";display:inline-block;width:var(--ic-sm);height:var(--ic-sm);margin-right:var(--s-1);vertical-align:calc(var(--cap-mid) - var(--ic-sm) / 2);background:currentColor;mask:var(--mask-next)}
+.iq-nw{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){
+  .iq-l.is-pending{gap:4px}
+  .iq-l.is-pending .iq-cur{flex:0 1 auto;min-width:0}
+  .iq-l.is-pending .iq-next{flex:none}
+  .iq-l.is-pending .iq-nw{display:none}
+  /* on a phone the mark is the arrow alone: the running model and effort keep the room */
+  .iq-l.is-pending .iq-nk{font-size:0}
+  .iq-l.is-pending .iq-nk::before{margin:0;vertical-align:top}
+}
+.iq-pop{--nest-r:var(--r-menu);--nest-in:calc(var(--menu-pad) + 1px);position:fixed;z-index:var(--z-popover);
+  display:flex;flex-direction:column;padding:var(--menu-pad);border-radius:var(--nest-r);
+  background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--lift-3);outline:none;
+  transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
+.iq-pop.is-out{animation:float-out var(--d-pop-out) var(--ease) forwards}
+.iq-h{display:flex;align-items:center;gap:8px;padding:8px var(--s-2) 2px}
+.iq-h h2{flex:1;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-h h2 span{font-weight:var(--fw-regular);color:var(--ink-3)}
+.iq-truth{margin:0 0 4px;padding:0 var(--s-2) 10px;border-bottom:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-wrap:pretty}
+.iq-truth b{font-weight:var(--fw-medium);color:var(--ink)}
+.iq-truth .g{margin-right:var(--gap-icon);vertical-align:calc(var(--cap-mid) - var(--ic-sm) / 2)}
+.iq-now{padding:0 var(--s-2);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.iq-now b{color:var(--ink-2);font-weight:var(--fw-medium)}
+.iq-lab{padding:10px var(--s-2) 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.iq-list{display:flex;flex-direction:column;max-height:var(--pop-list-h);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.iq-row{flex:none;display:flex;align-items:center;gap:var(--s-2);min-width:0;text-align:start;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);cursor:pointer;outline:none}
+.iq-row:hover{background:var(--hover-fill)}
+.iq-row:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.iq-row:focus-visible,.iq-item:focus-visible,.iq-hb:focus-visible{outline:none;
+  box-shadow:inset 0 0 0 2px var(--focus)}
+/* a choice that waits while a save or a move is out: it keeps focus, says it can't change, doesn't answer hover */
+.iq-row[aria-disabled="true"]{cursor:default}
+.iq-row[aria-disabled="true"]:not(.is-sel){opacity:.55}
+.iq-row[aria-disabled="true"]:is(:hover,:active){background:none}
+.iq-n{flex:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2)}
+.iq-tr{flex:1;min-width:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-ck{flex:none;width:14px;height:14px;margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:opacity var(--d-hover) var(--ease),transform var(--d-hover) var(--ease)}
+.iq-row.is-sel .iq-n{color:var(--ink)}
+.iq-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.iq-ic svg{width:var(--ic);height:var(--ic)}
+.iq-row.is-sel .iq-ic{color:var(--ink-2)}
+.iq-go{flex:none;width:var(--ic-sm);height:var(--ic-sm);margin-left:auto;color:var(--ink-4)}
+.iq-row.is-sel .iq-ck{opacity:1;transform:none}
+/* a choice that needs its sentence: the mark, the name over what it means */
+.iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}
+.iq-pop.is-sheet .iq-row.cs-mrow{height:auto;min-height:var(--h-hit)}
+.cs-mi{flex:none;width:var(--ic);height:var(--ic);margin-top:calc((var(--lh-ui) - var(--ic)) / 2);color:var(--ink-3)}
+.cs-mrow.is-sel .cs-mi{color:var(--ink)}
+.cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:start}
+.cs-mrow .iq-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.cs-md{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-wrap:pretty}
+.cs-mrow .iq-ck{align-self:center}
+/* a segmented choice (thinking, runtime, routing): an 8 px track, its 6 px segments 2 px in (8 − 2) */
+.iq-route{display:flex;gap:2px;margin:0 4px;padding:4px;border-radius:var(--r);background:var(--fill-2)}
+/* each choice is at least as wide as its mark and name, so a long one never spills into the next */
+.iq-route button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;height:var(--h-sm);padding:0 6px;border-radius:calc(var(--r) - 4px);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);white-space:nowrap}
+.iq-route button:hover:not([aria-checked="true"]):not([aria-disabled="true"]){color:var(--ink);background:var(--hover-fill)}
+.iq-route button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft),0 1px 2px rgb(0 0 0 / calc(.18 * var(--sha)))}
+.iq-route button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
+.iq-route button svg{width:var(--ic-sm);height:var(--ic-sm)}
+.iq-rl{padding:6px var(--s-2) 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.iq-rl.is-why{color:var(--ink-4)}
+.iq-sec{margin-top:4px}
+/* the first page: a row per choice, its value on the right, a chevron to its page */
+.iq-items{display:flex;flex-direction:column;padding-top:var(--s-1)}
+.iq-items+.iq-items{margin-top:var(--s-1);padding-top:var(--s-1);border-top:1px solid var(--line-soft)}
+.iq-item{display:flex;align-items:center;gap:var(--s-2);width:100%;height:var(--menu-row);padding:0 var(--s-2);
+  border-radius:var(--r-pop-row);text-align:start;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.iq-item:hover{background:var(--hover-fill)}
+.iq-item[aria-disabled="true"]{cursor:default}
+.iq-item[aria-disabled="true"]:hover{background:none}
+.iq-k{flex:none}
+.iq-v{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:var(--gap-icon);overflow:hidden;
+  white-space:nowrap;color:var(--ink);font-weight:var(--fw-medium)}
+.iq-v .spin{width:var(--ic-sm);height:var(--ic-sm)}
+.iq-item .iq-go{margin-left:0}
+.iq-item.is-link{color:var(--ink-2)}
+.iq-item.is-link .iq-k{flex:1;font-weight:var(--fw-medium)}
+.iq-lead{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
+/* a page: back, its title and what it applies to, then its choices */
+.iq-hb{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:calc(-1 * var(--s-1));
+  border-radius:var(--r-pop-row);color:var(--ink-3)}
+.iq-hb:hover{background:var(--hover-fill);color:var(--ink)}
+.iq-hb svg{width:var(--ic);height:var(--ic)}
+.iq-opts{display:flex;flex-direction:column;max-height:var(--pop-list-h);overflow-y:auto;overscroll-behavior:contain;
+  padding-top:var(--s-1);scrollbar-width:thin}
+.iq-opt{flex:none;display:flex;align-items:center;gap:var(--s-2);width:100%;height:var(--menu-row);padding:0 var(--s-2);
+  border-radius:var(--r-pop-row);text-align:start}
+.iq-opt:hover{background:var(--hover-fill)}
+.iq-opt[aria-disabled="true"]{cursor:default}
+.iq-opt[aria-disabled="true"]:hover{background:none}
+.iq-opt[aria-disabled="true"]:not(.is-sel) :is(.iq-n,.iq-mk){opacity:.45}
+.iq-opt .iq-n{min-width:0}
+.iq-opt.is-sel .iq-n{color:var(--ink)}
+.iq-opt.is-sel .iq-ck{opacity:1;transform:none}
+.iq-d{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+/* the models: names in one column, what each is for in the next, so the lines start together */
+.iq-opts.is-cols{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:var(--s-3);padding-top:0}
+.iq-opt:focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
+.iq-opts.is-cols .iq-opt{display:grid;grid-column:1/-1;grid-template-columns:subgrid;gap:inherit}
+.iq-s{flex:none;margin-left:auto;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.iq-s.is-warn{color:var(--warn-text)}
+.iq-s+.iq-ck{margin-left:0}
+.iq-mk{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--ink-3)}
+.iq-mk svg{width:var(--ic);height:var(--ic)}
+.iq-f{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:calc(var(--h-ctl) + var(--s-1));margin-top:8px;padding:var(--s-1) 0 0 var(--s-2);border-top:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.iq-back{margin-left:auto;height:var(--h-ctl);padding:0 8px;border-radius:calc(var(--nest-r) - var(--nest-in));color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);white-space:nowrap}
+.iq-back:hover{background:var(--hover-fill);color:var(--ink)}
+.iq-done{margin-left:auto;height:var(--h-ctl);padding:0 12px;border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--ink);color:var(--on-ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+.iq-done:hover{background:var(--ink-hi)}
+.iq-done:active{transform:scale(var(--press-scale))}
+.iq-done[aria-busy="true"]{cursor:progress}
+.iq-done[aria-busy="true"]:is(:hover,:active){background:var(--ink);transform:none}
+.iq-err{padding:6px var(--s-2) 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--err-ink)}
+.iq-mv ul{display:flex;flex-direction:column;gap:4px;margin:0;padding:4px var(--s-2) 0 28px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2)}
+.iq-mv li::marker{color:var(--ink-4)}
+.iq-mv-acts{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;padding:0 4px 4px}
+.iq-mv-acts .iq-rl{margin:0 auto 0 0;padding:0;display:inline-flex;align-items:center;gap:4px}
+.iq-pop.is-sheet{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:15px 15px max(22px,env(safe-area-inset-bottom));transform-origin:50% 100%;animation:sheet-up var(--d-sheet) var(--ease)}
+.iq-pop.is-sheet .iq-row{height:var(--h-hit)}
+.iq-pop.is-sheet .iq-route{margin:0}
+.iq-pop.is-sheet .iq-route button{flex:1 1 auto;height:var(--h-lg);padding:0 6px}
+
+@keyframes float-in{from{opacity:0;transform:translateY(4px) scale(.98)}}
+@keyframes float-out{to{opacity:0;transform:translateY(2px) scale(.99)}}
+/* a menu that drops below its trigger comes down from it; leaving, it goes back up */
+@keyframes float-in-down{from{opacity:0;transform:translateY(-4px) scale(.98)}}
+@keyframes float-out-up{to{opacity:0;transform:translateY(-2px) scale(.99)}}
+/* a dialog, a sheet, a toast: 8 px and .98, 240 ms; leaving, 160 */
+@keyframes sheet-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+@keyframes sheet-out{to{opacity:0;transform:translateY(6px) scale(.98)}}
+/* content that arrives in place (a line, a card, a column): a 4 px rise */
+@keyframes rise-in{from{opacity:0;transform:translateY(4px)}}

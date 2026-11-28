@@ -1,0 +1,66 @@
+.pd{display:flex;gap:2px}
+.pd i{display:block;width:4px;height:4px;border-radius:50%;background:currentColor}
+
+/* ── live wiring: routes, history, notes, connection ─────────────────────── */
+.rt-go{padding:0;border-radius:var(--r-sm);color:inherit}
+.rt-go:hover b{text-decoration:underline;text-underline-offset:2px}
+.route-row>svg{flex:none;width:var(--ic-xs);height:var(--ic-xs);color:var(--ink-4)}
+.m-card .tcard{margin-top:0}
+.m-note{margin:10px 0 26px;color:var(--ink-4);font-size:var(--fs-meta);text-align:center}
+
+.scroller:has(.m-start,.m-load){display:flex;flex-direction:column}
+.column:has(.m-start,.m-load),.msgs:has(> .m-start,> .m-load){display:flex;flex:1 0 auto;flex-direction:column}
+/* a conversation on its way: the pack's spinner in the middle of the room it will fill, only once it takes a moment */
+.m-load{display:grid;place-items:center;flex:1;color:var(--ink-3);animation:hs-in var(--d-in) var(--ease) var(--d-wait) both}
+@media (prefers-reduced-motion:reduce){.m-load{animation-duration:0s}}
+.m-start{display:flex;flex-direction:column;align-items:center;gap:var(--s-4);margin:auto 0;padding-bottom:var(--h-lg)}
+.st-h{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);text-align:center;text-wrap:balance;overflow-wrap:anywhere}
+.st-list{list-style:none;display:grid;width:max-content;max-width:100%;transition:opacity var(--d-hover) var(--ease),visibility 0s}
+
+body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opacity var(--d-hover) var(--ease),visibility 0s linear var(--d-hover)}
+.st-o{
+  display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-lg);padding:0 var(--s-3);border-radius:var(--r-lg);
+  color:var(--ink-2);font-size:var(--fs-ui);line-height:var(--lh-ui);text-align:left;
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)
+}
+.st-ic{display:grid;place-items:center;flex:none;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
+.st-ic svg{width:var(--ic);height:var(--ic)}
+.st-o:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--dur-fast)}
+.st-o:hover .st-ic{color:var(--ink-2);transition-duration:var(--dur-fast)}
+.day.hist{min-height:26px}
+.day.hist span{display:inline-flex;align-items:center;gap:var(--gap-icon)}
+.hist-more{
+  height:var(--h-sm);padding:0 var(--s-3);border-radius:var(--r-pill);border:var(--hair) solid var(--line-soft);
+  color:var(--ink-3);font-size:var(--fs-meta);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)
+}
+.hist-more:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+@media (max-width:760px){.day.hist{min-height:var(--h-touch)}.hist-more{height:var(--h-touch);padding:0 var(--s-4)}}
+
+.hist-skel{display:flex;flex-direction:column;gap:24px;margin:8px 0 24px;pointer-events:none;animation:hs-in var(--d-in) var(--ease) var(--dur-fast) both}
+.hs-av,.hs-bar{display:block}
+.hs-them{display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}
+.hs-av{width:var(--tile);height:var(--tile);border-radius:var(--r-sm);border:1px solid var(--line-faint)}
+.hs-b{display:flex;flex-direction:column;gap:16px;padding-top:12px}
+.hs-bar{height:8px;border-radius:999px;background:var(--fill-2);animation:hs-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
+.hs-name{width:min(24%,120px);margin-bottom:8px}
+.hs-b>.hs-bar:nth-child(2){width:min(84%,540px)}
+.hs-b>.hs-bar:nth-child(3){width:min(56%,360px)}
+.hs-you{display:flex;justify-content:flex-end}
+.hs-bub{display:flex;align-items:center;width:min(44%,300px);height:var(--tile-xl);padding:0 17px;border-radius:var(--r-xl);border:1px solid var(--line-faint)}
+/* its bar sits as far from the bubble's side as from its top (18 px): the corner reads concentric */
+.hs-bub>.hs-bar{width:72%}
+:root[data-theme="light"] .hs-bar{background:var(--fill-2)}
+@keyframes hs-in{from{opacity:0}}
+@keyframes hs-breathe{to{opacity:.5}}
+@media (max-width:760px){.hs-them{grid-template-columns:26px minmax(0,1fr);gap:8px}.hs-av{width:26px;height:26px}}
+@media (prefers-reduced-motion:reduce){.hist-skel,.hs-bar{animation:none}}
+.ev-sys .ev-ic{color:var(--ink-3)}
+.ev-asked .ev-t{text-align:left;cursor:pointer}
+.ev-asked .ev-t:hover{color:var(--ink-2)}
+.ev-asked.is-open{align-items:flex-start}
+.ev-asked.is-open .ev-t{white-space:pre-wrap;overflow-wrap:anywhere}
+.target .tg-warn{display:inline-flex}
+.target .tg-warn svg{color:var(--warn)}
+.target .tg-end{display:inline-flex}
+.target .tg-end svg{color:var(--ink-4)}
+.hr-conn .hr-t{color:var(--ink)}

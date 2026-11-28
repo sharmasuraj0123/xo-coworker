@@ -1,0 +1,119 @@
+// @ts-check
+
+import { isResponseObject } from "../../core/platform/http.js";
+import { VERB } from "../../core/services/review.js";
+import { answer, createCommitQueue } from "./kit.js";
+
+/** @import { DecisionQueueDeps, DecisionPart, DecisionFailure } from "./queue-types.d.ts" */
+
+/** @param {unknown} error @returns {DecisionFailure | undefined} */
+function decisionFailure(error) {
+  if (!isResponseObject(error)) return;
+  const decision = isResponseObject(error.item) && error.item.decision;
+  return {
+    status: typeof error.status === "number" ? error.status : 0,
+    message: typeof error.message === "string" ? error.message : undefined,
+    code: typeof error.code === "string" ? error.code : undefined,
+    gone: typeof error.gone === "string" ? error.gone : undefined,
+    item: isResponseObject(decision) ? { decision: {
+      decision: typeof decision.decision === "string" ? decision.decision : undefined,
+      idempotency_key: typeof decision.idempotency_key === "string" ? decision.idempotency_key : undefined,
+    } } : undefined,
+  };
+}
+
+/** @param {DecisionQueueDeps["world"]} world @param {DecisionPart} part */
+function sendDecision(world, { t, ask, choice, note, stopped }) {
+  if (typeof choice === "object" && "body" in choice && ask.item) return world.act.decideItem(ask.item.id, choice.body);
+  if (typeof choice === "object" && "resolve" in choice && choice.resolve) return world.act.resolve(t.id, true);
+  if (stopped && typeof choice === "object" && "text" in choice && typeof choice.text === "string") return world.act.reply(t.id, choice.text);
+  return answer(world, t, ask, choice, note);
+}
+
+/** @param {DecisionQueueDeps} options */
+export function createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSecret, show, toastRender, announce, render, onUndone, onSent, onNotSent }) {
+  /** @param {DecisionPart} part @param {DecisionFailure} err */
+  const ownDecision = (part, err) => {
+    const k = typeof part.choice === "object" && "body" in part.choice && part.choice.body.idempotency_key;
+    return !!k && !!(err.item && err.item.decision && err.item.decision.idempotency_key === k);
+  };
+  /** @param {string | undefined} t */
+  const stop = (t) => { t = String(t || "").trim(); return /[.?!…]$/.test(t) ? t : `${t}.`; };
+  /** @param {DecisionFailure} err */
+  function goneWhy(err) {
+    const d = err.item && err.item.decision && err.item.decision.decision;
+    if (err.gone === "already_decided" || err.gone === "decided") return `It was already decided elsewhere${d && VERB[d] ? ` (${VERB[d].toLowerCase()})` : ""}.`;
+    if (err.gone === "withdrawn") return "It was withdrawn before your answer arrived.";
+    if (err.gone === "expired") return "It had expired, and the agent was told.";
+    return "It's no longer waiting for you.";
+  }
+  /** @param {DecisionFailure | undefined} err */
+  function failShort(err) {
+    if (err && err.code === "secret_needs_a_call") return "XO can't carry a secret here. Give it outside XO, then tell the thread.";
+    if (err && err.code === "rule_sentence_mismatch") return "The rule's wording changed. It's back in your list.";
+    if (err && err.status >= 400 && err.status < 500 && err.message) return `${stop(err.message)} It's back in your list.`;
+    return "It didn't reach the agent. It's back in your list.";
+  }
+  /** @param {DecisionPart} part @param {DecisionFailure | undefined} err */
+  function failLine(part, err) {
+    const t = stop(part.ask.title);
+    if (err && err.code === "secret_needs_a_call") return `Not sent: ${t} XO can't pass a secret to this question. Don't paste it into the thread: give it to the agent outside XO, then tell the thread it's done.`;
+    if (err && err.code === "rule_sentence_mismatch") return `Not sent: ${t} The rule's wording has changed; read it again and decide. It's back in your list.`;
+    if (err && err.status >= 400 && err.status < 500 && err.message) return `Not sent: ${t} ${stop(err.message)} It's back in your list.`;
+    return `Didn't reach the agent: ${t} It's back in your list.`;
+  }
+
+  return createCommitQueue({
+    exec: (p, signal) => Promise.resolve(sendDecision(world, p)).then(() => {
+      if (!signal.aborted && p.t.state === "working" && p.t.asks?.length) { p.t.asks = []; p.t.needsYou = ""; }
+    }),
+    onChange(type, item, results = []) {
+      if (type === "undone") {
+        for (const p of item.parts) { const i = log.indexOf(p.entry); if (i >= 0) log.splice(i, 1); F.status.delete(p.key); }
+        announce("Undone. Nothing was sent; the ask is back.");
+        if (F.open) {
+          const p = item.parts[0];
+          F.cancelAutoClose?.();
+          F.done = false; F.cur = p.key; F.items.set(p.key, p.n);
+          if (!F.order.includes(p.key)) F.order.unshift(p.key);
+          show(F.cur, "undo");
+        }
+        onUndone && onUndone(item.parts[0].key);
+      }
+      if (type === "sending") for (const p of item.parts) p.entry.status = "sending";
+      if (type === "settled") {
+        for (const { part, ok, err: failure } of results) {
+          const err = decisionFailure(failure);
+          if (ok) {
+            part.entry.status = "sent";
+            if (part.stopped) stoppedDone.add(part.t.id); else sentKeys.set(part.key, Date.now());
+            onSent && onSent(part);
+          } else if (err && err.gone && ownDecision(part, err)) {
+            part.entry.status = "sent";
+            sentKeys.set(part.key, Date.now());
+            onSent && onSent(part);
+          } else if (err && err.gone) {
+            part.entry.status = "gone";
+            part.entry.why = goneWhy(err);
+            sentKeys.set(part.key, Date.now());
+            announce(`Not sent: ${stop(part.ask.title)} ${part.entry.why}`);
+            onNotSent && onNotSent(part.ask.title, part.entry.why);
+          } else {
+            part.entry.status = "failed";
+            F.status.delete(part.key);
+            if (err && err.code === "secret_needs_a_call" && part.ask.item) noSecret.add(part.ask.item.id);
+            if (typeof part.choice === "object" && "resolve" in part.choice && part.choice.resolve) {
+              announce(`Couldn't resolve ${part.t.title}: ${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
+              onNotSent && onNotSent(`Couldn't resolve ${part.t.title}`, `${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
+              continue;
+            }
+            announce(failLine(part, err));
+            onNotSent && onNotSent(part.ask.title, failShort(err));
+          }
+        }
+      }
+      toastRender();
+      render();
+    },
+  });
+}

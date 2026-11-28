@@ -1,0 +1,13 @@
+{
+ "lines": {},
+ "important": {
+  "css/foundation.css": 11,
+  "css/panel.css": 10,
+  "core/ui/foundation.css": 6,
+  "core/ui/markdown/rich.css": 2,
+  "shell/dialogs.css": 1,
+  "modules/artifacts/artifacts.css": 1,
+  "modules/conversation/msgx.css": 7,
+  "modules/decisions/decisions.css": 2
+ }
+}

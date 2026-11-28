@@ -1,27 +1,4 @@
-// Browser tests for Settings (and Home's order), every case in the four contexts a row is graded in:
-// 1440 × 900 and 390 × 844, dark and light. They exercise the rows Astra failed at d1c7cb9:
-//   C098           the rail is a tablist: one tab in the Tab order, arrows/Home/End, tab ⇄ panel linked
-//   bullets        Rules and Worktrees read as lists (no native bullets; title, details, action apart)
-//   C109–C111      a routing choice sends once while it's out (two Enters, one PUT); focus stays; a failure retries
-//   C113 S110      Connect: one POST for two Enters; success → Disconnect; failure keeps the key; Cancel → Connect
-//   S111 S112      Disconnect: Keep it → Disconnect; one DELETE for two Enters; success → Connect; failure retries
-//   S113           Use the Space's: one PATCH; a failure says so in its row, a retry clears it; focus lands
-//   C116 S103 S104 Revoke: Keep first; Keep → Revoke; one DELETE; failure in the row, retry; success → next rule
-//   S105–S108      Worktrees: Keep it first; Keep it → Remove; one DELETE; a failed one leaves a retry that works;
-//                  work to lose: the hold, with Keep it focused; removed → the next row's Remove
-//   C114 C115 S097 S098  Runtimes: focus stays on the default, the boxes and the switch through a save; one PUT;
-//                  a refused preference keeps what was typed
-//   C118 S022 S023 Keyboard: Esc keeps the key focused; a reset → its key; Reset all → the first key
-//   H17 C010      Esc from Settings opened from a phone's drawer returns to the menu, not the inert sidebar
-//   C099 C100      a General switch the shape refuses says why and never claims it changed
-//   S114 S115      Shape JSON: Revert and Save → the text
-//   C012 C013      Home: a control in Handled or Recently made keeps focus through Home's redraws
-//
-// Self-contained (tests/browser/harness.cjs serves the app and answers /api from a mock world); nothing reaches
-// a Space. Every write is answered here and counted.
-//   node tests/browser/settings.test.cjs            (CONTEXTS=1440-dark,390-light … and ONLY=<a regexp of names> to narrow)
-// Needs Playwright's core and a Chromium (PLAYWRIGHT_CORE, default /tmp/pw/node_modules/playwright-core).
-// Without them it says so and exits 2: not run is not passed.
+// Mocked Settings and Home tests run at desktop and phone widths in both themes.
 "use strict";
 const assert = require("assert/strict");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
@@ -50,14 +27,14 @@ function world(over = {}) {
     ],
     defaults: [{ id: "d1", sentence: "Read inside the project", effect: "allow" }, { id: "d2", sentence: "Read-only git", effect: "allow" }],
     trees: [
-      { chat_id: "chat_demo", thread_ts: "t-clean", branch: "xo/thread-clean", path: "/demo/.xo/worktrees/clean", removable: true, would_lose: false, xo: true, exists: true, session_state: "cold", thread_state: "resolved" },
-      { chat_id: "chat_demo", thread_ts: "t-dirty", branch: "xo/thread-dirty", path: "/demo/.xo/worktrees/dirty", removable: false, would_lose: true, xo: true, exists: true, session_state: "cold", thread_state: "resolved" },
-      { chat_id: "chat_demo", thread_ts: "t-last", branch: "xo/thread-last", path: "/demo/.xo/worktrees/last", removable: true, would_lose: false, xo: true, exists: true, session_state: "cold", thread_state: "resolved" },
+      { chat_id: "chat_demo", thread_ts: "t-clean", branch: "xo/thread-clean", path: "/demo/.xo/worktrees/clean", removable: true, would_lose: null, xo: true, exists: true, session_state: "cold", thread_state: "resolved" },
+      { chat_id: "chat_demo", thread_ts: "t-dirty", branch: "xo/thread-dirty", path: "/demo/.xo/worktrees/dirty", removable: false, xo: true, exists: true, session_state: "cold", thread_state: "resolved",
+        would_lose: { summary: "2 files changed", changed: { count: 2, paths: ["a.js", "b.js"] }, commits: 1, branch: "xo/thread-dirty" } },
+      { chat_id: "chat_demo", thread_ts: "t-last", branch: "xo/thread-last", path: "/demo/.xo/worktrees/last", removable: true, would_lose: null, xo: true, exists: true, session_state: "cold", thread_state: "resolved" },
     ],
     runtimes: [{ name: "claude_code", default: true, health: { installed: true, logged_in: true, cli_version: "2.1" } }, { name: "codex", health: { installed: true, logged_in: true, cli_version: "0.9" } }],
     policy: { allowed: null, default: null, preferences: "Use Codex for the audit fixture.", fallback: false },
-    // paid usage: the advisory's two accounts (Codex can go on to paid usage and is on it now; Claude Code can't) and
-    // the founder's modes as XO holds them (a list of intent rows)
+    // Paid-usage advisory rows and the mode associated with each account.
     advisory: { accounts: [
       { agent: "claude_code", account: "acct-a", plan: { value: "max", known: true }, paid: { possible: { value: false, known: true }, in_use: { value: false, known: true }, credits: { value: null, known: false }, disabled_reason: { value: "org_level_disabled", known: true } } },
       { agent: "codex", account: "acct-b", plan: { value: "pro", known: true }, paid: { possible: { value: true, known: true }, in_use: { value: true, known: true }, credits: { value: 7187.56, known: true }, disabled_reason: { value: null, known: false } } },
@@ -97,7 +74,7 @@ function settingsApi(W) {
     if (p === "/api/chat/worktrees" && m === "GET") return json({ worktrees: W.trees.filter((w) => !w.gone), reported: [] });
     if ((k = /^\/api\/chat\/worktrees\/([^/]+)\/([^/]+)$/.exec(p)) && m === "DELETE") {
       const w = W.trees.find((x) => x.thread_ts === k[2]);
-      if (w && w.would_lose && !u.searchParams.get("confirm")) { W.writes.push({ kind: "remove", path: p, query: u.search }); if (W.delay) await wait(W.delay); return json({ detail: { code: "would_lose_work", message: "It has work", what: { summary: "2 files changed", changed: { paths: ["a.js", "b.js"] }, commits: 1, branch: w.branch }, confirm: "tok-1" } }, 409); }
+      if (w && w.would_lose && !u.searchParams.get("confirm")) { W.writes.push({ kind: "remove", path: p, query: u.search }); if (W.delay) await wait(W.delay); return json({ detail: { code: "would_lose_work", message: "It has work", what: w.would_lose, confirm: "tok-1" } }, 409); }
       if ((failed = await write("remove"))) return failed;
       if (w) w.gone = true;
       return json({ removed: true, forced: !!u.searchParams.get("confirm") });
@@ -126,15 +103,11 @@ function settingsApi(W) {
   };
 }
 
-/**
- * The app from the harness (its mock world, and its record of every time focus fell to the page), then this
- * world's Settings routes and the theme, and a reload so the app starts with both.
- */
+/** Start the app with the Settings routes and requested theme. */
 async function open(W, { width, theme, motion = false }, { firstRun = false, device = null, fullStorage = false } = {}) {
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion });
   await page.route("**/api/**", settingsApi(W));
-  // a browser whose storage refuses the shape's keys (full, or switched off), from the reload on
-  // (fullStorage: "unsynced" refuses only the note of a held change)
+  // The "unsynced" mode refuses only storage of the held change.
   if (fullStorage) await page.context().addInitScript((only) => { const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (only ? k === only : String(k).startsWith("cv-shape")) throw new DOMException("The quota has been exceeded.", "QuotaExceededError"); return set.call(this, k, v); }; }, fullStorage === "unsynced" ? "cv-shape-unsynced" : null);
   await page.evaluate(({ theme, firstRun, device }) => {
     localStorage.setItem("cv-theme", theme);
@@ -148,8 +121,7 @@ async function open(W, { width, theme, motion = false }, { firstRun = false, dev
   page.width = width; page.theme = theme;
   return page;
 }
-// a test ends with no page errors and with focus never having fallen to the page (the harness records each drop)
-// The record must be there and readable: a missing record or a failed read fails the case, never passes it.
+// Check the focus-drop record even when the browser reports no page errors.
 const done = async (page) => {
   const errs = page.errors;
   let drops, unread = null;
@@ -239,7 +211,6 @@ for (const [row, tog, words] of [["C099", "#hops-tog", /Showing how messages tra
   });
 }
 
-// ── C098: the rail is a tablist ───────────────────────────────────────────────────────────
 t("C098 tabs: one in the Tab order, arrows and Home/End choose, each tab names its panel and back", async (ctx) => {
   const page = await open(world(), ctx);
   await settings(page);
@@ -416,11 +387,7 @@ t("S111 S112 Disconnect: Keep it first and back; two Enters → one DELETE; fail
   await done(page);
 });
 
-// the ring has room at a scroller's foot (the create-project grader on 65e84b7, S111/S112, native input: Disconnect's
-// Keep it and Disconnect brought flush with Settings' foot, 3.56 px of the ring cut, by Tab and when focus landed by
-// itself). Disconnect is put just under the foot; Tab reaches it (the browser brings it), Enter opens the question
-// (focus lands on Keep it by itself), Tab to its Disconnect: each time the whole ring is inside the box it scrolls in.
-// the ring as drawn: by the focused control, or by the box that draws it for it (a checkbox's label: C115)
+// Scroll Disconnect and its confirmation controls into view by keyboard and check each focus ring.
 const ringRoom = (page) => page.evaluate(() => {
   const a = document.activeElement;
   let o = a, ext = 0;
@@ -467,10 +434,7 @@ t("S111 S112 the ring has room at the foot: Disconnect by Tab, Keep it landed on
   await done(page);
 });
 
-// the allow/deny box's ring is drawn by its label (2 px at a 1 px gap): whole at the foot too (the create-project
-// grader on e55c2d8, C115 on a phone: the label flush with the screen's foot, 3 px of its ring cut). The label just
-// under the foot; Tab reaches its box (the browser brings the box, the focus rule the label's ring); then a refused
-// save keeps focus there and the ring stays whole.
+// Check the checkbox label's focus ring at the foot of the scroller after a refused save.
 t("C115 the allow/deny label's ring is whole at the foot: by Tab, and through a refused save", async (ctx) => {
   const W = world({ delay: 200 });
   W.fail.policy = [err("unavailable", "Policy fixture unavailable")];
@@ -505,9 +469,7 @@ t("C115 the allow/deny label's ring is whole at the foot: by Tab, and through a 
   await done(page);
 });
 
-// a Disconnect whose chat cleanup is refused, then "Use the Space's" for that chat: the words about it go with it (the
-// create-project grader on 65e84b7, S113: routing null and the row gone, yet "demo still names it" stayed, a
-// Disconnect's own flag that nothing cleared). The words are the routing's, read from it each time it's drawn.
+// Clearing a chat's routing also clears the previous disconnect warning.
 t("S113 a refused chat cleanup after Disconnect is said; once that chat uses the Space's routing, it isn't", async (ctx) => {
   const chats = JSON.parse(JSON.stringify(CHATS));
   chats.find((c) => c.id === "chat_demo").routing = { mode: "decision", decision_model: "levanto" };
@@ -724,8 +686,7 @@ t("C115 a refused box shows what's saved again, says why, and Space tries again"
   await page.waitForSelector('.rt-ferr[role="alert"]');
   assert.equal(await page.locator(box).isChecked(), true, "refused: the saved state again");
   assert.equal(await focused(page), `input${box.slice(5)}`);
-  // the refusal, said above it, never pushes the box you're on out of sight; and on a phone its label is 36 tall
-  // (the create-project/Launchpad grader on 9d1f71b, C115: below the screen, 34 px)
+  // The refusal keeps the checkbox in view and its phone label tall enough to press.
   await settle(page, 60);
   const g = await page.evaluate((s) => {
     const lab = document.querySelector(s).closest("label"), r = lab.getBoundingClientRect();
@@ -899,7 +860,6 @@ t("SHAPE-START a fresh browser starts with no shape question; Settings › Shape
   assert.ok(await card.count() > 0, "Shape's presets are there");
   await done(page);
 });
-// ── STATES · C106: Settings › Shape's controls answer hover and press, the Compact switch off and on (logged) ──
 const { stateSweep } = require("./harness.cjs");
 t("STATES C106 Shape: every control answers hover and press, Compact off and on", async (ctx) => {
   if (ctx.width < 760) return; // a phone has no hover
@@ -927,8 +887,7 @@ t("C106 Compact: the switch stays the same node and says its state; its knob tra
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.documentElement.dataset.density !== "compact");
   assert.equal(await page.locator(sw).getAttribute("aria-checked"), "false");
-  // the knob's x, every frame for 450 ms after a press: with motion it passes through the middle, reduced it doesn't.
-  // First it settles at the off end, so the trace can't catch the previous press's travel reversing.
+  // Sample the knob every frame after the first animation settles.
   await page.waitForFunction((sel) => Math.abs(new DOMMatrix(getComputedStyle(document.querySelector(`${sel} .th-knob`)).transform).m41) < 0.5, sw);
   const xs = await page.evaluate(async (sel) => {
     const b = document.querySelector(sel), k = b.querySelector(".th-knob"), xs = [], t0 = performance.now();
@@ -947,8 +906,7 @@ t("C112 a decision model's \"about it\" link opens its page in a new tab, by Ent
   W.dms = W.dms.map((m) => ({ ...m, docs_url: `https://example.invalid/${m.id}` }));
   const page = await open(W, ctx);
   await settings(page, "routing");
-  // each one is a single piece of text, on one line, however its row's words wrap (a phone's connected model's
-  // "Connected · model … · about it" wrapped it into "about" and "it" a line apart)
+  // The connected-model label must stay on one line.
   for (const id of ["levanto", "quill"]) {
     const rects = await page.locator(`[data-key="dm:${id}"] a`).evaluate((e) => e.getClientRects().length);
     assert.equal(rects, 1, `${id}'s "about it" is on one line`);
@@ -959,8 +917,7 @@ t("C112 a decision model's \"about it\" link opens its page in a new tab, by Ent
   // the new tab's request is answered here and goes nowhere: what's checked is that a new tab asked for that page
   await page.context().route("https://example.invalid/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>about</title>" }));
   for (const how of ["Enter", "click"]) {
-    // the new tab itself (the context's new page), then the address it lands on: a request's frame isn't there yet
-    // for a new tab's first navigation, so the tab is what's awaited
+    // Await the new tab because its first request may precede frame creation.
     const opened = page.context().waitForEvent("page");
     if (how === "click") await a.click(); else { await keyFocus(page, '[data-key="dm:quill"] a'); await page.keyboard.press("Enter"); }
     const tab = await opened;
@@ -994,8 +951,7 @@ t("S098 a refused preference keeps what was typed, with the reason under it", as
   await done(page);
 });
 t("S098 a newer preference typed while one saves: Saved only beside what XO holds; the newer one saves in its turn", async (ctx) => {
-  // the create-project/Launchpad grader on 9d1f71b: A saving, B typed, Runtimes left and opened again, A lands:
-  // "Saved" stood beside B while XO held A
+  // Reopen Runtimes while its first save is held and verify the next value's status.
   const W = world();
   const rel = [];
   W.gates = { policy: [0, 1].map(() => new Promise((ok) => rel.push(ok))) };
@@ -1031,8 +987,7 @@ t("S098 a newer preference typed while one saves: Saved only beside what XO hold
 });
 
 t("S098 A out, B left, A typed back and left, A refused: nothing is sent again by itself; A stays, with the reason", async (ctx) => {
-  // the create-project grader's sequence on e55c2d8 (from the code): leaving B queued it with a flag; typing A back and
-  // leaving didn't clear it; A's refusal then sent A again, a second send nobody asked for
+  // Returning to the original value before a refusal must clear the queued save.
   const W = world();
   let release;
   W.gates = { policy: [new Promise((ok) => (release = ok))] };
@@ -1054,8 +1009,7 @@ t("S098 A out, B left, A typed back and left, A refused: nothing is sent again b
   await done(page);
 });
 t("S209 a dropdown busy saving keeps focus but takes no new choice; when the save lands it shows what XO holds", async (ctx) => {
-  // the create-project grader on 9d1f71b: while 70% saved, the busy threshold still opened, End then Enter showed 90%
-  // and sent nothing, and the 70% answer put it back: the choice thrown away (dropdown.js ignored the host's busy state)
+  // While the first threshold save is held, the dropdown must reject a second choice.
   const W = world({ router: { mode: "decision", decision_model: "levanto", abstain_below: 0.5 } });
   const rel = [];
   W.gates = { router: [0].map(() => new Promise((ok) => rel.push(ok))) };
@@ -1366,7 +1320,7 @@ t("Paid usage: never until chosen; each choice is one POST, said Saved, and an a
   const checked = (sel) => page.locator(`${sel}[aria-checked="true"]`).evaluate((e) => e.dataset.paidVal);
   assert.equal(await checked('[data-paid-scope="space"]'), "never", "nothing chosen: never");
   assert.match(await page.locator("#rtp-space").locator("xpath=..").innerText(), /Work stops before any paid usage, and when XO can’t tell whether it would be paid\./);
-  // Claude Code can't go paid, and says why; Codex is on it, with its credits, and the card says so too
+  // The two accounts differ in eligibility and current paid usage.
   const rows = page.locator(".rt-def").filter({ has: page.locator("[data-paid-pool]") });
   assert.match(await rows.nth(0).innerText(), /Claude Code · Max[\s\S]*Paid usage is turned off for your organisation\./);
   assert.match(await rows.nth(1).innerText(), /Codex · Pro[\s\S]*On paid usage[\s\S]*7,188 credits left/);
@@ -1453,8 +1407,7 @@ t("Paid usage: an API-key account's question says Continue pays for 24 hours", a
       const name = `${c.name} [${ctx.width} ${ctx.theme}${ctx.motion ? " motion" : ""}]`;
       try { await c.fn(ctx); passed++; console.log("  ok  " + name); }
       catch (e) { failed++; console.error("  FAIL " + name + "\n" + (e.stack || e.message).split("\n").slice(0, 6).join("\n")); }
-      // whatever a case left open, however early it threw (in the harness's boot, a reload, a wait): the browser's own
-      // list of contexts, so nothing has to have been registered first (one browser's memory, not many)
+      // Close all browser contexts, even when the case fails before boot completes.
       finally { for (const x of browser.contexts()) await x.close().catch(() => {}); }
     }
   }

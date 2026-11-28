@@ -1,0 +1,103 @@
+/* ── the dock: one calm labelled line + (in a thread) its decision + the hero composer ── */
+.dock{position:absolute;left:0;bottom:0;z-index:5;pointer-events:none}
+/* the bar under the composer: dark fades items out above the box, light keeps them clear to its top */
+.cbar{position:relative;padding:var(--cbar-fade) 0 18px;
+  background:linear-gradient(to bottom,transparent var(--cbar-clear),var(--canvas) 34px)}
+/* a thread that isn't here offers no message box; the line above it (the herald) stays for what's said */
+.app[data-gone] .composer{display:none}
+.app[data-gone]{--cbar-fade:0px}
+.app[data-gone] .cbar{padding:0;background:none}
+.dock>*{position:relative;pointer-events:auto}
+
+.herald{position:absolute;z-index:1;left:var(--col-x);right:var(--col-x);bottom:calc(100% - var(--cbar-fade) + var(--dock-gap));display:flex;justify-content:center;pointer-events:none}
+body:not(.stage-covers) .dock.is-stacked>.herald,.tp .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
+/* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
+.dock.is-stacked>.cbar{padding-top:0}
+/* a pill a control tall: its icon bare, its button nested --note-in from the end */
+.hr{--note-in:calc((var(--note-h) - var(--note-btn)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:var(--gap-icon);max-width:100%;height:calc(var(--note-h) + 2px);padding:0 calc(var(--edge-text) - 1px) 0 calc(var(--edge-text) - 1px);border-radius:var(--r-pill);background:var(--glass);border:1px solid transparent;color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--lift-2)}
+button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
+button.hr:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
+button.hr:active{transform:scale(.97)}
+.hr.is-in{animation:float-in var(--d-move) var(--ease)}
+.hr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.hr-t b{color:var(--warn-text);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
+/* the subline gives way first, then the title ellipses; the buttons never shrink */
+.hr-s{flex-shrink:1000;color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
+.hr>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
+.hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
+.hr:has(>:is(.hr-go,.hr-undo)){padding-right:calc(var(--note-in) - 1px)}
+/* its state tints the glass, read from its icon: green for done or a reply, red for a stop or no connection, amber while it waits */
+.hr:has(>.hr-ic:is(.k-ok,.k-ping)){--state:var(--go)}
+.hr:has(>.hr-ic.k-stopped){--state:var(--err-ink)}
+.hr-conn.k-wait{--state:var(--warn)}
+.hr-ic{flex:none;display:grid;place-items:center}
+.hr-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
+.hr-ic:is(.k-ok,.k-ping){color:var(--go)}
+.hr-ic.k-stopped{color:var(--err-ink)}
+.hr-ic.k-calm{color:var(--ink-3)}
+.hr-ic.k-found{color:var(--coord)}
+.hr-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--note-btn);margin-left:var(--s-1);padding:0 var(--s-2) 0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+button.hr:hover .hr-go{background:var(--btn-fill-hover)}
+.hr-go svg{width:var(--ic-sm);height:var(--ic-sm)}
+.hr-calm{box-shadow:none}
+.hr-calm .hr-t{color:var(--ink-3)}
+.hr-ev .hr-t{color:var(--ink)}
+.hr-ev .hr-ic .tk{animation-delay:var(--dur-fast)}
+.hr-ev.k-sent .hr-t{color:var(--ink-2)}
+
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);
+  padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);
+  border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:var(--e-composer-idle)}
+
+.composer:focus-within{border-color:var(--line-composer-focus);box-shadow:var(--e-composer-focused)}
+/* attach and Send are --comp-ctl circles --comp-in from the edge (concentric with --r-card); the text starts on the paperclip's glyph */
+.composer-field{position:relative;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
+/* #14: no scrollbar; it grows with what you write */
+.composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-family:var(--sans-read);font-size:var(--fs-read);font-weight:var(--fw-read);color:var(--ink-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
+.composer textarea.is-capped{overflow-y:auto}
+.composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
+.composer textarea::placeholder{color:var(--ink-5)}
+.composer textarea:focus-visible{outline:none}
+.composer-row{display:flex;align-items:center;gap:var(--s-2);margin-top:6px}
+/* the composer row's settings speak at the meta step, their icons and marks one step smaller with them */
+:is(.target,.iq){--ic:var(--ic-sm);font-size:var(--fs-meta);line-height:var(--lh-meta)}
+.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;flex-shrink:999;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-pill);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.target:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink-3)}
+.target b{color:var(--ink-2);font-weight:var(--fw-strong)}
+.target svg{flex:none;width:var(--ic);height:var(--ic)}
+.target .tg-t svg{color:var(--info)}
+.target .muted,.target>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* a narrow composer (the panel's Thread page) gives up words, never wraps: the note first, then "Reply in" */
+@container (max-width:600px){.target .muted{display:none}}
+@container (max-width:520px){.target .tg-w{display:none}}
+.send{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;background:var(--pri-fill);color:var(--pri-ink);transition:transform var(--dur-fast) var(--ease)}
+.send svg{width:var(--ic);height:var(--ic)}
+.send:hover{background:var(--pri-fill-hover)}
+.send:active{transform:scale(var(--press-scale))}
+.send:disabled{background:var(--fill-3);color:var(--ink-5);cursor:default}
+/* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
+
+.send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
+:root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
+.send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
+/* The stop glyph renders as a 10 px square in the large control. */
+.send.is-stop svg{width:var(--ic-lg);height:var(--ic-lg)}
+.send.fired{animation:fire var(--d-move) var(--ease)}
+@keyframes fire{from{transform:scale(.9)}}
+/* the @ list: the composer popovers' list height, its own scroll, never past the top bar (app.js sets --at-room) */
+.at-list{max-height:min(var(--pop-list-h),var(--at-room,100dvh) - var(--h-bar) - var(--s-3));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:var(--s-3);z-index:6;list-style:none;min-width:260px;--nest-r:var(--r-lg);--nest-in:7px;padding:6px;border-radius:var(--nest-r);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
+/* A desktop row gives its 20 px line 10 px of space above and below. */
+.at-list li{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:calc(var(--nest-r) - var(--nest-in));font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);cursor:pointer}
+.at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
+.at-ic svg{width:var(--ic);height:var(--ic)}
+.at-s{margin-left:auto;font:var(--fw-regular) var(--fs-meta) var(--sans);color:var(--ink-4)}
+/* Pointer movement and keyboard navigation share a single active row. */
+.at-list li[aria-selected="true"]{background:var(--fill-2);color:var(--ink)}
+.at-list li[aria-selected="true"] .at-ic{color:var(--ink-3)}
+
+/* the thread's own decision, docked above the composer */
+.tdock{width:var(--col-w);margin-left:var(--col-x)}
+.tdock:not(:empty){margin-bottom:var(--dock-gap)}
+body.panel-open .tdock{display:none}
+.app.has-tdock-card:not([data-view="home"]) .main::before{content:"";position:absolute;inset:0;z-index:4;background:rgb(0 0 0 / calc(.16 * var(--sha)));pointer-events:none;animation:fade var(--d-sheet)}
+body.panel-open .app.has-tdock-card .main::before{display:none}

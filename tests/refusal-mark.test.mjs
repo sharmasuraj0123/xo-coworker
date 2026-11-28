@@ -6,19 +6,21 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const ui = read("js/ui.js"), vw = read("js/viewer.js");
+const ui = read("core/ui/icons/names.js"), vw = read("modules/files/viewer.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("the icon set has the mark: the clock's circle with a mark in it", () => {
-  assert.match(ui, /warn: I\('<circle cx="12" cy="12" r="8\.5"\/><path d="M12 7\.5v5\.2M12 16\.4v\.1"\/>'\)/);
+t("the icon set has the mark: the pack's warning", () => {
+  // the owner's warning (core/ui/icons/source/xo/d-things-and-kinds/warning.svg), not the clock
+  assert.match(ui, /warn: xi\("warning"\)/);
 });
 t("the viewer's refusal line (a refused Copy path, a save refused) and the editor's error line draw it", () => {
   assert.match(vw, /V\.saveError \? `<p class="vw-cut" role="alert">\$\{ICON\.warn\}/);
-  assert.match(vw, /line\.innerHTML = `\$\{ICON\.warn\}<span>\$\{esc\(why\)\}<\/span>`;/);
+  // a save that didn't go (Not saved, Deleted on disk): its line under the head, with Try again or Save it again
+  assert.match(vw, /<p class="vw-cut xd-errline" role="alert">\$\{ICON\.warn\}<span>\$\{esc\(err\)\}<\/span>/);
   assert.doesNotMatch(vw, /role="alert">\$\{ICON\.clock\}/, "no alert under a clock");
 });
 t("a preview that shows the first part of a file keeps its clock (a limit, not a refusal)", () => {
-  assert.match(vw, /d\.truncated \? `<p class="vw-cut">\$\{ICON\.clock\}<span>Showing the first/);
+  assert.match(vw, /if \(!d \|\| !d\.truncated\) return "";\s*return `<p class="vw-cut">\$\{ICON\.clock\}<span>Showing the first/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

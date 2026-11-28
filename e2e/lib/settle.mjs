@@ -1,0 +1,149 @@
+// @ts-check
+
+/** @import { Probe, Page, SettleOptions } from "./types.d.ts" */
+
+// The in-page probe (requests, timers, frames, worker replies, DOM changes, focus drops) and the settle barrier.
+
+export const LONG_MS = 10000;
+export const SETTLE_MS = LONG_MS + 2000;
+export const POLL_MIN_MS = 1000;
+export const QUIET_FRAMES = 3;
+
+/** Runs before the app's first script (context.addInitScript). @param {{long: number, pollMin: number}} o */
+export function probe({ long, pollMin }) {
+  const w = /** @type {any} */ (window);
+  if (w.__e2e) return;
+  /** @type {Probe} */
+  const S = { fetches: new Map(), timers: new Map(), frames: 0, workers: 0, quiet: 0, changed: [], n: 0, drops: [], busy: () => [], checkDrops: () => {} };
+  w.__e2e = S;
+  const g = /** @type {any} */ (globalThis);
+  const raf = g.requestAnimationFrame.bind(g), caf = g.cancelAnimationFrame.bind(g), st = g.setTimeout.bind(g), ct = g.clearTimeout.bind(g);
+  const pathOf = (/** @type {unknown} */ raw) => { try { return new URL(String(raw), location.href).pathname; } catch { return String(raw); } };
+
+  const of = g.fetch.bind(g);
+  g.fetch = (/** @type {RequestInfo | URL} */ input, /** @type {RequestInit | undefined} */ init) => {
+    const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const resume = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined)).has("Last-Event-ID");
+    const id = ++S.n;
+    S.fetches.set(id, pathOf(raw));
+    const end = () => { if (S.fetches.delete(id)) S.quiet = 0; };
+    return of(input, init).then((/** @type {Response} */ r) => {
+      if (!/^text\/event-stream/.test(r.headers.get("content-type") || "")) { r.clone().arrayBuffer().then(end, end); return r; }
+      if (resume || !r.body) { end(); return r; }
+      const reader = r.clone().body?.getReader();
+      if (!reader) end(); else reader.read().then(() => { end(); reader.cancel().catch(() => {}); }, end);
+      return r;
+    }, (/** @type {unknown} */ e) => { end(); throw e; });
+  };
+
+  /** @type {Set<unknown>} */
+  const polls = new Set();
+  /** @type {Map<unknown, number>} */
+  const fired = new Map();
+  const siteOf = () => (new Error().stack || "").split("\n")[3]?.trim() || "?";
+  g.setTimeout = (/** @type {unknown} */ fn, /** @type {number | undefined} */ ms, /** @type {unknown[]} */ ...a) => {
+    const d = Number(ms) || 0;
+    if (typeof fn !== "function" || d >= long) return st(fn, ms, ...a);
+    const at = siteOf(), keys = [at, fn], now = performance.now();
+    if (d >= pollMin && keys.some((k) => now - (fired.get(k) ?? -Infinity) < d)) for (const k of keys) polls.add(k);
+    if (keys.some((k) => polls.has(k))) return st(fn, ms, ...a);
+    const id = st(() => {
+      S.timers.delete(id);
+      S.quiet = 0;
+      for (const k of keys) fired.set(k, performance.now());
+      fn(...a);
+    }, d);
+    S.timers.set(id, `${d} ms from ${at}`);
+    return id;
+  };
+  g.clearTimeout = (/** @type {number | undefined} */ id) => { S.timers.delete(id); ct(id); };
+
+  /** @type {Set<number>} */
+  const frames = new Set();
+  g.requestAnimationFrame = (/** @type {FrameRequestCallback} */ fn) => {
+    const id = raf((/** @type {number} */ t) => { frames.delete(id); S.frames = frames.size; fn(t); });
+    frames.add(id);
+    S.frames = frames.size;
+    return id;
+  };
+  g.cancelAnimationFrame = (/** @type {number} */ id) => { frames.delete(id); S.frames = frames.size; caf(id); };
+
+  const W = g.Worker;
+  if (W) g.Worker = class extends W {
+    /** @param {string | URL} u @param {WorkerOptions} [o] */
+    constructor(u, o) {
+      super(u, o);
+      const self = /** @type {Worker} */ (/** @type {unknown} */ (this));
+      let owed = 0;
+      self.addEventListener("message", () => { if (owed) { owed--; S.workers--; S.quiet = 0; } });
+      self.addEventListener("error", () => { S.workers -= owed; owed = 0; });
+      const post = self.postMessage.bind(self), stop = self.terminate.bind(self);
+      self.postMessage = (/** @type {any[]} */ ...a) => { owed++; S.workers++; return /** @type {any} */ (post)(...a); };
+      self.terminate = () => { S.workers -= owed; owed = 0; stop(); };
+    }
+  };
+
+  const name = (/** @type {Node} */ n) => {
+    const e = n instanceof Element ? n : n.parentElement;
+    if (!e) return "#text";
+    return `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${e.classList.length ? "." + [...e.classList].slice(0, 2).join(".") : ""}`;
+  };
+  /** @type {Element | null} */
+  let had = null;
+  S.checkDrops = () => {
+    const a = document.activeElement;
+    if ((!a || a === document.body) && had && (!had.isConnected || !had.getClientRects().length)) { S.drops.push(`${name(had)} "${(had.getAttribute("aria-label") || had.textContent || "").trim().slice(0, 30)}"`); had = null; }
+  };
+  document.addEventListener("focusin", (e) => { if (e.target !== document.body) had = /** @type {Element} */ (e.target); }, true);
+  document.addEventListener("focusout", (e) => {
+    const t = e.target;
+    queueMicrotask(() => { if (had && had === t && had.isConnected && had.getClientRects().length) had = null; else S.checkDrops(); });
+  }, true);
+  const watch = () => new MutationObserver((list) => {
+    S.quiet = 0;
+    S.changed = list.slice(-3).map((m) => `${m.type}${m.attributeName ? ":" + m.attributeName : ""} on ${name(m.target)}`);
+    queueMicrotask(S.checkDrops);
+  }).observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+  if (document.documentElement) watch(); else addEventListener("DOMContentLoaded", watch, { once: true });
+  const tick = () => { S.quiet++; raf(tick); };
+  raf(tick);
+
+  S.busy = (quietFrames) => {
+    /** @type {string[]} */
+    const why = [];
+    if (S.fetches.size) why.push(`requests open: ${[...S.fetches.values()].join(", ")}`);
+    if (S.timers.size) why.push(`timers waiting: ${[...S.timers.values()].join(", ")}`);
+    if (S.frames) why.push(`${S.frames} animation frame callback(s) waiting`);
+    if (S.workers > 0) why.push(`${S.workers} worker message(s) unanswered`);
+    if (S.quiet < quietFrames) why.push(`last change ${S.quiet} frame(s) ago: ${S.changed.join("; ") || "pending work finished"}`);
+    if (document.fonts && document.fonts.status !== "loaded") why.push("fonts loading");
+    const b = document.querySelector('[aria-busy="true"]');
+    if (b) why.push(`busy: ${name(b)}`);
+    return why;
+  };
+}
+
+/** What still keeps the page busy; [] once it has settled. @param {number} q */
+export const busyNow = (q) => { /** @type {Probe | undefined} */ const S = /** @type {any} */ (window).__e2e; return S ? S.busy(q) : ["the e2e probe isn't installed"]; };
+
+/** Wait for the page and the Space to settle; past `timeout` ms, throw with what is still busy. @param {Page} page @param {{open: number, served: number, idle(ms: number): Promise<boolean>}} [space] @param {SettleOptions} [o] */
+export async function settle(page, space, { timeout = SETTLE_MS, quietFrames = QUIET_FRAMES } = {}) {
+  const t0 = Date.now();
+  const left = () => Math.max(1, timeout - (Date.now() - t0));
+  for (;;) {
+    /** @type {string[]} */
+    let why;
+    try {
+      const served = space ? space.served : 0;
+      await page.waitForFunction((/** @type {number} */ q) => /** @type {any} */ (window).__e2e?.busy(q).length === 0, quietFrames, { polling: "raf", timeout: left() });
+      if (!space || (space.open === 0 && space.served === served)) return Date.now() - t0;
+      why = [`the Space answered or is answering requests the page didn't wait for (${space.open} open)`];
+      await space.idle(left());
+      await page.evaluate(() => { /** @type {any} */ (window).__e2e.quiet = 0; });
+    } catch (e) {
+      if (!/Timeout/i.test(String(e && /** @type {any} */ (e).message))) throw e;
+      why = await page.evaluate(busyNow, quietFrames).catch(() => ["the page is gone"]);
+    }
+    if (Date.now() - t0 >= timeout) throw new Error(`the page didn't settle in ${timeout} ms: ${why.join(" | ")}`);
+  }
+}

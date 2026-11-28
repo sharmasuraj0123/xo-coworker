@@ -1,0 +1,267 @@
+{
+ "$recorded": {
+  "core/ui/inverse-surfaces.css / rawColor": 3,
+  "core/ui/inverse-surfaces.css / themeSelector": 2,
+  "core/ui/tokens.css / offGridToken / -1.5px": 1,
+  "core/ui/tokens.css / offGridToken / -10px": 1,
+  "core/ui/tokens.css / offGridToken / -1px": 2,
+  "core/ui/tokens.css / offGridToken / -2px": 4,
+  "core/ui/tokens.css / offGridToken / -3px": 1,
+  "core/ui/tokens.css / offGridToken / -6px": 1,
+  "core/ui/tokens.css / offGridToken / 1.5px": 1,
+  "core/ui/tokens.css / offGridToken / 10px": 18,
+  "core/ui/tokens.css / offGridToken / 110px": 3,
+  "core/ui/tokens.css / offGridToken / 11px": 2,
+  "core/ui/tokens.css / offGridToken / 13px": 1,
+  "core/ui/tokens.css / offGridToken / 14px": 10,
+  "core/ui/tokens.css / offGridToken / 15px": 1,
+  "core/ui/tokens.css / offGridToken / 170px": 1,
+  "core/ui/tokens.css / offGridToken / 18px": 6,
+  "core/ui/tokens.css / offGridToken / 1px": 8,
+  "core/ui/tokens.css / offGridToken / 22px": 5,
+  "core/ui/tokens.css / offGridToken / 23px": 1,
+  "core/ui/tokens.css / offGridToken / 26px": 3,
+  "core/ui/tokens.css / offGridToken / 2px": 25,
+  "core/ui/tokens.css / offGridToken / 30px": 1,
+  "core/ui/tokens.css / offGridToken / 34px": 2,
+  "core/ui/tokens.css / offGridToken / 38px": 1,
+  "core/ui/tokens.css / offGridToken / 3px": 9,
+  "core/ui/tokens.css / offGridToken / 46px": 1,
+  "core/ui/tokens.css / offGridToken / 50px": 1,
+  "core/ui/tokens.css / offGridToken / 58px": 2,
+  "core/ui/tokens.css / offGridToken / 5px": 5,
+  "core/ui/tokens.css / offGridToken / 6px": 21,
+  "core/ui/tokens.css / offGridToken / 7px": 8,
+  "core/ui/tokens.css / offGridToken / 86px": 1,
+  "core/ui/tokens.css / offGridToken / 999px": 1,
+  "core/ui/tokens.css / offGridToken / 9px": 5,
+  "modules/artifacts/cards.css / themeSelector": 1,
+  "modules/conversation/msgx.css / px-size": 3,
+  "modules/conversation/msgx.css / rawColor": 2,
+  "modules/home/skeleton.css / themeSelector": 1,
+  "modules/map/controls.css / px-size": 2,
+  "modules/map/controls.css / rawColor": 1,
+  "modules/map/controls.css / themeSelector": 2,
+  "modules/map/cursors.css / px-size": 4,
+  "modules/map/cursors.css / rawColor": 1,
+  "modules/shells/dock.css / px-size": 1,
+  "modules/shells/dock.css / rawColor": 1
+ },
+ "apps-host/apps-host.css": {
+  "rawColor": 1
+ },
+ "core/ui/app-controls.css": {
+  "px-size": 4,
+  "rawColor": 1
+ },
+ "core/ui/components/xo-select.css": {
+  "px-size": 7,
+  "px-spacing": 6,
+  "rawColor": 3,
+  "themeSelector": 4
+ },
+ "core/ui/markdown/rich.css": {
+  "px-effect": 1,
+  "px-position": 4,
+  "px-radius": 3,
+  "px-size": 18,
+  "px-spacing": 61,
+  "rawColor": 19,
+  "themeSelector": 1
+ },
+ "css/app.css": {
+  "px-effect": 2,
+  "px-radius": 2,
+  "px-size": 18,
+  "px-spacing": 74,
+  "px-stroke": 2,
+  "rawColor": 13,
+  "widthMediaQuery": 1
+ },
+ "css/diffs.css": {
+  "px-position": 10,
+  "px-radius": 1,
+  "px-size": 33,
+  "px-spacing": 71,
+  "px-stroke": 9,
+  "rawColor": 9,
+  "themeSelector": 5,
+  "widthMediaQuery": 2
+ },
+ "css/docs.css": {
+  "widthMediaQuery": 1
+ },
+ "css/flavour-swatches.css": {
+  "rawColor": 168,
+  "themeSelector": 30
+ },
+ "css/foundation.css": {
+  "themeSelector": 1
+ },
+ "css/light.css": {
+  "themeSelector": 23
+ },
+ "css/panel.css": {
+  "px-effect": 8,
+  "px-position": 16,
+  "px-radius": 7,
+  "px-size": 39,
+  "px-spacing": 63,
+  "px-stroke": 8,
+  "rawColor": 36,
+  "themeSelector": 19
+ },
+ "css/phone.css": {
+  "widthMediaQuery": 2
+ },
+ "modules/artifacts/artifacts.css": {
+  "px-radius": 1,
+  "px-size": 7,
+  "px-spacing": 5,
+  "rawColor": 5,
+  "themeSelector": 2
+ },
+ "modules/conversation/composer.css": {
+  "px-size": 6,
+  "px-spacing": 13,
+  "px-stroke": 2,
+  "rawColor": 6,
+  "themeSelector": 1
+ },
+ "modules/conversation/conversation.css": {
+  "px-effect": 2,
+  "px-position": 18,
+  "px-radius": 4,
+  "px-size": 29,
+  "px-spacing": 87,
+  "px-stroke": 2,
+  "rawColor": 17
+ },
+ "modules/conversation/dock.css": {
+  "px-size": 1,
+  "px-spacing": 4,
+  "rawColor": 1
+ },
+ "modules/conversation/history.css": {
+  "px-radius": 1,
+  "px-size": 13,
+  "px-spacing": 12,
+  "themeSelector": 1
+ },
+ "modules/conversation/media/media.css": {
+  "px-effect": 2,
+  "px-position": 9,
+  "px-size": 10,
+  "px-spacing": 15,
+  "px-stroke": 2,
+  "rawColor": 20
+ },
+ "modules/conversation/msgx.css": {
+  "px-effect": 4,
+  "px-position": 26,
+  "px-radius": 8,
+  "px-size": 37,
+  "px-spacing": 79,
+  "px-stroke": 2,
+  "rawColor": 23,
+  "themeSelector": 2
+ },
+ "modules/conversation/return-pill.css": {
+  "px-spacing": 3
+ },
+ "modules/decisions/decisions.css": {
+  "px-effect": 4,
+  "px-position": 13,
+  "px-radius": 4,
+  "px-size": 32,
+  "px-spacing": 118,
+  "px-stroke": 1,
+  "rawColor": 39
+ },
+ "modules/home/home.css": {
+  "px-size": 2,
+  "px-spacing": 1,
+  "widthMediaQuery": 1
+ },
+ "modules/launchpad/launchpad.css": {
+  "px-effect": 3,
+  "px-size": 5,
+  "px-spacing": 1,
+  "px-stroke": 4,
+  "rawColor": 7,
+  "widthMediaQuery": 1
+ },
+ "modules/launchpad/page.css": {
+  "px-radius": 1,
+  "px-spacing": 1,
+  "rawColor": 1
+ },
+ "modules/launchpad/window.css": {
+  "px-spacing": 1
+ },
+ "modules/settings/settings.css": {
+  "px-position": 1,
+  "px-radius": 1,
+  "px-size": 8,
+  "px-spacing": 15,
+  "rawColor": 4
+ },
+ "modules/settings/shape.css": {
+  "px-size": 2,
+  "px-spacing": 1,
+  "px-stroke": 1
+ },
+ "modules/since/notice.css": {
+  "px-spacing": 1
+ },
+ "modules/threads/intelligence.css": {
+  "px-effect": 2,
+  "px-position": 7,
+  "px-radius": 1,
+  "px-size": 3,
+  "px-spacing": 39,
+  "rawColor": 2
+ },
+ "shell/dialogs.css": {
+  "px-effect": 2,
+  "px-position": 2,
+  "px-radius": 2,
+  "px-size": 15,
+  "px-spacing": 12,
+  "rawColor": 3
+ },
+ "shell/frame.css": {
+  "px-effect": 2,
+  "px-position": 3,
+  "px-radius": 3,
+  "px-size": 13,
+  "px-spacing": 11,
+  "rawColor": 14
+ },
+ "shell/phone.css": {
+  "px-position": 1,
+  "px-radius": 1,
+  "px-size": 12,
+  "px-spacing": 12,
+  "rawColor": 6
+ },
+ "shell/pickers.css": {
+  "px-size": 4,
+  "px-spacing": 4,
+  "rawColor": 1
+ },
+ "shell/responsive.css": {
+  "px-effect": 2,
+  "px-position": 1,
+  "px-radius": 1,
+  "px-size": 18,
+  "px-spacing": 44,
+  "rawColor": 2,
+  "widthMediaQuery": 2
+ },
+ "shell/sidebar.css": {
+  "px-effect": 14,
+  "rawColor": 28,
+  "themeSelector": 4
+ }
+}

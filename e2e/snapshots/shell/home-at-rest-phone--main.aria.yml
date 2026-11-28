@@ -1,0 +1,19 @@
+- main:
+  - button "Open menu"
+  - text: Home
+  - button "Settings"
+  - region "Good afternoon. Nothing needs you.":
+    - paragraph: Thursday 19 November
+    - heading "Good afternoon. Nothing needs you." [level=1]
+    - button "Create XO Project"
+    - paragraph: Start something below, or enjoy the quiet.
+    - region "Handled":
+      - button "Handled · nothing running"
+  - text: What should get done?
+  - textbox "What should get done?"
+  - button "Add files"
+  - button "Aim at a project (@)"
+  - 'button "Intelligence: Auto: its coordinator runs its default model; the coordinator routes new messages. Change it"':
+    - img "Claude Code"
+    - text: Auto
+  - button "Send" [disabled]

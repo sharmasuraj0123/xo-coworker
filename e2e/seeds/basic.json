@@ -1,0 +1,39 @@
+{
+  "_about": "A quiet Space: the Workspace and one project, demo, with a short conversation, one finished thread and three files. Rows are xo-space's shapes (tests/fixtures/storm-held-contract.json).",
+  "now": "2026-11-19T12:00:00Z",
+  "routes": {
+    "GET /api/xo-projects/demo/github/issues": {
+      "project_id": "demo", "repo": null, "fetched_at": null, "error": null,
+      "issues": [], "tracked": 0, "untracked": 0, "state": "no_remote"
+    }
+  },
+  "chats": [
+    { "id": "chat_ws", "kind": "workspace" },
+    { "id": "chat_demo", "kind": "project", "project": "demo" }
+  ],
+  "messages": {
+    "chat_demo": [
+      { "id": "msg_1", "seq": 1, "author_kind": "owner", "author_id": "owner", "text": "Can you tidy the README?", "created_at": "2026-11-19T11:40:00Z" },
+      { "id": "msg_2", "seq": 2, "author_kind": "agent", "author_id": "project-coordinator", "text": "Started a thread for it: Tidy the README.", "created_at": "2026-11-19T11:40:20Z" },
+      { "id": "msg_3", "seq": 3, "author_kind": "agent", "author_id": "project-coordinator", "text": "Done. The README now has a short intro and a usage section.", "created_at": "2026-11-19T11:52:00Z" }
+    ]
+  },
+  "threads": {
+    "chat_demo": [
+      { "ts": "cmsg_e2e_readme", "title": "Tidy the README", "state": "done", "session_id": "cse_e2e_readme", "cwd": "/home/test/demo", "created_at": "2026-11-19T11:40:20Z", "updated_at": "2026-11-19T11:51:00Z", "resolved_at": "2026-11-19T11:51:00Z", "summary": "Rewrote the README's intro and added a usage section." }
+    ]
+  },
+  "threadMessages": {
+    "cmsg_e2e_readme": [
+      { "id": "tm_1", "seq": 4, "chat_id": "chat_demo", "author_kind": "agent", "author_id": "project-coordinator", "text": "Tidy the README: a short intro, then usage.", "created_at": "2026-11-19T11:40:20Z" },
+      { "id": "tm_2", "seq": 5, "chat_id": "chat_demo", "author_kind": "agent", "author_id": "thread", "text": "Done: the intro is two sentences and there is a usage section.", "created_at": "2026-11-19T11:51:00Z" }
+    ]
+  },
+  "files": {
+    "demo": {
+      "README.md": "# demo\n\nA small project for the fast UI lane.\n\n## Usage\n\nRun `node src/app.js`.\n",
+      "src/app.js": "console.log(\"hello\");\n",
+      "notes.txt": "one\ntwo\nthree\n"
+    }
+  }
+}

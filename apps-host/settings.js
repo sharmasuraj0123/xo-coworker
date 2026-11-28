@@ -1,0 +1,193 @@
+// @ts-check
+import { view } from "./settings-view.js";
+import { checkRow } from "./manifest.js";
+import { createScope } from "../core/kernel/scope.js";
+import { reportFailure } from "../core/platform/util.js";
+
+/** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
+
+/** @param {unknown} e */
+const words = (e) => String((e instanceof Error ? e.message : e) || "Something went wrong.");
+
+/** @typedef {{approval_id?: string, expires_at?: number | string, state?: string, reason?: string, result?: {id?: string}}} Approval */
+
+/** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
+export function createAppsSettings(d) {
+  const scope = createScope();
+  /** @type {(() => void) | null} */
+  let cancelWait = null;
+  /** @type {State} */
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "", waiting: "" };
+  /** @type {Map<HTMLElement, { project?: string, close: () => void }>} */
+  const shown = new Map();
+
+  const draw = () => {
+    s.rows = d.rows();
+    for (const [el, mount] of shown) {
+      if (!el.isConnected) { mount.close(); continue; }
+      const had = el.contains(el.ownerDocument.activeElement);
+      d.redraw(el, view(s, { projects: d.projects(), project: mount.project }));
+      const a = el.ownerDocument.activeElement;
+      if (had && (!a || a === el.ownerDocument.body || !el.contains(a))) /** @type {HTMLElement | null} */ (el.querySelector("[data-autofocus]"))?.focus();
+    }
+  };
+  /** @param {Partial<State>} next */
+  const set = (next) => { Object.assign(s, next); draw(); };
+  /** @param {string} busy @param {() => Promise<Partial<State> | void>} fn */
+  const work = async (busy, fn) => {
+    if (s.busy || s.waiting) return;
+    const at = `${s.mode}|${s.appId}`;
+    set({ busy, error: "" });
+    const still = () => `${s.mode}|${s.appId}` === at;
+    try { const next = await fn(); set({ busy: "", waiting: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", waiting: "", ...(still() ? { error: words(e) } : {}) }); }
+  };
+  /** @param {HTMLElement} el @param {string} sel */
+  const val = (el, sel) => String(/** @type {HTMLInputElement | null} */ (el.querySelector(sel))?.value || "").trim();
+  /** @param {HTMLElement} el */
+  const loadValues = (el) => {
+    const project = shown.get(el)?.project, id = s.appId, key = `${id}|${project}`;
+    if (!project || !id || Object.hasOwn(s.values, key)) return;
+    d.client.settings(id, project).then((v) => {
+      if (!scope.signal.aborted && !Object.hasOwn(s.values, key)) {
+        set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } });
+      }
+    }).catch(reportFailure);
+  };
+  const wait = d.wait || ((/** @type {number} */ ms) => new Promise((resolve) => {
+    const cancel = scope.timeout(() => cancelWait?.(), ms);
+    cancelWait = () => { cancel(); cancelWait = null; resolve(undefined); };
+  }));
+  const showing = () => [...shown.keys()].some((el) => el.isConnected);
+  /** An owner decision in Needs you; closing Settings drops polling. @param {Approval | null | undefined} r */
+  const approved = async (r) => {
+    if (!r || typeof r.approval_id !== "string" || !r.approval_id) return r ?? {};
+    const id = r.approval_id;
+    const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at ?? "") || Infinity;
+    const here = `${s.mode}|${s.appId}`;
+    set({ busy: "", waiting: "Waiting for your approval in Needs you…" });
+    for (;;) {
+      const a = /** @type {Approval | null} */ (await d.client.approval(id));
+      const state = a && a.state;
+      if (state === "applied") return a;
+      if (state === "declined") throw new Error("You said not now. Nothing changed.");
+      if (state === "expired" || state === "void" || (state === "pending" && Date.now() > until)) throw new Error("That request expired before an answer. Nothing changed; try again.");
+      if (state === "withdrawn") throw new Error("That request was withdrawn. Nothing changed.");
+      if (state === "failed") throw new Error(`XO couldn't do it${a?.reason ? `: ${a.reason}` : "."} Nothing changed.`);
+      if (state !== "pending") throw new Error("XO couldn't tell what happened to that request, so nothing changed.");
+      if (!showing() || `${s.mode}|${s.appId}` !== here) return null;
+      await wait(2000);
+      if (scope.signal.aborted || !showing() || `${s.mode}|${s.appId}` !== here) return null;
+    }
+  };
+  const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkRow(r).app : null; };
+
+  /** @type {Record<string, (el: HTMLElement, data: DOMStringMap) => unknown>} */
+  const ACTS = {
+    install: () => set({ mode: "install", error: "" }),
+    back: () => set({ mode: "list", error: "", staged: null, appId: "", grantFor: "", activity: null, values: {} }),
+    open: (el, data) => { set({ mode: "app", appId: data.app || "", error: "", grantFor: "", activity: null, values: {} }); loadValues(el); },
+    stage: (el) => work("Fetching and checking…", async () => {
+      const source = s.source === "git" ? { git: val(el, "#xa-git"), ...(val(el, "#xa-ref") ? { ref: val(el, "#xa-ref") } : {}) } : { path: val(el, "#xa-path") };
+      const staged = await d.client.stage(source);
+      return { mode: "sheet", staged };
+    }),
+    confirm: () => work("Installing…", async () => {
+      const st = s.staged;
+      if (!st) return {};
+      const a = await approved(await d.client.confirm(st.staging_id, st.sha256));
+      await d.refresh();
+      return a ? { mode: "app", appId: a.result?.id || st.id, staged: null } : {};
+    }),
+    grant: (_el, data) => set({ grantFor: data.project || "", error: "" }),
+    "cancel-grant": () => set({ grantFor: "" }),
+    allow: (el, data) => work("Turning it on…", async () => {
+      const a = app();
+      if (!a || !data.project) return {};
+      const picked = new Set([...el.querySelectorAll("input[data-optional]:checked")].map((i) => /** @type {HTMLElement} */ (i).dataset.optional));
+      const chosen = [...a.permissions.required, ...a.permissions.optional.filter((p, i) => picked.has(`${p.cap}#${i}`))];
+      const permissions = chosen.map((p) => ({ cap: p.cap, paths: p.paths || [], names: p.names || [] }));
+      await approved(await d.client.setGrant(a.id, data.project, { state: "enabled", permissions }));
+      await d.refresh();
+      return { grantFor: "" };
+    }),
+    revoke: (_el, data) => work("Turning it off…", async () => {
+      if (!data.project) return {};
+      await d.client.revoke(s.appId, data.project);
+      await d.refresh();
+    }),
+    update: () => work("Fetching the newest version…", async () => {
+      const staged = await d.client.update(s.appId);
+      if (staged && staged.staging_id) return { mode: "sheet", staged };
+      await approved(staged);
+      await d.refresh();
+    }),
+    rollback: () => work("Going back…", async () => { await approved(await d.client.rollback(s.appId)); await d.refresh(); }),
+    "open-panel": (_el, data) => {
+      const a = app(), panel = a && (a.surfaces.panel || [])[0];
+      if (a && panel && data.project) d.openPanel(`${a.id}:${panel.id}`, { project: data.project });
+    },
+    start: () => work("Restarting…", async () => { await d.client.start(s.appId); await d.refresh(); }),
+    activity: () => (s.activity ? set({ activity: null }) : work("Reading activity…", async () => {
+      const a = await d.client.activity(s.appId);
+      return { activity: Array.isArray(a) ? a : Array.isArray(a?.items) ? a.items : [] };
+    })),
+    remove: (el) => work("Removing…", async () => {
+      const name = s.rows.find((r) => r.id === s.appId)?.name || s.appId;
+      if (!(await d.confirm(`Remove ${name}? Everything it added goes away. Your files stay.`, { yes: "Remove", near: el }))) return {};
+      await d.client.remove(s.appId);
+      await d.refresh();
+      return { mode: "list", appId: "", activity: null };
+    }),
+    "save-settings": (el) => work("Saving…", async () => {
+      const project = shown.get(el)?.project;
+      if (!project) return {};
+      /** @type {Record<string, unknown>} */
+      const values = {};
+      for (const i of el.querySelectorAll("[data-setting]")) {
+        const input = /** @type {HTMLInputElement} */ (i);
+        values[input.dataset.setting || ""] = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
+      }
+      await d.client.saveSettings(s.appId, project, values);
+      return { values: { ...s.values, [`${s.appId}|${project}`]: values } };
+    }),
+  };
+
+  /** @param {HTMLElement} el */
+  const wire = (el) => {
+    const click = scope.listen(el, "click", (e) => {
+      const b = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.("[data-act]"));
+      if (!b || !el.contains(b) || /** @type {HTMLButtonElement} */ (b).disabled) return;
+      const fn = Object.hasOwn(ACTS, b.dataset.act || "") ? ACTS[b.dataset.act || ""] : null;
+      if (fn) void fn(el, b.dataset);
+    });
+    const change = scope.listen(el, "change", (e) => {
+      const t = /** @type {HTMLInputElement} */ (e.target);
+      if (t.dataset && t.dataset.source && t.checked) set({ source: t.dataset.source === "path" ? "path" : "git" });
+    });
+    return () => { click(); change(); };
+  };
+
+  return {
+    /** The settings.section entry's render. @param {HTMLElement} el @param {{ project?: string }} [at] */
+    render(el, at = {}) {
+      const old = shown.get(el);
+      const unwire = wire(el);
+      const close = () => {
+        unwire();
+        if (shown.get(el)?.close !== close) return;
+        shown.delete(el);
+        if (!showing()) cancelWait?.();
+      };
+      shown.set(el, { project: typeof at.project === "string" ? at.project : undefined, close });
+      old?.close();
+      if (s.mode === "app") loadValues(el);
+      draw();
+      return close;
+    },
+    /** @param {boolean} loading @param {string} [error] */
+    loaded(loading, error = "") { set({ loading, error }); },
+    off(/** @type {string} */ why) { if (s.off !== why) set({ off: why, ...(why ? { mode: "list" } : {}) }); },
+    redraw: draw,
+    dispose() { cancelWait?.(); scope.dispose(); shown.clear(); },
+  };
+}

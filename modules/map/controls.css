@@ -1,0 +1,28 @@
+/* the view's tools, how it's drawn, and what the marks mean */
+.dg-tools{position:absolute;right:var(--inset-control-inline);bottom:var(--inset-control-inline);display:flex;align-items:center;
+  gap:var(--gap-control-tight);padding:var(--inset-segment);border-radius:var(--r-sm);background:var(--surface);
+  border:1px solid var(--line);box-shadow:var(--shadow-map-tools);cursor:default}
+.dg-mode{display:flex;gap:var(--gap-control-tight)}
+.dg-sep{width:1px;height:var(--ic-medium);margin:0 var(--s-1);background:var(--fill-map-tools-separator,var(--fill-3))}
+.dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
+.dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,var(--palette-transparent));color:var(--info)}
+.dg-mode button[aria-pressed="true"]{background:var(--fill-map-mode-selected,var(--fill-3));color:var(--ink)}
+.dg-tools svg,.dg-mode svg{width:var(--ic);height:var(--ic)}
+.dg-key{position:absolute;left:var(--inset-control-inline);bottom:var(--inset-control-inline);display:flex;gap:var(--s-3);
+  height:var(--h-control-compact);align-items:center;padding:0 var(--inset-control-inline);
+  border-radius:var(--r-sm);background:var(--surface);
+  border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:default}
+.dg-key[hidden]{display:none}
+.dg-key span{display:inline-flex;align-items:center;gap:var(--s-1)}
+.dg-key i{width:var(--ic-tiny);height:var(--ic-tiny);border-radius:var(--r-tight);border:var(--stroke-outline-icon) solid var(--ink-4)}
+.dg-key .m-new i{border-color:var(--accent)}
+.dg-key .m-edited i{border-color:var(--violet)}
+.dg-key .m-deleted i{border-style:dashed}
+
+@layer tokens{
+:where(.dg-tools){--shadow-map-tools:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)))}
+:root[data-theme="light"] :where(.dg-sep){--fill-map-tools-separator:var(--line-soft)}
+:root[data-theme="light"] :where(.dg-mode button[aria-pressed="true"]){--fill-map-mode-selected:var(--fill-2)}
+}

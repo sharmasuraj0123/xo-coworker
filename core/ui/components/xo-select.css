@@ -1,0 +1,55 @@
+/* The indicator sits before the text column so the list and the closed control align. */
+
+xo-select{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
+xo-select>option{display:none}
+
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;
+  border-radius:var(--r-sm);border:1px solid var(--dd-line,var(--line-soft));background:var(--dd-fill,var(--surface));
+  color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);text-align:left;cursor:pointer;
+  transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.dd-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-btn svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
+.dd-btn:hover,xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.dd-btn:hover svg,xo-select.is-open .dd-btn svg{color:var(--ink-3)}
+.dd-btn:disabled{opacity:.5;cursor:default}
+.dd-btn:disabled:hover{border-color:var(--dd-line,var(--line-soft));color:var(--ink-2)}
+
+/* Menu row corners subtract the border and padding from the outer corner. */
+.dd-menu{position:fixed;left:0;top:0;z-index:var(--z-top);box-sizing:border-box;width:max-content;max-width:400px;
+  padding:var(--menu-pad);border-radius:var(--r-menu);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--lift-3);
+  overflow-y:auto;overscroll-behavior:contain;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+  transform-origin:50% 0}
+.dd-menu.is-up{transform-origin:50% 100%}
+.dd-menu.is-in{animation:float-in-down var(--dur-base) var(--ease)}
+.dd-menu.is-up.is-in{animation-name:float-in}
+.dd-menu.is-out{animation:float-out-up var(--d-out) var(--ease) forwards;pointer-events:none}
+.dd-menu.is-up.is-out{animation-name:float-out}
+
+.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:var(--menu-row);padding:6px var(--s-2);border-radius:var(--r-pop-row);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dd-row.is-cur{background:var(--fill-2);color:var(--ink)}
+.dd-row[aria-selected="true"]{color:var(--ink)}
+.dd-row[aria-disabled="true"]{opacity:.45;cursor:default}
+.dd-mk{flex:none;align-self:center;display:grid;place-items:center;width:12px;height:20px}
+.dd-dot{display:block;width:5px;height:5px;mask:var(--mask-dot);background:var(--ink-2)}
+.dd-ic{flex:none;align-self:center;width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.dd-t{flex:0 0 auto;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* data-mark="check": the choice ticked at the row's end, as in a sentence's chips */
+.dd-menu.is-check .dd-row{gap:var(--s-3);font-weight:var(--fw-regular);color:var(--ink)}
+.dd-menu.is-check .dd-ic{color:var(--ink-3)}
+.dd-ck{flex:none;align-self:center;display:grid;place-items:center;width:var(--ic-sm);margin-left:auto;padding-left:var(--s-2);color:var(--ink-3)}
+.dd-ck svg{width:var(--ic-sm);height:var(--ic-sm)}
+.dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+
+:root[data-theme="light"] .dd-btn{background:var(--dd-fill,var(--surface));border-color:var(--dd-line,rgba(0,0,0,.12))}
+:root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+:root[data-theme="light"] .dd-btn:disabled:hover{border-color:var(--dd-line,rgba(0,0,0,.12))}
+
+/* where each one stands */
+.ar-pj xo-select{width:200px}
+.set-row xo-select{flex:none;width:136px}
+
+/* a finger needs more than a pointer */
+@media (max-width:760px){
+  .dd-btn{height:var(--h-touch)}
+  .dd-row{height:var(--h-lg);padding-block:10px}
+}

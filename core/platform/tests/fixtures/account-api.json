@@ -1,0 +1,26 @@
+{
+  "advisory": {
+    "version": 1,
+    "as_of": "2026-11-23T12:00:00Z",
+    "served_at": "2026-11-23T12:01:00Z",
+    "accounts": [{
+      "agent": "codex",
+      "account": "example",
+      "plan": { "value": "example plan", "known": true, "source": "cli", "observed_at": "2026-11-23T12:00:00Z", "age_s": 60 },
+      "windows": { "weekly": { "utilization": { "value": 0.4, "known": true } } },
+      "paid": {
+        "possible": { "value": true, "known": true },
+        "in_use": { "value": false, "known": true },
+        "credits": { "value": null, "known": false, "source": "unseen", "observed_at": null, "age_s": null }
+      }
+    }],
+    "machine": {},
+    "sessions": {}
+  },
+  "intents": {
+    "intents": [{ "scope": "space", "scope_id": "", "key": "paid", "value": "ask", "until": null, "cites": null,
+      "set_at": "2026-11-23T12:00:00Z" }],
+    "pools": [{ "pool": "codex:example", "agent": "codex", "mode": "ask", "source": "space",
+      "state": "open", "reason": null, "resets_at": null, "asking": null }]
+  }
+}

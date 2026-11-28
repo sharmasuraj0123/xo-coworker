@@ -1,12 +1,5 @@
 #!/usr/bin/env sh
-# XO projects chat UI: static files + /api proxy (serve.py, stdlib only).
-#
-#   ./start.sh               run in the foreground (Ctrl+C to stop)
-#   ./start.sh --background  run detached; pid in .server.pid, log in .server.log
-#   ./start.sh --stop        stop the detached server
-#   ./start.sh --status      is the detached server running?
-#
-# Environment: PORT (default 5180), XO_API (default http://127.0.0.1:5002).
+# Run in the foreground by default, or use --background, --status and --stop to manage a detached server.
 cd "$(dirname "$0")" || exit 1
 PIDFILE=.server.pid
 running() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; }

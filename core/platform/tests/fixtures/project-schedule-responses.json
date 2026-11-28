@@ -1,0 +1,377 @@
+{
+  "file": {
+    "project_id": "fixture",
+    "relative_path": "README.md",
+    "name": "README.md",
+    "kind": "markdown",
+    "size_bytes": 8,
+    "modified_at": "2026-01-02T03:04:05Z",
+    "truncated": false,
+    "content": "# Readme",
+    "version": "sha256:fixture",
+    "editable": true,
+    "not_editable_reason": null,
+    "place": "ordinary",
+    "bom": false,
+    "line_endings": "none"
+  },
+  "tree": {
+    "project_id": "fixture",
+    "relative_path": "",
+    "parent_relative_path": null,
+    "dirs": [
+      {
+        "name": "docs",
+        "relative_path": "docs",
+        "is_dir": true,
+        "size_bytes": null,
+        "modified_at": "2026-01-02T03:04:05Z",
+        "entries": null
+      }
+    ],
+    "files": [
+      {
+        "name": "README.md",
+        "relative_path": "README.md",
+        "is_dir": false,
+        "size_bytes": 8,
+        "modified_at": "2026-01-02T03:04:05Z",
+        "entries": null
+      }
+    ]
+  },
+  "saved": {
+    "relative_path": "README.md",
+    "version": "sha256:next",
+    "size_bytes": 8,
+    "saved_at": "2026-01-02T03:04:05Z",
+    "edit_id": "edit_fixture",
+    "unchanged": false
+  },
+  "undo": {
+    "relative_path": "README.md",
+    "version": null,
+    "size_bytes": 0,
+    "saved_at": null,
+    "edit_id": null,
+    "unchanged": false
+  },
+  "versions": {
+    "relative_path": "README.md",
+    "versions": [
+      {
+        "id": "edit_fixture",
+        "n": 1,
+        "path": "README.md",
+        "worktree": null,
+        "kind": "edit",
+        "version": "sha256:next",
+        "prev_version": "sha256:fixture",
+        "at": "2026-01-02T03:04:05Z",
+        "by": {
+          "kind": "ui",
+          "thread_ts": null,
+          "session_id": null,
+          "turn_id": null,
+          "message_id": null
+        },
+        "size_bytes": 8,
+        "content_kept": true,
+        "old_path": null,
+        "current": true,
+        "restores": null
+      }
+    ],
+    "head": {
+      "commit": "fixture-head",
+      "version": "sha256:fixture"
+    },
+    "more": false
+  },
+  "paths": {
+    "root": "",
+    "paths": [
+      "README.md",
+      "docs/a.md"
+    ],
+    "dirs": [
+      "docs"
+    ],
+    "truncated": false,
+    "stamp": "fixture-stamp"
+  },
+  "unchangedPaths": {
+    "unchanged": true,
+    "stamp": "fixture-stamp"
+  },
+  "search": {
+    "root": "",
+    "matches": [
+      {
+        "path": "README.md",
+        "line": 1,
+        "col": 3,
+        "text": "# Readme",
+        "ranges": [
+          [
+            2,
+            8
+          ]
+        ]
+      }
+    ],
+    "files": 1,
+    "truncated": false,
+    "took_ms": 19
+  },
+  "rename": {
+    "relative_path": "docs",
+    "old_relative_path": "notes",
+    "kind": "folder",
+    "edit_id": "edit_fixture",
+    "version": null
+  },
+  "delete": {
+    "edit_id": "edit_fixture",
+    "kind": "file",
+    "count": 1
+  },
+  "folder": {
+    "relative_path": "docs"
+  },
+  "changes": {
+    "project_id": "fixture",
+    "worktree": null,
+    "root": "",
+    "base_ref": "HEAD",
+    "base_commit": "fixture-base",
+    "base_source": "head",
+    "head_commit": "fixture-head",
+    "computed_at": "2026-01-02T03:04:05Z",
+    "truncated": false,
+    "total_files": 1,
+    "files": [
+      {
+        "path": "README.md",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "binary": false,
+        "version": "sha256:next",
+        "patch": "diff --git a/README.md b/README.md\n@@ -1 +1 @@\n-# Example\n+# Readme\n"
+      }
+    ]
+  },
+  "workspace": {
+    "roots": {
+      "claude_code": "/home/example"
+    },
+    "default": "claude_code"
+  },
+  "created": {
+    "path": "/home/example/fixture",
+    "name": "fixture",
+    "copied": []
+  },
+  "clone": {
+    "clone_id": "cl_fixture",
+    "project_id": "fixture",
+    "state": "cloning",
+    "phase": "counting",
+    "phase_percent": null,
+    "percent": 0,
+    "received_bytes": 0,
+    "idle_seconds": 0,
+    "error": null,
+    "warning": null,
+    "started_at": "2026-01-02T03:04:05Z",
+    "finished_at": null
+  },
+  "cancelledClone": {
+    "clone_id": "cl_fixture",
+    "project_id": "fixture",
+    "state": "cancelled",
+    "phase": "counting",
+    "phase_percent": null,
+    "percent": 0,
+    "received_bytes": 0,
+    "idle_seconds": 0,
+    "error": null,
+    "warning": null,
+    "started_at": "2026-01-02T03:04:05Z",
+    "finished_at": "2026-01-02T03:04:05Z"
+  },
+  "activeClone": {
+    "clone_id": "cl_fixture",
+    "project_id": "fixture",
+    "state": "cloning",
+    "phase": "receiving",
+    "phase_percent": 42,
+    "percent": 25,
+    "received_bytes": 524288,
+    "idle_seconds": 1,
+    "error": null,
+    "warning": null,
+    "started_at": "2026-01-02T03:04:05Z",
+    "finished_at": null
+  },
+  "job": {
+    "id": "sample check",
+    "name": "Sample check",
+    "description": null,
+    "project_id": "fixture",
+    "command": {
+      "argv": [
+        "test"
+      ],
+      "timeout": 30,
+      "cwd": "/home/example/fixture",
+      "env": {
+        "MODE": "check"
+      }
+    },
+    "every_seconds": 86400,
+    "enabled": true,
+    "created_at": "2026-01-02T03:04:05Z",
+    "updated_at": "2026-01-02T03:04:05Z",
+    "next_run": "2026-01-02T03:04:05Z",
+    "last_run": "2026-01-02T03:04:05Z",
+    "running_since": null,
+    "last_result": {
+      "started_at": "2026-01-02T03:04:05Z",
+      "finished_at": "2026-01-02T03:04:05Z",
+      "trigger": "schedule",
+      "status": "ok",
+      "returncode": 0,
+      "duration_seconds": 0.3,
+      "output_tail": "Finished"
+    },
+    "running": false
+  },
+  "agentJob": {
+    "id": "agent-check",
+    "name": "Agent check",
+    "description": null,
+    "kind": "agent",
+    "chat": "chat_fixture",
+    "prompt": "Review sample test output.",
+    "agent": null,
+    "model": null,
+    "effort": null,
+    "utc_offset": "+00:00",
+    "first_run_at": "2026-01-02T03:04:05Z",
+    "every_seconds": null,
+    "enabled": true,
+    "running": false,
+    "next_run": "2026-01-02T03:04:05Z",
+    "last_run": null,
+    "running_since": null,
+    "last_result": null,
+    "created_by": {
+      "kind": "person"
+    },
+    "approved_by": null
+  },
+  "runs": {
+    "job_id": "sample check",
+    "runs": [
+      {
+        "ts": "2026-01-02T03:04:05Z",
+        "type": "job.run",
+        "job_id": "sample check",
+        "started_at": "2026-01-02T03:04:05Z",
+        "finished_at": "2026-01-02T03:04:05Z",
+        "trigger": "schedule",
+        "status": "ok",
+        "returncode": 0,
+        "duration_seconds": 0.3,
+        "output_tail": "Finished"
+      }
+    ],
+    "log_path": "/home/example/.xo/schedule-log"
+  },
+  "liveAgentJob": {
+    "id": "weekday-triage",
+    "kind": "agent",
+    "name": "Weekday triage",
+    "description": null,
+    "chat": "chat_fixture",
+    "prompt": "Sum up open sample issues.",
+    "agent": null,
+    "model": null,
+    "effort": null,
+    "every_seconds": null,
+    "first_run_at": null,
+    "utc_offset": "+00:00",
+    "enabled": true,
+    "state": "armed",
+    "state_reason": null,
+    "created_by": {
+      "kind": "agent",
+      "session_id": "sess_fixture"
+    },
+    "approved_by": {
+      "review_id": "rv_fixture"
+    },
+    "next_run": "2026-01-05T09:00:00Z",
+    "last_result": {
+      "at": "2026-01-02T09:00:00Z",
+      "status": "ok",
+      "trigger": "schedule",
+      "chat_id": "chat_fixture",
+      "thread_ts": "1767344400.000100",
+      "found": true,
+      "summary": "Two issues need an answer.",
+      "thread": {
+        "chat_id": "chat_fixture",
+        "ts": "1767344400.000100"
+      }
+    },
+    "schedule": {
+      "days": "weekdays",
+      "time": "09:00",
+      "tz": "UTC"
+    },
+    "persona": {
+      "name": "triage",
+      "level": "project"
+    },
+    "icon": null,
+    "upcoming": [
+      "2026-01-05T09:00:00Z",
+      "2026-01-06T09:00:00Z"
+    ],
+    "running": false
+  },
+  "agentRuns": {
+    "job_id": "weekday-triage",
+    "log_path": null,
+    "runs": [
+      {
+        "fire_at": "2026-01-02T09:00:00Z",
+        "trigger": "schedule",
+        "status": "ok",
+        "reason": null,
+        "found": true,
+        "summary": "Two issues need an answer.",
+        "thread": {
+          "chat_id": "chat_fixture",
+          "ts": "1767344400.000100",
+          "state": "done"
+        }
+      },
+      {
+        "fire_at": "2026-01-01T09:00:00Z",
+        "trigger": "schedule",
+        "status": "skipped",
+        "reason": "The last run was still working.",
+        "found": null,
+        "summary": null,
+        "thread": null
+      }
+    ]
+  },
+  "zone": {
+    "tz": "Europe/London"
+  }
+}

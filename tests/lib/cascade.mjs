@@ -3,14 +3,15 @@
 // its own condition; selectors compared by the elements they can reach (the same selector, or one that only adds
 // context before it, in either direction); specificity, then order, decide; !important wins over normal.
 import { readFileSync } from "node:fs";
+import { resolveTokens } from "./tokens.mjs";
 
-export const ORDER = ["base.css", "app.css", "light.css", "foundation.css", "panel.css", "diffs.css", "launchpad.css", "links.css", "artifacts.css", "dropdown.css", "media.css", "shape.css", "side.css", "msgx.css", "fileview.css", "phone.css"];
+export const ORDER = ["../core/ui/foundation.css", "app.css", "light.css", "foundation.css", "panel.css", "diffs.css", "launchpad.css", "links.css", "artifacts.css", "../core/ui/components/xo-select.css", "../modules/conversation/media/media.css", "shape.css", "../shell/sidebar.css", "../modules/conversation/msgx.css", "phone.css"];
 
 /** every style rule: {f, sel (one selector of its list), d (declarations), at: [@-preludes], n (cascade order)} */
 export function rules(root) {
   const out = [];
   for (const f of ORDER) {
-    const css = readFileSync(new URL(`../../css/${f}`, root), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = resolveTokens(sheet(new URL(`../../css/${f}`, root)));
     const stack = []; let i = 0, start = 0;
     while (i < css.length) {
       const c = css[i];
@@ -28,6 +29,10 @@ export function rules(root) {
     }
   }
   return out;
+}
+// a sheet with its @imports in place, as the browser reads it, comments out
+export function sheet(url) {
+  return readFileSync(url, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/@layer\s+[\w.,\s-]+;/g, "").replace(/@import\s+url\(\s*["']?([^"')]+)["']?\s*\)\s*(?:layer\([\w.-]+\))?\s*;/g, (_, href) => sheet(new URL(href, url)));
 }
 // split a selector list at top-level commas (not inside :is(…), :not(…), attribute brackets)
 function splitList(s) { const out = []; let depth = 0, cur = ""; for (const ch of s) { if (ch === "(" || ch === "[") depth++; if (ch === ")" || ch === "]") depth--; if (ch === "," && !depth) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); }
@@ -77,7 +82,7 @@ export function mediaHolds(pre, width) {
 /** a rule's state at a width: active (every media holds), and its other conditions (container, supports) */
 export function context(r, width) {
   let active = true; const cond = [];
-  for (const pre of r.at) { const h = mediaHolds(pre, width); if (h === false) active = false; if (h === null && !pre.startsWith("@supports")) cond.push(pre.replace(/\s+/g, " ")); }
+  for (const pre of r.at) { const h = mediaHolds(pre, width); if (h === false) active = false; if (h === null && !pre.startsWith("@supports") && !pre.startsWith("@layer")) cond.push(pre.replace(/\s+/g, " ")); }
   return { active, cond: cond.join(" | ") };
 }
 /** a phone declaration: active at 390 and not at 1440 (a width media query made it the phone's) */

@@ -1,0 +1,61 @@
+/* Chats with one agent share the conversation composer. */
+.main:has(.dock.is-top){--dock-h:0px}
+/* the greeting is Chats' title: no bar over it, only the panel's button (a phone keeps its menu button) */
+@media (min-width:761px){
+  .app:is([data-conv="chats"],[data-conv^="c:"]) .top{position:absolute;inset:0 0 auto;background:none;border-bottom:0;pointer-events:none}
+  .app:is([data-conv="chats"],[data-conv^="c:"]) .top>:not(.top-end){display:none}
+  .app:is([data-conv="chats"],[data-conv^="c:"]) .top-end{pointer-events:auto}
+}
+.app[data-conv="chats"] .scroller{display:flex;flex-direction:column}
+.app[data-conv="chats"] .scroller>*{flex:none}
+/* the greeting and composer stand in the middle, the Workspace under them; your chats are in the panel */
+.app[data-conv="chats"] .scroller>.column{height:0;margin-bottom:auto}
+/* the greeting's lines share one cell, so the heading keeps its height while they take turns */
+.cs-hi{
+  --d-line:4s; display:grid; width:var(--col-w); margin:auto 0 var(--s-6) var(--col-x); text-align:center;
+  font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans); letter-spacing:var(--tr-28); color:var(--ink);
+  text-wrap:balance
+}
+.cs-hi>span{grid-area:1/1;opacity:0;animation:cs-line calc(6 * var(--d-line)) var(--ease) infinite}
+.cs-hi>:nth-child(2){animation-delay:var(--d-line)}
+.cs-hi>:nth-child(3){animation-delay:calc(2 * var(--d-line))}
+.cs-hi>:nth-child(4){animation-delay:calc(3 * var(--d-line))}
+.cs-hi>:nth-child(5){animation-delay:calc(4 * var(--d-line))}
+.cs-hi>:nth-child(6){animation-delay:calc(5 * var(--d-line))}
+@keyframes cs-line{0%,17.5%,100%{opacity:0;transform:translateY(var(--s-1))}1.5%,15.5%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.cs-hi>span{animation:none}.cs-hi>:first-child{opacity:1}}
+/* a dock that leads its page (.is-top) sits in the flow: no foot room, no fade, its notices at the page's foot */
+.dock.is-top{position:static;margin-bottom:var(--s-10)}
+.dock.is-top>.cbar{padding:0;background:none}
+.dock.is-top>.herald{bottom:var(--dock-gap)}
+.chl-list{list-style:none;display:flex;flex-direction:column;margin:0;padding:0}
+/* a row is the composer's width, hovered too; its words sit --halo-row inside */
+.chl-row{
+  display:flex; align-items:center; gap:var(--s-3); width:100%; height:var(--h-row-act);
+  padding:0 var(--halo-row); border-radius:var(--r-lg); text-align:left;
+  color:var(--ink-2); transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)
+}
+@media (hover:hover){.chl-row:hover{background:var(--row-hover);color:var(--ink)}}
+.chl-tile{position:relative;flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--ink-3)}
+.chl-t{
+  flex:1; min-width:0; font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap
+}
+.chl-a{flex:none;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
+/* the Workspace rests under the composer: its reach where a chat would have its time */
+.chl-pin{margin:0 0 var(--s-5)}
+.chl-sub{color:var(--ink-4)}
+.chl-a>.is-busy{color:var(--info)}
+.cs-pop{max-height:min(var(--h-chat-picker-max),80vh);overflow-y:auto}
+.ch-confirm{
+  width:min(var(--w-chat-confirm-max),100%); margin:0 auto var(--s-chat-confirm-end); display:flex; flex-direction:column;
+  gap:var(--s-2); padding:var(--s-chat-confirm-block) var(--s-4); border-radius:var(--r-lg);
+  background:color-mix(in srgb,var(--warn) var(--mix-chat-confirm),var(--surface));
+  border:var(--hair) solid var(--fill-clear); font-size:var(--fs-ui); color:var(--ink-2)
+}
+.ch-confirm b{color:var(--ink)}
+/* a new chat's folder and permission: two chips side by side, the second taking the line's slack */
+.target:has(+ .cs-perm:not([hidden])){margin-right:0}
+.cs-perm{flex:none;margin-left:0}
+.target[hidden]{display:none}
+.target>span:not(.tg-t):not(.tg-warn):not(.tg-end){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

@@ -1,25 +1,24 @@
-// Controls take their published heights from the tokens, never a literal off the scale (the create-project grader on
-// 2a8d278: S003, the history's "Load earlier" body was 26 px, not the inline --h-sm 24; S020, All's filters were 30 px,
-// not the standard --h-ctl 32; phones keep their 36 floor). And on a phone the thread head leaves its controls room for
-// their ring (C046, round 10: the runs count's ring lost its top 4 px under the bar above; the 4 px under the bar's
-// line is now the head's own, so the ring has it, the spacing unchanged).
-//   node tests/ctl-heights.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { declarationsFor, publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
+import { isPhone } from "./lib/cascade.mjs";
 
-const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
-const phone = readFileSync(new URL("../css/phone.css", import.meta.url), "utf8");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+test("Load earlier uses the small control height", () => {
+  assert.ok(declarationsFor(".hist-more", "height").some(({ value }) => value === "var(--h-sm)"));
+});
 
-t("S003: the history's Load earlier is the inline height, --h-sm", () => {
-  assert.match(app, /\.hist-more\{height:var\(--h-sm\);/);
+test("the phone thread head gives its controls four pixels above their focus rings", () => {
+  const phone = publishedRules().filter(isPhone);
+  const properties = (selector) => Object.fromEntries(phone.filter(({ sel }) => sel === selector)
+    .flatMap(({ declarations }) => declarations.map(({ p, v }) => [p, resolveValue(v)])));
+  const header = properties(":root:root .thead");
+  assert.equal(header.display, "flex");
+  assert.equal(header["align-items"], "flex-start");
+  assert.equal(header.gap, "8px");
+  assert.equal(header.padding, "4px 16px 8px");
+  const bar = properties(':root:root .top[data-kind="thread"]');
+  assert.equal(bar["border-bottom"], "0");
+  assert.equal(bar["padding-bottom"], "0");
 });
-t("S020: All's filters are the standard control height, --h-ctl", () => {
-  assert.match(app, /\.all-f button\{display:inline-flex;align-items:center;gap:7px;height:var\(--h-ctl\);/);
-});
-t("C046: on a phone the thread head's controls have their ring's 4 px above them, inside the head", () => {
-  assert.match(phone, /:root:root \.thead\{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 8px\}/);
-  assert.match(phone, /:root:root \.top\[data-kind="thread"\]\{border-bottom:0;padding-bottom:0\}/, "the 4 px moved from the bar to the head: the same spacing");
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

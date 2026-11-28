@@ -1,32 +1,56 @@
-// A row that goes while it holds focus hands focus on first, never to BODY (the create-project/Launchpad grader on
-// f70ca6b, C050/C121, 390 light, WORK-EMPTY-FINISH-FOCUS: the live working mini had focus, turn.finished came with no
-// finished blocks, the row was rightly dropped, and reconcile removed it with its focused descendant: focus fell to
-// BODY). Before a focused row is removed, focus goes to the nearest row that stays (before it, else after), on its first
-// control that shows; with none, to the list's own fallback (the conversation's: the message box).
-//   node tests/reconcile-focus.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom, same } from "./lib/dom.mjs";
+import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 
-const ui = readFileSync(new URL("../js/ui.js", import.meta.url), "utf8");
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const i = ui.indexOf("export function reconcile("), body = ui.slice(i, ui.indexOf("\n}\n", i));
 
-t("the row that holds focus and is going is known before anything moves, with its nearest row that stays", () => {
-  assert.match(body, /export function reconcile\(box, items, \{ quiet = false, fallback = null \} = \{\}\) \{/);
-  assert.match(body, /const keep = new Set\(items\.map\(\(it\) => it\.key\)\);/);
-  assert.match(body, /const going = \[\.\.\.box\.children\]\.find\(\(el\) => el\.dataset\.k && !keep\.has\(el\.dataset\.k\) && el\.contains\(active\)\);/);
-  assert.match(body, /let near = null;/);
-});
-t("before it's removed, focus goes to that row's first control that shows, else the list's fallback", () => {
-  const r = body.indexOf("for (const el of old.values()) el.remove();");
-  const before = body.slice(0, r);
-  assert.match(before, /if \(going\) \{/);
-  assert.match(before, /const to = \(near && \[\.\.\.near\.querySelectorAll\(LANDING\)\]\.find\(usable\)\) \|\| \(fallback && fallback\(\)\);/);
-  assert.match(before, /if \(to && to\.focus\) to\.focus\(\{ preventScroll: true \}\);/);
-});
-t("the conversation's fallback is its message box", () => {
-  assert.match(app, /reconcile\(msgsEl, items, \{ quiet, fallback: \(\) => \$\("#say"\) \}\);/);
-});
+{
+  const { document } = await dom(`<main id="box"></main><textarea id="say"></textarea>`);
+  const { reconcile } = await import("../core/ui/redraw.js");
+  const box = document.getElementById("box"), say = document.getElementById("say");
+  const row = (k, ctl = `<button data-r="${k}">${k}</button>`) => ({ key: k, html: `<div class="row">${ctl}</div>` });
+  const draw = (items) => reconcile(box, items, { quiet: true, fallback: () => say });
+  const btn = (k) => box.querySelector(`[data-r="${k}"]`);
+
+  t("the row that holds focus and is going hands it to the nearest row before it that stays", () => {
+    draw([row("a"), row("b"), row("c")]);
+    btn("b").focus();
+    draw([row("a"), row("c")]);
+    same(document.activeElement, btn("a"));
+  });
+  t("with none before it, to the nearest row after it, on its first control that shows", () => {
+    draw([row("a"), row("b", `<button hidden data-r="b0">x</button><button data-r="b">b</button>`)]);
+    btn("a").focus();
+    draw([row("b", `<button hidden data-r="b0">x</button><button data-r="b">b</button>`)]);
+    same(document.activeElement, btn("b"));
+  });
+  t("with no row left, to the list's fallback, never the page", () => {
+    draw([row("a")]);
+    btn("a").focus();
+    draw([]);
+    same(document.activeElement, say);
+  });
+}
+{
+  const { document } = await dom('<div id="scroller" tabindex="-1"><div id="messages"></div></div><textarea id="say"></textarea>');
+  const say = document.getElementById("say");
+  const scroller = document.getElementById("scroller");
+  const msgs = document.getElementById("messages");
+  let items = [];
+  const draw = createConversationDrawing({
+    CHG: { sync() {} }, msgItems: () => items, liveReady: () => true,
+    foldsBefore: () => null, ensureRoot() {}, typingRender() {},
+  });
+  for (const [main, fallback] of [[true, say], [false, scroller]]) {
+    t(main ? "the main conversation hands focus to its composer" : "the Stage conversation hands focus to its region", () => {
+      const conversation = createConv({ view: "t:one", msgs, scroller, main, follow: { isPinned: () => true, toLatest() {} } });
+      items = [{ key: "drop", html: "<button>Removed by redraw</button>" }];
+      draw(conversation, []);
+      msgs.querySelector("button").focus();
+      items = [];
+      draw(conversation, []);
+      same(document.activeElement, fallback);
+    });
+  }
+}
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

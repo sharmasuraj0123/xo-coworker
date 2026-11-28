@@ -1,12 +1,11 @@
-// The Map's pure parts (js/map.js): a thread's folder, where a step's file is, what a session's turns
-// touched and which file is live, and the folded tree. No network.
-//   node tests/map.test.mjs
 import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { folderOf, placeOf, activityOf, layoutOf, edgePath, colorOf, pathsInCommand } = await import("../js/map.js");
-const { createTurns } = await import("../js/blocks.js");
+const { layoutOf, edgePath, colorOf } = await import("../modules/map/layout.js");
+const { folderOf, placeOf, pathsInCommand } = await import("../core/services/places.js");
+const { activityOf } = await import("../core/services/agent-activity.js");
+const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -93,7 +92,9 @@ t("a connector runs straight when level, and turns with rounded corners otherwis
 
 t("an agent keeps its colour", () => {
   assert.equal(colorOf("cmsg_1"), colorOf("cmsg_1"));
-  assert.match(colorOf("x"), /^#[0-9A-F]{6}$/i);
+  const colors = new Set(Array.from("abcdef", colorOf));
+  assert.equal(colors.size, 6);
+  for (const color of colors) assert.match(color, /^#[0-9A-F]{6}$/i);
 });
 
 t("a command's files: the cursor can follow cd, relative and absolute paths, never a sed expression", () => {

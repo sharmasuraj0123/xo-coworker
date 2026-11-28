@@ -1,0 +1,6 @@
+@media (max-width:760px){
+  .sheet-card{position:relative}
+  .panel::before,.iq-pop.is-sheet::before,.sheet-card::before,.shd-bar::before{content:"";position:absolute;z-index:var(--z-grip);
+    top:var(--s-2);left:50%;width:var(--grab-w);height:var(--grab-h);margin-left:calc(var(--grab-w) / -2);
+    border-radius:var(--r-sheet-grip);background:var(--fill-4);pointer-events:none}
+}

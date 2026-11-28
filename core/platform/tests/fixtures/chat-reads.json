@@ -1,0 +1,50 @@
+{
+  "observed": {
+    "total": 1,
+    "offset": 0,
+    "messages": [{
+      "id": "observed_example", "session_id": "native_example", "time_created": "2026-11-23T12:00:00Z",
+      "data": { "role": "user" }, "parts": [{ "data": { "type": "text", "text": "Review the changes" } }]
+    }]
+  },
+  "chat": {
+    "id": "chat_example", "kind": "project", "project_pid": "example", "project": "example",
+    "created_at": "2026-01-01T00:00:00Z", "settings": {}, "retired_at": null, "routing": null,
+    "pin": { "agent": "codex", "model": "example-model", "effort": "low" },
+    "seen": { "seen_at": "2026-01-01T00:00:01Z", "seen_seq": 4 }
+  },
+  "thread": {
+    "chat_id": "chat_example", "ts": "thread_example", "title": "Example", "label": null, "resolved_at": null,
+    "session_id": "session_example", "cwd": "/workspace/example", "branch": null, "worktree_path": null,
+    "base_commit": null, "status_md": "", "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:01Z",
+    "summary": "Example summary", "state": "working", "can_delete": true, "busy": true, "pin": {},
+    "session": { "state": "running", "agent": "codex", "model": null, "effort": "low", "live_runs": 0, "waiting": null }
+  },
+  "message": {
+    "id": "message_example", "seq": 1, "chat_id": "chat_example", "thread_ts": null, "author_kind": "user",
+    "author_id": "example", "author_session_id": null, "text": "Example message", "reply_to": null, "extra": {},
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "session": {
+    "id": "session_example", "seq": 2, "chat_id": "chat_example", "thread_ts": "thread_example", "role": "thread",
+    "preset": "default", "agent": "codex", "pool": "codex:example", "model": null, "effort": "low",
+    "cwd": "/workspace/example", "native_id": "example", "state": "running", "epoch": 1, "retired_at": null,
+    "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:01Z", "live_runs": 0, "busy": true, "waiting": null
+  },
+  "event": {
+    "type": "thread.control", "id": "event_example", "seq": 3, "ts": "2026-01-01T00:00:00Z",
+    "chat_id": "chat_example", "session_id": "session_example", "thread_ts": "thread_example",
+    "turn_id": null, "run_id": null, "data": { "action": "stop" }
+  },
+  "activeTurn": {
+    "session_id": "session_example", "agent": "codex", "role": "thread", "chat_id": "chat_example",
+    "thread_ts": "thread_example", "turn_id": "turn_example", "origin": "message", "started_at": "2026-01-01T00:00:00Z"
+  },
+  "hop": {
+    "id": "hop_example", "seq": 5, "chat_id": "chat_example", "thread_ts": "thread_example", "kind": "relay",
+    "from_role": "project-coordinator", "from_session": "first_session", "to_role": "worker", "to_session": "session_example",
+    "via": ["project-coordinator"], "cause": "message", "message_ids": ["message_example"], "note": "Example",
+    "wake_id": "wake_example", "state": "delivered", "created_at": "2026-01-01T00:00:00Z",
+    "delivered_at": "2026-01-01T00:00:01Z", "answered_at": null
+  }
+}

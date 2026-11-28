@@ -1,0 +1,8 @@
+@import url("../modules/files/editor/docs.css");
+@import url("../modules/search/quick-open.css");
+@import url("../modules/files/editor/document-states.css");
+
+@media (max-width:600px){
+  .vw-doc .cm-xo-page .cm-content{padding:var(--s-4) var(--s-4) var(--h-bar)}
+  .vw-who{display:none}
+}

@@ -1,14 +1,13 @@
 // Two functions with the same name at the same depth in one module: the later one silently replaces the
 // earlier (function declarations hoist). That made the file viewer's Download call Edit's save() and do
-// nothing (5 Nov). Every module under js/ is scanned.
+// nothing (5 Nov). Every app module (tests/lib/sources.mjs) is scanned.
 //   node tests/names.test.mjs
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { sourcePaths } from "./lib/sources.mjs";
 
-const root = new URL("../js/", import.meta.url).pathname;
-const files = [];
-const walk = (d) => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) { if (n !== "vendor") walk(p); } else if (n.endsWith(".js")) files.push(p); } };
-walk(root);
+const root = new URL("../", import.meta.url).pathname;
+const files = sourcePaths(".js").map((p) => join(root, p));
 let bad = 0;
 for (const f of files) {
   const seen = new Map();

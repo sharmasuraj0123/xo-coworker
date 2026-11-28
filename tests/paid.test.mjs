@@ -1,9 +1,9 @@
-// Paid usage (js/paid.js): the founder's modes, which one holds for an account, the account rows from the advisory,
+// Paid usage (core/services/world/paid.js): the founder's modes, which one holds for an account, the account rows from the advisory,
 // the requests a choice makes, and who an item's words are from. No DOM, no network.
 //   node tests/paid.test.mjs
 import assert from "node:assert/strict";
-import { heldModes, effectiveMode, accountRows, onPaid, paidBody, paidItem, creditsWords, poolWords, MODE_SUB } from "../js/paid.js";
-import { evidenceOf, fromWords, askedBy } from "../js/review.js";
+import { heldModes, effectiveMode, accountRows, onPaid, paidBody, paidItem, creditsWords, poolWords, MODE_SUB } from "../core/services/world/paid.js";
+import { evidenceOf, fromWords, askedBy } from "../core/services/review.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

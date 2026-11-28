@@ -1,27 +1,70 @@
-// Every phone declaration wins at 390 px: no later or stronger rule that reaches the same elements undoes it
-// (Files' Try again kept 32 and its back to the projects 24 on a phone because app.css's phone block sits before
-// their own rules there; the viewer's notch padding, its 40 px buttons and Launchpad's 40 px eye were undone the same
-// way). A cascade model over every sheet in load order (tests/lib/cascade.mjs): media at 390 and 1440, container
-// rules kept to their own condition, specificity then order, !important. A rule under a state or a place (an open
-// drawer, a docked chat, a density, the light theme's own colours) is a deliberate variant, not counted. No browser.
-//   node tests/phone-cascade.test.mjs
-import assert from "node:assert/strict";
-import { lost, shrunk } from "./lib/cascade.mjs";
-import { readFileSync } from "node:fs";
-const tokens = Object.fromEntries([...readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
+// @ts-check
 
-const L = lost(new URL("./lib/x.mjs", import.meta.url)).filter((x) => x.how === "all");
-const lines = L.map((x) => `${x.A.f} ${x.A.sel} { ${x.da.p}: ${x.da.v} }  ← ${x.B.f} ${x.B.sel} { ${x.db.p}: ${x.db.v} }`);
-let passed = 0;
-try {
-  assert.deepEqual(lines, [], `phone declarations undone at 390:\n  ${lines.join("\n  ")}`);
-  passed++; console.log("  ok  every phone declaration wins at 390 (none undone by a later or stronger rule)");
-} catch (e) { console.error("  FAIL every phone declaration wins at 390\n" + e.message); process.exitCode = 1; }
-// sizes and targets under a modifier or a context: smaller than the phone's, with no phone rule for that subset
-const S = shrunk(new URL("./lib/x.mjs", import.meta.url), tokens);
-const sl = S.map((x) => `${x.A.f} ${x.A.sel} { ${x.da.p}: ${x.da.v} }  ← ${x.B.f} ${x.B.sel} { ${x.db.p}: ${x.db.v} }`);
-try {
-  assert.deepEqual(sl, [], `phone sizes and targets made smaller under a modifier or a context at 390:\n  ${sl.join("\n  ")}`);
-  passed++; console.log("  ok  no modifier or context makes a phone size or target smaller without a phone rule for it");
-} catch (e) { console.error("  FAIL no modifier or context makes a phone size or target smaller\n" + e.message.split("\n+ actual")[0]); process.exitCode = 1; }
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { parse, stringify } from "css-what";
+import { cmp, context, covers, lost, mediaHolds, px, shrunk, spec } from "./lib/cascade.mjs";
+import { declarationsFor, publishedRules, stylesheetRows } from "./lib/css-snapshot.mjs";
+import { tokens } from "./lib/tokens.mjs";
+
+const root = new URL("./lib/x.mjs", import.meta.url);
+const phoneWidth = 390;
+
+const tokenOverrides = stylesheetRows.filter((row) =>
+  row.context.length === 3 && row.context[0].params === "tokens" && row.context[1].at === "media"
+    && mediaHolds("@media " + row.context[1].params, phoneWidth) && row.context[2].selector === ":root"
+    && row.property?.startsWith("--") && /^\d+(?:\.\d+)?px$/.test(row.value));
+const phoneTokens = { ...tokens, ...Object.fromEntries(tokenOverrides.map((row) => [row.property, parseFloat(row.value)])) };
+const compactContext = ':root[data-density="compact"] :is(.main,.sheet,.iq-pop)';
+const compactTokens = { ...phoneTokens };
+for (const key of ["--h-row", "--h-ctl"]) {
+  const [declaration] = declarationsFor(compactContext, key);
+  compactTokens[key] = px(declaration?.value, phoneTokens) ?? NaN;
+}
+
+test("phone declarations retain priority over desktop declarations at 390px", () => {
+  assert.deepEqual(lost(root).filter((loss) => loss.how === "all"), []);
+});
+
+const compactDimensions = [
+  { selector: ".target", property: "height", normal: 36, compact: 24 },
+  { selector: ".hd-r", property: "min-height", normal: 40, compact: 32 },
+];
+const compactSelector = (selector) => `[data-density="compact"] ${selector}`;
+
+// Match compound arms while ranking the original selector's specificity.
+function expandCompoundIs(selector) {
+  if (!selector.includes(":is(")) return [selector];
+  let variants = [[]];
+  for (const token of parse(selector)[0]) {
+    const arms = token.type === "pseudo" && token.name === "is" && Array.isArray(token.data)
+      && token.data.every(arm => arm.every(part => part.type === "attribute"))
+      ? token.data : [[token]];
+    variants = variants.flatMap(prefix => arms.map(arm => [...prefix, ...arm]));
+  }
+  return variants.map(arm => stringify([arm]));
+}
+
+function winningValue(selector, property, values) {
+  const candidates = publishedRules()
+    .filter(rule => context(rule, phoneWidth).active && !context(rule, phoneWidth).cond)
+    .filter(rule => expandCompoundIs(rule.sel).some(arm => covers(arm, selector)))
+    .flatMap(rule => rule.declarations.filter(row => row.p === property).map(row => ({ rule, row })));
+  const winner = candidates.sort((a, b) => Number(a.row.imp) - Number(b.row.imp)
+    || cmp(spec(a.rule.sel), spec(b.rule.sel)) || a.rule.n - b.rule.n).at(-1);
+  return px(winner?.row.v, values);
+}
+
+test("phone sizes and targets retain their floor in more specific contexts", () => {
+  const losses = shrunk(root, phoneTokens).filter(({ A, B, da }) =>
+    !compactDimensions.some(({ selector, property }) => A.sel === selector
+      && B.sel === compactSelector(selector) && da.p === property));
+  assert.deepEqual(losses, []);
+});
+
+test("the compact cascade preserves the existing handled-row minimum and target height", () => {
+  for (const { selector, property, normal, compact } of compactDimensions) {
+    assert.equal(winningValue(selector, property, phoneTokens), normal, selector);
+    assert.equal(winningValue(compactSelector(selector), property, compactTokens), compact, selector);
+  }
+});

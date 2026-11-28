@@ -1,0 +1,20 @@
+- dialog "Settings":
+  - heading "Settings" [level=1]
+  - button "Close settings"
+  - tablist "Settings":
+    - tab "General" [selected]
+    - tab "Appearance"
+    - tab "Shape"
+    - tab "Routing"
+    - tab "Runtimes"
+    - tab "Accounts"
+    - tab "Rules"
+    - tab "Worktrees"
+    - tab "Keyboard"
+  - tabpanel "General":
+    - heading "General" [level=2]
+    - paragraph: How the conversation shows what happens behind it.
+    - text: Show how messages travel Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.
+    - switch "Show how messages travel"
+    - text: Show pictures from the web A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.
+    - switch "Show pictures from the web" [checked]

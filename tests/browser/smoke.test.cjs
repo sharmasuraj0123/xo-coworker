@@ -1,9 +1,5 @@
-// The smoke gate (the owner's choice, 9 Nov): before a head goes to the graders, the few things everyone does, in all
-// four cells (dark and light, 1440×900 and 390×844), on the mock world: type and send in the message box; open and
-// close the panel; switch the theme; fold and unfold the chat beside a file; on a phone, open a file, Back to chat, and
-// type. A head is published only when this passes. No page errors and no focus fallen to the page, ever.
-//   node tests/browser/smoke.test.cjs
 "use strict";
+// Mock-world smoke covers chat, panels, files and theme switching on phone and desktop, with clean errors and focus after every flow.
 const assert = require("assert/strict");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
 let chromium;
@@ -19,7 +15,6 @@ const done = async (page) => {
   assert.deepEqual(drops, [], "focus fell to the page");
 };
 const live = (page) => page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
-// the composer's row whole: Send and the model chip on screen, Send not under the chip (the grader's C111 on a phone)
 const rowWhole = (page) => page.evaluate(() => { const vw = innerWidth, b = (id) => { const e = document.getElementById(id); return e && e.getClientRects().length ? e.getBoundingClientRect() : null; }; const s = b("send"), q = b("iq"); return { ok: !!s && s.right <= vw && s.width >= 30 && (!q || (q.right <= s.left + 1 && q.width >= 24)), s: s && [Math.round(s.left), Math.round(s.right)], q: q && [Math.round(q.left), Math.round(q.right)], vw }; });
 const typeAndSend = async (page, text) => {
   await live(page);
@@ -52,16 +47,13 @@ const steps = [
     if (!(await flip())) { await page.locator("#top-menu, #pb-menu").filter({ visible: true }).first().click(); await page.waitForTimeout(250); await page.locator("#theme").click(); await page.keyboard.press("Escape"); }
     await page.waitForFunction((b) => (document.documentElement.dataset.theme || "dark") === b, before);
   }],
-  ["beside a file: fold and unfold the chat, then type", async (page) => {
+  ["a file in the panel, the chat where it was: type", async (page) => {
     await page.evaluate(() => window.__t.go("p:demo"));
     await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "note.md", path: "note.md", name: "note.md" }));
-    await page.waitForFunction(() => document.body.classList.contains("chat-docked") || document.body.classList.contains("chat-sheet"), null, { timeout: 8000 });
-    // fold and unfold from however it starts (a desktop's chat starts open beside the file, a phone's sheet folded),
-    // and end with it open, to type in
-    const open = () => page.evaluate(() => { const c = document.body.classList; return c.contains("chat-sheet") ? c.contains("sheet-up") : !c.contains("chat-min"); });
-    const flip = async () => { const was = await open(); await page.keyboard.press("ControlOrMeta+j"); await page.waitForFunction((was) => { const c = document.body.classList; return (c.contains("chat-sheet") ? c.contains("sheet-up") : !c.contains("chat-min")) !== was; }, was); };
-    await flip(); await flip();
-    if (!(await open())) await flip();
+    // the file opens as the panel's Files page; the conversation never moves (a phone's panel covers it: closed first)
+    await page.waitForFunction(() => { const s = document.querySelector("#stage"); return s && !s.hidden && s.dataset.page === "files"; }, null, { timeout: 8000 });
+    if (WIDTH < 600) { await page.locator("[data-stg-close]").filter({ visible: true }).first().click(); await page.waitForFunction(() => document.querySelector("#stage").hidden); }
+    assert.equal(await page.evaluate(() => !!document.querySelector("#say").closest("[inert]")), false, "the box is in reach");
     await typeAndSend(page, "smoke: beside a file");
   }],
   ["a long page scrolls to its foot (Settings › Keyboard), and the main area itself never scrolls", async (page) => {
@@ -79,7 +71,7 @@ const steps = [
     assert.equal(r.main, 0, "the main area itself didn't scroll");
     await page.keyboard.press("Escape");
   }],
-  ["a phone: a file from the panel, Back to chat, and type", async (page) => {
+  ["a phone: a file from the panel, the panel closed, and type", async (page) => {
     if (WIDTH >= 600) return "skip: a phone's";
     await page.evaluate(() => window.__t.go("p:demo"));
     await page.locator("[data-stage-toggle]").filter({ visible: true }).first().click();
@@ -87,9 +79,9 @@ const steps = [
     if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
     await page.locator("[data-open-files]").filter({ visible: true }).first().click();
     await page.locator('[data-fl-file="note.md"]').filter({ visible: true }).first().click();
-    await page.waitForFunction(() => document.body.classList.contains("chat-sheet"));
-    await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
-    await page.waitForTimeout(400);
+    await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files");
+    await page.locator("[data-stg-close]").filter({ visible: true }).first().click();
+    await page.waitForFunction(() => document.querySelector("#stage").hidden);
     assert.equal(await page.evaluate(() => !!document.querySelector("#say").closest("[inert]")), false, "the box is in reach");
     await typeAndSend(page, "smoke: back to chat");
   }],

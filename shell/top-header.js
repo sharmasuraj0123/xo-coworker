@@ -1,0 +1,63 @@
+// @ts-check
+
+import { esc } from "../core/platform/index.js";
+import { $, requireHtml } from "../core/platform/dom.js";
+import { ICON } from "../core/ui/icons/names.js";
+import { redraw } from "../core/ui/redraw.js";
+import { headerActionsHtml } from "./header.js";
+import { PAGE_NAME } from "./place-context.js";
+import { createSurfaceSlots } from "./surfaces.js";
+
+/** @import { HeaderThread as Thread, HeaderNeed as Need, HeaderDeps } from "./header-types.d.ts" */
+
+/** @import { SurfaceScope } from "./surface-types.d.ts" */
+
+/** @template {Thread} T @template {Need} N @param {HeaderDeps<T, N>} deps @param {SurfaceScope} scope @param {() => void} schedule */
+export function createTopHeader(deps, scope, schedule) {
+  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml,
+    places, emit, atOf, LP, LW, tdelRender } = deps;
+  /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
+  const drawDetails = createSurfaceSlots({
+    places, place: "header.detail", read: () => places.entries("header.detail"), scope, schedule,
+    fallback: () => requireHtml("#scroller"), hideOnRetire: true,
+  });
+  /** @param {N[]} needs */
+  function topRender(needs) {
+    const v = location.view();
+    const t = convThread(v);
+    const top = requireHtml("#top");
+    top.dataset.kind = t ? "thread" : "project";
+    top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
+    const back = requireHtml("#top-back", "button");
+    /** @param {string} name */
+    const backTo = (name) => { redraw(back, `${ICON.back}<span>${esc(name)}</span>`); back.setAttribute("aria-label", `Back to ${name}`); back.title = "Back (Esc)"; };
+    back.hidden = !t && v !== "ws";
+    if (v === "ws") backTo("Chats");
+    if (CH.isChats(v)) {
+      top.dataset.kind = v === "chats" ? "project" : "thread";
+      back.hidden = v === "chats";
+      if (v !== "chats") backTo("Chats");
+      redraw($("#top-who"), CH.headHtml(v));
+      redraw($("#top-end"), STAGE.button(v));
+      checklistRender(needs);
+      drawDetails((id) => document.getElementById(id), { project: null, needs });
+      return;
+    }
+    if (t) {
+      const to = location.parentOf(v) || "p:" + t.project;
+      backTo(to.startsWith("p:") ? PROJ(to.slice(2)) : PAGE_NAME[to] ?? "Chats");
+    }
+    const { who, controls } = conversationHeaderHtml(v, t, needs);
+    if (who != null) redraw($("#top-who"), who);
+    const pv = v.startsWith("p:");
+    const endHtml = t ? "" : (pv ? controls + headerActionsHtml(places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
+    redraw($("#top-end"), endHtml);
+    LP.ensure(v);
+    checklistRender(needs);
+    tdelRender(t);
+    const painted = { project: pv ? v.slice(2) : null, needs };
+    drawDetails((id) => document.getElementById(id), painted);
+    emit("app:conversation-header", painted);
+  }
+  return topRender;
+}

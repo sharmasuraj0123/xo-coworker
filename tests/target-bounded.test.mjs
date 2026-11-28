@@ -1,26 +1,46 @@
-// On a phone the composer's recipient target is bounded: whatever it says, it gives way before the model chip and Send
-// (the create-project grader on 9d1f71b, C111, 390 in both themes: with the Workspace's own routing Off the target
-// showed "Sending is paused · …" whole, 307 px, and pushed the chip and the disabled Send out of the row: phone.css
-// had it flex:none). Checked from the CSS; the drawn row is the flows case C111 (and the smoke gate checks Send and the
-// chip on a phone).
-//   node tests/target-bounded.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+// @ts-check
 
-const phone = readFileSync(new URL("../css/phone.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("on a phone the target shrinks first, to nothing if it must, and cuts its words short", () => {
-  const m = /:root:root \.target\{([^}]*)\}/.exec(phone);
-  assert.ok(m, "the phone's target rule");
-  assert.match(m[1], /flex:0 (\d+) auto/, "it can shrink");
-  assert.ok(+/flex:0 (\d+) auto/.exec(m[1])[1] >= 10, "and shrinks before the chip (which shrinks by 1)");
-  assert.match(m[1], /min-width:0/, "to nothing if it must");
-  assert.match(m[1], /overflow:hidden/, "its words cut, not spilling");
-  assert.ok(!/:root:root \.target\{flex:none\}/.test(phone), "never rigid");
-  assert.ok(/\.target>span:not\(\.tg-t\):not\(\.tg-warn\):not\(\.tg-end\):not\(\.tg-ch\)\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/.test(app), "its words end in an ellipsis");
-  assert.ok(/\.send\{flex:none;/.test(app), "Send keeps its size");
-  assert.ok(/:root:root \.target:has\(> \.tg-warn\) > span:not\(\.tg-warn\)\{display:none\}/.test(phone), "paused, only its mark: the words are the banner above, the chip keeps its whole word");
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { substitute } from "../tools/conformance/css-resolve.mjs";
+import { publishedRules, tokenValuesFor } from "./lib/css-snapshot.mjs";
+import { isPhone } from "./lib/cascade.mjs";
+
+const rules = publishedRules();
+
+function properties(selector, predicate = () => true) {
+  return Object.fromEntries(rules.filter((rule) => rule.sel === selector && predicate(rule))
+    .flatMap(({ declarations }) => declarations.map(({ p, v }) => [p, v])));
+}
+
+test("the composer target yields first and its label truncates", () => {
+  const target = properties(".target");
+  assert.equal(target.flex, undefined);
+  assert.equal(target["min-width"], "0");
+  assert.equal(target["flex-shrink"], "999");
+  assert.equal(target.overflow, "hidden");
+
+  const label = properties(".target>span:not(.tg-t):not(.tg-warn):not(.tg-end)");
+  assert.equal(label["min-width"], "0");
+  assert.equal(label.overflow, "hidden");
+  assert.equal(label["text-overflow"], "ellipsis");
+  assert.equal(label["white-space"], "nowrap");
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+test("the model chip leaves room for Attach and Send", () => {
+  const chip = properties(".iq");
+  assert.equal(chip.flex, "0 1 auto");
+  const tokens = tokenValuesFor();
+  assert.equal(substitute(chip["max-width"], tokens), "min(320px,100% - 32px - 40px - 3 * 8px)");
+  const compact = properties(':root[data-density="compact"] :is(.main,.sheet,.iq-pop)');
+  for (const [name, value] of Object.entries(compact)) if (name.startsWith("--")) tokens.set(name, value);
+  assert.equal(substitute(chip["max-width"], tokens), "min(320px,100% - 24px - 40px - 3 * 8px)");
+  assert.equal(properties(".send").flex, "none");
+});
+
+test("on a phone the target shrinks and a paused target shows just its mark", () => {
+  const targets = rules.filter((rule) => /^(:root:root )?\.target$/.test(rule.sel) && isPhone(rule));
+  assert.ok(targets.length > 0, "the published stylesheet includes phone target rules");
+  assert.ok(targets.every(({ declarations }) => declarations.every(({ p, v }) => p !== "flex" || v !== "none")));
+  assert.equal(properties(":root:root .target:has(>.tg-warn)>span:not(.tg-warn)", isPhone).display, "none");
+});

@@ -1,8 +1,12 @@
 // Files on a message (hub #30) and the cross-project hop line: the pure parts, no network.
 //   node tests/attach.test.mjs
 import assert from "node:assert/strict";
-import { refusal, sortFiles, isLargePaste, pasteExt, pasteName, pasteLabel, attachmentsOf, kindOf, typeWord, fmtSize, uploadErrorText, createTray, MAX_BYTES, MAX_FILES, FINAL } from "../js/attach.js";
-import { uiMsg, echoes, hopLine } from "../js/timeline.js";
+import { refusal, sortFiles, isLargePaste, pasteExt, pasteName, pasteLabel, kindOf, typeWord, fmtSize, uploadErrorText, MAX_BYTES, MAX_FILES, FINAL } from "../core/services/media/attachment-rules.js";
+import { createTray } from "../core/services/media/attachment-tray.js";
+import { attachmentsOf } from "../core/services/world/rows.js";
+import { uiMsg } from "../core/services/world/rows.js";
+import { echoes } from "../core/services/world/conversation.js";
+import { hopLine } from "../core/services/world/relay.js";
 
 let passed = 0;
 const pending = [];

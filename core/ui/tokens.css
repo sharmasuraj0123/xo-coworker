@@ -1,0 +1,376 @@
+@font-face{font-family:"Geist";font-style:normal;font-weight:100 900;font-display:swap;src:url("../../fonts/geist/Geist-Variable.woff2") format("woff2")}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:100 1000;font-display:swap;src:url("../../fonts/dm-sans/dm-sans-latin-wght-normal.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"DM Sans";font-style:normal;font-weight:100 1000;font-display:swap;src:url("../../fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"DM Sans";font-style:italic;font-weight:100 1000;font-display:swap;src:url("../../fonts/dm-sans/dm-sans-latin-wght-italic.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"DM Sans";font-style:italic;font-weight:100 1000;font-display:swap;src:url("../../fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+/* Dark surfaces and lines share an elevation scale from the neutral canvas. Interactive states use translucent fills. */
+:root{
+  --dark-fill-1:#171717;
+  --dark-fill-2:#232323;
+  --dark-fill-3:#2C2C2C;
+  --dark-fill-4:#3A3A3A;
+  --dark-menu-focus:#383838;
+  --dark-line-faint:#1F1F1F;
+  --dark-line-soft:#262626;
+  --dark-line:#303030;
+  --dark-line-strong:#3C3C3C;
+  --dark-line-hover:#565656;
+  --dark-ink:#EDEDED;
+  --dark-ink-2:#D6D6D6;
+  --dark-ink-3:#B8B8B8;
+  --dark-ink-4:#ACACAC;
+  --dark-ink-5:#8A8A8A;
+  --dark-on-ink:#141414;
+  --dark-ink-hi:#FFFFFF;
+  --dark-accent:#83D63A;
+  --dark-err-ink:#E68388;
+  --dark-hover-fill:rgba(255,255,255,.06);
+  --dark-press-fill:rgba(255,255,255,.09);
+  --dark-ink-3-contrast:#C8C8C8;
+  --dark-ink-4-contrast:#C8C8C8;
+  --dark-line-contrast:#5A5A5A;
+  --dark-line-hover-contrast:#8E8E8E;
+  color-scheme:dark;
+  --sunken:#111111; --canvas:#141414; --surface:#1B1B1B; --float:#1E1E1E;
+  --fill-1:var(--dark-fill-1); --fill-2:var(--dark-fill-2); --fill-3:var(--dark-fill-3); --fill-4:var(--dark-fill-4);
+  --menu-focus:var(--dark-menu-focus);
+  --line-faint:var(--dark-line-faint);
+  --line-soft:var(--dark-line-soft);
+  --line:var(--dark-line);
+  --line-strong:var(--dark-line-strong);
+  --line-hover:var(--dark-line-hover);
+  --line-view:var(--line-faint);
+  --ink:var(--dark-ink);
+  --ink-2:var(--dark-ink-2);
+  --ink-3:var(--dark-ink-3);
+  --ink-4:var(--dark-ink-4);
+  --ink-5:var(--dark-ink-5);
+    /* text, secondary, meta, quiet (4.6:1), placeholder */
+  --on-ink:var(--dark-on-ink); --ink-hi:var(--dark-ink-hi);
+  --accent:var(--dark-accent);
+  --accent-fill:#83D63A;
+  --accent-ink:#141414;
+  --accent-hover:#96DC58;
+  --accent-press:#74C02F;
+  --accent-rgb:131,214,58;
+  --go:#83D63A; --go-fill:#83D63A; --go-rgb:131,214,58;   /* done, allowed, added: the flavour's own green */
+  --err:#D7373F; --err-ink:var(--dark-err-ink);
+  --warn:#F5A623; --info:#75ADF1; --violet:#BF8DFF;
+  --live-h:254; --live-l:.74; --live-c:.115;   /* the working dots: three hues around the flavour's own (css/flavours.css); Stone's is the info blue's */
+  --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
+  --mark-x:#E1E1E1; --mark-o:#83D63A;
+  --mx-you:#314E1C;
+  --bubble:#232323; --bubble-line:#303030; --bubble-top:#262626; --bubble-foot:#1F1F1F;   /* theirs in the bubble view: lit from above */
+  --lbx-scrim:rgba(12,12,12,.94); --checker:rgb(128 128 128 / .2);
+  --term-bg:#111111;
+  --code-bg:var(--fill-1);   /* code reads in a well, one step under the surface it sits on */
+  --row-bg:rgba(255,255,255,.022); --row-bg-hover:rgba(255,255,255,.045); --row-on:rgba(255,255,255,.06);
+  --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
+  /* frosted bars and toasts */
+  --herald-bg:rgba(27,27,27,.9); --stamp-bg:rgba(29,29,29,.9);
+  --fill-drop-veil:rgb(0 0 0 / .32);
+  --comp-bg:var(--float); --line-composer-focus:var(--line-strong);
+  /* Floating surfaces pair a contact shadow with a short ambient shadow. */
+  --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
+  --edge-sidebar-active:rgba(var(--black-rgb),.06); --shadow-switch-track:inset 0 0 0 var(--hair) var(--sb-line);
+  --fill-switch-knob:var(--ink-2); --ink-switch-knob:var(--sb-side); --shadow-switch-knob:none;
+  --e-composer-idle:0 8px 24px var(--shadow-ink),0 1px 0 rgba(255,255,255,.04) inset; --e-composer-focused:var(--e-composer-idle);
+  --e-composer-compact:0 2px 10px var(--shadow-ink),0 1px 0 rgba(255,255,255,.04) inset;
+  --dot-map-core:1px; --dot-map-feather:1.2px; --blur-map-label:3px;
+  --fill-map-canvas:var(--fill-1); --edge-map-canvas:var(--line-faint); --ink-map-grid:var(--fill-3); --ink-map-connection:var(--ink-5);
+  --e1:none; --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24); --shadow-md:var(--e2); --shadow-lg:var(--e2);
+  --fill-tool-output:var(--surface); --edge-tool-output:var(--line-faint); --edge-empty-state:var(--line-faint);
+  --edge-home-handled:var(--line-faint); --fill-home-handled-badge:rgba(var(--accent-rgb),.12); --shadow-empty-state:none;
+  --fill-home-handled-hover:color-mix(in srgb,var(--ink) 7%,var(--surface));
+  --lift-1:0 0 var(--palette-shadow-clear);
+  --lift-2:0 0 var(--palette-shadow-clear);
+  --lift-3:var(--e2);
+  --hairline:inset 0 1px 0 rgba(255,255,255,.035); --lift-workspace-mark:var(--e2);
+  --scrim:rgba(0,0,0,.55);
+  --sha:1;   /* how much a coloured shadow shows: 1 in dark, .28 in light */
+  --hover-fill:var(--dark-hover-fill); --press-fill:var(--dark-press-fill);
+  --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
+  /* the main action's fill: XO's accent; a flavour may make it the ink (tools/flavours, primary) */
+  --pri-fill:var(--accent-fill); --pri-fill-hover:var(--accent-hover); --pri-fill-press:var(--accent-press); --pri-ink:var(--accent-ink);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
+  --stroke-focus-outline:3px; --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
+  /* Scroll containers reserve the ring's offset and room around focused controls. */
+  --ring-room:6px;
+  --s-keycap-block:var(--gap-control-tight); --s-keycap-inline:var(--inset-badge); --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
+  --on-agent:#0B0B0C; /* Dark ink maintains contrast on agent colours. */
+  --knob:#FFFFFF; --knob-go:color-mix(in srgb,var(--accent-fill) 50%,var(--on-ink)); --track:var(--sb-bg-3);
+  --fill-theme-track-on:var(--switch-on);
+  --map-dot:var(--fill-4);   /* a folder's dot on the Map */
+  --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
+  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
+  /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
+  --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink)); --ink-project-attention:initial;
+  --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
+  --ok-text:var(--go); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
+  --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
+  /* Coordinator names and marks use the same violet in every view. */
+  --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
+  --work:var(--info); --need:var(--warn); --danger:var(--err);
+  --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --sans-read:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* Type roles: every text in the app takes one; read is the chat's voice (drawn lighter and softer on dark), ui the rest */
+  --fs-meta:12px; --fs-ui:14px; --fs-code:14px; --fs-read:16px; --fs-title:16px; --fs-input:16px; --fs-heading:20px; --fs-display:28px; --fs-hero:40px;
+  --lh-meta:16px; --lh-ui:20px; --lh-read:24px; --lh-title:24px; --lh-heading:28px; --lh-display:36px; --lh-hero:44px;
+  --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
+  /* each face's own metrics, per em: half its cap height (where an icon beside words centres), its ascent and descent */
+  --cap-mid-ui:.3595em; --asc-ui:.92em; --desc-ui:.22em;
+  --cap-mid-read:.352em; --asc-read:.992em; --desc-read:.31em;
+  --cap-mid:var(--cap-mid-ui); --asc:var(--asc-ui); --desc:var(--desc-ui);
+  --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
+  --tr-code:.1em;
+  --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
+  --ink-read:var(--ink);
+  --ok-fill:color-mix(in srgb,var(--go-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--go-fill) 22%,transparent);
+  --ok-fill-press:color-mix(in srgb,var(--go-fill) 28%,transparent);
+  --measure-min:480px; --measure:max(calc(100% - var(--s-12)), min(100%, var(--measure-min)));   /* outside a view's column: its own box */
+  --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* the dock family (every decision card, its folded and done lines, the composer) shares one corner; its controls sit --card-in from the edge */
+  --r-card:24px; --card-in:var(--s-3); --card-pad:var(--s-5);
+  --comp-ctl:var(--h-ctl); --comp-in:calc(var(--r-card) - var(--comp-ctl) / 2); /* the composer's corner circles, and the inset that makes them concentric */
+  --glass-blur:blur(18px) saturate(1.4);
+  --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
+  --win-w:calc(32 * var(--h-ctl)); --win-h:calc(20 * var(--h-ctl)); --win-side:calc(7 * var(--h-ctl)); --row-k:calc(5 * var(--h-ctl));
+  --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
+  --r-lg-in:calc(var(--r-lg) - 1px);
+  /* every card in the conversation column shares one corner; what sits inside one takes --r-block-in less its inset */
+  --r-block:var(--r-lg); --r-block-in:calc(var(--r-block) - var(--hair));
+  --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
+  --r-note:calc(var(--r) + var(--s-4));
+  /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
+  --halo:8px; --cell-in:4px;
+  --halo-row:12px;
+  --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
+  --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
+  /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
+  --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
+  --note-h:var(--h-ctl); --note-btn:var(--h-sm);
+  --pop-x:10px;
+  --pop-list-h:min(296px,40dvh);
+  --h-row:40px; --h-row-compact:32px; --h-row-act:48px; --h-row-list:56px;
+  --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
+  --mark-sm:var(--s-3);
+  /* Icons use the standard size, with smaller metadata and larger phone-bar sizes. */
+  --mask-working:url(/core/ui/icons/source/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-load:url(/core/ui/icons/source/xo/n-people-status-and-time/spinner.svg) center/contain no-repeat; --mask-needs:url(/core/ui/icons/source/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
+  --mask-done:url(/core/ui/icons/source/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(/core/ui/icons/source/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
+  --mask-dot:url(/core/ui/icons/source/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(/core/ui/icons/source/xo/c-actions/stop.svg) center/200% no-repeat;
+  --mask-warn:url(/core/ui/icons/source/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(/core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
+  --ic-xs:12px; --ic-sm:14px; --ic-base:16px; --ic:var(--ic-base); --ic-lg:20px;
+  --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
+  --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24);
+  --badge-dot:calc(var(--ic) * 3 / 8);
+  --shadow-ink:rgba(0,0,0,.35);
+  --shadow-drawer:var(--h-control-compact) 0 var(--size-preview-compact) rgb(0 0 0 / calc(.5 * var(--sha)));
+  --offset-outset:-10px;
+  --offset-half-icon:-8px;
+  --gap-control-tight:2px;
+  --inset-badge:5px;
+  --palette-shadow-clear:#0000;
+  --ic-inline-compact:13px;
+  --ic-inline:15px;
+  --offset-outset-small:-3px;
+  --w-compact-menu:168px;
+  --inset-control-inline:10px;
+  --inset-segment:3px;
+  --ic-medium:18px;
+  --h-control-compact:30px;
+  --size-preview-compact:80px;
+  --ic-tiny:9px;
+  --r-tight:3px;
+  --inset-row-compact:6px;
+  --opacity-muted:.5;
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
+  --gap-icon:var(--s-2); /* Spacing follows a 4 px grid. */
+  --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch; --h-thread-state-mark:2px;
+  --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
+  --s-tool-file-end:14px; --s-tool-file-start:10px; --s-tool-separator-gap:7px; --s-tool-rail-inset:23px;
+  --w-tool-count:20px; --h-tool-count:18px; --h-tool-output:240px; --h-tool-status:28px;
+  --ic-activity:10px; --ic-tool-file:26px; --w-tool-file-label:260px; --s-tool-icon-inset:1px;
+  --h-thread-label:22px; --s-thread-label-inline:9px; --w-thread-label:180px; --h-risk-badge:20px;
+  --w-thread-label-phone:110px;
+  --s-thread-control-inline:var(--inset-control-inline); --s-thread-menu-offset:6px; --w-thread-menu-floor:180px; --w-thread-rename:200px;
+  --s-tool-rail-phone:14px;
+  --ic-decision-option:var(--ic-inline-compact); --s-decision-option-text:2px; --s-decision-section:10px; --s-decision-change-inline:14px;
+  --w-run-chip:280px; --w-run-stat-min:88px; --ic-run-sr:1px; --s-run-control-inline:var(--inset-control-inline); --s-run-text-gap:2px;
+  --s-run-undo-inset:2px; --palette-mask-opaque:#000; --mask-run-tail:linear-gradient(var(--palette-mask-opaque) 60%,var(--fill-clear));
+  --mix-rec-hover:22%;
+  --palette-transparent:transparent; --fill-clear:var(--palette-transparent); --fill-link-base:var(--palette-transparent);
+  --mix-run-edge:28%; --mix-run-rest:6%; --mix-run-wait:7%; --mix-run-hover:18%; --mix-run-live:14%; --mix-run-stop-hover:10%;
+  --s-setting-label-gap:2px; --s-setting-count-block:1px; --s-setting-count-inline:6px; --s-setting-choice-block:14px;
+  --s-setting-error-block:10px; --s-setting-form-inline:18px; --offset-setting-link:2px; --offset-swatch:calc(var(--s-1) + .5px);
+  --measure-setting-description:60ch; --w-setting-pairing:16rem; --w-setting-row-label:160px; --w-worktree-hold:170px;
+  --w-quick-open:680px; --s-quick-options-block:6px; --s-quick-option-inline:6px; --s-quick-match-indent:34px;
+  --s-quick-footer-top:6px; --s-quick-footer-bottom:10px;
+  --w-md-page:760px; --stroke-md-quote:2px; --s-md-code-y:1px; --w-doc-change-bar:3px;
+  --s-doc-action:10px; --s-doc-ask-gap:6px; --offset-file-tab-focus:-2px;
+  --s-file-tab-gap:2px; --w-file-tab:220px; --ic-file-dirty:8px; --s-file-versions-gap:2px; --w-file-version-count:48px;
+  --font-file-meta:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);
+  --font-file-meta-code:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);
+  --w-stage-default:360px; --h-foundation-row:36px; --slide-panel-in:12px; --edge-panel-flush:rgba(0,0,0,.08);
+  --w-panel-grip-line:2px; --w-artifact-grid-card:148px;
+  --r-sidebar-focus:6px; --offset-workspace-link-ring:1px; --s-reaction-gap:2px; --s-reaction-inline:7px; --h-reaction:22px;
+  --offset-field-ring:-1px; --r-grip-ring:3px; --spread-field-halo:3px; --offset-inset-divider:-1px;
+  --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
+  --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
+  --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
+  --slide-undo-entry:-24px; --slide-confirm-exit:-8px; --slide-cancel-exit:-18px; --shift-hover-chevron:3px;
+  --ic-approval-stamp:84px; --w-effort-label:96px; --w-decision-attribution:84px; --w-empty-state-mark:58px;
+  --s-touch-extension:-8px; --s-notice-touch-extension:-12px; --h-folder-touch-action:28px;
+  --s-model-chip-phone:var(--inset-row-compact); --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
+  --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
+  --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
+  --s-message-files-top:6px; --w-message-files:560px; --w-message-file-min:220px;
+  --offset-shell-toggle-icon:-2px; --h-shell-dock:320px; --offset-shell-grip-ring:var(--offset-half-icon); --s-shell-compact-gap:2px;
+  --s-shell-control-inset:10px; --s-shell-row-inset:6px; --w-shell-tab-rename:200px; --w-shell-tab:220px;
+  --h-shell-count:18px; --s-shell-count-inline:5px; --ic-shell-status:7px; --d-shell-wait:1.2s; --w-shell-location:280px;
+  --stroke-shell-ended:1.5px; --mix-shell-confirm:30%;
+  --s-shell-note-edge:14px; --w-shell-confirm-message:220px;
+  --offset-shell-list-link:3px; --s-shell-status-top:7px; --w-shell-list-name:320px; --s-shell-flag-block:1px;
+  --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
+  --s-long-press-gap:2px; --s-long-press-inline:14px;
+  --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
+  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-preview-compact);
+  --stroke-artifact-focus:2px;
+  --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
+  --h-skeleton-label:10px;
+  --s-since-phone-block:10px;
+  --w-stage-preferred:clamp(420px,42vw,720px);
+  --s-map-header-tight:10px; --offset-map-status-inline:7px; --s-map-control-inset:9px; --w-map-status-mark:2px;
+  --h-map-legend-max:86px; --w-map-agent-max:260px; --stroke-map-focus:2px; --w-map-node:172px; --h-map-node:34px;
+  --w-map-node-icon:var(--ic-inline); --h-map-root-node:38px; --offset-map-root-node:-2px; --ic-map-status:6px;
+  --w-map-more-min:84px; --h-map-note:26px; --ic-map-spinner:var(--ic-tiny); --s-map-node-halo:3px;
+
+  --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
+  --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
+  --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
+  --stroke-drop-target:2px; --edge-drop-target:rgba(var(--accent-rgb),.6); --blur-drop-veil:3px; --s-drop-label-inline:18px;
+  --s-viewer-head-top:14px;
+  --s-viewer-button-end:11px;
+  --s-viewer-button-start:9px;
+  --s-viewer-segment-in:var(--inset-segment);
+  --s-viewer-seg-inline:var(--inset-control-inline);
+  --r-viewer-segment-inset:4px; --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
+  --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
+  --measure-viewer-empty:44ch; --palette-white:#fff; --fill-viewer-document:var(--palette-white); --tile-viewer-checker:16px;
+  --h-home-panel-card:58px; --h-home-wait-card:50px; --ic-home-handled-badge:22px; --r-home-handled-badge:50%;
+  --s-home-card-row-gap:2px; --s-home-wait-card-block:6px; --s-home-wait-card-gap:6px; --s-home-wait-detail-gap:2px;
+  --w-home-handled-project:110px; --w-home-handled-progress:44px; --offset-home-handled-icon:4px;
+  --h-home-progress-track:3px; --r-home-progress-track:3px;
+  --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
+  --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
+  --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;
+  --ic-link:1em; --ic-link-thread:.86em; --ic-link-arrow:.62em; --offset-link-icon-half:.5em; --offset-link-arrow-half:.31em;
+  --offset-link-arrow-run:1.5px; --offset-link-arrow-rise:-1.5px; --offset-link-underline:3px; --opacity-link-press:.7;
+  --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:var(--r-tight); --size-inline-link-code:.9em;
+  --dock-gap:var(--s-3); --cbar-fade:30px; --cbar-clear:0px;
+  /* Stacking: one scale, so a popover can never fall under a panel. */
+  --z-raised:2; --z-grip:3; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
+  /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
+  --ease-out:var(--ease);
+  --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms; --dur-thread-state-sweep:2.8s;
+  --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
+  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s; --d-wait:400ms;
+  --press-scale:.97;
+  --tx-press-transform:transform var(--dur-fast) var(--ease);
+}
+:root[data-msgx]{--r-block:var(--r-xl)}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF; --fill-viewer-embedded:var(--surface);
+  --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
+  --menu-focus:#EEEEEE;
+  --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD; --line-view:var(--line-soft);
+  --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E; --on-ink:#FFFFFF; --ink-hi:#000000;
+  --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
+  --go:#3D7A17; --go-fill:#83D63A; --go-rgb:61,122,23;
+  --err:#C42B2B; --err-ink:#B42323; --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
+  --live-l:.53; --live-c:.15;
+  --mark-x:#151515; --mark-o:#83D63A;
+  --knob-go:var(--accent); --track:#E2E2E2; --switch-on:color-mix(in srgb,var(--accent-fill) 85%,var(--ink)); --map-dot:#B9B9B6;
+  --fill-map-canvas:var(--canvas); --edge-map-canvas:var(--line-soft); --ink-map-grid:var(--line); --ink-map-connection:var(--fill-4);
+  --fill-theme-track-on:var(--track); --fill-switch-knob:var(--knob); --ink-switch-knob:initial;
+  --shadow-switch-track:inset 0 0 0 var(--hair) rgba(var(--black-rgb),.04);
+  --shadow-switch-knob:0 1px 2px rgba(var(--black-rgb),.18),0 0 0 .5px rgba(var(--black-rgb),.06);
+  --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:rgba(var(--accent-rgb),.8);
+  --warn-text:#8A4B0B; --need-text:#5E3507; --ink-project-attention:var(--need-text); --add-text:#2F5A12; --del-text:#9B1C22;
+  --danger-text:#9B1C22; --ok-text:color-mix(in srgb,var(--go) 80%,var(--ink)); --danger-ink:var(--err-ink);
+  --mx-you:#BBE78D; --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
+  --term-bg:var(--fill-1);
+  --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
+  --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
+  --herald-bg:rgba(255,255,255,.92); --stamp-bg:rgba(255,255,255,.95);
+  --fill-drop-veil:color-mix(in srgb,var(--surface) 55%,transparent);
+  --e-composer-idle:0 0 0 .5px rgba(var(--black-rgb),.04),0 1px 3px rgba(var(--black-rgb),.06),0 4px 32px rgba(var(--black-rgb),.13);
+  --e-composer-focused:0 0 0 .5px rgba(var(--black-rgb),.05),0 1px 3px rgba(var(--black-rgb),.07),0 6px 36px rgba(var(--black-rgb),.16);
+  --e-composer-compact:var(--e-composer-idle); --line-composer-focus:var(--line-hover); --cbar-clear:var(--cbar-fade);
+  --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
+  --lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02);
+  --lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08);
+  --lift-3:0 0 0 .5px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04),0 18px 44px -14px rgba(0,0,0,.16);
+  --shadow-md:var(--lift-2); --shadow-lg:var(--lift-3); --lift-workspace-mark:var(--lift-2);
+  --fill-tool-output:var(--fill-1); --edge-tool-output:var(--line-soft);
+  --edge-home-handled:var(--line-soft); --edge-empty-state:var(--line-soft); --shadow-empty-state:var(--lift-1);
+  --hairline:0 0 var(--palette-shadow-clear); --scrim:rgba(18,18,18,.16); --sha:.28;
+  --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);
+  --e-decide:#3B3B3B;
+}
+:root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
+  --edge-sidebar-frame:var(--sb-g1C); --edge-sidebar-footer:var(--edge-sidebar-frame) currentColor currentColor;
+  --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}
+:root[data-theme="light"]{--sb-side:#F2F2F2; --sb-hair:#E8E8E8; --sb-line:#DCDCDC; --sb-line-hover:#BDBDBD; --sb-bg-3:#EEEEEE;
+  --edge-sidebar-frame:var(--sb-hair); --edge-sidebar-footer:var(--edge-sidebar-frame);
+  --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
+  --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
+@media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
+:root{--fill-selection:rgba(var(--accent-rgb),.28)}
+@media (prefers-contrast: more){
+  :root{--ink-3:var(--dark-ink-3-contrast);
+  --ink-4:var(--dark-ink-4-contrast);
+  --line:var(--dark-line-contrast);
+  --line-hover:var(--dark-line-hover-contrast)}
+  :root[data-theme="light"]{--ink-3:#333333; --ink-4:#333333; --line:#8E8E8E; --line-hover:#6B6B6B}
+}
+/* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */
+:root{
+  --accent-subtle:color-mix(in srgb,var(--accent-fill) 16%,var(--fill-1));
+  --warn-subtle:color-mix(in srgb,var(--warn) 14%,var(--fill-1));
+  --err-subtle:color-mix(in srgb,var(--err) 14%,var(--fill-1));
+  --need-line:color-mix(in srgb,var(--warn) 30%,transparent);
+  --need-tint:color-mix(in srgb,var(--warn) 12%,transparent);
+  --need-tint-2:color-mix(in srgb,var(--warn) 20%,transparent);
+  --danger-line:color-mix(in srgb,var(--err-ink) 26%,transparent);
+  --danger-tint:color-mix(in srgb,var(--err) 14%,transparent);
+  --danger-wash:color-mix(in srgb,var(--err) 10%,transparent);
+  --coord-tint:color-mix(in srgb,var(--coord) 14%,transparent);
+}
+/* Project colours: the flavour's violet in hues clear of working blue, needs-you amber and danger red. */
+[data-tint]{--pc-fill:color-mix(in srgb,var(--pc) 16%,transparent)}
+[data-tint="1"]{--pc:oklch(from var(--violet) l c 285)}
+[data-tint="2"]{--pc:oklch(from var(--violet) l c 300)}
+[data-tint="3"]{--pc:oklch(from var(--violet) l c 315)}
+[data-tint="4"]{--pc:oklch(from var(--violet) l c 330)}
+[data-tint="5"]{--pc:oklch(from var(--violet) l c 345)}
+[data-tint="6"]{--pc:oklch(from var(--violet) l c 0)}
+[data-tint="7"]{--pc:oklch(from var(--violet) l c 120)}
+[data-tint="8"]{--pc:oklch(from var(--violet) l c 140)}
+[data-tint="9"]{--pc:oklch(from var(--violet) l c 160)}
+[data-tint="10"]{--pc:oklch(from var(--violet) l c 180)}
+[data-tint="11"]{--pc:oklch(from var(--violet) l c 200)}
+[data-tint="12"]{--pc:oklch(from var(--violet) l c 215)}
+/* Phone controls retain the touch floor while taller rows keep their own heights. */
+@media (max-width:760px){:root{--h-row:36px}}
+@media (max-width:760px){:root{--cbar-fade:22px}}

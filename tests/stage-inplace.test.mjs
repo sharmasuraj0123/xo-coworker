@@ -1,22 +1,32 @@
-// The panel's live parts are drawn in place, so the control you're on survives an update (the controls grader on
-// 9d1f71b, C072–C074, all four cells: Tab to a frame's head under Launchpad; a live agent moves its count 1 → 2 → 3
-// and the button was replaced, focus to BODY ~150 ms later: stage.js set it with innerHTML). Checked from the source:
-// the heads under Launchpad and every list the panel keeps current go through js/redraw.js; innerHTML is left only
-// for what's built once, and for icons inside a button that stays. The walk is the flows case C072–C074.
-//   node tests/stage-inplace.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+// @ts-check
 
-const src = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("the heads under Launchpad and the live lists are drawn in place", () => {
-  assert.ok(/import \{ redraw \} from "\.\/redraw\.js";/.test(src));
-  assert.ok(/if \(g\._h !== html\) \{ redraw\(g, html\);/.test(src), "the heads (ghosts)");
-  assert.ok(/if \(S\.h\[k\] !== same\) \{ redraw\(node, html\); S\.h\[k\] = same; \}/.test(src), "Agents, Changes, the panel's name and counts (set)");
-});
-t("innerHTML only for what's built once, or icons inside a button that stays", () => {
-  const writes = [...src.matchAll(/(\w+(?:\([^)]*\))?)\.innerHTML = /g)].map((m) => m[1]);
-  assert.deepEqual(writes.sort(), ['body("changes")', "el", "fb", "fw"].sort(), `innerHTML writes: ${writes.join(", ")}`);
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+import assert from "node:assert/strict";
+import { same } from "./lib/dom.mjs";
+import { stageFixture } from "./lib/stage-fixture.mjs";
+
+const review = { go: "t:review", title: "Review", state: "working", word: "Working" };
+const inspect = { go: "t:inspect", title: "Inspect", state: "working", word: "Working" };
+const rows = [review];
+const { stage, document, panel, change } = await stageFixture({ threads: () => [{ k: "working", word: "Working", rows }] });
+panel.open({ focus: false });
+
+const filter = stage.querySelector("[data-tg-q]");
+const row = stage.querySelector('[data-go="t:review"]');
+assert.ok(row, "the open Stage draws its thread");
+row.focus();
+rows.push(inspect);
+panel.sync();
+same(stage.querySelector("[data-tg-q]"), filter, "the thread filter survives a count change");
+same(stage.querySelector('[data-go="t:review"]'), row, "an existing thread's control survives redraw");
+same(document.activeElement, row, "the focused thread survives an update");
+assert.equal(stage.querySelector('[data-fr-n="agents"]')?.textContent, "2");
+
+const originalFile = { path: "README.md", rel: "README.md", project: "one", mark: "edited" };
+change([originalFile]);
+const file = stage.querySelector('[data-change="README.md"]');
+assert.ok(file, "the open Stage draws the fallback Changes list");
+file.focus();
+change([originalFile, { ...originalFile, path: "index.html", rel: "index.html" }]);
+same(stage.querySelector('[data-change="README.md"]'), file, "an existing file's control survives redraw");
+same(document.activeElement, file, "the focused change survives an update");
+assert.equal(stage.querySelector('[data-fr-n="changes"]')?.textContent, "2");

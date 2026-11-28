@@ -1,0 +1,35 @@
+{
+  "runtimes": {
+    "runtimes": [{
+      "name": "codex",
+      "default": true,
+      "health": {
+        "usable": true, "why_not": null, "installed": true, "logged_in": true,
+        "account": "example", "cli_version": "1.0", "pool": "codex:example", "limit": "open",
+        "resets_at": null, "windows": { "five_hour": { "state": "open", "resets_at": "2026-01-01T01:00:00Z", "utilization": 1 } },
+        "error": null, "checked_at": "2026-01-01T00:00:00Z"
+      },
+      "cli": { "version": "1.0", "logged_in": true, "account": "example" },
+      "features": { "features": { "effort": { "support": null, "behaviour": null, "values": ["low"] } } }
+    }]
+  },
+  "models": {
+    "name": "codex",
+    "models": [{
+      "id": "example-model", "name": "Example model", "efforts": ["low"], "default_effort": null,
+      "context_window": null, "is_default": true, "takes_effort": true, "family": null,
+      "family_default": true, "description": "Example"
+    }]
+  },
+  "policy": {
+    "space": { "allowed": null, "default": null, "preferences": null, "fallback": null },
+    "effective": { "allowed": null, "default": null, "preferences": null, "fallback": true }
+  },
+  "router": { "mode": "off", "decision_model": null, "abstain_below": 0.7 },
+  "routerModels": {
+    "models": [{
+      "id": "example", "provider": "example", "label": "Example", "docs_url": "https://example.com/docs",
+      "model": "example-model", "connected": false
+    }]
+  }
+}

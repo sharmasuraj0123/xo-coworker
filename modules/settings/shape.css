@@ -1,0 +1,57 @@
+/* ── Settings' rail: technical pages under one quiet label, at its foot ─────────────────────────── */
+.shp-navh{margin:var(--s-4) 0 var(--s-1);padding:0 10px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);
+  letter-spacing:var(--tr-12);color:var(--ink-4)}
+@media (max-width:760px){
+  .shp-navh{flex:none;align-self:center;margin:0 var(--s-1) 0 var(--s-3);padding:0}
+}
+
+/* ── Settings › Shape ─────────────────────────────────────────────────────────────────────────── */
+.shp,.shp-top{display:flex;flex-direction:column;gap:var(--s-8)}
+/* what a preset changes, read as one panel: a line per change */
+.shp-diff{list-style:none;display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-3) var(--s-4);
+  border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
+.shp-diff li{display:flex;gap:var(--s-2)}
+.shp-diff li::before{content:"–";flex:none;color:var(--ink-4)}
+.shp-own{margin-top:var(--s-2);color:var(--ink-2)}
+.shp-acts{justify-content:flex-start;margin-top:var(--s-1)}
+.shp-acts .btn:disabled{opacity:.45;cursor:default}
+.shp-acts .btn:disabled:hover{background:none;color:var(--ink-2)}
+/* switching clears your own changes: asked in place, calmly (it can be made again; nothing is lost for good) */
+.shp-confirm{display:flex;flex-direction:column;gap:var(--s-3);margin-top:var(--s-1);padding:var(--s-4);border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--line-hover);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);
+  color:var(--ink-2)}
+.shp-confirm b{font-weight:var(--fw-strong);color:var(--ink)}
+
+/* Edit as JSON: a disclosure, closed by default */
+.shp-json summary{display:flex;align-items:center;gap:var(--s-2);width:max-content;max-width:100%;height:var(--h-row);
+  padding:0 var(--s-3) 0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r);list-style:none;cursor:pointer;
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.shp-json summary::-webkit-details-marker{display:none}
+.shp-json summary:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
+.shp-json summary:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
+.shp-chev{display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
+.shp-chev svg{width:var(--ic);height:var(--ic);transform:rotate(-90deg);transition:transform var(--d-in) var(--ease)}
+.shp-json[open] .shp-chev svg{transform:none}
+.shp-n{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--need)}
+.shp-n:empty{display:none}
+.shp-jb{display:flex;flex-direction:column;gap:var(--s-3);padding-top:var(--s-3)}
+.shp-held:empty{display:none} /* XO's answer to the last Save, when there is one: no gap held for it otherwise */
+.shp-jb .shp-ta{font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);tab-size:2;white-space:pre;overflow:auto}
+.shp-status{min-height:var(--lh-meta);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.shp-status.is-err{color:var(--need)}
+.shp-probs{display:flex;flex-direction:column;gap:var(--s-2)}
+.shp-probs h4{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-3) var(--s-4);
+  border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
+.shp-where{font-weight:var(--fw-medium);color:var(--ink)}
+.shp-sep{margin:0 var(--s-2);color:var(--ink-4)}
+.shp-probs code{margin-right:var(--s-1);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3)}
+
+/* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
+.iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
+
+/* ── A turn's work in words (xo:thread/work "words"): a step that didn't work is said, not shown ── */
+.tb-wbad{margin:var(--s-1) 0 0 var(--s-6)}

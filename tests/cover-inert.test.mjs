@@ -1,28 +1,66 @@
-// The panel's cover releases everything it made inert, wherever it is now (the controls grader on 9d1f71b, a phone, both
-// themes: the panel open, a file from it, the chat unfolded and folded, Back to chat: #fdock and #composer kept the
-// panel's inert after it closed, so the message box took no typing; its release walked the notices' line's path,
-// and that line had moved out of the folded chat). Checked from the source: what should be inert is worked out whole
-// each time; every mark not in it is released; only what isn't inert already is marked; it's worked out again on each
-// sync. The walk in a browser is the flows case C029/F08.
-//   node tests/cover-inert.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+// @ts-check
 
-const src = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
-const body = (name) => { const i = src.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0; const j = src.indexOf("{", i); for (let k = j; k < src.length; k++) { if (src[k] === "{") d++; else if (src[k] === "}" && --d === 0) return src.slice(j, k + 1); } return null; };
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("worked out whole, released wherever, marked only where not inert already", () => {
-  const b = body("coverSync");
-  assert.ok(b, "coverSync");
-  assert.ok(/const want = new Set\(\);/.test(b), "what should be inert, as a set");
-  assert.ok(/if \(on && el\.parentElement\) walk\(el\.parentElement\);/.test(b), "only while it covers");
-  assert.ok(/for \(const n of document\.querySelectorAll\("\[data-stage-inert\]"\)\) if \(!want\.has\(n\)\) \{ n\.inert = false; delete n\.dataset\.stageInert; \}/.test(b), "every stale mark released, wherever it is");
-  assert.ok(/for \(const n of want\) if \(!n\.inert\) \{ n\.inert = true; n\.dataset\.stageInert = ""; \}/.test(b), "marked only where not inert already");
-  assert.ok(!/else if \(!on && "stageInert" in n\.dataset\)/.test(b), "no release that follows a path");
-});
-t("worked out again on each sync, while the panel is open or a mark is left", () => {
-  const s = body("sync");
-  assert.ok(/if \(S\.open \|\| document\.querySelector\("\[data-stage-inert\]"\)\) coverSync\(\);/.test(s));
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+import assert from "node:assert/strict";
+import { stageFixture } from "./lib/stage-fixture.mjs";
+
+const observed = new Set();
+globalThis.ResizeObserver = class {
+  observe(target) { observed.add(target); this.target = target; }
+  disconnect() { observed.delete(this.target); }
+};
+const { document, window, panel, setPhone } = await stageFixture({ phone: true });
+const { PHONE_MAX_WIDTH } = await import("../core/platform/viewport.js");
+const outside = document.getElementById("outside");
+const main = document.getElementById("main");
+const dock = document.createElement("section");
+dock.innerHTML = '<div id="herald"><button>Undo</button></div><textarea></textarea>';
+const herald = dock.querySelector("#herald");
+const composer = dock.querySelector("textarea");
+const alreadyInert = document.createElement("aside");
+alreadyInert.inert = true;
+main.append(dock, alreadyInert);
+
+globalThis.innerWidth = PHONE_MAX_WIDTH + 1;
+panel.open({ focus: false });
+panel.sync();
+assert.equal(composer.inert, true, "the Stage cover follows the media query instead of the window width");
+assert.equal(document.body.classList.contains("stage-over"), false, "phone Stage suppresses the desktop overlap style");
+assert.equal(Boolean(herald.inert), false, "the notice and its Undo stay reachable");
+assert.equal(alreadyInert.hasAttribute("data-stage-inert"), false, "Stage leaves other inert owners alone");
+
+outside.after(composer);
+const newControl = document.createElement("button");
+dock.append(newControl);
+panel.sync();
+assert.equal(composer.inert, false, "redraw releases the composer after it moves outside the cover");
+assert.equal(newControl.inert, true, "redraw covers the replacement control");
+
+setPhone(false);
+assert.equal(newControl.inert, false, "returning to desktop releases the phone cover");
+assert.equal(document.body.classList.contains("stage-over"), true, "the same narrow desktop admits panel overlap");
+setPhone(true);
+panel.close({ restore: false });
+assert.equal(newControl.inert, false, "closing releases the remaining cover");
+assert.equal(alreadyInert.inert, true, "closing preserves unrelated inert state");
+assert.equal(document.querySelectorAll("[data-stage-inert]").length, 0);
+
+setPhone(false);
+panel.open();
+const activeWidth = document.documentElement.style.getPropertyValue("--sw");
+assert.ok(observed.has(document.querySelector(".stg-frames")), "Stage tracks the mounted frame stack");
+setPhone(true);
+assert.equal(newControl.inert, true, "the Stage is covering the conversation when it is disposed");
+assert.equal(document.body.classList.contains("stage-covers"), true);
+newControl.remove();
+panel.disposeLayout();
+assert.equal(observed.size, 0, "disposing Stage disconnects the frame observations");
+assert.equal(newControl.inert, false, "Stage releases a covered control even after it has been detached");
+assert.equal(newControl.hasAttribute("data-stage-inert"), false);
+assert.equal(document.body.classList.contains("stage-covers"), false, "disposing Stage releases the cover");
+assert.equal(alreadyInert.inert, true, "disposal preserves unrelated inert state");
+dock.append(newControl);
+setPhone(true);
+assert.equal(newControl.inert, false, "disposed Stage ignores media-query changes");
+globalThis.innerWidth = 1440;
+window.dispatchEvent(new window.Event("resize"));
+assert.equal(document.documentElement.style.getPropertyValue("--sw"), activeWidth, "disposed Stage ignores window resize");

@@ -1,0 +1,37 @@
+import type { createWorld } from "../core/services/world/store.js";
+
+export interface AppServices {
+  world: ReturnType<typeof createWorld>;
+  announce: (message: string) => void;
+  projectName: (id: string | null | undefined) => string;
+  currentView: () => string;
+}
+
+export interface ViewLeaving { from: string; to: string }
+
+export interface ConversationHeaderPaint {
+  project: string | null;
+  needs: { t: { id: string }; admitted?: boolean; later?: boolean }[];
+}
+
+declare module "../core/kernel/types" {
+  interface Services extends AppServices {
+    placeContext: ReturnType<typeof import("./place-context.js").createPlaceContext>;
+    notices: ReturnType<typeof import("../core/services/notices/line.js").createConversationNotices>;
+    redrawFocus: ReturnType<typeof import("./redraw-focus.js").createRedrawFocus>;
+    drawer: { set(open: boolean): void };
+    navigationState: ReturnType<typeof import("./navigation-state.js").createNavigationState>;
+    overlayFocus: (element: HTMLElement) => void;
+    toastLine: (text: string) => void;
+  }
+  interface Topics {
+    "app:started": import("../core/kernel/types").StartReport;
+    "kernel:module-failed": { id: string; error: string };
+    "app:render": undefined;
+    "app:sync-inert": undefined;
+    "app:decision-undone": string;
+    "app:pagehide": undefined;
+    "app:view-leaving": ViewLeaving;
+    "app:conversation-header": ConversationHeaderPaint;
+  }
+}

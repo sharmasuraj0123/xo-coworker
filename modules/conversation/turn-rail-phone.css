@@ -1,0 +1,3 @@
+@media (max-width:760px){
+  .tb-rows,.tb-steps,.tb-plan-l{margin-left:var(--s-tool-rail-phone)}
+}

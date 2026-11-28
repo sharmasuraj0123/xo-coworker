@@ -1,20 +1,11 @@
-// Settings' stylesheet rules that a rendered check found missing (the browser suite measures them; this keeps the
-// declarations themselves from going again). No browser.
-//   node tests/settings-css.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { valuesFor } from "./lib/css-snapshot.mjs";
 
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const rule = (sel) => { const m = new RegExp(`(?:^|\\})\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{([^}]*)\\}`).exec(css); return m ? m[1] : null; };
-
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-
-t("C112: a link in a Settings row's words stays on one line (a phone wrapped \"about it\" into two)", () => {
-  const r = rule(".set-row a");
-  assert.ok(r, ".set-row a is declared");
-  assert.match(r, /white-space:\s*nowrap/);
-  assert.match(r, /text-decoration:\s*underline/, "and keeps its underline (link style B)");
+test("a link within a Settings row stays underlined and on one line", () => {
+  const link = ".set-row a:not([class])";
+  assert.ok(valuesFor(link, "white-space").includes("nowrap"));
+  assert.ok(valuesFor(link, "text-decoration").includes("underline"));
 });
-
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -1,0 +1,11 @@
+.stage{container:stage / inline-size;--pe:var(--s-3);--pn:var(--s-9)}
+.stg-bar{position:relative;z-index:var(--z-raised);flex:none;box-sizing:border-box;display:flex;align-items:center;
+  gap:var(--s-1);height:var(--h-lg);padding:0 var(--s-2) 0 var(--pe);
+  box-shadow:inset 0 var(--offset-inset-divider) 0 var(--panel-line,var(--line-faint));background:inherit}
+.stage[data-stg-page] .stg-bar{padding-left:var(--s-1)}
+.stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
+.stg-pa{display:contents}
+.stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);
+  color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stg-ic svg{width:var(--ic);height:var(--ic)}
+.stg-ic:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}

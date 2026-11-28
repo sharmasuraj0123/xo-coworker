@@ -1,0 +1,8 @@
+@media (max-width:760px){
+  .shd-bar{position:relative}
+  .shd-bar::before{top:calc(env(safe-area-inset-top) + var(--s-1))}
+  .shd.is-half{top:var(--start-shell-sheet);border-top:1px solid var(--line-soft);border-radius:var(--r-xl) var(--r-xl) 0 0;
+    overflow:hidden;box-shadow:var(--e2)}
+  .shd.is-half .shd-bar{padding-top:var(--s-shell-sheet-bar)}
+  .shd.is-half .shd-bar::before{top:var(--s-1)}
+}

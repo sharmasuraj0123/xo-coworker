@@ -1,0 +1,4 @@
+@media (max-width:760px){
+  .md-grid.is-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .md-grid.is-strip .md-it:nth-child(n+5){display:none}
+}

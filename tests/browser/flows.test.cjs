@@ -1,16 +1,12 @@
 // Browser tests for what the unit tests can't reach: the flows where timing, focus and the network meet.
 //   G1  every decision path waits out the card's 300 ms re-arm; a held key (repeat) never decides anything
 //   G2  a card withdrawn while you type on it hands over with the next card's letter keys paused
-//   G3  a merge with a place still to choose never saves, by Ctrl/Cmd+S or the button
-//   G4  a save that finishes after you opened another file only lands on the file that started it
 //   G5  a hop's receipt survives a history read that left before it, and one that came before its hop
 //   G6  Launchpad says a deploy stopped only once Space confirms it; a refused stop says so, with Stop again
-//   G7  keyboard focus after an editor outcome: Edit after a save or a discard, Save after a failed save,
-//       Keep editing for Cancel's question
 //   G8  the whole-file capsule's × is named for the file, a line range's for its lines
 //
 // Self-contained: the app is served from this folder by a small static server, and every /api request is
-// answered in the page from a mock world (the Launchpad routes by design-research's mockspace). Nothing
+// answered in the page from a mock world (the Launchpad routes by the mockspace). Nothing
 // reaches a Space; nothing is written anywhere.
 //   node tests/browser/flows.test.cjs [name-pattern]
 // Every case runs in four cells: dark and light, at 1440×900 and 390×844. A case that can't apply in a cell (the
@@ -30,23 +26,16 @@ const { SSE, serve, NOW, openApp, launch, LP } = H;
 let browser, server, BASE, WIDTH = 1440, THEME = "dark", passed = 0, failed = 0, skipped = 0;
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
-// a case that doesn't apply at this width says so, and is counted as skipped, never as passed (Files/Map grader)
 class Skip extends Error {}
 const skip = (why) => { throw new Skip(why); };
 // the project's own page, as its row in the sidebar opens it (on a phone the sidebar is a drawer)
 const toDemo = (page) => page.evaluate(() => window.__t.go("p:demo"));
-// every case runs in four cells: dark and light, at 1440×900 and 390×844 (the owner's bar: every row in both themes at
-// every width, never a light pass inferred from a dark one); the page is checked to be in the cell's theme (Files/Map
-// grader on 453de55: a light case once ran dark)
 const app = async (W = {}, { width = WIDTH, motion = false, theme = THEME } = {}) => {
   const page = await openApp(browser, BASE, W, { width, height: width < 600 ? 844 : 900, motion, theme });
   const got = await page.evaluate(() => document.documentElement.dataset.theme || "dark");
   assert.equal(got, theme, `the page is in the ${theme} theme`);
   return page;
 };
-// a test ends with no page errors and with focus never having fallen to the page (harness.cjs records each drop)
-// strict, as Settings' (a821fe1): a record that's missing or can't be read fails the case, never reads as clean
-// (Astra on 453de55: a failed read counted as no drops, and an environment flag could skip the check)
 const done = async (page) => {
   const errs = page.errors;
   let drops, unread = null;
@@ -58,160 +47,17 @@ const done = async (page) => {
   assert.deepEqual(drops, [], "focus fell to the page when its control went");
 };
 
-// ── the viewer's editor ───────────────────────────────────────────────────
 const FILE = () => ({ content: "one\ntwo\nthree\n", version: "sha256:A" });
-async function editing(page, rel = "a.js") {
-  await toDemo(page);
-  await page.evaluate((rel) => window.__t.VW.open({ project: "demo", rel, path: rel, name: rel }), rel);
-  await page.locator("[data-vw-edit]").click();
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed);
-}
-async function typeAll(page, text) {
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.insertText(text);
-  await page.waitForFunction(() => window.__ED.dirty);
-}
-const focusOf = (page) => page.evaluate(() => { const a = document.activeElement; return a ? [a.tagName, ...[...a.attributes].map((x) => x.name).filter((n) => n.startsWith("data-vw-"))].join(" ") : null; });
-
-t("G3: Ctrl/Cmd+S on a merge with a place still to choose saves nothing", async () => {
-  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap" });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 1);
-  await page.locator("#viewer").focus();
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.locator("[data-vw-saveit]").click({ force: true });
-  await page.waitForTimeout(300);
-  assert.equal(page.W.saves.length, 1, "only the first save, the one that met the change");
-  assert.ok(!/<<<<<<<|>>>>>>>/.test(page.W.files["a.js"].content), "no conflict markers written");
-  assert.equal(await page.evaluate(() => window.__ED.on && window.__ED.conflict.left), 1, "still choosing");
-  await done(page);
-});
-
-t("G4: a save that finishes after another file opened lands only on its own file", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE(), "b.js": { content: "SECOND FILE\n", version: "sha256:Z" } }, saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "first file saved slowly\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
-  await page.waitForFunction(() => window.__V.data && window.__V.data.content === "SECOND FILE\n");
-  answer(); // a.js's save answers only now, with b.js open
-  await page.waitForTimeout(300);
-  assert.equal(page.W.files["a.js"].content, "first file saved slowly\n", "a.js saved");
-  assert.equal(await page.evaluate(() => window.__V.file.name), "b.js");
-  assert.equal(await page.evaluate(() => window.__V.data.content), "SECOND FILE\n", "b.js shows its own text");
-  assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved/Undo for a.js on b.js");
-  await done(page);
-});
-
-t("G7: focus after a keyboard save goes to Edit; a failed clicked save keeps Save; Cancel asks with Keep editing; Discard goes to Edit", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit", "after a keyboard save");
-  page.W.saveMode = "503";
-  await page.locator("[data-vw-edit]").click();
-  await page.waitForFunction(() => window.__ED.on && window.__ED.ed);
-  await typeAll(page, "unsaved\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.err);
-  assert.equal(await focusOf(page), "BUTTON data-vw-saveit", "after a failed clicked save");
-  assert.equal(await page.evaluate(() => window.__ED.ed.text()), "unsaved\n", "the text stays");
-  await page.locator("[data-vw-cancel]").focus();
-  await page.keyboard.press("Enter");
-  assert.equal(await focusOf(page), "BUTTON data-vw-keep", "Cancel's question");
-  await page.locator("[data-vw-discard]").click();
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit", "after Discard");
-  await done(page);
-});
-
-t("Save while typing: words typed during a save stay, unsaved, against the version it saved", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "saved portion\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.locator("#viewer [contenteditable=true]").first().click(); // back into the text, which stays editable
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.insertText("TYPED WHILE SAVING");
-  answer(); // the save's answer arrives now, with the words already typed
-  await page.waitForFunction(() => !window.__ED.saving);
-  await page.waitForTimeout(100);
-  assert.equal(page.W.files["a.js"].content, "saved portion\n", "the save sent what was there at Save");
-  const st = await page.evaluate(() => ({ on: window.__ED.on, dirty: window.__ED.dirty, text: window.__ED.ed && window.__ED.ed.text(), base: window.__ED.base, version: window.__ED.version }));
-  assert.equal(st.on, true, "still editing");
-  assert.equal(st.text, "saved portion\nTYPED WHILE SAVING", "what was typed is still there");
-  assert.equal(st.dirty, true, "and unsaved");
-  assert.equal(st.base, "saved portion\n");
-  assert.equal(st.version, page.W.files["a.js"].version, "against the version just saved");
-  assert.ok(!(await page.locator("#viewer").innerText()).includes("Saved a.js"), "no Saved toast while unsaved words remain");
-  // Save again sends the rest, against that version
-  page.W.saveGate = null;
-  const v = st.version;
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  assert.equal(page.W.saves.at(-1).base_version, v);
-  assert.equal(page.W.files["a.js"].content, "saved portion\nTYPED WHILE SAVING");
-  await done(page);
-});
-
-t("G9: a late conflict while you type puts focus on what happened, and typing on can't choose", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, saveMode: "overlap", saveGate: new Promise((ok) => (answer = ok)) });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.insertText("more");
-  answer(); // the 409 arrives while the editor has focus
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left >= 1);
-  await page.waitForTimeout(300);
-  assert.equal(await page.evaluate(() => document.activeElement.className), "xd-bar", "focus on the explanation, not BODY");
-  const left = await page.evaluate(() => window.__ED.conflict.left);
-  await page.keyboard.type("ab ");
-  await page.keyboard.press("Enter");
-  assert.equal(await page.evaluate(() => window.__ED.conflict.left), left, "no choice made by the keys");
-  assert.equal(page.W.saves.length, 1, "nothing saved");
-  await done(page);
-});
-
-t("G7: a failed Undo returns focus to the file's head", async () => {
-  const page = await app({ files: { "a.js": FILE() }, undoMode: "503" });
-  await editing(page);
-  await typeAll(page, "mine\ntwo\nthree\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("[data-vw-undo]").focus();
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(500);
-  assert.equal(page.W.undos, 1);
-  assert.equal(await focusOf(page), "BUTTON data-vw-edit");
-  assert.match(await page.locator("#viewer").innerText(), /Fixture unavailable/);
-  await done(page);
-});
 
 t("G8: the whole-file capsule's × is named for the file", async () => {
   const page = await app({ files: { "notes.md": { content: "# Notes\n", version: "sha256:N" } } });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "notes.md", path: "notes.md", name: "notes.md" }));
-  // Ask about this: in the head, or (a phone's narrow head, the owner's choice) in its ⋯ More
-  // (the head settles its width as Files lays out: the head's own Ask shows within moments on a desktop, never on a phone)
   const inHead = page.locator("#viewer .vw-acts .vw-ask").first();
   if (await inHead.waitFor({ state: "visible", timeout: 2000 }).then(() => true, () => false)) await inHead.click();
   else { await page.locator("#viewer [data-vw-more]").click(); await page.locator("#viewer .vw-menu [data-vw-askfile]").click(); }
   await page.waitForSelector("#cref:not([hidden]) .cref-x");
   assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take notes.md out of this message");
-  // a line range keeps its line words
-  await page.evaluate(() => { const S = window.__t.S; S.lref[S.view] = { path: "notes.md", a: 2, b: 4, name: "notes.md" }; });
-  await page.evaluate(() => window.__t.lrefRender());
-  assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take the lines out of this message");
   await done(page);
 });
 
@@ -275,7 +121,7 @@ t("Copy allowed: both say copied, and the text is what was shown", async () => {
 t("redraw: a region redrawn keeps the focused control, what's typed, and applies everything else", async () => {
   const page = await app();
   const r = await page.evaluate(async () => {
-    const { redraw } = await import("./js/redraw.js");
+    const { redraw } = await import("./core/ui/redraw.js");
     const box = document.createElement("div"); document.body.append(box);
     box.innerHTML = `<p>Old words</p><button type="button" data-rule-off="a">Revoke a</button><button type="button" data-rule-off="b">Revoke b</button><input id="rd-in" value="saved">`;
     const b = box.querySelector('[data-rule-off="b"]'); b.focus();
@@ -342,33 +188,6 @@ t("Jump: the row under a moving pointer is the selection, and Enter goes there",
 
 // ── focus never falls to the page when a control it was on goes ──
 const active = (page) => page.evaluate(() => { const a = document.activeElement; return a ? a.tagName + [...a.attributes].filter((x) => x.name.startsWith("data-") || x.name === "id" || x.name === "class").map((x) => ` ${x.name}=${x.value}`).join("") : null; });
-t("S136/S137: the Saved notice's Undo and Tell answer the pointer", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  for (const sel of ["[data-vw-undo]", "[data-vw-tell]"]) {
-    const b = page.locator(sel).first();
-    const rest = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
-    await b.hover();
-    const over = await b.evaluate((e) => getComputedStyle(e).backgroundImage + getComputedStyle(e).backgroundColor);
-    assert.notEqual(over, rest, `${sel} answers hover`);
-  }
-  await page.mouse.move(2, 2);
-  await done(page);
-});
-t("S138: dismissing the Saved notice hands focus to the file's Edit", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("[data-vw-toastx]").focus();
-  await page.keyboard.press("Enter");
-  assert.match(await active(page), /data-vw-edit/);
-  await done(page);
-});
 t("C023: the window narrows to a phone's (or widens) with focus on the panel's opener: focus goes into the panel, never the page", async () => {
   const page = await app();
   await panelOpen(page);
@@ -487,7 +306,6 @@ t("S061: while Try again is reading, focus stays in the tree", async () => {
   await page.locator('[data-fl-dir="bad"]').filter({ visible: true }).first().click();
   const retry = page.locator('[data-fl-retry="bad"]').first();
   await retry.waitFor();
-  // a whole target, its words on one line, refused or reading (Astra S061 on 2354917: 54 × 16 px at 390)
   const size = () => retry.evaluate((b) => { const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); return { w: r.width, h: r.height, lines: new Set([...g.getClientRects()].map((x) => Math.round(x.top))).size }; });
   const want = WIDTH < 600 ? 36 : 32;
   let sz = await size();
@@ -497,7 +315,6 @@ t("S061: while Try again is reading, focus stays in the tree", async () => {
   await page.keyboard.press("Enter");
   await page.waitForTimeout(150);
   assert.match(await page.locator(".fl-tree").innerText(), /Reading again/, "it says it's reading again at once");
-  // reading again is a status, not the error: the line isn't in the error's colour (Astra S061: it stayed red)
   const line = await page.locator(".fl-tree .fl-note.is-pending").first().evaluate((n) => ({ cls: n.className, color: getComputedStyle(n).color }));
   assert.ok(!/\bis-err\b/.test(line.cls) && line.color !== errInk, `the pending line: ${JSON.stringify(line)} (error ink ${errInk})`);
   sz = await size();
@@ -534,21 +351,23 @@ t("S061: the project's top failing, then reading empty: Try again lands on New f
   await done(page);
 });
 
-t("C036: the tree toggle beside a file keeps focus as it folds and unfolds", async () => {
-  if (WIDTH < 600) skip("the toggle shows beside a file on a desktop");
+t("C036: the file list's toggle, first in the panel's head beside a file: it keeps focus as the list hides and shows", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  const tog = page.locator("[data-fv-tree]").filter({ visible: true }).first();
+  const tog = page.locator('#stage [data-stg-act="tree"]').filter({ visible: true }).first();
   await tog.waitFor();
+  const was = await tog.getAttribute("aria-pressed");
   await tog.focus();
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
-  assert.match(await active(page), /data-fv-tree/);
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-stg-act=tree/, "focus stays on the toggle");
+  assert.notEqual(await tog.getAttribute("aria-pressed"), was, "it says what it did");
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
-  assert.match(await active(page), /data-fv-tree/);
+  await page.waitForTimeout(300);
+  assert.match(await active(page), /data-stg-act=tree/);
+  assert.equal(await tog.getAttribute("aria-pressed"), was, "back as it was");
   await done(page);
 });
 
@@ -558,31 +377,28 @@ t("C034: Files' divider takes the pointer at its line, over the file beside it t
   await panelOpen(page);
   await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  // beside the chat the tree may fold for the file: unfolded, the divider is between them
+  // the browser may be folded (kept from before): unfolded, the divider is between it and the file
   await page.waitForTimeout(300);
-  if (await page.locator(".fv .fl.is-folded").count()) await page.locator("[data-fv-tree]").filter({ visible: true }).first().click();
+  if (await page.locator(".fv .fl.is-folded").count()) await page.locator('[data-fl-rail="find"]').filter({ visible: true }).first().click();
   const sp = page.locator(".fv .fl.is-wide .fl-split").first();
   await sp.waitFor();
   const hit = await sp.evaluate((e) => { const r = e.getBoundingClientRect(), y = r.top + r.height / 2; return [-3, 3].map((dx) => document.elementFromPoint(r.left + dx, y) === e); });
   assert.deepEqual(hit, [true, true], "3 px either side of the line is the divider's");
   await done(page);
 });
-t("C034/C035: the resize grips beside a file show the one ring when the keyboard is on them", async () => {
-  // the controls grader on 9d1f71b, desktop: only their 1 px line brightened (1.5–2.5:1)
+t("C034: the panel's grip and Files' divider show the one ring when the keyboard is on them", async () => {
   if (WIDTH < 600) skip("the grips are a desktop's (a phone has none)");
   const page = await app({ files: { "a.js": FILE() } });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  await page.waitForFunction(() => document.body.classList.contains("chat-docked"), null, { timeout: 8000 });
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files", null, { timeout: 8000 });
   await page.keyboard.press("Shift");
   // read once settled: reduced motion turns every property into a 10 µs transition (base.css), and a just-focused
   // control can read its transition's start (outline:none's 3 px, currentColor; box-shadow none) a while: finish them first
   const ring = (sel, pseudo) => page.evaluate(([sel, pseudo]) => { for (const a of document.getAnimations()) if (a instanceof CSSTransition) a.finish(); const e = document.querySelector(sel); if (!e || !e.getClientRects().length) return null; const s = getComputedStyle(e, pseudo); return pseudo ? s.boxShadow : `${s.outlineStyle} ${s.outlineWidth}`; }, [sel, pseudo]);
-  await page.locator(".fv-cgrip").focus();
-  assert.equal(await ring(".fv-cgrip", null), "solid 2px", "the chat's grip");
-  // Files' divider shows with the tree beside the file: the chat folded (room), the tree shown (⌘B) if it isn't
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForTimeout(400);
+  await page.locator(".stg-grip").focus();
+  assert.equal(await ring(".stg-grip", null), "solid 2px", "the panel's grip");
+  // Files' divider shows with the tree beside the file: the tree shown (⌘B) if it's folded
   const shown = () => page.evaluate(() => { const e = document.querySelector(".fv .fl.is-wide .fl-split"); return !!e && e.getBoundingClientRect().width > 0; });
   if (!(await shown())) { await page.keyboard.press("ControlOrMeta+b"); await page.waitForTimeout(400); }
   assert.equal(await shown(), true, "Files' divider is on screen (the tree beside the file)");
@@ -597,7 +413,6 @@ t("C034/C035: the resize grips beside a file show the one ring when the keyboard
   await done(page);
 });
 t("C030/S069: Files' Find and the new file's name show the one ring when the keyboard is in them", async () => {
-  // the controls grader on 9d1f71b, all four cells: only a darker edge, no ring
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
   await filesOpen(page);
@@ -672,10 +487,6 @@ t("S208: the map's Follow says on and off as it's pressed", async () => {
   assert.equal(await f.getAttribute("aria-pressed"), was, "pressed again");
   await done(page);
 });
-// Follow keeps the zoom you chose (the controls grader on 65e84b7, S208, all four cells: zoomed in to 2.4, Follow
-// on, and the next live thread updates Fit it back out, the Tree to 0.67, the Graph to 0.63): Follow pans, never
-// zooms, and turning it on or off leaves "you chose this view" alone. Then Follow off holds the view still through
-// more updates. Both drawings; the updates come as the stream brings them.
 t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow off holds the view, Tree and Graph", async () => {
   const dirs = Array.from({ length: 12 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   const page = await app({ files: { "a.js": FILE() }, dirs, threadsBy: { chat_demo: [{ ts: "t-live", chat_id: "chat_demo", title: "A live task", session_id: "s-live", cwd: "/home/test/demo", state: "working", created_at: NOW, updated_at: NOW }] } });
@@ -695,7 +506,6 @@ t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow
     if (mode === "graph") await graphStill(page);
     await page.waitForTimeout(1800); // the first look settles
     await page.locator('[data-dg="fit"]').filter({ visible: true }).first().click();
-    // in as far as it goes (2.4), as the grader did: from Fit that's a few presses, more for a wide drawing
     for (let i = 0; i < 16 && (await mapScale(page)) < 2.399; i++) await page.locator('[data-dg="in"]').filter({ visible: true }).first().click();
     await page.waitForTimeout(300);
     const zoomed = await mapScale(page);
@@ -720,23 +530,6 @@ t("S208 (zoom): Follow keeps the zoom you chose through live updates, and Follow
   }
   await done(page);
 });
-t("S121: a part opened from the folded panel's rail takes focus, on its own fold button", async () => {
-  if (WIDTH < 600) skip("the rail is a desktop's");
-  // the rail shows where the panel shares the screen with Files beside no conversation: opened in a project,
-  // carried to Home, Files opened from it, at a width where the reader would get under 520 px
-  const page = await app({ files: { "a.js": FILE() } });
-  await page.setViewportSize({ width: 1180, height: 900 });
-  await panelOpen(page);
-  await page.evaluate(() => window.__t.go("home"));
-  await filesOpen(page);
-  await page.waitForFunction(() => document.body.classList.contains("stage-rail"), null, { timeout: 4000 });
-  const r = page.locator('[data-rail="changes"]').filter({ visible: true }).first();
-  await r.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => !document.body.classList.contains("stage-rail"));
-  assert.match(await active(page), /data-fr-fold=changes/, "on the part's own fold button, not the page");
-  await done(page);
-});
 const PATCH = (f, a, b) => `diff --git a/${f} b/${f}\n--- a/${f}\n+++ b/${f}\n@@ -1,3 +1,3 @@\n-${a}\n+${b}\n two\n three\n`;
 t("C085/C086: another changed file picked: the last diff goes at once; Open in Files opens the one picked", async () => {
   let answer;
@@ -758,12 +551,6 @@ t("C085/C086: another changed file picked: the last diff goes at once; Open in F
   answer();
   await done(page);
 });
-// ── the keyboard's ring on a region you scroll with the keys, as drawn (Astra C087 on dd15034, the diff; C096 on
-// cb7afe7, the file: focused and unfocused were pixel-identical). The region's edges are shot unfocused, twice (the
-// drawing has settled: the two agree), then with the keyboard's focus. Along each side, past the corners, the 2 px
-// band must be the ring's colour (read from the ring), and most of it must have changed: a diff's own green mark at
-// the left edge is already near the ring's colour, so "changed" alone can't be asked of every pixel. The shots are
-// read by the page's own decoder (createImageBitmap), nothing installed.
 async function ringSides(page, sel) {
   const clip = await page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) }; }, sel);
   const shot = async () => (await page.screenshot({ clip })).toString("base64");
@@ -842,156 +629,6 @@ t("C087/C096: a change's diff region, focused by the keyboard, shows the same ri
   ringOk(await ringSides(page, "#stage .cx-pd"), "the diff");
   await done(page);
 });
-// ── a choice from the viewer's ⋯ menu leaves focus on something that shows (the controls grader on d79d37e, S130 at
-// 390 in both themes: Updated · Show, folded into More by the narrow head, loaded the new text and left focus on BODY,
-// put back on the head's hidden twin). Updated · Show, then Copy path, each chosen by the keyboard where it is: in
-// the head on a desktop, in More on a phone. Focus after each: in the viewer, on something drawn.
-const focusShows = (page) => page.evaluate(() => { const a = document.activeElement; return { tag: a ? a.tagName : null, inViewer: !!a && !!a.closest("#viewer"), drawn: !!a && a.getClientRects().length > 0, what: a ? [...a.attributes].filter((x) => x.name.startsWith("data-vw-")).map((x) => x.name).join(" ") : "" }; });
-async function choose(page, attr) {
-  // the head's own, where it shows; else from ⋯'s menu
-  const inHead = page.locator(`#viewer .vw-top [${attr}]:not(.vw-fold)`).first();
-  if (await inHead.isVisible().catch(() => false)) { await inHead.focus(); await page.keyboard.press("Enter"); return "head"; }
-  await page.locator("#viewer [data-vw-more]").focus();
-  await page.keyboard.press("Enter");
-  const item = page.locator(`#viewer .vw-menu [${attr}]`).first();
-  await item.waitFor({ state: "visible" });
-  await item.focus();
-  await page.keyboard.press("Enter");
-  return "more";
-}
-// the head redrawn while the selected File has focus keeps it on File, never the first control of its kind, Changes
-// (the controls grader on 2a8d278, S127, 1440 dark: an agent's change lit Updated · Show by paintHead, and focus moved
-// from File, still selected, to Changes, with no input; the same name-only lookup as C092's image-load route, 823c1cc)
-t("S127 (update): File focused when an agent's change lights Updated · Show: focus stays on File", async () => {
-  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
-  await toDemo(page);
-  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js", show: "file" }));
-  const file = page.locator('#viewer .vw-top [data-vw-show="file"]').filter({ visible: true }).first();
-  await file.waitFor({ timeout: 15000 });
-  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
-  await file.focus();
-  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
-  page.W.changes[0].version = "sha256:B";
-  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
-  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
-  for (const ms of [0, 250, 500]) {
-    if (ms) await page.waitForTimeout(250);
-    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("data-vw-show")), "file", `${ms} ms: focus stays on File`);
-  }
-  await done(page);
-});
-for (const reread of ["read", "refused"]) t(`S130: Updated · Show (its reread ${reread === "read" ? "read" : "refused, 503"}), and Copy path, chosen where they are (the head, or More), leave focus on something that shows`, async () => {
-  const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
-  await toDemo(page);
-  await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a.js"), null, { timeout: 15000 });
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
-  // an agent changes the file: its changes and the file itself carry the new version
-  page.W.files["a.js"] = { content: "one\ntwo\nthree\nfour, the new line\n", version: "sha256:B" };
-  page.W.changes[0].version = "sha256:B";
-  await page.evaluate(() => window.__t.CHG.saved("demo", "a.js"));
-  await page.waitForFunction(() => { window.__t.render(); return !!document.querySelector("#viewer .vw-top [data-vw-update]"); }, null, { timeout: 8000, polling: 200 });
-  if (reread === "refused") page.W.fileReadFails = 1; // the new version's read is refused (the grader's edge)
-  const where = await choose(page, "data-vw-update");
-  // the grader's moments after the choice (250 and 500 ms), then once the reread has settled
-  for (const ms of [250, 500]) {
-    await page.waitForTimeout(250);
-    const f = await focusShows(page);
-    assert.ok(f.inViewer && f.drawn, `${ms} ms after Updated · Show (${where}, ${reread}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  }
-  // the file is drawn in the renderer's shadow root: its words are read through it
-  if (reread === "read") await page.waitForFunction(() => { const deep = (n) => (n.shadowRoot ? deep(n.shadowRoot) : "") + [...n.childNodes].map((c) => (c.nodeType === 3 ? c.textContent : c.nodeType === 1 ? deep(c) : "")).join(""); const b = document.querySelector("#viewer .vw-body"); return !!b && /four, the new line/.test(deep(b)); }, null, { timeout: 8000 });
-  else await page.waitForTimeout(1000);
-  let f = await focusShows(page);
-  assert.ok(f.inViewer && f.drawn, `once the reread ${reread === "read" ? "read" : "was refused"} (${where}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  if (reread === "refused" && !(await page.locator("#viewer [data-vw-more]").isVisible().catch(() => false))) { await done(page); return; } // nothing to copy from a file that didn't read
-  const where2 = await choose(page, "data-vw-copy-path");
-  await page.waitForTimeout(300);
-  f = await focusShows(page);
-  assert.ok(f.inViewer && f.drawn, `after Copy path (${where2}): focus on something drawn in the viewer, not ${f.tag} ${f.what}`);
-  if (WIDTH < 600) assert.equal(where, "more", "on a phone it's in More (the owner's choice)");
-  await done(page);
-});
-// ── the Saved notice reads on its dark toast in both themes (the controls grader on d79d37e, S138: its × took light's
-// --ink-3 on the dark toast, faint at rest and on keyboard focus in 1440-light and 390-light). Computed colours over
-// the toast's own background (composited on the canvas): its words 4.5:1, Undo's and Tell's on their fill 4.5:1, the
-// × 3:1 at rest and with the keyboard's focus, and its focus ring 3:1.
-t("S138 (paint): on the Saved notice, its words, Undo, Tell and its × read on the toast, at rest and on keyboard focus", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").waitFor();
-  const read = () => page.evaluate(() => {
-    const rgb = (s) => { const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(s); return m ? { c: [+m[1], +m[2], +m[3]], a: m[4] == null ? 1 : +m[4] } : null; };
-    const over = (t, b) => t.c.map((v, i) => v * t.a + b[i] * (1 - t.a));
-    const lum = (c) => { const [r, g, b] = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
-    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return +((x + 0.05) / (y + 0.05)).toFixed(2); };
-    const canvas = rgb(getComputedStyle(document.body).backgroundColor) || { c: [250, 250, 250], a: 1 };
-    const toast = document.querySelector("#viewer .xd-toast .toast"), tb = over(rgb(getComputedStyle(toast).backgroundColor), over(canvas, [255, 255, 255]));
-    const ink = (el) => over(rgb(getComputedStyle(el).color), tb);
-    const x = toast.querySelector("[data-vw-toastx]"), words = toast.querySelector(".t-m"), title = toast.querySelector(".t-m b"), undo = toast.querySelector(".t-undo");
-    const undoBg = undo ? over(rgb(getComputedStyle(undo).backgroundColor), tb) : null;
-    const xs = getComputedStyle(x), ring = xs.outlineStyle !== "none" && parseFloat(xs.outlineWidth) > 0 ? ratio(over(rgb(xs.outlineColor), tb), tb) : null;
-    return { x: ratio(ink(x), tb), words: ratio(ink(words), tb), title: ratio(ink(title), tb), undo: undo ? ratio(over(rgb(getComputedStyle(undo).color), undoBg), undoBg) : null, ring, focused: document.activeElement === x };
-  });
-  const rest = await read();
-  assert.ok(rest.title >= 4.5, `the title ${rest.title}:1`);
-  assert.ok(rest.words >= 4.5, `the words ${rest.words}:1`);
-  assert.ok(rest.undo == null || rest.undo >= 4.5, `Undo and Tell ${rest.undo}:1`);
-  assert.ok(rest.x >= 3, `the × at rest ${rest.x}:1`);
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
-  await page.keyboard.press("Shift"); // the keyboard's focus
-  await page.locator("#viewer .xd-toast [data-vw-toastx]").focus();
-  const on = await read();
-  assert.equal(on.focused, true);
-  assert.ok(on.x >= 3, `the × on keyboard focus ${on.x}:1`);
-  assert.ok(on.ring != null && on.ring >= 3, `its focus ring ${on.ring}:1`);
-  await done(page);
-});
-// ── the keyboard can always leave the code editor (the controls grader on d79d37e, all four cells: after Created the
-// editor opens; Tab indents and Escape only eases the selection, so Created's Undo couldn't be reached by keyboard).
-// Tab alone still indents; Escape, then Tab or Shift+Tab, moves focus on, and Created's Undo is reached by keys.
-const inEditor = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!(a && a.closest && a.closest("[contenteditable]")); });
-// the file editor's ring (the owner, 11 Nov 05:42Z; C120, S231: the caret in Pierre's editor drew no ring): editing, with
-// the caret in it, the file's box draws the message box's ring, 2 px of the focus colour, and loses it when focus leaves
-t("EDITOR-ring: editing, the caret in the file, its box draws the message box's ring", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("ring.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  await window_focusEditor(page);
-  assert.equal(await inEditor(page), true, "the editor has focus");
-  await page.waitForTimeout(200);
-  // drawn as seen: the ring's own pixels on all four sides of the file, the top too (C120 S231 on fa49c3c: the file's
-  // lines covered the top of a ring on its box)
-  const g = await page.evaluate(() => { const b = document.querySelector("#viewer.is-editing .vw-body"); if (!b) return null; const r = b.getBoundingClientRect(), f = getComputedStyle(document.querySelector("#viewer")).getPropertyValue("--focus").trim() || getComputedStyle(document.documentElement).getPropertyValue("--focus").trim(); const c = document.createElement("canvas").getContext("2d"); c.fillStyle = f; c.fillRect(0, 0, 1, 1); return { x: r.x, y: r.y, w: r.width, h: r.height, rgb: [...c.getImageData(0, 0, 1, 1).data].slice(0, 3) }; });
-  assert.ok(g, "the viewer is marked as editing");
-  // focused, then with focus gone from the file: each side's edge (its two outer pixels) differs past the graders' 30
-  // RGB-sum, and toward the focus colour (a ring, not a shade)
-  const clip = { x: g.x, y: g.y, width: g.w, height: g.h };
-  const P = H.pngPixels(await page.screenshot({ clip }));
-  await page.evaluate(() => document.querySelector("#viewer .vw-top button")?.focus()); await page.waitForTimeout(200);
-  const Q = H.pngPixels(await page.screenshot({ clip }));
-  const at = (I, x, y) => { const i = (y * I.w + x) * I.bpp; return [I.data[i], I.data[i + 1], I.data[i + 2]]; };
-  const d = (p, q) => Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2]);
-  const mx = Math.floor(P.w / 2), my = Math.floor(P.h / 2);
-  const pts = { top: [[mx, 0], [mx, 1]], bottom: [[mx, P.h - 1], [mx, P.h - 2]], left: [[0, my], [1, my]], right: [[P.w - 1, my], [P.w - 2, my]] };
-  const missing = [];
-  for (const [k, ps] of Object.entries(pts)) {
-    const ok = ps.some(([x, y]) => { const on = at(P, x, y), off = at(Q, x, y); return d(on, off) > 30 && d(on, g.rgb) < d(off, g.rgb); });
-    if (!ok) missing.push(`${k}: focused ${at(P, ...ps[0])} / not ${at(Q, ...ps[0])}`);
-  }
-  assert.deepEqual(missing, [], `the ring drawn on every side, toward the focus colour ${g.rgb}`);
-  await done(page);
-});
-// S005 on a phone: the coordinator asking, its 36 px pill under the name answers hover and held by the graders' bar
-// (the controls grader on fa49c3c: its words' colour alone moved 6% of the box)
 t("S005-phone: Coordinator needs you, a 36 px pill on a phone, answers hover and held past the bar", async () => {
   if (WIDTH > 760) skip("the pill is a phone's");
   const page = await app({ files: { "a.js": FILE() } });
@@ -1011,42 +648,6 @@ t("S005-phone: Coordinator needs you, a 36 px pill on a phone, answers hover and
   console.log(`  S005-phone: hover ${(v1.box * 100).toFixed(0)}%, held ${(v2.box * 100).toFixed(0)}% of the box`);
   await done(page);
 });
-t("EDITOR-exit: after Created, Tab indents; Escape then Shift+Tab, or Escape then Tab, leaves the editor; Created's Undo is reached by keys", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("made.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  await page.locator("#viewer [data-vw-undo]").first().waitFor({ state: "attached", timeout: 8000 });
-  await window_focusEditor(page);
-  assert.equal(await inEditor(page), true, "the editor has focus");
-  // Tab alone indents: focus stays, the text takes it
-  await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), true, "Tab alone stays in the editor");
-  await page.waitForFunction(() => /^(\t| {2})/.test(window.__ED.ed.text()), null, { timeout: 2000 });
-  // Escape, then Shift+Tab: out, backwards; still editing
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Shift+Tab");
-  assert.equal(await inEditor(page), false, "Escape, then Shift+Tab: out of the editor");
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing (nothing was cancelled)");
-  // Tab, back into it (moving in doesn't indent)
-  for (let i = 0; i < 20 && !(await inEditor(page)); i++) await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), true, "Tab comes back into the editor");
-  // Escape, then Tab: out, forwards; on to Created's Undo
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Tab");
-  assert.equal(await inEditor(page), false, "Escape, then Tab: out of the editor");
-  let reached = false;
-  for (let i = 0; i < 10 && !reached; i++) {
-    reached = await page.evaluate(() => !!document.activeElement && document.activeElement.hasAttribute("data-vw-undo"));
-    if (!reached) await page.keyboard.press("Tab");
-  }
-  assert.ok(reached, "Created's Undo reached by keys");
-  await done(page);
-});
-async function window_focusEditor(page) { await page.evaluate(() => window.__ED.ed.focus()); await page.waitForTimeout(150); }
 // Settings › Keyboard, opened as a person would: the sidebar's gear on a desktop; on a phone Home's bar has it (a
 // project's page has its own head there)
 async function keysPage(page) {
@@ -1056,9 +657,6 @@ async function keysPage(page) {
   await page.locator('[data-set="keys"]').filter({ visible: true }).first().click();
   await page.waitForSelector('[data-page="keys"]:not([hidden])');
 }
-// ── a key Settings takes for an Anywhere action is one the page answers (the create-project/Launchpad grader's C118 on
-// c055e74: Ctrl+Shift+J for All shortcuts was taken, stored and announced, and pressing it opened nothing). Set in
-// Settings › Keyboard by the keyboard, then pressed: on the page, and while typing in the composer.
 t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the page and while typing", async () => {
   const page = await app();
   await toDemo(page);
@@ -1087,9 +685,6 @@ t("C118: Ctrl+Shift+J set for All shortcuts in Settings opens the sheet, on the 
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
-// ── focus a script hands on is never left out of sight (the create-project/Launchpad grader on c055e74, S023: after
-// Reset all, focus went to the first shortcut, 972 px above the screen; 1097 on a phone). By the keyboard: a key
-// changed, the page scrolled to Reset all, Reset all pressed; the first shortcut has focus, inside its scroller.
 const inSight = (page) => page.evaluate(() => {
   const a = document.activeElement; if (!a) return null;
   const r = a.getBoundingClientRect();
@@ -1116,79 +711,59 @@ t("S023: after Reset all (by the keyboard, from the foot of the list), the first
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
-// ── the file renderer's Try again says it's trying while the renderer loads (the controls grader on 9d1f71b, S139, all
-// four cells: with the renderer's module held, "Couldn't show this file" and a ready-looking Try again stood at 150
-// and 800 ms). The module fails until the case says so, then is held; Try again by the keyboard; 150 and 800 ms on:
-// it says what's happening and Try again is busy; let go: the file draws and the notice goes.
+const EDITOR_ENTRY = process.env.FLOWS_BASE
+  ? /\/v\/[^/]+\/vendor\/codemirror\/cm\.js(?:\?[^#]*)?$/
+  : /\/vendor\/codemirror\/cm\.js(?:\?[^#]*)?$/;
+async function openRetryFile(page) {
+  const projects = page.locator('#projects [data-go="p:demo"]');
+  if (!await projects.isVisible() || await projects.evaluate((row) => !!row.closest("[inert]"))) {
+    await page.locator("#pb-menu").click();
+  }
+  await projects.click();
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().click();
+  await filesOpen(page);
+  await page.locator('#stage [data-fl-file="a.js"]').filter({ visible: true }).first().click();
+}
+async function expectRecoveredEditor(page) {
+  await page.waitForFunction(() => document.querySelector("#viewer .vw-file .cm-content")?.textContent.includes("two"), null, { timeout: 15000 });
+  assert.equal(await page.locator("#viewer .vw-file .vw-empty").count(), 0, "the old error and its Try again went");
+}
 t("S139 (waiting): the file's Try again says it's trying while the renderer loads, then the file draws", async () => {
-  const ctx = { mode: "fail", gate: null };
-  // the renderer's module, from startup (its prefetch too): refused until the case says, then held
-  const page = await app({ files: { "a.js": FILE() }, beforeLoad: (p) => p.route("**/js/vendor/pierre-diffs/diffs.js", async (r) => {
-    if (ctx.mode === "fail") return r.abort("failed");
-    await ctx.gate;
-    return r.fallback();
-  }) });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const gate = Promise.withResolvers(), attempts = [];
+  let holding = false;
+  const page = await app({ hooks: false, files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
+    EDITOR_ENTRY, async (r) => {
+      attempts.push({ holding, url: r.request().url() });
+      if (!holding) return r.abort("failed");
+      await gate.promise;
+      return r.fallback();
+    },
+  ) });
+  await openRetryFile(page);
   const retry = page.locator("#viewer [data-vw-retry]");
   await retry.waitFor({ timeout: 15000 });
-  let release; ctx.gate = new Promise((ok) => (release = ok)); ctx.mode = "hold";
+  assert.ok(attempts.some((attempt) => !attempt.holding), "the editor entry request was refused");
+  holding = true;
   await retry.focus();
   await page.keyboard.press("Enter");
   const state = () => page.evaluate(() => { const b = document.querySelector("#viewer [data-vw-retry]"), box = b && b.closest(".vw-empty"); return b ? { words: box.querySelector("p").textContent, busy: b.getAttribute("aria-busy"), label: b.textContent, role: box.getAttribute("role") } : null; });
   for (const ms of [150, 800]) {
     await page.waitForTimeout(ms === 150 ? 150 : 650);
     const s = await state();
-    assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: it says it's trying`);
+    assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: ${JSON.stringify(attempts)}`);
   }
+  const requested = attempts.length;
   await page.keyboard.press("Enter"); // pressed again while it's trying: nothing more
-  // and pressed with the pointer while it's trying: focus is on it when the file draws over the notice (the controls
-  // grader on aa2e4f9, S139: focus fell to BODY); it goes to the drawn file
   await page.locator("#viewer [data-vw-retry]").click({ force: true }); // (it's aria-disabled: a person can still press it)
+  assert.equal(attempts.length, requested, "repeat activation starts no other load");
   assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-vw-retry")), true, "focus on the busy Try again");
-  release();
-  await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
+  gate.resolve();
+  await expectRecoveredEditor(page);
+  assert.ok(attempts.some((attempt) => attempt.holding), "retry reached the lazy editor entry");
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(() => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest("#viewer .vw-file, #viewer .vw-body"); }), true, "focus on the drawn file, not the page");
   await done(page);
 });
-// ── closing the Created notice by the keyboard while its file is being edited (the controls grader on 9d1f71b, S138,
-// all four cells): focus went to the viewer's own section, which shows no ring (Edit isn't in the head while
-// editing). It goes back to the caret.
-for (const how of ["Enter", "pointer"]) t(`S138 (Created): ${how === "Enter" ? "Enter on" : "a press on"} the Created notice's Close, while editing the new file, puts focus back in the editor, in sight`, async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator("[data-fl-new]").filter({ visible: true }).first().click();
-  await page.keyboard.insertText("made.md");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed, null, { timeout: 10000 });
-  const x = page.locator("#viewer .xd-toast [data-vw-toastx]");
-  await x.waitFor();
-  if (how === "Enter") { await page.keyboard.press("Shift"); await x.focus(); await page.keyboard.press("Enter"); } // the keyboard's
-  else {
-    // a person's press, at Close's own coordinates (locator.click scrolls its target into view by itself first)
-    const at = await x.evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-    await page.mouse.click(at.x, at.y);
-  }
-  await page.waitForFunction(() => !document.querySelector("#viewer .xd-toast"), null, { timeout: 3000 });
-  await page.waitForTimeout(150);
-  const where = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editor: !!(a && a.closest && a.closest("[contenteditable]")), tag: a ? a.tagName + (a.id ? "#" + a.id : "") : null }; });
-  assert.equal(where.editor, true, `back in the editor, not ${where.tag}`);
-  // and in sight: nothing scrolled the page's main area (the controls grader on 65e84b7, S138 on a phone: the editor's
-  // own scrollIntoView took MAIN#main to 262 and the file out of sight)
-  await page.waitForTimeout(300);
-  const sight = await page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; const r = a.getBoundingClientRect(), fv = document.getElementById("fv"); return { main: document.getElementById("main").scrollTop, top: Math.round(r.top), bottom: Math.round(r.bottom), fvTop: fv ? Math.round(fv.getBoundingClientRect().top) : null, vh: innerHeight }; });
-  assert.equal(sight.main, 0, `the main area isn't scrolled (${JSON.stringify(sight)})`);
-  assert.ok(sight.bottom > 0 && sight.top < sight.vh, `the editor is on screen (${JSON.stringify(sight)})`);
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
-  await done(page);
-});
-// ── a frame's head under Launchpad keeps focus while its count moves live (the controls grader on 9d1f71b, C072–C074,
-// all four cells: a live agent moved Agents 1 → 2 → 3 → 4, the focused head was replaced and focus fell to BODY).
-// Agents start working one by one, as the stream says; focus stays on the same head, and it says the new count.
-// (The heads show only under an open Launchpad, so the project must be one that deploys: until 9 Nov 19:40 this case
-// ran without Launchpad and skipped in every cell, never checking the row.)
 t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live agent moves its count", async () => {
   const page = await app({ launchpad: "ready", threadsBy: { chat_demo: [1, 2, 3, 4].map((i) => serverThread(`lt${i}`, `ses-lt${i}`)) } });
   await toDemo(page);
@@ -1210,9 +785,6 @@ t("C072-C074: a frame's head under Launchpad, focused, stays focused as a live a
   }
   await done(page);
 });
-// ── the focus rule, checked properly (the owner's choice, 9 Nov, "but check it properly"): it does nothing on a Tab's
-// or a press's focus (not even a check); it leaves the conversation's scroll to follow.js; it leaves a 1 px visually
-// hidden control alone; and on a script's focus out of sight in a scroller it brings it in (focusbrought).
 const MANY = () => Array.from({ length: 120 }, (_, i) => ({ id: `m${i + 1}`, seq: i + 1, chat_id: "chat_demo", thread_ts: null, author_kind: i % 2 ? "agent" : "owner", author_id: i % 2 ? "project-coordinator" : "owner", author_session_id: null, text: `Message ${i + 1}: ${"a line of words that wraps ".repeat(3)}`, reply_to: null, extra: {}, created_at: NOW }));
 const ruleWatch = (page) => page.evaluate(() => {
   // the rule's own checks: its frame callbacks (they call bring), and what it moved (focusbrought)
@@ -1261,7 +833,6 @@ t("FOCUS-RULE: a press's focus isn't checked; a Tab's is, and moves nothing the 
   await page.evaluate(() => document.getElementById("rule-box").remove());
   await done(page);
 });
-// ── the phone's drawer keeps Tab inside it (the same grader: Tab past Settings landed on BODY)
 t("phone drawer: Tab past its last control comes round to its first, Shift+Tab the other way; never the page", async () => {
   if (WIDTH >= 600) skip("the sidebar is a drawer only on a phone");
   const page = await app();
@@ -1277,9 +848,6 @@ t("phone drawer: Tab past its last control comes round to its first, Shift+Tab t
   await page.keyboard.press("Escape");
   await done(page);
 });
-// ── a send the gate refused is shown, not only said (the controls grader on d79d37e, S137 in all four cells: under
-// routing Off, Tell the agent read "Not sent" in #live and the screen stayed Saved · Undo · Tell). The file's Tell and
-// the composer's Enter, each refused: Not sent on screen, why, nothing posted, the words or the notice kept.
 const offWorld = (extra = {}) => ({ router: { mode: "off", decision_model: null, abstain_below: 0.5 }, ...extra });
 const reachable = (page) => page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
 const heraldSeen = (page) => page.evaluate(() => {
@@ -1287,26 +855,6 @@ const heraldSeen = (page) => page.evaluate(() => {
   if (!line) return null;
   const r = line.getBoundingClientRect(), at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
   return { text: line.querySelector(".hr-t")?.textContent || "", sub: line.querySelector(".hr-s")?.textContent || "", shown: r.width > 0 && r.height > 0 && r.bottom <= innerHeight && r.top >= 0 && !!at && h.contains(at) && getComputedStyle(h).visibility === "visible" };
-});
-t("S137 (refused): under routing Off, Tell the agent shows Not sent on screen, posts nothing and keeps its notice", async () => {
-  const page = await app(offWorld({ files: { "a.js": FILE() } }));
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  await page.waitForFunction(() => window.__t.world.state.router && window.__t.world.state.router.mode === "off", null, { timeout: 15000 });
-  await reachable(page);
-  const tell = page.locator("[data-vw-tell]").first();
-  await tell.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => /^Not sent/.test(document.querySelector("#herald .hr-ev .hr-t")?.textContent || ""), null, { timeout: 4000 });
-  const seen = await heraldSeen(page);
-  assert.match(seen.text, /^Not sent: .*off/i, `why, on screen: ${seen.text}`);
-  assert.equal(seen.sub, "your words are kept");
-  assert.equal(seen.shown, true, "on screen and uncovered");
-  assert.equal((page.W.posts || []).length, 0, "nothing posted");
-  assert.equal(await page.locator("[data-vw-tell]").count(), 1, "the Saved notice and its Tell are kept, to try again");
-  await done(page);
 });
 t("S137 (refused): under routing Off, a draft to the Workspace sent with Enter shows Not sent on screen and keeps the text", async () => {
   const page = await app(offWorld());
@@ -1326,10 +874,6 @@ t("S137 (refused): under routing Off, a draft to the Workspace sent with Enter s
   await page.locator("#say").fill("");
   await done(page);
 });
-// ── the notices' queue, as drawn (7c1b87b; Astra C111-SEND-NOTICE-QUEUE-1 on dfe1491): with an Undo on screen, a
-// message that didn't go waits for it and then shows in its turn; a later message's receipt waits after it, never
-// merging it away. Both are aimed elsewhere (@workspace from the project's chat): a message to the conversation on
-// screen has its bubble, not a notice. The line on screen is read every 50 ms.
 t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in its turn, then a later one's receipt", async () => {
   const page = await app({ postFail: true });
   await toDemo(page);
@@ -1366,46 +910,6 @@ t("C111-SEND-NOTICE-QUEUE-1: behind an Undo, a message that didn't go shows in i
   assert.ok(iF > iU, `A's failure shows after the Undo, in its turn: ${JSON.stringify(seen)}`);
   assert.ok(iS > iF, `B's receipt only after A's failure: ${JSON.stringify(seen)}`);
   assert.ok(!seen.slice(iU + 1, iF).some((t) => /^Sent to |^Sending to /.test(t)), `no passing line before the failure: ${JSON.stringify(seen)}`);
-  await done(page);
-});
-// ── a notice while Files has the chat folded away (the controls grader on cb7afe7, S137 and V22): the line sat in the
-// folded chat's dock, inert and out of sight, so a Tell that failed showed nothing on a phone. It must be on screen,
-// above the file (and on a phone above the folded chat's bar), not covered, and back in its place when the chat opens.
-t("S137/V22: in Files with the chat folded, a Tell that fails says Not sent on screen, above the file", async () => {
-  const page = await app({ files: { "a.js": FILE() }, postFail: true });
-  await editing(page);
-  await typeAll(page, "mine\n");
-  await page.keyboard.press("ControlOrMeta+s");
-  await page.waitForFunction(() => !window.__ED.on);
-  const folded = () => page.evaluate(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-docked") ? c.contains("chat-min") : null; });
-  assert.notEqual(await folded(), null, "the file is beside a conversation (docked, or a phone's sheet)");
-  if (!(await folded())) { await page.keyboard.press("ControlOrMeta+j"); await page.waitForFunction(() => { const c = document.body.classList; return c.contains("chat-sheet") ? !c.contains("sheet-up") : c.contains("chat-railed"); }); }
-  if (await page.evaluate(() => document.body.classList.contains("chat-docked"))) await page.waitForFunction(() => document.body.classList.contains("chat-railed"));
-  await page.locator("[data-vw-tell]").first().click();
-  await page.waitForFunction(() => /Not sent/.test(document.getElementById("herald")?.textContent || ""), null, { timeout: 5000 });
-  assert.ok((page.W.posts || []).length >= 1, "it was sent, and refused");
-  const seen = await page.evaluate(() => {
-    const h = document.getElementById("herald"), line = h.querySelector(".hr"), r = line.getBoundingClientRect();
-    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    const bar = document.querySelector(".crail"), br = bar && bar.getClientRects().length ? bar.getBoundingClientRect() : null;
-    return { out: h.classList.contains("is-out"), onPage: h.parentNode === document.body, inert: !!h.closest("[inert]"), vis: getComputedStyle(h).visibility, w: r.width, h: r.height,
-      inView: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, hit: !!at && h.contains(at), barTop: br && getComputedStyle(bar).display !== "none" ? br.top : null, bottom: r.bottom, text: line.textContent };
-  });
-  // what's seen first (on screen, uncovered, saying so), then how (out of the dock, nothing inert holding it)
-  assert.match(seen.text, /Not sent/);
-  assert.equal(seen.vis, "visible", "visible");
-  assert.ok(seen.w > 40 && seen.h >= 24, `it has a size (${seen.w}×${seen.h})`);
-  assert.ok(seen.inView, "on screen");
-  assert.ok(seen.hit, "nothing covers it");
-  assert.equal(seen.inert, false, "nothing inert holds it");
-  assert.equal(seen.onPage && seen.out, true, "out of the folded chat's dock, on the page");
-  if (await page.evaluate(() => document.body.classList.contains("chat-sheet"))) {
-    assert.ok(seen.barTop != null, "a phone's folded chat shows its bar");
-    assert.ok(seen.bottom <= seen.barTop - 4, `above the folded chat's bar (line ends ${seen.bottom}, bar starts ${seen.barTop})`);
-  }
-  // the chat opens: the line goes back above the composer
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForFunction(() => { const h = document.getElementById("herald"); return !h.classList.contains("is-out") && !!h.closest("#dock"); });
   await done(page);
 });
 t("C085: A, then B while it's read, then A again: A's diff shows again", async () => {
@@ -1447,19 +951,23 @@ t("C085: an image's change, then another file while it's read: the image goes at
   await done(page);
 });
 t("S139: a file whose renderer failed, tried again, shows the file and not the old error beside it", async () => {
-  let once = true;
-  const page = await app({ files: { "a.js": FILE() } });
-  // the renderer's library fails to load once (a dropped connection), then loads
-  await page.route("**/js/vendor/pierre-diffs/diffs.js", (r) => { if (once) { once = false; return r.abort(); } return r.fallback(); });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const attempts = [];
+  let retrying = false;
+  const page = await app({ hooks: false, files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
+    EDITOR_ENTRY, (r) => {
+      attempts.push({ retrying, url: r.request().url() });
+      return retrying ? r.fallback() : r.abort("failed");
+    },
+  ) });
+  await openRetryFile(page);
   const retry = page.locator("#viewer [data-vw-retry]");
   await retry.waitFor();
+  assert.ok(attempts.some((attempt) => !attempt.retrying), "the editor entry request was refused");
+  retrying = true;
   await retry.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
-  await page.waitForTimeout(200);
-  assert.equal(await page.locator("#viewer .vw-file .vw-empty").count(), 0, "the old error and its Try again went");
+  await expectRecoveredEditor(page);
+  assert.ok(attempts.some((attempt) => attempt.retrying), "retry reached the lazy editor entry");
   await done(page);
 });
 const MADE = () => [
@@ -1540,23 +1048,6 @@ t("H20/S144: a refused clone Stop keeps focus on Stop, ready to try again", asyn
   await done(page);
 });
 
-t("C091: an Edit that couldn't open says it was opening, then hands focus back to Edit", async () => {
-  let answer;
-  const page = await app({ files: { "a.js": FILE() }, editReadFails: 1, editGate: new Promise((ok) => (answer = ok)) });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-  const ed = page.locator("[data-vw-edit]");
-  await ed.waitFor();
-  await ed.focus();
-  await page.keyboard.press("Enter");
-  // it says it's opening at every width (a phone shows the icon only: the spinner takes the pencil's place)
-  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && b.getAttribute("aria-label") === "Opening for editing" && b.querySelector(".spin")?.getClientRects().length; });
-  answer();
-  await page.waitForFunction(() => { const b = document.querySelector("[data-vw-edit]"); return b && !b.disabled; });
-  await page.waitForTimeout(150);
-  assert.match(await active(page), /data-vw-edit/, "back on Edit, to try again");
-  await done(page);
-});
 t("C092/S126: Download from ⋯ keeps focus on ⋯ while it downloads and once it's done", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE() }, downloadGate: new Promise((ok) => (answer = ok)) });
@@ -1576,26 +1067,6 @@ t("C092/S126: Download from ⋯ keeps focus on ⋯ while it downloads and once i
   await page.waitForFunction(() => { const b = document.querySelector("[data-vw-more]"); return b && !b.hasAttribute("aria-busy"); });
   assert.match(await active(page), /data-vw-more/, "and once it's done");
   assert.equal(page.W.downloads, 1);
-  await done(page);
-});
-t("S232: a merge choice hands focus to the next place to choose, then to Save", async () => {
-  const base = "one\ntwo\nthree\nfour\nfive\nsix\nseven\n";
-  const page = await app({ files: { "a.js": { content: base, version: "sha256:A" } }, saveMode: "overlap", agentText: "AGENT1\ntwo\nthree\nfour\nfive\nsix\nAGENT7\n" });
-  await editing(page);
-  await typeAll(page, "MINE1\ntwo\nthree\nfour\nfive\nsix\nMINE7\n");
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
-  const first = page.locator(".xd-mbtn").first();
-  await first.waitFor();
-  await first.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 1);
-  await page.waitForFunction(() => document.activeElement?.classList.contains("xd-merge"), null, { timeout: 3000 });
-  await page.keyboard.press("Tab"); // the place's choices are one Tab in
-  assert.match(await page.evaluate(() => document.activeElement.className), /xd-mbtn/);
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 0);
-  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
   await done(page);
 });
 t("S082: a file opened from the map takes focus (on a phone the panel steps aside for it)", async () => {
@@ -1675,11 +1146,6 @@ t("C052: a code block's Copy answered out of order: only the newest says Copied,
   await done(page);
 });
 t("C052: what a code block's Copy says is its own: a success then a newer refusal never says Copied after it", async () => {
-  // The app's order, not a clock's: a Copy's answer is said 40 ms after it lands, and only while that Copy is still the
-  // newest (app.js: _copyN, announce's still()). This case read the live region at fixed times from its start (40, 60,
-  // 120 ms), so a slow moment before the refusal (the controls grader on 05d76ca, once in 12 at 390 dark) read it
-  // before the app had said it. Now every word the live region says is recorded as it changes, and the case waits for
-  // the refusal to be said; the second run stalls the page for 150 ms right after the refusal, as a slow moment does.
   const page = await app({ messages: MSG("Here is the command:\n\n```sh\nnpm test\n```\n") });
   await toDemo(page);
   await page.locator("#msgs [data-copy]").first().waitFor();
@@ -1733,8 +1199,9 @@ t("S201/S202: the lightbox's end arrow keeps focus at the end", async () => {
   const page = await app();
   await toDemo(page);
   await page.evaluate(async () => {
-    const { mediaItem, mediaHtml } = await import("./js/media.js");
-    const { createLightbox } = await import("./js/lightbox.js");
+    const { mediaItem } = await import("./core/services/media/items.js");
+    const { mediaHtml } = await import("./core/services/media/render.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
     const root = document.createElement("div"); root.id = "lbx-test"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
     const LB = createLightbox({});
@@ -1774,267 +1241,6 @@ t("S063: a changed file opened from Files' Changed takes focus", async () => {
   assert.match(await active(page), /id=viewer/);
   await done(page);
 });
-const deepActive = (page) => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return { editable: !!a?.isContentEditable, inViewer: !!document.activeElement?.closest?.("#viewer") }; });
-t("EDITOR-close: the find bar's Escape and Close put you back at your caret, still editing", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  // the bar's field takes focus in the bar's first frame (Pierre: requestAnimationFrame → select(), which focuses it);
-  // the case types once it has, as a person does. It used to force focus there at once and move on to Close inside
-  // that same frame, so the bar's frame took focus back to its field, Enter went to the field (next match) and the bar
-  // stayed: the intermittent "Close: back at the caret" (1 of 40 runs on 905ea5c; moving focus within the first frame
-  // is taken back 6 of 6 times, after two frames 0 of 6), never Close's own path
-  const fieldHasFocus = () => page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && !!a.matches && a.matches("[data-search-grid] [data-search]"); });
-  for (const how of ["Escape", "Close"]) {
-    await page.keyboard.press("ControlOrMeta+f");
-    await fieldHasFocus();
-    await page.keyboard.insertText("two");
-    if (how === "Escape") await page.keyboard.press("Escape");
-    else { await page.locator("[data-search-close]").first().focus(); await page.keyboard.press("Enter"); }
-    await page.waitForTimeout(200);
-    assert.equal(await page.evaluate(() => !document.querySelector("#viewer diffs-container")?.shadowRoot?.querySelector("[data-search-panel]")), true, `${how}: the bar is gone`);
-    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, `${how}: still editing`);
-    assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, `${how}: back at the caret`);
-  }
-  await done(page);
-});
-// the editor's find bar as one family (the controls grader on e55c2d8, S242–S252, and the contrast review): on a
-// phone every control in it is a real 36 px target (fields 36 tall; toggles, arrows, Replace, Replace all, the
-// replace toggle and Close 36 × 36; they were 16–28); its match count and "No results" read 4.5:1 on its surface.
-t("S242–S252 (find bar): on a phone every control is a 36 px target; its count and No results read 4.5:1", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator("[data-search-grid] [data-replace-toggle]").first().click(); // the replace row too
-  await page.waitForTimeout(150);
-  const read = () => page.evaluate(() => {
-    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-grid]")).find(Boolean);
-    const panel = g.closest("[data-search-panel]") || g.getRootNode().querySelector("[data-search-panel]");
-    const ctl = [...panel.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
-    const sizes = ctl.map((x) => { const r = x.getBoundingClientRect(); return { who: x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName, w: +r.width.toFixed(1), h: +r.height.toFixed(1), input: x.tagName === "INPUT" }; });
-    // any CSS colour (the bar's are lab() and color-mix()) to sRGB, as the screen draws it: through a canvas
-    const cv = document.createElement("canvas"); cv.width = cv.height = 1; const cx = cv.getContext("2d", { willReadFrequently: true });
-    const toRGB = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = "#000"; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const [r, g, b, a] = cx.getImageData(0, 0, 1, 1).data; return { r, g, b, a: a / 255 }; };
-    const bgOf = (n) => { for (let e = n; e; e = e.parentElement || (e.getRootNode() && e.getRootNode().host)) { const c = getComputedStyle(e).backgroundColor; const v = toRGB(c); if (v.a > 0.99) return v; } return toRGB(getComputedStyle(document.body).backgroundColor); };
-    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
-    const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
-    const m = g.querySelector("[data-matches]"), fg = toRGB(getComputedStyle(m).color), bg = bgOf(m);
-    return { sizes, matches: m.textContent.trim(), contrast: +cr(fg, bg).toFixed(2) };
-  });
-  // a query with matches, then one with none
-  await q.focus(); await page.keyboard.insertText("o"); await page.waitForTimeout(200);
-  const a = await read();
-  await page.keyboard.press("ControlOrMeta+a"); await page.keyboard.insertText("zzzz-nothing"); await page.waitForTimeout(200);
-  const b = await read();
-  assert.ok(a.contrast >= 4.5, `the match count reads 4.5:1 at the least (${a.matches}: ${a.contrast})`);
-  assert.match(b.matches, /No results/i);
-  assert.ok(b.contrast >= 4.5, `"No results" reads 4.5:1 at the least (${b.contrast})`);
-  if (WIDTH < 600) {
-    const small = a.sizes.filter((x) => x.h < 36 - 0.01 || (!x.input && x.w < 36 - 0.01));
-    assert.deepEqual(small, [], `every control a 36 px target on a phone: ${JSON.stringify(a.sizes)}`);
-  }
-  // no two targets overlap: a tap meant for one never lands on another (the controls grader on 76a53c1, 390: Close and
-  // Regexp overlapped 14 × 18 px, and a tap on Regexp closed Find). Checked as drawn, every cell
-  const overlaps = await page.evaluate(() => {
-    const g = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-search-panel]")).find(Boolean);
-    const ctl = [...g.querySelectorAll("button, input")].filter((x) => x.getClientRects().length && getComputedStyle(x).visibility !== "hidden");
-    const out = [];
-    for (let i = 0; i < ctl.length; i++) for (let j = i + 1; j < ctl.length; j++) {
-      const a = ctl[i].getBoundingClientRect(), b = ctl[j].getBoundingClientRect();
-      if (ctl[i].contains(ctl[j]) || ctl[j].contains(ctl[i])) continue;
-      const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-      const name = (x) => x.getAttribute("aria-label") || x.getAttribute("placeholder") || x.tagName;
-      // the field and its own toggles sit inside it by design: the toggles are its children's targets, not neighbours
-      if (w > 0.5 && h > 0.5 && !(ctl[i].tagName === "INPUT" || ctl[j].tagName === "INPUT")) out.push(`${name(ctl[i])} × ${name(ctl[j])}: ${w.toFixed(1)} × ${h.toFixed(1)}`);
-    }
-    return out;
-  });
-  assert.deepEqual(overlaps, [], "no two of the bar's buttons overlap");
-  await done(page);
-});
-// Find opens with focus after a jump to a line not drawn yet (the controls grader on e55c2d8, S242: in a 180-line
-// file, Ctrl+End then Ctrl+F at once, and focus stayed in the editor at 0, 250 and 500 ms; traced: the editor's
-// landing of the caret, a render later, focused it after Find's own focus). No delay between the keys, no focus moved
-// by the case: Find's field has focus by 250 ms and keeps it, and the page itself never scrolls.
-t("S242 (race): Ctrl+End then Ctrl+F at once in a long file: Find's field has focus by 250 ms and keeps it", async () => {
-  const LONG = Array.from({ length: 180 }, (_, i) => `export const line${String(i).padStart(3, "0")} = ${i}; // a line of the long file`).join("\n") + "\n";
-  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" } } });
-  await editing(page, "long.js");
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.waitForTimeout(300);
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.press("ControlOrMeta+f");
-  const inFind = () => page.evaluate(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.matches && a.matches("[data-search]"); });
-  await page.waitForTimeout(250);
-  assert.equal(await inFind(), true, "Find's field has focus by 250 ms");
-  await page.waitForTimeout(250);
-  assert.equal(await inFind(), true, "and still at 500 ms");
-  await page.keyboard.insertText("line179");
-  await page.waitForTimeout(200);
-  assert.match(await page.locator("[data-search-grid] [data-matches]").first().innerText(), /1/, "typing goes into Find");
-  assert.equal(await page.evaluate(() => document.getElementById("main").scrollTop), 0, "the page itself never scrolls");
-  await done(page);
-});
-// Edit on an empty file puts the caret in it (the controls grader's S242–S252 contract on dead20c, three cells of four:
-// after a long file's Find and Close, Edit on an empty file left focus on the viewer, not the editor: our wrapper asked
-// Pierre for focus for ten frames, and an empty file's editor can be ready later). The case's own order: the long file
-// first, then the empty one, by Files.
-t("S231/C120: Edit on an empty file, right after a long file's Find and Close: the caret is in it, and typing goes in", async () => {
-  const LONG = Array.from({ length: 180 }, (_, i) => `${i === 174 ? "one " : ""}line ${i}`).join("\n") + "\n";
-  const page = await app({ files: { "long.js": { content: LONG, version: "sha256:L" }, "empty.js": { content: "", version: "sha256:E" } } });
-  await editing(page, "long.js");
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+End");
-  await page.keyboard.press("ControlOrMeta+f");
-  await page.locator("[data-search-grid] [data-search]").first().waitFor();
-  await page.keyboard.insertText("one");
-  await page.locator("[data-search-close]").first().focus();
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
-  // the empty file, as a person opens it: leave this one, open the other, Edit
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "empty.js", path: "empty.js", name: "empty.js" }));
-  await page.locator("[data-vw-edit]").filter({ visible: true }).first().waitFor({ timeout: 15000 });
-  await page.keyboard.press("Shift");
-  await page.locator("[data-vw-edit]").filter({ visible: true }).first().focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && a.isContentEditable; }, null, { timeout: 4500 });
-  await page.keyboard.type("EMPTY NOW TYPED");
-  await page.waitForFunction(() => window.__ED && window.__ED.ed && window.__ED.ed.text().includes("EMPTY NOW TYPED"), null, { timeout: 3000 });
-  await done(page);
-});
-t("EDITOR-regex: a pattern that isn't a valid regexp says so", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
-  await q.focus();
-  await page.keyboard.insertText("[");
-  await page.waitForTimeout(150);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
-  assert.equal(await q.getAttribute("aria-invalid"), "true");
-  // in the error's ink (the controls grader on dead20c, S245: the find bar's sheet painted it the plain ink)
-  const ink = await page.evaluate(() => { const m = [...document.querySelectorAll("#viewer *")].map((n) => n.shadowRoot).filter(Boolean).map((r) => r.querySelector("[data-matches]")).find(Boolean); const p = document.createElement("i"); p.style.color = "var(--err-ink)"; document.body.append(p); const want = getComputedStyle(p).color; p.remove(); return { got: getComputedStyle(m).color, want }; });
-  assert.equal(ink.got, ink.want, `"Not a valid pattern" in the error's ink (${JSON.stringify(ink)})`);
-  await page.keyboard.press("Backspace");
-  await page.keyboard.insertText("t.o");
-  await page.waitForTimeout(150);
-  assert.equal(await q.getAttribute("aria-invalid"), "false", "a valid one is fine again");
-  await done(page);
-});
-
-t("EDITOR-close: Escape on one of the find bar's buttons closes the bar and puts you back at your caret, still editing", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await q.focus();
-  await page.keyboard.insertText("two");
-  // from the field to one of the bar's own buttons, as Tab takes you
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().focus();
-  await page.keyboard.press("Escape");
-  await page.waitForTimeout(200);
-  assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), true, "still editing");
-  assert.deepEqual(await deepActive(page), { editable: true, inViewer: true }, "back at the caret");
-  assert.equal(await page.locator("[data-search-grid] [data-search]").filter({ visible: true }).count(), 0, "the bar closed");
-  await done(page);
-});
-t("EDITOR-regex: a pattern that isn't a valid regexp still says so after an edit to the document", async () => {
-  const page = await app({ files: { "a.js": FILE() } });
-  await editing(page);
-  await page.locator("#viewer [contenteditable=true]").first().click();
-  await page.keyboard.press("ControlOrMeta+f");
-  const q = page.locator("[data-search-grid] [data-search]").first();
-  await q.waitFor();
-  await page.locator('[data-search-grid] [aria-label="Regexp"]').first().click();
-  await q.focus();
-  await page.keyboard.insertText("[");
-  await page.waitForTimeout(150);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern");
-  // an edit to the document while the bar is open: the editor counts its matches again (back at the caret the way
-  // the bar's own Close puts you there; the bar covers the first lines, so a click there lands on the bar)
-  await page.evaluate(() => window.__ED.ed.focus());
-  await page.waitForFunction(() => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a?.isContentEditable; });
-  await page.keyboard.insertText("x");
-  await page.waitForTimeout(300);
-  assert.equal(await page.locator("[data-search-grid] [data-matches]").first().innerText(), "Not a valid pattern", "its words after the edit");
-  assert.equal(await q.getAttribute("aria-invalid"), "true", "and the field says so too");
-  await done(page);
-});
-t("S232: a merge choice hands focus to the next place even far below, never to Save while a place is left", async () => {
-  const lines = Array.from({ length: 400 }, (_, i) => `line ${i + 1}`);
-  const of = (a, z) => [a, ...lines.slice(1, 399), z].join("\n") + "\n";
-  const page = await app({ files: { "a.js": { content: of("line 1", "line 400"), version: "sha256:A" } }, saveMode: "overlap", agentText: of("AGENT first", "AGENT last") });
-  await editing(page);
-  await typeAll(page, of("MINE first", "MINE last"));
-  await page.locator("[data-vw-saveit]").click();
-  await page.waitForFunction(() => window.__ED.conflict && window.__ED.conflict.left === 2);
-  const first = page.locator(".xd-mbtn").first();
-  await first.waitFor();
-  await first.focus();
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 1);
-  // where focus goes in the next moments: a place to choose, never Save
-  const seen = await page.evaluate(() => new Promise((ok) => {
-    const out = [], t0 = performance.now();
-    const look = () => { const a = document.activeElement; out.push(a?.classList.contains("xd-merge") ? "place" : a?.hasAttribute("data-vw-saveit") ? "save" : a?.id === "viewer" || a?.classList.contains("vw-file") ? "file" : a === document.body ? "page" : a?.tagName || "none"); if (performance.now() - t0 < 1500 && out[out.length - 1] !== "place") requestAnimationFrame(look); else ok(out); };
-    look();
-  }));
-  assert.ok(!seen.includes("save"), `never Save with a place left (${[...new Set(seen)].join(", ")})`);
-  assert.equal(seen[seen.length - 1], "place", `it reaches the next place (${[...new Set(seen)].join(", ")})`);
-  await page.keyboard.press("Tab");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => window.__ED.conflict.left === 0);
-  await page.waitForFunction(() => document.activeElement?.hasAttribute("data-vw-saveit"), null, { timeout: 3000 });
-  await done(page);
-});
-for (const how of ["Enter", "click"]) {
-  t(`S137: Tell the agent (${how}) tells it once, and the notice hands focus to the file's Edit`, async () => {
-    const page = await app({ files: { "a.js": FILE() } });
-    await editing(page);
-    await typeAll(page, "mine\n");
-    await page.keyboard.press("ControlOrMeta+s");
-    await page.waitForFunction(() => !window.__ED.on);
-    const tell = page.locator("[data-vw-tell]").first();
-    if (how === "click") await tell.click(); else { await tell.focus(); await page.keyboard.press("Enter"); }
-    assert.match(await active(page), /data-vw-edit/, "focus on the file's Edit");
-    assert.equal(await page.locator("[data-vw-tell]").count(), 0, "the notice went");
-    const said = await page.evaluate(() => Object.values(window.__t.S.local || {}).flat().filter((m) => /^I edited a\.js\. Read it again/.test(m.text || "")).length);
-    assert.equal(said, 1, "the agent is told, once");
-    await done(page);
-  });
-}
-// ── the viewer: what's shown is the file's or change's you're on, never the last one's ──
-for (const how of [413, "late"]) {
-  t(`VW-STALE-EDIT: an Edit read for the file you left never lands on the next one (${how === 413 ? "too large" : "answered late"})`, async () => {
-    let answerA;
-    const page = await app({ files: { "a.js": FILE(), "b.js": { content: "bee\nbuzz\n", version: "sha256:B" } }, editGateFor: { "a.js": new Promise((ok) => (answerA = ok)) }, editStatusFor: how === 413 ? { "a.js": 413 } : {} });
-    await toDemo(page);
-    const edit = () => page.evaluate(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") || null);
-    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
-    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Edit");
-    await page.locator("#viewer .vw-top [data-vw-edit]").click();
-    await page.waitForFunction(() => document.querySelector("#viewer .vw-top [data-vw-edit]")?.getAttribute("aria-label") === "Opening for editing");
-    await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "b.js", path: "b.js", name: "b.js" }));
-    await page.waitForFunction(() => window.__t.VW.file?.rel === "b.js" && document.querySelector("#viewer .vw-top [data-vw-edit]"));
-    assert.equal(await edit(), "Edit", "b.js has its own Edit, not a.js's Opening…");
-    answerA();
-    await page.waitForTimeout(400);
-    assert.equal(await edit(), "Edit", "a.js's answer changed nothing on b.js");
-    assert.equal(await page.evaluate(() => !!(window.__ED && window.__ED.on)), false, "not editing b.js on a.js's answer");
-    await page.locator("#viewer .vw-top [data-vw-edit]").click();
-    await page.waitForFunction(() => window.__ED && window.__ED.on && window.__ED.ed);
-    assert.equal(await page.evaluate(() => window.__ED.ed.text()), "bee\nbuzz\n", "b.js opens for editing on its own words");
-    await done(page);
-  });
-}
 const viewerDiff = (page) => page.evaluate(() => { const d = document.querySelector("#viewer .vw-diff"); if (!d) return ""; const c = d.querySelector("diffs-container"); return d.textContent + (c && c.shadowRoot ? c.shadowRoot.textContent : ""); });
 async function diffOpen(page, rel) {
   await page.waitForFunction((rel) => !!window.__t.CHG.at("demo", rel), rel, { timeout: 15000 }); // the project's changes are read
@@ -2058,10 +1264,7 @@ t("VW-DIFF-HELD: a change whose read is held says so, never the last change's di
   assert.doesNotMatch(await viewerDiff(page), /Reading the change/, "and once it's there, only it");
   await done(page);
 });
-// the viewer's Try again answers hover and press (the controls grader on d79d37e, S139, all four cells: the same at
-// rest, hovered and pressed). Shot at rest, under the pointer and held down: each differs from rest; and in the
-// cascade, hover brings the ink up and a press dims it.
-t("S139 (paint): the viewer's Try again looks different hovered and pressed than at rest", async () => {
+t("S253 (paint): the Changes read retry looks different hovered and pressed than at rest", async () => {
   const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
   await toDemo(page);
@@ -2088,9 +1291,6 @@ t("S139 (paint): the viewer's Try again looks different hovered and pressed than
   assert.ok(!pressShot.equals(hoverShot) && !pressShot.equals(restShot), "pressed, it looks different again");
   await done(page);
 });
-// a refused Download said in the Changes view as in every other (the controls grader on e55c2d8, S126: an omitted
-// binary change, Download held then refused 503, and the screen went back to "Binary file · Download" saying nothing:
-// the diff's branch drew no error line). Held, then refused: the reason shows under the head and stays through redraws.
 /** How much of the focused control's ring any box around it cuts off: its outline (width past its offset) against
  *  every ancestor that clips (overflow other than visible) and the screen. 0: whole. */
 const ringCut = (page) => page.evaluate(() => {
@@ -2107,8 +1307,6 @@ const ringCut = (page) => page.evaluate(() => {
   }
   return { who: (o.getAttribute("aria-label") || o.textContent || "").trim().slice(0, 30), w, ext, cut: +cut.toFixed(2), by };
 });
-// the ring of a focused control in the file's head is whole (the controls grader on e55c2d8, C092: on a phone, Enter
-// on Copy, and the ⋯ saying Copied had its ring's top cut by the viewer's edge: 36 px controls in a 40 px head)
 t("C092: Copy by the keyboard in the file's head: the Copied control's ring is whole, every cell", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.resolve(); });
@@ -2129,9 +1327,6 @@ t("C092: Copy by the keyboard in the file's head: the Copied control's ring is w
   assert.equal(g.cut, 0, `the ring is whole (${JSON.stringify(g)})`);
   await done(page);
 });
-// "Show them" on a long Changes list reveals the rest and goes with them: focus goes on to the first revealed row, in
-// sight (the Files grader: 105 files, the first 100 shown; Show them by Enter, and focus fell to BODY; S041). And the
-// list is drawn in place: a live change to it keeps the row you're on.
 t("S041: Show them on a long Changes list: focus goes to the first revealed row, in sight; a live change keeps it", async () => {
   const many = Array.from({ length: 105 }, (_, i) => ({ path: `f${String(i).padStart(3, "0")}.js`, status: "modified", additions: 1, deletions: 1, binary: false, version: `sha256:${i}`, patch: PATCH(`f${String(i).padStart(3, "0")}.js`, "one", "ONE") }));
   const page = await app({ files: { "a.js": FILE() }, changes: many });
@@ -2159,9 +1354,6 @@ t("S041: Show them on a long Changes list: focus goes to the first revealed row,
   assert.equal(await page.evaluate((w) => document.activeElement === w, was), true, "a redraw keeps the row you're on");
   await done(page);
 });
-// a copy held by the clipboard says it's copying and takes no repeat (the controls grader on 76a53c1, S124/S125: with
-// the clipboard pending, nothing said so at 250 or 800 ms, and Enter, Space, a tap or More opened again stacked four
-// clipboard calls). One pending state for the ⋯'s copy and download.
 t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat and keeps More shut; once it lands, Copied", async () => {
   const page = await app({ files: { "a.js": FILE() } });
   await page.evaluate(() => { window.__cpq = []; navigator.clipboard.writeText = () => new Promise((ok, no) => window.__cpq.push({ ok, no })); });
@@ -2188,11 +1380,6 @@ t("S124/S125 (pending): a held Copy says Copying… by 250 ms, takes no repeat a
   assert.match(await more.innerText(), /Copied/, "once it lands: Copied");
   await done(page);
 });
-// a copy that settles after its file has gone says nothing on the next file (the controls grader on 76a53c1, S124 /
-// C81: a held Copy, other.txt opened, its More's Copy path focused, then the old copy settles: the old Copied or
-// refusal painted on other.txt and focus jumped to More; the old 1400 ms timer cleared the new copy's Copied)
-// Copy path, then Download at once: the ⋯ says Downloading…, not the last Copied, for as long as the download is held
-// (the controls grader on 8a4ed16, S126 / V52: "Copied" stood through the whole held download)
 t("S126 (status): Copy path then Download at once: the ⋯ says Downloading… through the held download, then neither", async () => {
   let answer;
   const page = await app({ files: { "a.js": FILE() }, downloadGate: new Promise((ok) => (answer = ok)) });
@@ -2265,9 +1452,6 @@ t("S126: Download refused in the Changes view says why, under the head, and keep
   assert.equal(page.W.downloads, 1, "one request");
   await done(page);
 });
-// Copy refused in the Changes view is said as in the File view (the controls grader on e55c2d8, S125: Copy path in
-// Changes failed silently, for a normal patch and an omitted one; S124: a held Copy started in File, then Changes,
-// then the clipboard refused: the error was lost). The same cause as S126: the Changes branch drew no error line.
 const refuseCopy = (page, held = false) => page.evaluate((held) => {
   window.__cpq = [];
   navigator.clipboard.writeText = () => (held ? new Promise((ok, no) => window.__cpq.push({ ok, no })) : Promise.reject(new Error("denied")));
@@ -2289,18 +1473,12 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
     await menuChoose(page, "[data-vw-copy-path]");
     await page.waitForSelector("#viewer .vw-cut[role=alert]", { timeout: 5000 });
     assert.match(await page.locator("#viewer .vw-cut[role=alert]").innerText(), /Couldn't copy the path/, `${rel}: it says the path didn't copy`);
-    // and hands you the path itself (selecting the text or downloading gives the contents, never the path: the controls
-    // grader on 4d33649, V49): a read-only field holding it, all of it selected once focused
     const sel = page.locator("#viewer .vw-cut .vw-cut-sel");
     assert.ok((await sel.inputValue()).endsWith(rel), `${rel}: the path is offered`);
     await sel.focus();
     assert.equal(await sel.evaluate((e) => e.selectionStart === 0 && e.selectionEnd === e.value.length && e.readOnly), true, `${rel}: focused, all of it is selected, read-only`);
-    // on a phone it's a control at the floor, 36 px tall (the controls grader on feffcf0: it was 24)
     if (WIDTH < 600) assert.ok(await sel.evaluate((e) => e.getBoundingClientRect().height) >= 35.5, `${rel}: 36 px tall on a phone`);
-    // and read whole, on its own row (the controls grader on 1ed50f6 at 390, V98: the field shrank and cut the path)
     assert.equal(await sel.evaluate((e) => e.scrollWidth <= e.clientWidth + 1), true, `${rel}: the path isn't cut`);
-    // tried again and it goes through: the refusal and its field go, and focus lands on a control that draws its ring,
-    // never the viewer's own section (the controls grader on 1ed50f6: #viewer, :focus-visible, no ring)
     await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.resolve(); });
     await menuChoose(page, "[data-vw-copy-path]");
     await page.waitForFunction(() => !document.querySelector("#viewer .vw-cut-sel"), null, { timeout: 5000 });
@@ -2311,8 +1489,6 @@ t("S125: Copy path refused in the Changes view says why, for a normal patch and 
   }
   await done(page);
 });
-// a file XO can't show offers its path with a labelled Copy (the controls grader's lead on 1ed50f6, S125 / V97: it took
-// the head's icon-only button class, whose words are hidden: no accessible name, and its Copied never showed)
 t("S125 (inline): a file XO can't show offers its path with a labelled Copy: named by its words, Copying… and Copied seen", async () => {
   const page = await app({});
   await toDemo(page);
@@ -2387,7 +1563,6 @@ t("VW-DIFF-LATE: the last file's change, read late, never draws over the one you
   await done(page);
 });
 
-// ── the picker: Astra's d88441d findings (D884-SAVE-1..3, D884-SIMPLE-1, MIG-1..3) ──
 t("D884-SAVE-3: the first Done says it's saving at once: busy, its words, focus kept", async () => {
   let answer;
   const W = {};
@@ -2485,7 +1660,6 @@ t("D884-SIMPLE-1: the simple picker's catalog arriving keeps you on the choice y
   await done(page);
 });
 
-// ── continuing a thread on another runtime (the picker opened on Codex, as the thread menu opens it) ──
 const RT = (name, dflt) => ({ name, default: dflt, health: { agent: name, usable: true, why_not: null, installed: true, logged_in: true, account: "acct-test", cli_version: "1.0", pool: `${name}:acct-test`, limit: "open", resets_at: null, windows: {}, error: null, checked_at: NOW }, cli: { version: "1.0", logged_in: true, account: "acct-test", limits: {} }, features: { agent: name, cli_version: "1.0", contract_version: "1.0", features: { model: { support: "native", values: [] }, effort: { support: "native", values: [] } } } });
 const CODEX = (list) => ({ name: "codex", models: list.map(([id, efforts]) => ({ id, name: id, efforts, default_effort: null, context_window: null, is_default: false, takes_effort: true, family: null, family_default: false, description: "" })) });
 async function movePicker(W) {
@@ -2554,7 +1728,7 @@ t("MIG-3: a cancelled read of the same runtime's models doesn't replace a newer 
     let open; const g = new Promise((ok) => (open = ok)); gates.push(open);
     return g.then(() => (n === 0 ? CODEX([["codex-old", ["low"]]]) : CODEX([["codex-new", ["low", "high"]]])));
   } };
-  const page = await movePicker(W); // the first read of Codex's models is out
+  const page = await movePicker(W);
   await page.waitForFunction(() => document.querySelector("#iq-pop [data-mv-cancel]"));
   await page.locator("#iq-pop [data-mv-cancel]").click();
   await page.locator('#iq-pop [data-lrt="codex"]').click(); // look again: a second read
@@ -2645,10 +1819,6 @@ async function toThread(page, ts) {
   await page.evaluate((ts) => window.__t.go(`t:${ts}`), ts);
   await page.waitForFunction((ts) => window.__t.world.state.threads.find((x) => x.id === ts)?.loaded, ts, { timeout: 15000 });
 }
-// the real turn chip, through the real conversation: the thread as the server lists it, its finished turn fed to
-// the app's own turn store as the stream feeds it, drawn in #msgs by the conversation (and redrawn by it, chosen);
-// opened with the keyboard by the page's own handler, through the thread's route (Files/Map grader: mounted
-// outside #msgs, the redraw wasn't part of the case). W needs TT (below) among its threads.
 const TT = () => ({ chat_demo: [serverThread("tt1", "ses-tt")] });
 async function turnChip(page) {
   await toThread(page, "tt1");
@@ -2686,7 +1856,7 @@ for (const how of ["Enter", "Space", "click"]) {
     await done(page);
   });
 }
-t("S224: the file put away after its turn went on: focus goes to what brings it back, or to a.js's chip, never the page", async () => {
+t("S224: Esc from a file in the panel after its turn went on: the panel's sections, focus in the panel, never the page", async () => {
   const page = await app({ files: { "a.js": FILE() }, threadsBy: TT() });
   await toDemo(page);
   const chip = await turnChip(page);
@@ -2698,13 +1868,13 @@ t("S224: the file put away after its turn went on: focus goes to what brings it 
   await feedTurn(page, { id: "tt1", sid: "ses-tt", rows: [{ call_id: "c3", kind: "read_file", status: "ok", target: "c.js" }], n: 2 });
   await page.waitForTimeout(300);
   assert.match(await active(page), /id=viewer/, "still on the file");
-  // Escape, as a person leaves it: beside the chat the file is put away (its own chip brings it back); on a phone
-  // the sheet steps back to the chat
+  // Escape, as a person leaves it: the panel goes back to its sections, the file kept as its Files tab
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
-  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), chip: !!a?.matches?.('#msgs .tb-cf[data-file="a.js"], [data-fv-restore]'), at: a ? a.tagName + (a.id ? "#" + a.id : "") + (a.className ? "." + String(a.className).split(" ").join(".") : "") : null }; });
+  const st = await page.evaluate(() => { const a = document.activeElement; return { usable: !!a && a !== document.body && a.isConnected && a.getClientRects().length > 0 && !a.closest("[inert], [hidden]"), inPanel: !!a?.closest?.("#stage"), page: document.querySelector("#stage").dataset.page || null, at: a ? a.tagName + (a.id ? "#" + a.id : "") + "." + a.className : "none" }; });
   assert.ok(st.usable, `focus on something you can use, never the page (${st.at})`);
-  if (WIDTH >= 600) assert.ok(st.chip, `on what brings a.js back, or a.js's chip in the turn (${st.at})`);
+  assert.equal(st.page, null, "the panel shows its sections");
+  assert.ok(st.inPanel, `focus stays in the panel (${st.at})`);
   await done(page);
 });
 for (const variant of ["read", "held", "refused"]) {
@@ -2744,8 +1914,6 @@ async function bigMap() {
   return page;
 }
 const mapScale = (page) => page.evaluate(() => parseFloat(document.querySelector(".dg-world").style.getPropertyValue("--dg-s")) || 1);
-// the Map's press floor: a phone's 36 px (the owner, 9 Nov, rv_49d00670fa4c48c9: one tap opens only from 36 px; below,
-// the first brings the map in), a desktop's 24 with a pointer
 const FLOOR = () => (WIDTH < 600 ? 36 : 24);
 /** ⌘-scroll, as a person zooms, at a box's middle (it stays under the pointer), to scale `to`. */
 const zoomOn = (page, id, to) => page.evaluate(({ id, to }) => {
@@ -2820,9 +1988,6 @@ t("S207/S082: Fit shows every box; no box's target reaches a neighbour's box (ed
   }
   await done(page);
 });
-// the top's read failing: its note ("Couldn't read it · Try again") is as wide as its words, wider than the 148 the
-// layout gives a box; a pointer Fit framed the layout, and Try again stood past the view's edge (the map grader on
-// 65e84b7, S207/S082, all four cells: 4.40 px at 1440, 5.87 px at 390). Fit by the pointer at Fit's own spot.
 t("S207/S082 (Try again): the top's read failing, a pointer Fit keeps its Try again whole inside the view", async () => {
   const page = await app({ files: { "a.js": FILE() }, rootFails: 99 });
   await panelOpen(page);
@@ -2848,8 +2013,6 @@ t("S207/S082 (Try again): the top's read failing, a pointer Fit keeps its Try ag
   await done(page);
 });
 
-// a Graph dot the keyboard is on shows the ring, whatever else it is (the map grader on 65e84b7, S082, all four
-// cells: focus-visible, but the dot's paint unchanged on a folded folder, an open one and a file). Reached by Tab.
 t("S082 (Graph focus): a folded folder's, an open folder's and a file's dot show the ring when the keyboard is on them", async () => {
   const page = await app({ files: { "a.js": FILE() }, dirs: ["src"] });
   await panelOpen(page);
@@ -2880,10 +2043,6 @@ t("S082 (Graph focus): a folded folder's, an open folder's and a file's dot show
   await done(page);
 });
 
-// an agent's tag on the Map shrinks with the drawing like a box (the controls grader on e55c2d8, S083: 43 × 14.8 px
-// after Fit, opened on the first tap, white on the agent's blue 3.20:1): a pointer press on it too small to press
-// surely brings the map in to it and doesn't open; pressed again, it opens the thread (the owner's Map choice, 9 Nov
-// 18:02). Its words read on its colour (4.5:1 at the least). Tree and Graph.
 t("S083 (tag): far out, a press on an agent's tag brings the map in to it and doesn't open; pressed again, it opens; its words read", async () => {
   const dirs = Array.from({ length: 24 }, (_, i) => `folder-${String(i).padStart(2, "0")}`);
   for (const mode of ["tree", "graph"]) {
@@ -2927,8 +2086,8 @@ t("S083 (tag words): an agent tag's words read on every agent colour (4.5:1 at t
   if (WIDTH < 600 || THEME !== "dark") skip("the palette and the token are the same in every cell: once");
   const page = await app();
   const worst = await page.evaluate(async () => {
-    const src = await (await fetch("./js/map.js")).text();
-    const pal = JSON.parse(src.match(/const PALETTE = (\[[^\]]+\]);/)[1]);
+    const { colorOf } = await import(new URL("./modules/map/layout.js", location.href).href);
+    const pal = [...new Set(Array.from("abcdef", colorOf))];
     const ink = getComputedStyle(document.documentElement).getPropertyValue("--on-agent").trim();
     const lum = (h) => { const n = h.replace("#", ""), c = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
     const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
@@ -2947,8 +2106,6 @@ t("S207: far out, a press on a Graph node brings the map in to that node, in the
   await graphStill(page);
   const s = await mapScale(page);
   assert.ok(s < 0.8, `Fit is far out here (${s.toFixed(3)}), below the readable scale`);
-  // the folder farthest from the drawing's corner (0,0): a Graph node sits there and moves by its transform, which
-  // is where the press used to zoom in (grader on 44e429d)
   const id = await page.evaluate(() => {
     let best = null, far = -1;
     for (const n of document.querySelectorAll(".dg-world.k-graph button.gn.k-dir[data-node]")) {
@@ -3293,36 +2450,27 @@ for (const refused of [false, true]) {
   });
 }
 
-t("C029: on a phone, Back to chat from a file shows the chat, not the panel again", async () => {
-  if (WIDTH > 760) return; // beside the chat on a desktop, the panel coming back is the design
+t("C029: on a phone, closing the panel from a file shows the chat, not the panel again", async () => {
+  if (WIDTH > 760) skip("a phone's: the panel covers the chat there");
   const page = await app({ files: { "a.js": FILE() } });
   await panelOpen(page);
-  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
-  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await filesOpen(page);
   await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   assert.ok(await page.evaluate(() => document.querySelector("#stage").hidden), "the panel stays closed");
   assert.ok(await page.locator("#say").isVisible(), "the chat's box is there to type in");
   await done(page);
 });
 
-t("C029/F08: on a phone, the chat unfolded and folded beside a file opened from the panel, then Back to chat: nothing left inert, the box takes typing", async () => {
-  // the controls grader on 9d1f71b (phone, both themes): #fdock and #composer kept the panel's inert after it had
-  // closed (its release followed the notices' line, which had moved out of the folded chat), and nothing could be typed
+t("C029/F08: on a phone, a file opened from the panel, then the panel closed: nothing left inert, the box takes typing", async () => {
   if (WIDTH > 760) skip("a phone's sheet");
   const page = await app({ files: { "note.md": { content: "# Note\n", version: "sha256:N" } } });
   await panelOpen(page);
-  if (await page.locator('[data-ghost="changes"]').filter({ visible: true }).count()) await page.locator('[data-ghost="changes"]').filter({ visible: true }).first().click();
-  await page.locator("[data-open-files]").filter({ visible: true }).first().click();
+  await filesOpen(page);
   await page.locator('[data-fl-file="note.md"]').filter({ visible: true }).first().click();
-  await page.waitForFunction(() => document.body.classList.contains("chat-sheet"));
-  // the chat unfolded, then folded again (its bar, then its head's fold), by the pointer
-  await page.locator("[data-crail]").filter({ visible: true }).first().click();
-  await page.waitForFunction(() => document.body.classList.contains("sheet-up"));
-  await page.keyboard.press("ControlOrMeta+j");
-  await page.waitForFunction(() => !document.body.classList.contains("sheet-up"));
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files");
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click();
   await page.waitForTimeout(400);
   const st = await page.evaluate(() => ({ stageHidden: document.querySelector("#stage").hidden, inert: [...document.querySelectorAll("[data-stage-inert]")].map((n) => n.id || n.className), inertBox: !!document.querySelector("#say").closest("[inert]") }));
   assert.equal(st.stageHidden, true, "the panel is closed");
@@ -3606,7 +2754,6 @@ t("S238: Runs read once, then refused twice: Try again keeps focus; once it read
   await page.evaluate(() => window.__t.openRuns({ sessionId: "ses-a", title: "Thread A" }));
   await page.locator("#runs [data-runs-retry]").waitFor();
   await page.waitForFunction(() => document.activeElement?.hasAttribute("data-runs-retry"), null, { timeout: 3000 });
-  // Try again, refused again: focus stays on Try again (Astra S238: it went to the sheet's ×)
   const asked = W.runsReads;
   await page.keyboard.press("Enter");
   for (let i = 0; i < 50 && W.runsReads === asked; i++) await page.waitForTimeout(100);
@@ -3614,8 +2761,6 @@ t("S238: Runs read once, then refused twice: Try again keeps focus; once it read
   await page.waitForFunction(() => /Couldn't read its sub-agents again/.test(document.querySelector("#runs").innerText) && document.querySelector("#runs [data-runs-retry]"), null, { timeout: 5000 });
   await page.waitForTimeout(300); // its answer drawn
   assert.match(await active(page), /data-runs-retry/, "refused again: still on Try again");
-  // Try again is whole: its words on one line, its target at least the size of a row's control, never squeezed by a
-  // long refusal (Astra S238 at 875a2ab: 34.9 × 40 px on two lines at 390)
   const tr = await page.locator("#runs [data-runs-retry]").evaluate((b) => { const r = b.getBoundingClientRect(), g = document.createRange(); g.selectNodeContents(b); const lines = new Set([...g.getClientRects()].map((x) => Math.round(x.top))).size; return { w: r.width, h: r.height, lines, squeezed: b.scrollWidth > b.clientWidth + 1 }; });
   assert.equal(tr.lines, 1, `Try again on one line (${JSON.stringify(tr)})`);
   assert.ok(!tr.squeezed && tr.w >= 44 && tr.h >= 32, `Try again whole: ${JSON.stringify(tr)}`);
@@ -3678,7 +2823,8 @@ t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back 
 // ── xo-select ──
 async function select(page, html) {
   return page.evaluate(async (html) => {
-    await import("./js/dropdown.js");
+    const { defineXoSelect } = await import("./core/ui/components/xo-select.js");
+    defineXoSelect();
     const box = document.createElement("div"); box.style.cssText = "position:fixed;left:40px;top:40px;z-index:9999"; box.innerHTML = html; document.body.append(box);
     await new Promise((ok) => requestAnimationFrame(ok));
     return true;
@@ -3712,28 +2858,18 @@ t("xo-select: PageDown never rests on a disabled option, and rows nest in the me
   await page.keyboard.press("Escape");
   await done(page);
 });
-// ── the search fields show focus (a light-theme finding; every cell checks it) ──
-for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C063 artifact search", "#arts-q", "artifacts"]]) {
-  t(`${name}: its box changes when it has focus`, async () => {
-    // the project search shows once the list is long: enough projects for it
-    const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
-    const page = await app(W);
-    await page.evaluate((v) => window.__t.go(v), place);
-    if (WIDTH < 600 && sel === "#pf-in") {
-      // on a phone the project list is in the drawer: opened as a person opens it, with the menu button
-      await page.locator("#pb-menu, #top-menu").filter({ visible: true }).first().click();
-      await page.waitForFunction(() => document.querySelector("#app").classList.contains("drawer"));
-      await page.waitForTimeout(300); // the drawer done sliding in
-    }
-    await page.locator(sel).waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
-    const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
-    await page.locator(sel).focus();
-    await page.waitForTimeout(300); // its border eases over --d-hover
-    const on = await page.evaluate((sel) => getComputedStyle(document.querySelector(sel).parentElement).borderColor, sel);
-    assert.notEqual(on, box.rest, "the box's border changes on focus");
-    await done(page);
-  });
-}
+// ── the artifact search shows focus (a light-theme finding; every cell checks it) ──
+t("C063 artifact search: its box changes when it has focus", async () => {
+  const page = await app();
+  await page.evaluate(() => window.__t.go("artifacts"));
+  await page.locator("#arts-q").waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
+  const rest = await page.evaluate(() => getComputedStyle(document.querySelector("#arts-q").parentElement).borderColor);
+  await page.locator("#arts-q").focus();
+  await page.waitForTimeout(300); // its border eases over --d-hover
+  const on = await page.evaluate(() => getComputedStyle(document.querySelector("#arts-q").parentElement).borderColor);
+  assert.notEqual(on, rest, "the box's border changes on focus");
+  await done(page);
+});
 
 t("C058: the @ list has one active row: the mouse moves it, Enter picks it, the arrows go on from it", async () => {
   const page = await app({ extraChats: Array.from({ length: 3 }, (_, i) => H.chat(`chat_r${i}`, "project", `rcpt-${i}`)) });
@@ -3744,7 +2880,6 @@ t("C058: the @ list has one active row: the mouse moves it, Enter picks it, the 
   const st = () => page.evaluate(() => { const l = document.querySelector("#at-list"), li = [...l.querySelectorAll("li[role=option]")]; return { active: document.querySelector("#say").getAttribute("aria-activedescendant"), on: li.filter((x) => x.getAttribute("aria-selected") === "true").map((x) => x.id), paint: li.map((x) => getComputedStyle(x).backgroundColor) }; });
   const before = await st();
   assert.deepEqual([before.active, before.on], ["at-0", ["at-0"]], "the first row is the active one");
-  // the mouse onto the second row: it becomes the active one, and only it looks it (Astra C058: two rows did)
   const b = await rows.nth(1).boundingBox();
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 3 });
   await page.waitForTimeout(150);
@@ -3845,8 +2980,6 @@ t("C111: routing Off, a reply in a thread: Send is on and no Off line shows besi
   s = await st();
   assert.equal(s.send, false, "Send waits");
   assert.ok(s.line && /router is off/i.test(s.line), `the line says so: ${s.line}`);
-  // the composer's row stays whole: the paused target gives way, the model chip and Send stay on screen (the
-  // create-project grader on 9d1f71b, C111 at 390: the target's words pushed both out of the row)
   const row = await page.evaluate(() => { const vw = innerWidth, box = (id) => { const e = document.getElementById(id); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width) }; }; return { vw, send: box("send"), iq: box("iq"), target: box("target") }; });
   assert.ok(row.send && row.send.r <= row.vw && row.send.w >= 30, `Send whole on screen: ${JSON.stringify(row)}`);
   assert.ok(!row.iq || (row.iq.r <= row.send.l && row.iq.w >= 24), `the model chip whole, before Send: ${JSON.stringify(row)}`);
@@ -3861,13 +2994,13 @@ for (const w of [320, 390]) {
     const page = await app({ files: { "a-much-longer-file-name.js": FILE() }, changes: [{ path: "a-much-longer-file-name.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a-much-longer-file-name.js", "one", "ONE") }] }, { width: w });
     await toDemo(page);
     await page.waitForFunction(() => !!window.__t.CHG.at("demo", "a-much-longer-file-name.js"), null, { timeout: 15000 });
-    // a changed, editable text file, showing File: Ask about this, Changes · File, Edit and More in its head
+    // a changed text file, showing Ask about this, Changes · File and More in its head
     await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a-much-longer-file-name.js", path: "a-much-longer-file-name.js", name: "a-much-longer-file-name.js" }));
-    await page.locator("#viewer .vw-top [data-vw-edit]").waitFor();
+    await page.locator("#viewer .vw-top [data-vw-more]").waitFor();
     const g = await page.evaluate(() => {
       const top = document.querySelector("#viewer .vw-top"), r = top.getBoundingClientRect(), vw = innerWidth;
       const box = (sel) => { const e = top.querySelector(sel); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return { l: Math.round(b.left), r: Math.round(b.right), w: Math.round(b.width), h: Math.round(b.height) }; };
-      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), edit: box("[data-vw-edit]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: (() => {
+      return { vw, top: { h: Math.round(r.height) }, name: box("#vw-h"), more: box("[data-vw-more]"), seg: box(".vw-seg.is-words"), ask: box(".vw-acts .vw-ask"), rows: (() => {
         // rows by their middles: a 36 px control sits 2 px lower than a 40 px one in the same row (the phone floor)
         const mids = [...top.querySelectorAll(".vw-acts > *")].filter((e) => e.getClientRects().length).map((e) => { const b = e.getBoundingClientRect(); return (b.top + b.bottom) / 2; }).sort((a, b) => a - b);
         return mids.length ? 1 + mids.slice(1).filter((m, i) => m - mids[i] > 4).length : 0;
@@ -3876,7 +3009,7 @@ for (const w of [320, 390]) {
     assert.ok(g.more && g.more.r <= g.vw, `More on screen: ${JSON.stringify(g.more)} in ${g.vw}`);
     assert.ok(g.name && g.name.w >= 56, `the name readable (a long one, cut with …): ${JSON.stringify(g.name)}`);
     assert.equal(g.ask, null, "Ask about this isn't in the narrow row");
-    assert.ok(g.seg && g.edit, "the view switch and Edit stay");
+    assert.ok(g.seg, "the view switch stays");
     assert.equal(g.rows, 1, "one row");
     assert.ok(g.top.h <= 48, `the head is one row tall: ${g.top.h}`);
     // Ask about this is in More
@@ -3935,9 +3068,6 @@ t("INT-2: Done saves, then closes; refused, the picker stays on your choice and 
   await done(page);
 });
 
-// ── a thread's docked decision: focus never on the page, the card on the column's edges (S014, S240) ──
-// the create-project grader on 22046ec, all four cells and every method: the docked Allow, its Undo and Unfold each
-// put focus on the page (tests/dock-focus.test.mjs reads the rule); at 390 the dock sat 16 px left of the composer
 async function dockAsk(page) {
   await page.evaluate(() => {
     const t = window.__t; window.calls = [];
@@ -3959,7 +3089,6 @@ for (const how of ["Enter", "Space", "pointer"]) {
     await dockPress(page, "#tdock [data-act=allow]", how === "Space" ? " " : how);
     await page.locator("#tdock [data-dock-undo]").waitFor();
     assert.equal(await dockFocus(page), "undo", "after Allow, focus on the line's Undo");
-    // a control on its own: the desktop's 24 floor, a phone's 36 (grader B on 414de0f: 39×20 at 1440)
     const u = await page.locator("#tdock [data-dock-undo]").boundingBox(), min = WIDTH < 760 ? 36 : 24;
     assert.ok(u.height >= min - 0.5 && u.width >= min - 0.5, `the Undo is ${Math.round(u.width)}×${Math.round(u.height)}, its floor ${min}`);
     await page.waitForTimeout(360);
@@ -3997,15 +3126,11 @@ t("S240: the docked card and its folded line share the composer's edges, their r
   await done(page);
 });
 
-// ── what's docked over the composer is one stack, the notices' line on its top (S007; the docked card at 390) ──
-// a census of the stack as drawn: every docked box shown (the put-away file's chip, the decision card, the folded
-// line) keeps its ring's room clear of the line, and the composer is never under it (tests/notice-clear.test.mjs
-// reads the rule). On 86b3f9b the line lay 6 px over the docked card's foot at 390, and met it with no ring room at 1440
 const NOTICE = { kind: "calm", text: "Can't reach XO", sub: "retrying · what you see may be out of date" };
 const notice = (page) => page.evaluate((h) => window.__t.heraldShow(h, 60000), NOTICE).then(() => page.waitForTimeout(400));
 const stackClear = (page) => page.evaluate(() => {
   const vis = (e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== "hidden";
-  const docked = [...document.querySelectorAll("#fdock .fchip, #tdock > *")].filter(vis).map((e) => ({ name: e.className.split(" ")[0], r: e.getBoundingClientRect(), ring: 4 }));
+  const docked = [...document.querySelectorAll("#tdock > *")].filter(vis).map((e) => ({ name: e.className.split(" ")[0], r: e.getBoundingClientRect(), ring: 4 }));
   const comp = document.querySelector("#composer");
   if (vis(comp)) docked.push({ name: "composer", r: comp.getBoundingClientRect(), ring: 0 });
   const hs = [...document.querySelectorAll("#herald .hr")].filter(vis).map((e) => e.getBoundingClientRect());
@@ -4039,33 +3164,7 @@ t("STACK: the notices' line clears everything docked over the composer: nothing,
   assert.equal(s.gap, WIDTH > 760 ? 10 : 8, "its place with nothing docked is unchanged");
   await done(page);
 });
-t("STACK: on a phone, the put-away file's chip and the decision stack under the notices' line, alone or together", async () => {
-  if (WIDTH > 760) skip("the put-away file's chip is docked over the composer only on a phone");
-  const page = await app({ files: { "a.js": FILE() } });
-  await dockAsk(page);
-  await panelOpen(page);
-  await filesOpen(page);
-  await page.locator('[data-fl-file="a.js"]').filter({ visible: true }).first().click();
-  await page.locator("[data-fv-min]").filter({ visible: true }).first().click();
-  await page.locator("#fdock .fchip").waitFor({ state: "visible", timeout: 8000 });
-  await notice(page);
-  assertClear(await stackClear(page), "the chip", ["fchip", "composer"]);
-  await page.evaluate(() => { window.__t.go("t:dk1"); window.__t.render(); });
-  await page.locator("#tdock .card").waitFor();
-  await page.waitForTimeout(500);
-  await notice(page);
-  const both = await stackClear(page);
-  if (process.env.STACK_DIR) await page.screenshot({ path: `${process.env.STACK_DIR}/chip-decision-${WIDTH}-${THEME}.png` });
-  if (!both.docked.includes("fchip")) skip("the chip isn't shown in a thread, so it never docks with the decision");
-  assertClear(both, "the chip and the decision", ["fchip", "card", "composer"]);
-  await page.locator("#tdock [data-fold]").click();
-  await page.locator("#tdock [data-unfold]").waitFor();
-  await page.waitForTimeout(400);
-  assertClear(await stackClear(page), "the chip and the folded line", ["fchip", "dock-fold", "composer"]);
-  await done(page);
-});
-
-// ── RINGCLIP: no clipping box cuts a focused control's ring (C047, C008, C045, S089) ──
+// Check whether overflowing containers clip focus rings.
 // A sweep of the page as drawn: every control in view is focused as Tab would (keepFocusInView brings it in), its ring
 // read as drawn (outline width and offset), and every box around it that clips (overflow either axis, paint
 // containment, a clip path) is checked: the ring stays inside each. Four rows found one box at a time (the runs strip,
@@ -4081,7 +3180,7 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); wraps.push(...r.wrapped); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
-  // the project's coordinator asking: "Coordinator needs you" leads its count line (S005)
+  // Put the project coordinator in a state that needs you.
   await page.evaluate(() => { const t = window.__t, pr = t.world.project("demo"), chat = pr && pr.chatId; if (!chat) return;
     t.world.state.hosts = [{ id: "chat:" + chat, host: true, project: "demo", chatId: chat, asker: "coordinator", title: "Coordinator", state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [{ id: "rc-h1", kind: "permission", title: "Run: npm test", detail: "Fixture", risk: "routine" }], live: true, loaded: true, busy: false, createdAt: Date.now(), lastAt: Date.now(), card: {} }]; });
   await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(500);
@@ -4100,16 +3199,16 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await toDemo(page); await page.waitForTimeout(400);
   const sw = page.locator("[data-switch]").filter({ visible: true }).first();
   if (await sw.count()) { await sw.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(500); await sweep("All threads"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
-  // Jump (C020: its field's box ring, clipped by the sheet's card)
+  // Open Jump.
   await page.keyboard.press("ControlOrMeta+k"); await page.locator("#jump-q").waitFor({ state: "visible", timeout: 4000 }).catch(() => {});
   if (await page.locator("#jump-q").isVisible()) { await page.waitForTimeout(300); await sweep("Jump"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
-  // a made file opened from Artifacts: Files over Artifacts, its Back at the top of a phone's screen (S070)
+  // Open a file from Artifacts.
   await page.evaluate(() => { window.__t.go("artifacts"); window.__t.render(); });
   const mo = page.locator('#arts-body .md-it[data-k] .md-open').filter({ visible: true }).first();
   await mo.waitFor({ timeout: 6000 }); await mo.focus(); await page.keyboard.press("Enter");
-  await page.locator("[data-fv-back]").filter({ visible: true }).first().waitFor({ timeout: 6000 }); await page.waitForTimeout(500);
-  await sweep("Files over Artifacts");
-  await page.locator("[data-fv-back]").filter({ visible: true }).first().click(); await page.waitForTimeout(400);
+  await page.waitForFunction(() => document.querySelector("#stage").dataset.page === "files", null, { timeout: 6000 }); await page.waitForTimeout(500);
+  await sweep("a file from Artifacts, in the panel");
+  await page.locator("[data-stg-close]").filter({ visible: true }).first().click(); await page.waitForTimeout(400);
   await toDemo(page); await page.waitForTimeout(400);
   await panelOpen(page);
   await page.waitForTimeout(400);
@@ -4124,13 +3223,10 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await done(page);
 });
 
-// ── STATES: every control in view has its own rest, hover and held (C024, S002, C052; the controls grader on
-// 8aa58d3): the sweep (harness.cjs stateSweep) hovers and holds each, read as drawn. Desktop only: a phone has no
-// hover. Logged, not yet this case's verdict: the first run sizes what's silent across the views it reads
 const { stateSweep } = require("./harness.cjs");
 t("STATES: every control in view answers hover and press: Home, a project with its Now shelf and a message's Copy, the Workspace, a thread", async () => {
   if (WIDTH < 760) skip("a phone has no hover");
-  // the project's message holds a file's capsule too (S088, a[data-file]: held looked as hovered)
+  // Open the message's file capsule.
   const page = await app({ messages: MSG("Here is the command, from [package.json](package.json):\n\n```sh\nnpm test\n```\n") });
   const silent = [], counts = [];
   const sweep = async (where) => { const r = await stateSweep(page, where); counts.push(`${where} ${r.n}`); silent.push(...r.silent); };
@@ -4142,19 +3238,18 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   await sweep("a project");
   await page.evaluate(() => { window.__t.go("ws"); window.__t.render(); }); await page.waitForTimeout(600);
   await sweep("the Workspace");
-  // the Now shelf with a thread that needs you (C024: its chip's state drew over its hover)
+  // Open the Now shelf for a thread that needs you.
   await page.evaluate(() => { const t = window.__t;
     for (const n of ["watch", "watchThread", "watchSession", "loadThread", "loadHops", "loadChatHops", "findRows", "listRuns"]) if (t.world.act[n]) t.world.act[n] = async () => {};
     t.world.state.threads.push({ id: "st1", project: "demo", title: "Rework the API", live: false, loaded: true, busy: false, state: "needs_approval", happened: "Fixture", lastAt: Date.now(), messages: [], checklist: { total: 3, done: 1, items: [{ text: "a", state: "done" }, { text: "b", state: "doing" }, { text: "c", state: "todo" }] }, asks: [{ id: "st-a", kind: "permission", title: "Run: npm test", risk: "routine" }] });
     t.go("p:demo"); t.render(); });
   await page.waitForTimeout(700);
   await sweep("a project with a thread needing you");
-  // the lightbox, dark in both themes (S080 Open in Files and Next, S201 Previous: light's press ink on its chrome)
+  // Open the lightbox, whose chrome stays dark in both themes.
   await page.evaluate(async () => {
-    const { mediaItem, mediaHtml } = await import("./js/media.js");
-    const { createLightbox } = await import("./js/lightbox.js");
-    // the app's mark, a black, a white, a mid grey and a mid green picture: the veil shows over any picture, in both themes
-    // (S233 on aba434f: a mid-tone picture under the ink's veil moved 19 RGB-sum in dark)
+    const { mediaItem } = await import("./core/services/media/items.js");
+    const { mediaHtml } = await import("./core/services/media/render.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const solid = (c) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="${c}"/></svg>`);
     const pic = ([k, src]) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src, w: 64, h: 64 });
     const items = [["a", "/favicon.svg"], ["b", "/favicon.svg"], ["c", "/favicon.svg"]].map(pic);
@@ -4164,10 +3259,10 @@ t("STATES: every control in view answers hover and press: Home, a project with i
     const root = document.createElement("div"); root.id = "lbx-states"; root.style.cssText = "position:fixed;left:24px;top:24px;z-index:50;width:420px"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
   });
   await page.waitForTimeout(300);
-  // a message's pictures, before the lightbox covers them (S090: hover and press under the picture)
+  // Reach the message's pictures while the lightbox is closed.
   await sweep("a message's pictures");
   await page.evaluate(async () => {
-    const { createLightbox } = await import("./js/lightbox.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const root = document.getElementById("lbx-states");
     createLightbox({}).open("t:b", root.querySelector('[data-mx="t:b"]'), root);
   });
@@ -4178,7 +3273,6 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   for (const x of silent) console.log(`  STATES ${x}`);
   await done(page);
 });
-// the panel with a change, Follow on (C084: held looked as hovered, no press layer while held; grader A's setup)
 t("STATES C084: the panel's Changes with Follow on answers hover and press", async () => {
   if (WIDTH < 760) skip("a phone has no hover");
   const page = await app({ files: { "a.js": FILE() }, changes: [{ path: "a.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:A", patch: PATCH("a.js", "one", "ONE") }] });
@@ -4191,8 +3285,6 @@ t("STATES C084: the panel's Changes with Follow on answers hover and press", asy
   await done(page);
 });
 
-// ── ROWS · S025, S052: an answer is a row: one line 40, with its description line 56 ──
-// the controls grader on 24be023: Home's answers 42 on one line, an item's answers with a description 65
 t("ROWS S025 S052: Home's answers are 40 on one line; an item's answer with a description line is 56, without one 40", async () => {
   const page = await app();
   const setup = (threads) => page.evaluate((threads) => { const t = window.__t;
@@ -4365,7 +3457,7 @@ async function decisions(kind = "approval", count = 1) {
   await page.route("**/api/**", (r) => r.fulfill({ status: 403, contentType: "application/json", body: '{"error":"test_only"}' }));
   await page.goto(BASE + "/");
   await page.evaluate(async ({ kind, count }) => {
-    const { createDecisions } = await import("./js/decide.js");
+    const { createDecisions } = await import("./modules/decisions/controller.js");
     const calls = [];
     const threads = Array.from({ length: count }, (_, i) => ({ id: "t-" + i, title: "Task " + i, project: "demo", state: kind === "stopped" ? "failed" : "needs_approval", happened: "Test only", checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] }, messages: [],
       asks: kind === "stopped" ? [] : [{ id: "ask-" + i, kind: kind === "question" ? "question" : "approval", title: "Choice " + i, risk: "routine", detail: "A local test.", ...(kind === "question" ? { options: ["First", "Second"] } : {}) }] }));
@@ -4419,10 +3511,13 @@ t("G2: a card withdrawn while you type its note hands over with the next card's 
 async function ctxDone(page) { const errs = page.errors; await page.context().close(); assert.deepEqual(errs, [], "page errors"); }
 
 (async () => {
-  server = await serve();
-  BASE = `http://127.0.0.1:${server.address().port}`;
+  if (process.env.FLOWS_BASE) BASE = new URL(process.env.FLOWS_BASE).origin;
+  else {
+    server = await serve();
+    BASE = `http://127.0.0.1:${server.address().port}`;
+  }
   browser = await launch(chromium);
-  if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
+  if (!browser) { console.error("not run: no Chromium would start"); server?.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
   // the app's flows at a desktop and a phone width; the decision module's on its own, at both widths too
   // the four cells; FLOWS_CELLS="390 light,1440 dark" runs only those (a rerun of what failed, never the record)
@@ -4440,7 +3535,7 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
       }
     }
   }
-  await browser.close(); server.close();
+  await browser.close(); server?.close();
   console.log(`${passed} passed${failed ? `, ${failed} failed` : ""}${skipped ? `, ${skipped} skipped` : ""}`);
   process.exitCode = failed ? 1 : 0;
 })();

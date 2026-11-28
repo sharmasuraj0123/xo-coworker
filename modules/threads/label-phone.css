@@ -1,0 +1,3 @@
+@media (max-width:760px){
+  .tw-label{max-width:var(--w-thread-label-phone)}
+}

@@ -1,0 +1,160 @@
+{
+  "name": "xo-word",
+  "version": "0.3.0",
+  "description": "A document editor you and your agents write in together.",
+  "extensions": {
+    "space.xo": {
+      "id": "dev.example.word",
+      "displayName": "Word",
+      "summary": "Write documents with your agents.",
+      "engines": {
+        "xo-space": ">=0.1 <1",
+        "xo": "^1",
+        "mcpApps": "2026-01-26"
+      },
+      "documents": [
+        {
+          "type": "doc",
+          "label": "Document",
+          "pattern": "**/*.word.json"
+        }
+      ],
+      "permissions": {
+        "required": [
+          {
+            "cap": "files.read",
+            "paths": [
+              "docs/**",
+              "**/*.word.json"
+            ],
+            "why": "To open your documents."
+          },
+          {
+            "cap": "files.write",
+            "paths": [
+              "**/*.word.json"
+            ],
+            "why": "To save what you and your agents write."
+          }
+        ],
+        "optional": [
+          {
+            "cap": "composer.draft",
+            "why": "To suggest a message. Only you send it.",
+            "askWhen": "suggest"
+          },
+          {
+            "cap": "context.update",
+            "why": "So the agent knows which paragraph you mean."
+          }
+        ]
+      },
+      "routes": [
+        "GET /api/chat/chats/{chat_id}/threads",
+        "POST /api/chat/chats/{chat_id}/messages",
+        "GET /api/xo-projects/{project_id}/file"
+      ],
+      "surfaces": [
+        {
+          "id": "editor",
+          "place": "files.viewer.kind",
+          "title": "Word",
+          "view": "ui://dev.example.word/editor",
+          "for": "doc"
+        },
+        {
+          "id": "outline",
+          "place": "panel.page",
+          "title": "Outline",
+          "view": "ui://dev.example.word/outline",
+          "icon": "list"
+        },
+        {
+          "id": "open-outline",
+          "place": "header.action",
+          "title": "Outline",
+          "opens": "outline",
+          "icon": "doc"
+        },
+        {
+          "id": "new",
+          "place": "command",
+          "slash": "/word",
+          "title": "New document",
+          "run": {
+            "tool": "word_create"
+          }
+        },
+        {
+          "id": "delete",
+          "place": "command",
+          "title": "Delete this document",
+          "run": {
+            "tool": "word_delete"
+          }
+        },
+        {
+          "id": "tighten",
+          "place": "command",
+          "slash": "/tighten",
+          "title": "Tighten this",
+          "when": "view == 'thread'",
+          "run": {
+            "prompt": "tighten"
+          }
+        },
+        {
+          "id": "card",
+          "place": "conversation.block",
+          "view": "ui://dev.example.word/card",
+          "maxHeight": 240
+        },
+        {
+          "id": "pick",
+          "place": "decision.evidence",
+          "view": "ui://dev.example.word/pick"
+        },
+        {
+          "id": "prefs",
+          "place": "settings.section",
+          "fields": [
+            {
+              "name": "units",
+              "label": "Units",
+              "type": "select",
+              "options": [
+                "pt",
+                "px"
+              ],
+              "default": "pt"
+            },
+            {
+              "name": "wrap",
+              "label": "Wrap long lines",
+              "type": "checkbox",
+              "default": true,
+              "scope": "project"
+            }
+          ]
+        }
+      ],
+      "tools": {
+        "word_create": {
+          "risk": "routine"
+        },
+        "word_read": {
+          "risk": "routine",
+          "readOnly": true
+        },
+        "word_delete": {
+          "risk": "destructive"
+        },
+        "agent_only": {
+          "visibility": [
+            "model"
+          ]
+        }
+      }
+    }
+  }
+}

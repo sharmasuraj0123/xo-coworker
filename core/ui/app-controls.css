@@ -1,0 +1,52 @@
+:root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
+
+::selection{background:var(--fill-selection)}
+html,body{overflow:clip}
+body{background:var(--sunken)}
+code{font-family:var(--mono)}
+.muted{color:var(--ink-4)}
+button{-webkit-tap-highlight-color:transparent}
+button:disabled{cursor:default}
+
+.g{display:inline-block;flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
+.g-working{color:var(--info);animation:arc-turn 1.6s linear infinite}
+/* the turning working mark: painted only inside its circle, so no square edge turns with it */
+.spin{
+  display:inline-block;flex:none;width:var(--ic-activity);height:var(--ic-activity);color:var(--info);
+  background:radial-gradient(closest-side,currentColor 92%,var(--fill-clear));mask:var(--mask-working);animation:spin 1.6s linear infinite
+}
+.spin.is-load{
+  width:var(--ic-lg);height:var(--ic-lg);mask:var(--mask-load);
+  animation-duration:calc(var(--d-land) * 2);animation-timing-function:steps(8)
+}
+button .spin,.btn .spin{color:inherit}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.g-working,.spin{animation:none}}
+.undo-ring{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
+.undo-ring path{stroke-dasharray:1;stroke-dashoffset:0}
+:is(.hr-undo,.t-undo):has(>.undo-ring){display:inline-flex;align-items:center;gap:var(--s-1);padding-left:var(--s-2)}
+.g-needs_reply,.g-needs_approval,.g-paused{color:var(--warn)}
+.g-done{color:var(--go)}
+.g-failed{color:var(--err-ink)}
+.g-stopped,.g-resolved,.g-held,.g-idle{color:var(--ink-4)}
+.badge.st-working{--st:var(--ink-2)}
+.badge.st-working .g-working{color:var(--info)}
+.tcard.st-held{border-style:dashed;border-color:var(--line-strong)}
+
+.eff{
+  display:inline-flex;align-items:center;gap:var(--s-1);white-space:nowrap;
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)
+}
+.eff b{font-weight:var(--fw-strong);color:var(--ink-2)}
+.eff span{color:var(--ink-4)}
+.dial{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
+.e-glance .dial{color:var(--e-glance)}
+.e-decide .dial{color:var(--e-decide)}
+.e-think .dial{color:var(--e-think)}
+.risk{
+  display:inline-flex;align-items:center;gap:var(--s-1);height:var(--h-risk-badge);padding:0 var(--s-2);border-radius:var(--r-sm);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);white-space:nowrap
+}
+.risk svg{width:var(--ic-xs);height:var(--ic-xs)}
+.risk.r-destructive{background:var(--danger-tint);color:var(--err-ink)}
+.risk.r-stopped{background:var(--fill-clear);color:var(--ink-3);box-shadow:inset 0 0 0 var(--hair) var(--line)}

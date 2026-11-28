@@ -1,0 +1,45 @@
+import type { DecisionApi, DecisionNeed } from "./controller-types.d.ts";
+import type { goneLine } from "./cardparts.js";
+
+export type Thread = { id: string; host?: boolean };
+export type Need = DecisionNeed;
+export type Gone = NonNullable<Parameters<typeof goneLine>[0]> & { at: number };
+
+export type DockState = {
+  key: string | null;
+  item: string | null;
+  busy: boolean;
+  undone: { key: string; end(): void } | null;
+  gen: number;
+};
+
+export type DockScope = import("../../core/kernel/types").Lifetime;
+export type Mount = {
+  scope: DockScope;
+  el: HTMLElement;
+  view: () => string;
+  region: () => HTMLElement;
+};
+
+export type DockDeps = {
+  CH: { isChats(view: string): boolean; confirmHtml(view: string): string };
+  D: {
+    isOpen(): boolean;
+    cardHtml(need: Need, surface: "dock"): string;
+    cardTitle(need: Need): string;
+    wireCard(frame: HTMLElement, inner: Element, need: Need, options: {
+      surface: "dock"; onStep(): void; after(how: string): Promise<void>;
+    }): void;
+    decisions(): { verb: string; said?: string | string[] }[];
+    needItems(): Need[];
+    undo(): boolean;
+    cardKeys: DecisionApi["cardKeys"];
+  };
+  folds: ReturnType<typeof import("./dock-folds.js").createDockFolds>;
+  world: { state: { gone: { get(id: string | null): Gone | undefined } } };
+  convThread: (view: string) => Thread | null;
+  convHost: (view: string) => Thread | null;
+  askShort: (need: Need) => string;
+  schedule: () => void;
+  dockGestures: (dock: HTMLElement, scope: DockScope) => void;
+};

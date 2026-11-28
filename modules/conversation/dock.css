@@ -1,0 +1,27 @@
+/* the thread's own card: after a decision, one calm line, then it folds away */
+
+.dock-hide{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);margin:0 calc(var(--card-in) - var(--card-pad)) 0 auto;padding:0 10px 0 8px;border-radius:calc(var(--nest-r) - var(--nest-in));color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-hide svg{width:var(--ic-sm);height:var(--ic-sm)}
+.dock-hide:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.dock-hide:active{transform:scale(.96)}
+.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;height:calc(var(--note-h) + 2px);padding:0 calc(var(--note-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--glass);border:1px solid transparent;box-shadow:var(--lift-3);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-fold:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
+.dock-fold:active{transform:scale(.99)}
+.df-t{flex:1;min-width:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.df-e{flex:none;font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap}
+.df-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--note-btn);margin-left:var(--s-1);padding:0 var(--s-2) 0 var(--s-3);border-radius:var(--r-pill);background:var(--warn-subtle);color:var(--warn);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+.df-go svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(180deg)}
+.dock-fold.r-stopped .df-go,.dock-fold.r-destructive .df-go{background:var(--err-subtle);color:var(--err-ink)}
+.card.is-dock.r-done{align-items:center;background:none;overflow:visible}
+
+/* records of intelligence changes, in the conversation */
+.ev-rec .ev-ic{color:var(--ink-3)}
+.ev-rec.is-refused .ev-ic{color:var(--err-ink)}
+.ev-undo{flex:none;height:var(--h-sm);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+.ev-undo:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.m-iq{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tc-cw{color:var(--ink-4)}
+.hr-undo{flex:none;margin-left:var(--s-1);height:var(--note-btn);padding:0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
+.hr-undo:hover{background:var(--btn-fill-hover);transition-duration:var(--d-hover-in)}
+
+/* ── intelligence: the chip (quietest thing in the composer) and its popover ── */

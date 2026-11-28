@@ -1,13 +1,18 @@
-// A project's record (js/record.js): what threads made, and what happened since you last looked.
+// A project's record (modules/artifacts, modules/since, core/services/git-state.js, core/ui/virtual.js): what threads made, and what happened since you last looked.
 // Pure; no network.
 //   node tests/record.test.mjs
 import assert from "node:assert/strict";
-import * as R from "../js/record.js";
+import * as Made from "../modules/artifacts/model.js";
+import * as Since from "../modules/since/model.js";
+import * as Git from "../core/services/git-state.js";
+import * as Virtual from "../core/ui/virtual.js";
+
+const R = { ...Made, ...Since, ...Git, ...Virtual };
 
 // js/ui.js (through recordview.js) reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { madeNaming } = await import("../js/recordview.js");
-const S = await import("../js/skeleton.js");
+const { madeNaming } = await import("../modules/artifacts/made.js");
+const S = await import("../modules/home/skeleton.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -17,23 +22,22 @@ const t = (name, fn) => {
 const NOW = Date.parse("2026-11-03T13:00:00Z");
 const H = 3600000;
 const th = (id, state, hoursAgo, extra = {}) => ({ id, project: "p", title: id.toUpperCase(), state, lastAt: NOW - hoursAgo * H, checklist: { items: [] }, happened: "", outputs: [], ...extra });
-const tree = (lost) => ({ exists: true, error: null, would_lose: lost });
-const lost = ({ changed = 0, untracked = 0, commits = 0 } = {}) => ({ changed: { count: changed }, untracked: { count: untracked }, ignored: { count: 0 }, commits });
+const tree = ({ changed = 0, untracked = 0, local_commits = 0, ...rest } = {}) => ({ tree: { exists: true, xo: true, changed, untracked, kept_ignored: 0, local_commits, would_lose: changed + untracked + local_commits > 0, error: null, ...rest } });
 
 t("a made file's kind comes from its type, else its name", () => {
-  assert.equal(R.madeKind({ type: "image/png", name: "a.png" }), "image");
-  assert.equal(R.madeKind({ name: "shot.webp" }), "image");
-  assert.equal(R.madeKind({ type: "text/html", name: "x" }), "page");
-  assert.equal(R.madeKind({ name: "notes.md" }), "doc");
-  assert.equal(R.madeKind({ name: "data.csv" }), "data");
-  assert.equal(R.madeKind({ name: "panel.js" }), "code");
+  const outputs = [
+    { type: "image/png", name: "a.unknown" }, { name: "shot.webp" }, { type: "text/html", name: "x" },
+    { name: "notes.md" }, { name: "data.csv" }, { name: "panel.js" },
+  ];
+  const items = R.madeItems([th("a", "done", 1, { outputs })]);
+  assert.deepEqual(items.map(({ kind }) => kind).reverse(), ["image", "image", "page", "doc", "data", "code"]);
 });
 
 t("made items: newest thread first, a thread's last share first; pins flagged, keys stable", () => {
   const a = th("a", "done", 30, { outputs: [{ path: "one.md" }, { path: "two.png", type: "image/png", bytes: 9 }] });
   const b = th("b", "working", 1, { outputs: [{ path: "dir/three.html", name: "three.html" }] });
   const c = th("c", "done", 2); // shared nothing
-  const items = R.madeItems([a, b, c], { pins: new Set([R.madeKey("a", "one.md")]) });
+  const items = R.madeItems([a, b, c], { pins: new Set(["a|one.md"]) });
   assert.deepEqual(items.map((m) => m.name), ["three.html", "two.png", "one.md"]);
   assert.deepEqual(items.map((m) => m.kind), ["page", "image", "doc"]);
   assert.deepEqual(items.map((m) => m.pinned), [false, false, true]);
@@ -41,21 +45,25 @@ t("made items: newest thread first, a thread's last share first; pins flagged, k
   assert.equal(items[0].key, "b|dir/three.html");
 });
 
+const galleryItems = (items, options) => R.artsView(items, options).groups.flatMap(({ items: group }) => group);
+
 t("made: filter by kind and words (the thread's title counts); groups drop empty ones", () => {
   const items = R.madeItems([th("a", "done", 200, { outputs: [{ path: "x.md" }, { path: "y.png" }] }), th("b", "done", 1, { outputs: [{ path: "z.md" }] })]);
-  assert.deepEqual(R.filterMade(items, { kind: "doc" }).map((m) => m.name), ["z.md", "x.md"]);
-  assert.deepEqual(R.filterMade(items, { q: "Y.P" }).map((m) => m.name), ["y.png"]);
-  assert.deepEqual(R.filterMade(items, { q: "b" }).map((m) => m.name), ["z.md"]);
-  const g = R.madeGroups(items.map((m, i) => (i === 2 ? { ...m, pinned: true } : m)), NOW);
+  assert.deepEqual(galleryItems(items, { kind: "doc" }).map((m) => m.name), ["z.md", "x.md"]);
+  assert.deepEqual(galleryItems(items, { q: "Y.P" }).map((m) => m.name), ["y.png"]);
+  assert.deepEqual(galleryItems(items, { q: "b" }).map((m) => m.name), ["z.md"]);
+  const g = R.artsView(items.map((m, i) => (i === 2 ? { ...m, pinned: true } : m)), { now: NOW }).groups;
   assert.deepEqual(g.map((x) => x.id), ["pinned", "today", "earlier"]);
 });
 
-t("git words from a worktree: uncommitted beats unpushed; ignored files and nothing lost are saved", () => {
-  assert.deepEqual(R.gitState(tree(lost({ changed: 2, untracked: 1, commits: 3 }))), { group: "unsaved", word: "3 files not committed", n: 3 });
-  assert.deepEqual(R.gitState(tree(lost({ commits: 1 }))), { group: "unpushed", word: "1 commit not pushed", n: 1 });
-  assert.equal(R.gitState(tree(lost())).group, "saved");
-  assert.equal(R.gitState(tree(null)).group, "saved");
-  assert.equal(R.gitState({ exists: false }).group, "none");
+t("git words from Space's tree state: uncommitted beats unpushed; nothing lost is saved; a tree not known says nothing", () => {
+  assert.deepEqual(R.gitState(tree({ changed: 2, untracked: 1, local_commits: 3 })), { group: "unsaved", word: "3 files not committed", n: 3 });
+  assert.deepEqual(R.gitState(tree({ local_commits: 1 })), { group: "unpushed", word: "1 commit not pushed", n: 1 });
+  assert.equal(R.gitState(tree()).group, "saved");
+  assert.equal(R.gitState(tree({ changed: 1, error: "git timed out" })).group, "unsaved", "an unreadable tree keeps its last counts");
+  assert.equal(R.gitState({ tree: { exists: false, changed: 4 } }).group, "none");
+  assert.equal(R.gitState({ tree: null }).group, "none");
+  assert.equal(R.gitState({ tree: { exists: null, changed: null, error: "git timed out" } }).group, "none", "a tree never read is not known");
   assert.equal(R.gitState(undefined).group, "none");
 });
 
@@ -70,8 +78,8 @@ t("since you left: only what moved (or needs you), in the order you'd act on it"
     th("busy", "working", 1),                  // uncommitted work while working is normal: still going
     th("broke", "failed", 3),
   ];
-  const trees = new Map([["dirty", tree(lost({ untracked: 1 }))], ["ahead", tree(lost({ commits: 2 }))], ["busy", tree(lost({ changed: 4 }))]]);
-  const cu = R.catchUp(threads, { since, needing: new Set(["ask"]), trees });
+  const git = { dirty: tree({ untracked: 1 }), ahead: tree({ local_commits: 2 }), busy: tree({ changed: 4 }) };
+  const cu = R.catchUp(threads.map((x) => ({ ...x, git: git[x.id] })), { since, needing: new Set(["ask"]) });
   assert.deepEqual(cu.groups.map((g) => [g.id, g.items.map((x) => x.t.id)]), [
     ["needs", ["ask"]], ["unsaved", ["dirty"]], ["unpushed", ["ahead"]], ["stopped", ["broke"]], ["finished", ["clean"]], ["going", ["busy"]],
   ]);
@@ -116,17 +124,17 @@ t("seen: per place, kept in the store, survives a fresh read", () => {
 
 t("a newer backend's git state: merged says shipped (with its PR); pushed, unpushed and nothing to ship", () => {
   const g = (x) => ({ branch: "b", branch_exists: true, commits: 2, merged: false, upstream: null, unpushed: null, pr: null, ...x });
-  assert.deepEqual(R.gitState(null, g({ merged: true, pr: { number: 37, url: "u", state: "MERGED" } })), { group: "shipped", word: "merged · PR #37", n: 0, url: "u" });
-  assert.equal(R.gitState(null, g({ merged: true })).word, "merged");
-  assert.deepEqual(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0, pr: { number: 9, state: "OPEN", url: "p" } })), { group: "unmerged", word: "PR #9 open", n: 0, url: "p" });
-  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 0 })).word, "pushed, no PR");
-  assert.equal(R.gitState(null, g({ upstream: { pushed: true }, unpushed: 3 })).word, "3 commits not pushed");
-  assert.equal(R.gitState(null, g({ upstream: null })).word, "2 commits not pushed");    // no upstream: all its own commits
-  assert.equal(R.gitState(null, g({ commits: 0 })).group, "saved");
-  // uncommitted files still come first, from the worktree; a removed tree keeps its last git state
-  assert.equal(R.gitState(tree(lost({ changed: 1 })), g({ merged: true })).group, "unsaved");
-  assert.equal(R.gitState({ exists: false, git: g({ merged: true }) }).group, "shipped");
-  assert.equal(R.gitState({ ...tree(null), git: g({ merged: true }) }).group, "shipped");
+  assert.deepEqual(R.gitState(g({ merged: true, pr: { number: 37, url: "u", state: "MERGED" } })), { group: "shipped", word: "merged · PR #37", n: 0, url: "u" });
+  assert.equal(R.gitState(g({ merged: true })).word, "merged");
+  assert.deepEqual(R.gitState(g({ upstream: { pushed: true }, unpushed: 0, pr: { number: 9, state: "OPEN", url: "p" } })), { group: "unmerged", word: "PR #9 open", n: 0, url: "p" });
+  assert.equal(R.gitState(g({ upstream: { pushed: true }, unpushed: 0 })).word, "pushed, no PR");
+  assert.equal(R.gitState(g({ upstream: { pushed: true }, unpushed: 3 })).word, "3 commits not pushed");
+  assert.equal(R.gitState(g({ upstream: null })).word, "2 commits not pushed");    // no upstream: all its own commits
+  assert.equal(R.gitState(g({ commits: 0 })).group, "saved");
+  // uncommitted changes still come first; a removed tree keeps its branch's state
+  assert.equal(R.gitState(g({ merged: true, ...tree({ changed: 1 }) })).group, "unsaved");
+  assert.equal(R.gitState(g({ merged: true, tree: { exists: false } })).group, "shipped");
+  assert.equal(R.gitState(g({ merged: true, ...tree() })).group, "shipped");
 });
 
 t("since you left with git states: shipped and not merged get their own groups, and the headline says so", () => {
@@ -152,7 +160,7 @@ t("made from the backend: its rows in the same shape, links and branches kept, m
   assert.equal(items[1].exists, false);
   assert.deepEqual([items[2].pinned, items[2].fileProject, items[2].rel, items[2].threadTitle, items[2].title], [true, "p", ".xo/made/thread-a/plan.md", "Alpha", null]);
   assert.deepEqual(R.madeFromServer(null), []);
-  assert.deepEqual(R.filterMade(items, { kind: "link" }).map((m) => m.key), ["m2"]);
+  assert.deepEqual(galleryItems(items, { kind: "link" }).map((m) => m.key), ["m2"]);
 });
 
 t("a made file's own title and its thread's title are kept apart (the server's rows and the threads' outputs)", () => {
@@ -168,9 +176,9 @@ t("a made file's own title and its thread's title are kept apart (the server's r
     [null, "Notes", "old.md"],
   ]);
   // a search finds a file by its own title, its name, and the thread that made it
-  assert.deepEqual(R.filterMade(items, { q: "dark, narrow" }).map((m) => m.key), ["m1"]);
-  assert.deepEqual(R.filterMade(items, { q: "picker" }).map((m) => m.key), ["m1", "m2"]);
-  assert.deepEqual(R.filterMade(items, { q: "old.md" }).map((m) => m.key), ["m3"]);
+  assert.deepEqual(galleryItems(items, { q: "dark, narrow" }).map((m) => m.key), ["m1"]);
+  assert.deepEqual(galleryItems(items, { q: "picker" }).map((m) => m.key), ["m1", "m2"]);
+  assert.deepEqual(galleryItems(items, { q: "old.md" }).map((m) => m.key), ["m3"]);
   // the older Made (a thread's outputs) carries a file's title the same way, and its thread's title apart
   const out = R.madeItems([th("t", "done", 1, { title: "Make the deck", outputs: [{ path: "deck/cover.png", title: "The cover" }, { path: "deck/notes.md" }] })]);
   assert.deepEqual(out.map((m) => [m.name, m.title, m.threadTitle]), [["notes.md", null, "Make the deck"], ["cover.png", "The cover", "Make the deck"]]);

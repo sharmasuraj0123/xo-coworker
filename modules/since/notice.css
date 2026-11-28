@@ -1,0 +1,65 @@
+.since .sl{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-2);margin:0;
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.since .sl>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
+.sl-k{color:var(--ink-3)}
+.sl-part{height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);color:var(--ink-2);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums}
+.sl-part:hover{background:var(--hover-fill);color:var(--ink)}
+.sl-part.t-amber{color:var(--warn)}
+.sl-part.t-red{color:var(--err-ink)}
+.sl-sep{color:var(--ink-5)}
+.sl-x{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:auto;border-radius:var(--r-sm);color:var(--ink-4)}
+.sl-x:hover{background:var(--hover-fill);color:var(--ink)}
+.sl-x svg{width:var(--ic-sm);height:var(--ic-sm)}
+.sl-n{white-space:nowrap}
+.sl-n.t-amber{color:var(--warn)}
+.sl-n.t-red{color:var(--err-ink)}
+/* Home: one capsule; its glyphs sit as far from the ends as from the top, so they're concentric with it */
+.sl-home{margin:var(--s-4) 0 var(--s-6);animation:rise-in var(--d-in) var(--ease)}
+.sl-open{--sl-end:calc((var(--h-lg) - var(--ic)) / 2);display:inline-flex;align-items:center;gap:var(--s-2);max-width:100%;
+  height:var(--h-lg);padding:0 var(--sl-end);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap;
+  transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.sl-open:hover{background:var(--btn-fill-hover)}
+.sl-open:active{background:var(--btn-fill-press);transform:scale(var(--press-scale))}
+.sl-open>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
+.sl-open-n{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3);
+  font-weight:var(--fw-regular);font-variant-numeric:tabular-nums}
+/* The sheet: every inset is --nest-in, so the close circle, the list and the button are concentric with its corners */
+.dlg.sl-sheet{--nest-r:var(--r-card);--nest-in:var(--card-in);--sl-in:calc(var(--nest-in) - var(--hair));
+  --sl-text:var(--s-4);
+  flex-direction:column;border-radius:var(--nest-r);background:var(--sunken);overflow:hidden}
+.dlg.sl-sheet[open]{display:flex}
+.sl-sh{--sl-ring:calc(var(--comp-in) - var(--hair));flex:none;display:flex;align-items:flex-start;gap:var(--s-3);
+  padding:var(--sl-ring) var(--sl-ring) var(--nest-in) calc(var(--sl-in) + var(--sl-text))}
+.sl-sh-t{flex:1;min-width:0;padding-top:calc((var(--comp-ctl) - var(--lh-heading)) / 2)}
+.sl-sh h2{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20)}
+.sl-sh p{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sl-sx{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:var(--r-pill);
+  background:var(--btn-fill);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.sl-sx:hover{background:var(--btn-fill-hover);color:var(--ink)}
+.sl-sx svg{width:var(--ic);height:var(--ic)}
+.sl-list{flex:0 1 auto;min-height:0;margin:0 var(--sl-in);padding:0;list-style:none;overflow-y:auto;overscroll-behavior:contain;
+  border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--surface)}
+.sl-row{position:relative;display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-list);
+  padding:var(--s-3) var(--s-3) var(--s-3) var(--sl-text);text-align:left;color:var(--ink);transition:background var(--d-hover) var(--ease)}
+.sl-row:hover{background:var(--hover-fill)}
+.sl-row:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.sl-row:focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
+li+li>.sl-row::before{content:"";position:absolute;top:0;right:0;left:var(--sl-text);border-top:var(--hair) solid var(--line-soft)}
+.sl-row-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--gap-control-tight)}
+.sl-row-p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-title)/var(--lh-title) var(--sans)}
+.sl-row-s{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.sl-row-s .sl-sep{color:inherit}
+.sl-row>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4)}
+.sl-sf{flex:none;padding:var(--nest-in) var(--sl-in) var(--sl-in)}
+.sl-seen{display:flex;align-items:center;justify-content:center;width:100%;height:var(--h-row-act);
+  border-radius:calc(var(--nest-r) - var(--nest-in));
+  background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);
+  transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.sl-seen:hover{background:var(--btn-fill-hover)}
+.sl-seen:active{background:var(--btn-fill-press);transform:scale(var(--press-scale))}
+@media (max-width:760px){
+  .dlg.sl-sheet{width:100vw;max-width:none;margin:auto 0 0;border-width:var(--hair) 0 0;border-radius:var(--nest-r) var(--nest-r) 0 0}
+  .sl-sf{padding-bottom:calc(var(--sl-in) + env(safe-area-inset-bottom))}
+}

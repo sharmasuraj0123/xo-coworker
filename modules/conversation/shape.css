@@ -1,0 +1,5 @@
+/* The simple model choice. */
+.iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
+
+/* Failed steps in the text summary. */
+.tb-wbad{margin:var(--s-1) 0 0 var(--s-6)}

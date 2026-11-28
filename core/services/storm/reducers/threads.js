@@ -1,0 +1,59 @@
+// @ts-check
+import { invalidField, rejectFrame } from "../frame-failures.js";
+import { text } from "../../world/frame-values.js";
+import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
+import { isBranch } from "../../../platform/record-responses.js";
+
+/** @typedef {import("../types").Reducer} Reducer */
+
+/** @type {Record<string, Reducer>} */
+export const threads = {
+  thread(ctx, env, d) {
+    const { state, rawThreads } = ctx;
+    if (!isThread(d) || !d.ts) return rejectFrame(ctx, "thread", d.ts ? invalidField(d, { ts: "thread" }, isThread) : "ts");
+    const ts = d.ts;
+    const old = rawThreads.get(ts);
+    if (!old && !d.chat_id) { ctx.refetchThread(env.chat_id, ts); return; }
+    const now = Date.now();
+    const thread = ctx.threadRecords.write(ts, {
+      ...d, _at: now, ...("busy" in d ? { _readAt: now } : {}), ...ctx.sessRead(d, { at: now, seq: env.seq ?? state.lastSeq }),
+      chat_id: d.chat_id || old?.chat_id || env.chat_id || undefined, updated_at: d.updated_at || env.ts || old?.updated_at,
+    });
+    if (thread && !thread.session) ctx.fillSession(thread.chat_id, ts);
+    ctx.soon();
+  },
+  // the old thread froze and a linked new thread starts from its work
+  "thread.continued"(ctx, env, d) {
+    const { state, rawThreads } = ctx;
+    const old = text(d.from) || env.thread_ts;
+    const to = text(d.to);
+    if (old) { state.moves[old] = { to, text: text(d.text), at: env.ts ?? "" }; ctx.event({ kind: "moved", thread: old, project: ctx.projectOf(env.chat_id), to, agent: text(d.agent), by: text(d.by) || null }); }
+    if (env.chat_id && old) ctx.refetchThread(env.chat_id, old);
+    if (env.chat_id && to && !rawThreads.has(to)) ctx.refetchThread(env.chat_id, to);
+    ctx.soon();
+  },
+  // a coordinator steered, interrupted or stopped a thread: kept for the thread's timeline
+  "thread.control"(ctx, env, d) {
+    if (!ctx.noteControl(env, d)) return;
+    // a new model or effort on the same session: the thread's read carries it
+    if (d.action === "setup" && env.chat_id && env.thread_ts) ctx.refetchThread(env.chat_id, env.thread_ts);
+    ctx.soon();
+  },
+  // Space's stored git state for the thread, replaced whole whenever any of it changed
+  "thread.git"(ctx, env, d) {
+    const ts = typeof d.ts === "string" ? d.ts : env.thread_ts;
+    if (!ts) return rejectFrame(ctx, "thread.git", "ts");
+    if (d.git != null && !isBranch(d.git)) return rejectFrame(ctx, "thread.git", "git");
+    if (!ctx.rawThreads.has(ts)) return;
+    ctx.threadRecords.write(ts, { git: d.git ?? null });
+    ctx.soon();
+  },
+  card(ctx, env, d) {
+    if (typeof d.ts !== "string") return rejectFrame(ctx, "card", "ts");
+    const r = ctx.rawThreads.get(d.ts);
+    if (d.card != null && !isThreadCard(d.card)) return rejectFrame(ctx, "card", "card");
+    if (!r) return;
+    ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at });
+    ctx.soon();
+  },
+};

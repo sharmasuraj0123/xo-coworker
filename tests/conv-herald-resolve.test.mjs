@@ -1,14 +1,9 @@
-// A thread's resolve has one notice (C041, the controls grader on 1ef7056): a refused resolve says "Couldn't resolve it
-// · Retry"; when a later resolve of the same thread goes through, that notice is replaced (on screen or waiting), or
-// taken away when the outcome has nothing to say. It never stays with a live Retry that would resolve the thread again.
-// The real herald (js/herald.js) with a hand-moved clock, and how the app's resolveThread uses it (js/app.js).
-//   node tests/conv-herald-resolve.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createThreadResolve } from "../modules/threads/resolve.js";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
-const H = await import("../js/herald.js");
+const H = await import("../core/services/notices.js");
 const clock = () => { let now = 1000, timers = []; return { now: () => now, set: (fn, ms) => { timers.push({ at: now + ms, fn }); return timers.length; }, clear: () => {}, tick(ms) { now += ms; const due = timers.filter((x) => x.at <= now); timers = timers.filter((x) => x.at > now); due.forEach((x) => x.fn()); } }; };
 const make = () => { const c = clock(), state = { herald: null }; const her = H.createHerald({ state, now: c.now, setTimer: c.set, clearTimer: c.clear }); return { c, state, her }; };
 const about = "resolve:t1";
@@ -60,14 +55,35 @@ await t("an unrelated notice is never dropped with this thread's", () => {
   assert.equal(state.herald.text, "Stopped the run");
 });
 
-await t("the app's resolveThread gives both of its notices the thread's subject, and drops it when it has nothing to say", () => {
-  const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-  const i = app.indexOf("function resolveThread("), body = app.slice(i, app.indexOf("\n}\n", i));
-  assert.match(body, /const about = `resolve:\$\{tid\}`/, "one subject per thread");
-  assert.match(body, /heraldFor\(about,/, "a notice changed in place first");
-  assert.equal((body.match(/mid: about/g) || []).length, 2, "the refusal's and the success's notices both carry it");
-  assert.equal((body.match(/else heraldDrop\(about\)/g) || []).length, 2, "an outcome with nothing to say takes the old notice away");
-  assert.doesNotMatch(body, /heraldShow\(\{ kind: "(stopped|done)"/, "no notice of a resolve is shown without its subject");
+await t("resolve replaces and dismisses the previous notice for the same thread", async () => {
+  const { c, state, her } = make();
+  globalThis.CSS = { escape: (id) => id };
+  let refused = true;
+  const calls = [];
+  const resolveThread = createThreadResolve({
+    world: {
+      thread: () => ({ title: "Fix the login form" }),
+      act: { async resolve(id, value) { calls.push([id, value]); if (refused) throw new Error("Fixture refused"); } },
+    },
+    schedule() {}, announce() {}, heraldFor: her.forMsg, heraldShow: her.show, heraldDrop: her.drop,
+  });
+  assert.deepEqual(await resolveThread("t1", true), { ok: false, why: "Fixture refused" });
+  assert.equal(state.herald.mid, about);
+  assert.equal(state.herald.undoLabel, "Retry");
+  refused = false;
+  await state.herald.undo();
+  assert.equal(state.herald.mid, about);
+  assert.equal(state.herald.text, "Resolved");
+  assert.equal(her.HQ.length, 0);
+  refused = true;
+  await resolveThread("t1", false, { sayFail: false });
+  assert.ok(state.herald.until <= c.now());
+  await resolveThread("t1", false);
+  assert.equal(state.herald.text, "Couldn't reopen it");
+  refused = false;
+  await resolveThread("t1", false, { undo: false });
+  assert.ok(state.herald.until <= c.now());
+  assert.deepEqual(calls, [["t1", true], ["t1", true], ["t1", false], ["t1", false], ["t1", false]]);
 });
 
 console.log(`${passed} passed`);

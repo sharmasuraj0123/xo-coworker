@@ -1,0 +1,52 @@
+/* The cascade's layers, lowest first; a sheet not yet in one outranks them all. */
+@layer reset, tokens, foundation, components, shell, modules, apps, theme, density, phone;
+@import url("./tokens.css") layer(tokens);
+@import url("../../css/flavours.css");
+@import url("../../css/flavour-swatches.css");
+@import url("./inverse-surfaces.css") layer(tokens);
+
+@layer reset{
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+}
+
+[hidden]{display:none!important}
+
+@layer foundation{
+:focus-visible{outline:var(--stroke-focus-outline) solid var(--focus);outline-offset:0}
+/* Reserve scroll space for complete focus rings without affecting snapping rows. */
+:where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+kbd{
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:var(--s-keycap-block) var(--s-keycap-inline);
+  border:var(--hair) solid var(--line);border-bottom-width:var(--stroke-keycap-base);border-radius:var(--r-sm);color:var(--ink-3)
+}
+/* Control transitions share the timing tokens and yield to component rules. */
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]){transition-property:background-color,border-color,color,box-shadow,opacity,transform;transition-duration:var(--d-hover);transition-timing-function:var(--ease)}
+/* Restrict fast hover feedback to controls so unrelated descendants retain their release time. */
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
+:where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
+
+/* Outline icons use a constant stroke and square caps so short segments stay visible. */
+svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:var(--stroke-outline-icon);stroke-linecap:square;stroke-linejoin:miter}
+svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,polygon,circle,rect,ellipse){vector-effect:non-scaling-stroke}
+/* XO icons keep their own path strokes and let the component determine their size. */
+:where(svg.xi:not(.xo-mark)){width:var(--ic);height:var(--ic)}
+:where(svg.xi.ic-xs){width:var(--ic-xs);height:var(--ic-xs)}
+:where(svg.xi.ic-sm){width:var(--ic-sm);height:var(--ic-sm)}
+:where(svg.xi.ic-lg){width:var(--ic-lg);height:var(--ic-lg)}
+
+}
+
+.kb-ic{width:1em;height:1em;vertical-align:calc(var(--cap-mid) - .5em)}
+[role=menu] :is([role=menuitem],[role=menuitemradio]){transition:none}
+[role=menu] :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}
+[role=menu]{animation:float-in-down var(--d-out) var(--ease)}
+
+@media (prefers-reduced-motion:reduce){
+  /* Zero-duration transitions let newly visible controls take focus immediately. */
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important}
+}

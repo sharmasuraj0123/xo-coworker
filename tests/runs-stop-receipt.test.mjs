@@ -1,68 +1,215 @@
-// What a sub-agent Stop's answer says is only what it confirms, said in the Runs sheet where you acted as well as in
-// the notice, with focus kept on the Stop (the create-project grader on 2a8d278, S100/S101/S239, runs-stop):
-// - an answer that confirms no stop ({}, {ok:false}, {stopping:null}) said "Stopping";
-// - Stop all's [] said "already finished", but stop_all also answers [] when no live process runs them;
-// - a refusal (503) was said only in #herald, behind the open sheet;
-// - after the answer focus went to the sheet, though its Stop was still there;
-// - the Undo inside its line: 6 px corners in a 6 px line, insets 3 and 4 (never concentric).
-//   node tests/runs-stop-receipt.test.mjs
+// @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mock } from "node:test";
+import { context } from "./lib/cascade.mjs";
+import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
+import { deferred, dom } from "./lib/dom.mjs";
+import { createRunsPanel } from "../modules/runs/panel.js";
+import { createRunsPage } from "../modules/runs/page.js";
+import { createPendingRunStops } from "../core/services/run-stops.js";
+import { createRunsStop } from "../modules/runs/stop.js";
+import { createScope } from "../core/kernel/scope.js";
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const view = readFileSync(new URL("../js/runsview.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const i = app.indexOf("function stopRunsUndo("), body = app.slice(i, app.indexOf("\nrunsEl.addEventListener(\"click\"", i));
 
-t("the answer is read for what it confirms: sent, ended (one run), none sent (all), or unconfirmed", () => {
-  assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/);
-  const j = app.indexOf("function stopReceipt("), f = app.slice(j, app.indexOf("\n}\n", j));
-  assert.match(f, /all \? Array\.isArray\(r\.stopping\) && r\.stopping\.length > 0 : r\.stopping === true/, "sent: true (one run), or the runs it went to (all)");
-  assert.match(f, /!all && r && r\.stopping === false/, "one run that had ended (stop_run refuses a live record with run_not_live)");
-  assert.match(f, /all && r && Array\.isArray\(r\.stopping\) && !r\.stopping\.length/, "Stop all's []: no stop went out");
-  assert.doesNotMatch(f.slice(f.indexOf("Array.isArray(r.stopping) && !r.stopping.length")), /^[^\n]*already finished/m, "[] never claims they finished");
-  assert.match(f, /didn't confirm/, "anything else: not confirmed");
+function stopFixture() {
+  const state = { open: true, session: "team", said: null };
+  const pendingStops = createPendingRunStops(), stopsOut = new Set(), notices = [], reads = [];
+  const stop = createRunsStop(state, {
+    pendingStops, stopsOut, commitMs: 3000, scope: createScope(),
+    heraldShow: (notice) => notices.push(notice),
+    readRunsList: async (session) => { reads.push(session); return true; },
+    stopsHerald() {}, runsRender() {}, announce() {},
+  });
+  return { state, pendingStops, stopsOut, notices, reads, stop };
+}
+
+mock.timers.enable({ apis: ["setTimeout"] });
+try {
+  const cases = [
+    ["run:a", { stopping: true }, "Stopping"],
+    ["run:a", { stopping: false }, "It had already finished"],
+    ["run:a", { stopping: ["a"] }, "Not confirmed"],
+    ["run:a", {}, "Not confirmed"],
+    ["all:team", { stopping: ["a"] }, "Stopping"],
+    ["all:team", { stopping: [] }, "No stop went out"],
+    ["all:team", { stopping: false }, "Not confirmed"],
+  ];
+  for (const [key, reply, expected] of cases) {
+    const { state, notices, reads, stop } = stopFixture();
+    stop("Helper", async () => reply, key);
+    mock.timers.tick(3000);
+    await Promise.resolve();
+    t(`stop receipt for ${key} and ${JSON.stringify(reply)}`, () => {
+      assert.equal(state.said?.key, key);
+      assert.equal(state.said?.text, expected);
+      assert.equal(notices[0]?.text, expected);
+      assert.deepEqual(reads, ["team"]);
+    });
+  }
+
+  const { state, pendingStops, stopsOut, stop } = stopFixture();
+  const response = deferred();
+  let sends = 0;
+  const request = () => { sends++; return response.promise; };
+  stop("Helper", request, "run:a");
+  stop("Helper", request, "run:a");
+  mock.timers.tick(2999);
+  t("a pending stop allows one Undo and sends nothing before it expires", () => {
+    assert.equal(pendingStops.pending().length, 1);
+    assert.equal(sends, 0);
+  });
+  mock.timers.tick(1);
+  stop("Helper", request, "run:a");
+  mock.timers.tick(3000);
+  t("once sent, the stop stays busy and ignores repeats until its reply", () => {
+    assert.equal(pendingStops.pending().length, 0);
+    assert.equal(sends, 1);
+    assert.equal(stopsOut.has("run:a"), true);
+    assert.equal(state.said?.text, "Sending the stop…");
+  });
+  response.resolve({ stopping: true });
+  await Promise.resolve();
+  assert.equal(stopsOut.has("run:a"), false);
+
+  stop("Another helper", request, "run:b");
+  pendingStops.undo("run:b");
+  mock.timers.tick(3000);
+  t("an undone stop never sends its request", () => {
+    assert.equal(pendingStops.pending().length, 0);
+    assert.equal(sends, 1);
+  });
+
+  stop("Helper", request, "run:b");
+  mock.timers.tick(1000);
+  pendingStops.undo("run:b");
+  stop("Helper", request, "run:b");
+  mock.timers.tick(2000);
+  t("the undone job's timer cannot claim its replacement", () => {
+    assert.equal(pendingStops.pending().length, 1);
+    assert.equal(sends, 1);
+  });
+  mock.timers.tick(1000);
+  await Promise.resolve();
+  assert.equal(sends, 2);
+} finally {
+  mock.timers.reset();
+}
+
+{
+  const { document } = await dom('<section id="runs"></section>');
+  const host = document.querySelector("#runs");
+  const response = deferred();
+  const notices = [];
+  const pendingStops = createPendingRunStops();
+  const run = { id: "agent", state: "running", kind: "subagent", title: "Read the list" };
+  let posts = 0;
+  let listReads = 0;
+  const page = createRunsPage({
+    stage: {
+      isOpen: false,
+      show() { page.page.mount(host); return true; },
+    },
+    world: {
+      state: { runs: new Map([[run.id, run]]) },
+      act: {
+        feature: () => true,
+        async listRuns() { listReads++; return { runs: [run] }; },
+        stopRun() { posts++; return response.promise; },
+      },
+    },
+    transcript: { open: () => ({}), toggle() {} },
+    headFor: () => null,
+    pendingStops,
+    stopsHerald() {},
+    announce() {},
+    heraldShow: (notice) => notices.push(notice),
+    commitMs: 3000,
+  });
+  await page.open({ sessionId: "team", title: "Team" });
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    host.querySelector("[data-run-stop]").click();
+    mock.timers.tick(3000);
+    assert.equal(posts, 1);
+    page.dispose();
+    response.resolve({ stopping: true });
+    await Promise.resolve();
+    t("a mounted Runs page ignores a Stop receipt after disposal", () => {
+      assert.deepEqual(notices, []);
+      assert.equal(listReads, 1);
+      assert.equal(page.isOpen, false);
+    });
+  } finally {
+    mock.timers.reset();
+  }
+}
+
+t("the pending stop reserves the same inset above, below, and after Undo", () => {
+  const styles = publishedRules().filter((rule) => context(rule, 1440).active);
+  const values = (selector) => Object.fromEntries(styles.filter((rule) => rule.sel === selector)
+    .flatMap(({ declarations }) => declarations).map(({ p, v }) => [p, resolveValue(v)]));
+  assert.equal(values(".rn-stopping").padding, "2px 2px 2px 12px");
+  assert.equal(values(".rn-stopping")["border-radius"], "8px");
+  assert.equal(values(".rn-stopping>.t-undo").height, "36px");
 });
-t("it's said in the sheet, where you acted, as well as in the notice", () => {
-  assert.match(body, /RS\.said = \{ key, \.\.\.said \};/);
-  assert.match(app, /saidFor: RS\.said/, "the sheet is drawn with it");
-  assert.match(view, /export function saidHtml\(said, key\)/);
-  assert.match(view, /role="\$\{said\.kind === "halt" \? "status" : "alert"\}"/);
-  assert.match(view, /saidHtml\(saidFor, `run:\$\{r\.id\}`\)/, "a run's own Stop: under its row");
-  assert.match(view, /saidHtml\(saidFor, `all:/, "Stop all: at the top of the list");
-});
-t("a redraw keeps focus on the same control, found by its hook's name and value; the sheet only if it's gone", () => {
-  const r = app.slice(app.indexOf("function runsRender()"), app.indexOf("\n}\n", app.indexOf("function runsRender()")));
-  assert.match(r, /const hook = runsHook\(document\.activeElement\);/);
-  assert.match(r, /const same = hook && runsCard\.querySelector\(hook\);/);
-  assert.match(r, /\(same && usable\(same\) \? same : runsCard\)\.focus\(\{ preventScroll: true \}\);/);
-});
-t("the Undo in its line: an even 2 px inset, and the line's corners its own plus the inset (6 + 2 = 8)", () => {
-  assert.match(css, /\.rn-stopping\{[^}]*padding:2px 2px 2px 12px;[^}]*border-radius:var\(--r\);/);
-  assert.match(css, /\.rn-stopping>\.t-undo\{height:36px\}/);
-});
-// each endpoint's answer is read in its own type (the create-project grader on 8d8b244, runs-stop-types: routers/
-// cowork_agent/storm/runs.py gives stop_run {run, stopping: bool} and stop_all {stopping: [ids]}; a one-run
-// {stopping:['a1']} said it was sent, and a Stop all {stopping:false} said it had finished)
-t("one run's answer is a boolean, Stop all's an array: the other type confirms nothing", () => {
-  const j = app.indexOf("function stopReceipt("), f = app.slice(j, app.indexOf("\n}\n", j));
-  assert.match(f, /function stopReceipt\(r, what, all\)/);
-  assert.match(f, /const sent = !!r && \(all \? Array\.isArray\(r\.stopping\) && r\.stopping\.length > 0 : r\.stopping === true\);/);
-  assert.match(f, /if \(!all && r && r\.stopping === false\)/, "had ended: one run only");
-  assert.match(f, /if \(all && r && Array\.isArray\(r\.stopping\) && !r\.stopping\.length\)/, "none went out: Stop all only");
-  assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/, "the endpoint from the stop's key");
-});
-// once the Undo is over and the request is out, the sheet says so and the Stop waits (the create-project grader on
-// 8d8b244, runs-stop-types request-visible: Stop stayed enabled, "Stop", aria-busy null, and nothing was said until
-// the answer)
-t("a stop on its way: its line says it's being sent, and its Stop is busy and takes no repeat", () => {
-  const k = body.indexOf("job.sent = true;"), sent = body.slice(k, body.indexOf("try {", k));
-  assert.match(sent, /stopsOut\.add\(key\);\s*RS\.said = \{ key, kind: "halt", text: "Sending the stop…", sub: what \};\s*runsRender\(\);/, "said, then drawn, once it's out");
-  assert.match(app, /out: \[\.\.\.stopsOut\]/, "the sheet knows what's on its way");
-  assert.match(view, /const busy = out\.includes\(`run:\$\{r\.id\}`\);/);
-  assert.match(view, /\$\{busy \? ' aria-busy="true" aria-disabled="true"' : ""\}>\$\{ICON\.stop\}<span>\$\{busy \? "Stopping…" : "Stop"\}<\/span>/);
-  assert.match(view, /out\.includes\(`all:\$\{session\}`\)/, "Stop all too");
-});
+{
+  const { document } = await dom('<section id="runs"></section>');
+  const panel = document.getElementById("runs");
+  const key = "run:agent";
+  const runs = [{ id: "agent", kind: "subagent", state: "running", title: "Read the list" }];
+  const RS = { open: true, view: "list", session: "team", listState: "loading", tree: runs, said: null };
+  const pendingStops = createPendingRunStops(), stopsOut = new Set();
+  const { runsRender, runsLand } = createRunsPanel({ RS, transcriptOpen: () => ({}), world: { act: { feature: () => true } },
+    runsCard: panel, pendingStops, stopsOut, STAGE: {}, placeRegion: () => panel, threadScroller: () => undefined });
+  runsRender();
+  assert.match(panel.querySelector("[role=status]").textContent, /Reading its sub-agents/);
+  RS.listState = "ok";
+  pendingStops.add({ key, what: "Read the list", session: "team", until: Date.now() });
+  runsRender();
+  const undo = panel.querySelector("[data-runs-undo]");
+  assert.equal(undo.dataset.runsUndo, key);
+  assert.equal(undo.textContent, "Undo");
+  const stop = panel.querySelector("[data-run-stop]");
+  stop.focus();
+  pendingStops.undo(key);
+  stopsOut.add(key);
+  RS.said = { key, kind: "halt", text: "Sending the stop…" };
+  runsRender();
+  const run = panel.querySelector(".rn-row");
+  assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
+  assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-disabled"), "true");
+  assert.equal(run.querySelector("[data-run-stop]").textContent.trim(), "Stopping…");
+  assert.match(run.querySelector("[role=status]").textContent, /Sending the stop/);
+  assert.ok(document.activeElement === run.querySelector("[data-run-stop]"), "a busy redraw keeps the Stop control in focus");
+  stopsOut.clear();
+  RS.said = { key, kind: "stopped", text: "Not confirmed", sub: "Stop again if it keeps working." };
+  runsRender();
+  assert.equal(panel.querySelector("[data-run-stop]").hasAttribute("aria-busy"), false);
+  assert.match(panel.querySelector(".rn-row [role=alert]").textContent, /Not confirmed.*Stop again/);
+  const all = "all:team";
+  RS.tree = [...runs, { id: "other", kind: "subagent", state: "running", title: "Read another list" }];
+  stopsOut.add(all);
+  RS.said = { key: all, kind: "halt", text: "Sending the stop…" };
+  runsRender();
+  const stopAll = panel.querySelector("[data-runs-stop]");
+  assert.equal(stopAll?.getAttribute("aria-busy"), "true");
+  assert.equal(stopAll?.getAttribute("aria-disabled"), "true");
+  assert.match(panel.querySelector("[role=status]")?.textContent ?? "", /Sending the stop/);
+  assert.equal(panel.querySelector(".rn-row [role=status]") === null, true);
+  stopsOut.clear();
+  const opener = runsLand();
+  const alternate = document.createElement("a");
+  alternate.setAttribute("data-run", "agent");
+  opener.replaceWith(alternate);
+  alternate.focus();
+  RS.said = null;
+  runsRender();
+  assert.ok(document.activeElement === runsLand(), "a replaced control is found by the same hook");
+  RS.tree = [];
+  runsRender();
+  assert.ok(document.activeElement === panel, "focus returns to the page if the control is gone");
+}
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

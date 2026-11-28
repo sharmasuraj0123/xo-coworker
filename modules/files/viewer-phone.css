@@ -1,0 +1,16 @@
+@media (max-width:760px){
+  .fl-link{min-height:var(--h-touch)}
+  .fl-up{width:var(--h-touch);height:var(--h-touch)}
+  .vw-seg{height:var(--h-lg);padding:var(--hair)}
+  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r) - var(--r-segment-inset))}
+  @container flpv (max-width:520px){.vw-seg button{width:var(--h-touch)}}
+}
+
+@media (max-width:760px){
+  .vw-btn{width:var(--h-lg)}
+  .vw-t h2{font-size:var(--fs-title)}
+  /* The viewer clips outside rings and its full-screen header clears the notch. */
+  .vw-top :focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
+  .viewer:not(.stage .viewer) .vw-top{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));
+    padding-top:env(safe-area-inset-top, 0px)}
+}

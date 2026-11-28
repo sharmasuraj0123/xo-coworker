@@ -10,14 +10,19 @@ backend in this process that records every request it gets. Standard library onl
 from __future__ import annotations
 
 import http.client
+from hashlib import sha256
+from html.parser import HTMLParser
 import importlib.util
 import json
 import os
+from pathlib import Path
+import re
 import socket
 import threading
 import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urljoin
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CODER_HOST = "5180--main--ws--someone.coder.example"
@@ -40,7 +45,8 @@ class Backend(BaseHTTPRequestHandler):
         body = self.rfile.read(length) if length else b""
         SEEN.append({"method": self.command, "path": self.path, "headers": dict(self.headers.items()),
                      "body": body})
-        data = json.dumps({"method": self.command, "path": self.path}).encode()
+        data = json.dumps({"method": self.command, "path": self.path,
+                           **({"pad": "x" * 5000} if "/big" in self.path else {})}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
@@ -73,6 +79,7 @@ def start(server) -> int:
 
 BACKEND = Quiet(("127.0.0.1", 0), Backend)
 os.environ["XO_API"] = f"http://127.0.0.1:{start(BACKEND)}"
+os.environ["XO_SERVE_RAW"] = "1"
 
 # serve.py reads XO_API when imported, so import it now, from the repo root.
 _spec = importlib.util.spec_from_file_location("serve", os.path.join(ROOT, "serve.py"))
@@ -406,6 +413,34 @@ class Tunnel(unittest.TestCase):
         self.refused(421, "bad_host", headers=rebinding(Origin=f"http://{REBIND_HOST}:{PORT}"))
 
 
+class SignIn(unittest.TestCase):
+    """Space's runtime sign-in routes live outside /api: forwarded only in their exact spelling, POST and DELETE."""
+
+    def page(self) -> dict:
+        return {**local(), "Origin": f"http://localhost:{PORT}", "Sec-Fetch-Site": "same-origin"}
+
+    def test_forwarded(self):
+        for method, path in [("POST", "/connect/claude-code?force=1"), ("POST", "/connect/claude-code/callback"),
+                             ("DELETE", "/connect/claude-code"), ("POST", "/connect/codex"), ("POST", "/connect/antigravity"),
+                             ("POST", "/connect/antigravity/callback")]:
+            SEEN.clear()
+            self.assertEqual(ask(method, path, self.page(), b"{}" if method == "POST" else None)[0], 200, path)
+            self.assertEqual(SEEN[-1]["path"], path)
+
+    def test_nothing_else(self):
+        for method, path in [("GET", "/connect/codex"), ("POST", "/connect/github"), ("POST", "/connect/codex/x"),
+                             ("POST", "/connect//codex"), ("POST", "/connect/%63odex"), ("PUT", "/connect/codex")]:
+            SEEN.clear()
+            self.assertNotEqual(ask(method, path, self.page(), b"{}" if method != "GET" else None)[0], 200, path)
+            self.assertEqual(SEEN, [], path)
+
+    def test_a_cross_origin_page_never_gets_there(self):
+        SEEN.clear()
+        status = ask("POST", "/connect/claude-code", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"")[0]
+        self.assertEqual(status, 403)
+        self.assertEqual(SEEN, [])
+
+
 class WriterKey(unittest.TestCase):
     """Saving a project file and undoing a save carry the UI's writer key (serve.writer_key), added here
     after the same-origin check; no other request does, and a page can never send its own."""
@@ -479,10 +514,316 @@ class WriterKey(unittest.TestCase):
         ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")
         self.assertEqual(self.writer(), "ef" * 32)
 
+    def test_app_management_and_app_views_carry_it(self):
+        for method, path in [("POST", "/api/apps/installs"), ("POST", "/api/apps/installs/s_1/confirm"),
+                             ("POST", "/api/apps/dev.me.word/update"), ("POST", "/api/apps/dev.me.word/rollback"),
+                             ("POST", "/api/apps/dev.me.word/stop"), ("POST", "/api/apps/dev.me.word/start"),
+                             ("PUT", "/api/apps/dev.me.word/grants?project=p1"), ("DELETE", "/api/apps/dev.me.word/grants?project=p1"),
+                             ("PUT", "/api/apps/dev.me.word/settings?project=p1"), ("DELETE", "/api/apps/dev.me.word"),
+                             ("POST", "/api/coworker/apps/dev.me.word/call"), ("GET", "/api/coworker/apps/dev.me.word/resources?uri=ui://dev.me.word/a"),
+                             ("POST", "/api/coworker/apps/dev.me.word/views/heartbeat")]:
+            self.assertEqual(ask(method, path, self.page(), b"{}" if method != "GET" else None)[0], 200, path)
+            self.assertEqual(self.writer(), self.KEY, f"{method} {path}")
+        for method, path in [("GET", "/api/apps"), ("GET", "/api/apps/dev.me.word"), ("GET", "/api/apps/dev.me.word/grants?project=p1"),
+                             ("GET", "/api/apps/contract")]:
+            self.assertEqual(ask(method, path, self.page(), None)[0], 200, path)
+            self.assertIsNone(self.writer(), f"{method} {path}")
+
+    def test_only_its_own_page_gets_the_key(self):
+        for headers in [local(), {**local(), "Sec-Fetch-Site": "same-origin"}, {**local(), "Origin": f"http://localhost:{PORT}"},
+                        {**local(), "Origin": f"http://localhost:{PORT}", "Sec-Fetch-Site": "none"},
+                        {**local(), "Origin": "null", "Sec-Fetch-Site": "same-origin"}]:
+            for method, path in [("PUT", "/api/xo-projects/demo/file"), ("POST", "/api/apps/installs"), ("POST", "/api/coworker/apps/dev.me.word/call")]:
+                SEEN.clear()
+                status, _ = ask(method, path, headers, b"{}")
+                self.assertEqual(status, 403, f"{method} {path} {headers}")
+                self.assertEqual(SEEN, [], f"{method} {path} {headers}")
+
+    def test_mcp_is_never_forwarded(self):
+        SEEN.clear()
+        status, _ = ask("POST", "/mcp/apps/dev.me.word", self.page(), b"{}")
+        self.assertNotEqual(status, 200)
+        self.assertEqual(SEEN, [])
+
+    def test_app_bodies_keep_the_one_mib_cap(self):
+        SEEN.clear()
+        status, _ = ask("POST", "/api/coworker/apps/dev.me.word/call", {**self.page(), "Content-Length": str((1 << 20) + 1)})
+        self.assertEqual(status, 413)
+        self.assertEqual(SEEN, [])
+
     def test_a_cross_origin_page_never_gets_there(self):
         status, _ = ask("PUT", "/api/xo-projects/demo/file", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"{}")
         self.assertEqual(status, 403)
         self.assertEqual(SEEN, [])
+
+
+
+
+def fetch(path: str, headers: dict | None = None) -> tuple[int, dict, bytes]:
+    """GET through the UI: (status, headers with lower-case names, raw body)."""
+    conn = http.client.HTTPConnection("127.0.0.1", PORT, timeout=10)
+    try:
+        conn.putrequest("GET", path, skip_host=True, skip_accept_encoding=True)
+        for k, v in {**local(), **(headers or {})}.items():
+            conn.putheader(k, v)
+        conn.endheaders()
+        resp = conn.getresponse()
+        return resp.status, {k.lower(): v for k, v in resp.getheaders()}, resp.read()
+    finally:
+        conn.close()
+
+
+GZ = {"Accept-Encoding": "gzip, deflate, br"}
+
+
+class StaticCaching(unittest.TestCase):
+    """index.html points every local file under /v/<tree version>/, kept a year; index.html is revalidated."""
+
+    def test_index_links_and_import_map_carry_the_version(self):
+        status, h, body = fetch("/")
+        html, v = body.decode(), serve.tree_version()
+        self.assertEqual(status, 200)
+        self.assertRegex(v, r"^[0-9a-f]{12}$")
+        self.assertEqual(h["cache-control"], "no-cache")
+        self.assertIn('<script type="importmap">{"imports":{"./js/":"./v/%s/js/"}}</script>' % v, html)
+        self.assertIn('src="./v/%s/boot.js"' % v, html)
+        self.assertIn('href="./v/%s/css/app.css"' % v, html)
+        self.assertIn('href="./v/%s/core/ui/foundation.css"' % v, html)
+        self.assertNotRegex(html, r'(?:href|src)="\./(?:(?:js|css|fonts|core|shell|modules)/|boot\.js")')
+        self.assertLess(html.index("importmap"), html.index('type="module"'))
+        self.assertLess(html.index(f'./v/{v}/core/ui/foundation.css'), html.index(f'./v/{v}/css/app.css'))
+        module_entries = [
+            f'./v/{v}/modules/home/skeleton.js',
+            f'./v/{v}/boot.js',
+        ]
+        self.assertEqual(
+            [line.split('src="', 1)[1].split('"', 1)[0] for line in html.splitlines() if '<script type="module" src="' in line],
+            module_entries,
+        )
+
+    def test_modular_imports_are_served_with_the_same_version(self):
+        version = serve.tree_version()
+        for relative in ("boot.js", "shell/frame.js", "core/ui/tokens.css", "modules/launchpad/window.css", "modules/home/skeleton.js", "modules/conversation/main-decoration.js"):
+            with self.subTest(path=relative):
+                status, headers, body = fetch(f"/v/{version}/{relative}")
+                self.assertEqual(status, 200)
+                self.assertEqual(headers["cache-control"], "no-cache")
+                with open(os.path.join(ROOT, relative), "rb") as file:
+                    self.assertEqual(body, file.read())
+
+    def test_index_revalidates_by_etag(self):
+        _, h, _ = fetch("/index.html")
+        status, h2, body = fetch("/index.html", {"If-None-Match": h["etag"]})
+        self.assertEqual((status, body), (304, b""))
+        self.assertEqual(h2["etag"], h["etag"])
+
+    def test_vendor_bundles_match_their_published_manifests(self):
+        base = f"/v/{serve.tree_version()}"
+        self.assertEqual(fetch(f"{base}/js/vendor/codemirror/cm.js")[0], 404)
+        self.assertEqual(fetch(f"{base}/js/vendor/pierre-diffs/diffs.js")[0], 404)
+        self.assertEqual(fetch(f"{base}/js/vendor/pierre-diffs/worker.js")[0], 404)
+        for library in ("vendor/codemirror", "vendor/pierre-diffs"):
+            status, _, body = fetch(f"{base}/{library}/manifest.json")
+            self.assertEqual(status, 200, library)
+            for path, digest in json.loads(body)["files"].items():
+                with self.subTest(library=library, path=path):
+                    status, headers, contents = fetch(f"{base}/{library}/{path}")
+                    self.assertEqual((status, headers.get("cache-control"), sha256(contents).hexdigest()),
+                                     (200, "no-cache", digest))
+                    if path.endswith(".js"):
+                        self.assertEqual(headers.get("content-type"), "text/javascript")
+
+    def test_versioned_mermaid_modules(self):
+        prefix = f"/v/{serve.tree_version()}"
+        root = Path(ROOT)
+        bundle = root / "vendor/mermaid"
+        entry = bundle / "mermaid.esm.min.mjs"
+        for path in [entry, *sorted((bundle / "chunks").rglob("*.mjs"))]:
+            relative = path.relative_to(root).as_posix()
+            with self.subTest(path=relative):
+                status, headers, body = fetch(f"{prefix}/{relative}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, "text/javascript", "no-cache"))
+                self.assertEqual(sha256(body).hexdigest(), sha256(path.read_bytes()).hexdigest())
+        relative = entry.relative_to(root).as_posix()
+        self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
+
+    def test_versioned_agent_mark_svgs(self):
+        prefix = f"/v/{serve.tree_version()}"
+        for mark in ("antigravity", "claude", "openai"):
+            with self.subTest(mark=mark):
+                relative = f"vendor/agent-marks/{mark}.svg"
+                status, headers, body = fetch(f"{prefix}/{relative}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, "image/svg+xml", "no-cache"))
+                with open(os.path.join(ROOT, relative), "rb") as svg:
+                    self.assertEqual(body, svg.read())
+                self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
+
+    def test_versioned_xterm_assets_and_order(self):
+        class Stylesheets(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.links = []
+
+            def handle_starttag(self, tag, attrs):
+                attributes = dict(attrs)
+                if tag == "link" and attributes.get("rel") == "stylesheet":
+                    self.links.append(attributes.get("href"))
+
+        version = serve.tree_version()
+        relative = "vendor/xterm"
+        prefix = f"/v/{version}"
+        status, _, page = fetch("/")
+        self.assertEqual(status, 200)
+        stylesheets = Stylesheets()
+        stylesheets.feed(page.decode())
+        self.assertEqual(stylesheets.links[:3], [
+            f".{prefix}/core/ui/foundation.css",
+            f".{prefix}/{relative}/xterm.css",
+            f".{prefix}/css/app.css",
+        ])
+        pins = {
+            "xterm.mjs": ("text/javascript", "b336ec65a086c056d4804b3d4c2347da5663d3f23c3f25be866467bd8857ad59"),
+            "xterm.css": ("text/css", "854a7c0fb70e8b1a083c16797ab827299fb18744f5ad34f227b48337e33293c6"),
+            "addon-fit.mjs": ("text/javascript", "2d87e1bddc73be9111de8beee5370c3bb7aac9c94e18e6f245f02ca741ef1769"),
+        }
+        for asset, (mime, digest) in pins.items():
+            with self.subTest(asset=asset):
+                status, headers, contents = fetch(f"{prefix}/{relative}/{asset}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, mime, "no-cache"))
+                self.assertEqual(sha256(contents).hexdigest(), digest)
+                self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
+
+    def test_versioned_katex_scripts_styles_and_fonts(self):
+        prefix = f"/v/{serve.tree_version()}"
+        relative = "vendor/katex"
+        bundle = Path(ROOT) / relative
+        stylesheet = f"{prefix}/{relative}/katex.min.css"
+        status, headers, css = fetch(stylesheet)
+        self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                         (200, "text/css", "no-cache"))
+        self.assertEqual(css, (bundle / "katex.min.css").read_bytes())
+        fonts = set(re.findall(r"url\(([^)]+\.woff2)\)", css.decode()))
+        self.assertEqual(fonts, {p.relative_to(bundle).as_posix() for p in bundle.glob("fonts/*.woff2")})
+        self.assertTrue(fonts)
+        assets = {"katex.min.js": "text/javascript", **dict.fromkeys(fonts, "font/woff2")}
+        for asset, mime in sorted(assets.items()):
+            with self.subTest(asset=asset):
+                status, headers, body = fetch(urljoin(stylesheet, asset))
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, mime, "no-cache"))
+                self.assertEqual(body, (bundle / asset).read_bytes())
+        for asset in ("katex.min.css", "katex.min.js", *sorted(fonts)):
+            with self.subTest(retired=asset):
+                self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
+
+    def test_source_version_revalidates(self):
+        status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")
+        self.assertEqual(status, 200)
+        self.assertEqual(h["cache-control"], "no-cache")
+        with open(os.path.join(ROOT, "js", "app.js"), "rb") as fh:
+            self.assertEqual(body, fh.read())
+
+    def test_an_old_version_is_served_but_revalidated(self):
+        status, h, _ = fetch("/v/000000000000/js/app.js")
+        self.assertEqual(status, 200)
+        self.assertEqual(h["cache-control"], "no-cache")
+
+    def test_unversioned_files_still_revalidate(self):
+        status, h, _ = fetch("/js/app.js")
+        self.assertEqual((status, h["cache-control"]), (200, "no-cache"))
+
+    def test_versions_reach_only_the_static_folders(self):
+        status, _, _ = fetch(f"/v/{serve.tree_version()}/serve.py")
+        self.assertEqual(status, 404)
+        status, _, _ = fetch(f"/v/{serve.tree_version()}/js/../../serve.py")
+        self.assertNotEqual(status, 200)
+
+    def test_only_application_assets_are_public(self):
+        for prefix in ("", "/v/000000000000"):
+            for path in ("/boot.js", "/modules/map/controls.css"):
+                with self.subTest(prefix=prefix, path=path):
+                    self.assertEqual(fetch(prefix + path)[0], 200)
+            for path in ("/AGENTS.md", "/serve.py", "/modules/", "/core/platform/tests/fixtures/account-api.json"):
+                with self.subTest(prefix=prefix, path=path):
+                    self.assertEqual(fetch(prefix + path)[0], 404)
+
+    def test_version_follows_content(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "js"))
+            with open(os.path.join(d, "js", "a.js"), "w") as fh:
+                fh.write("1")
+            v1 = serve.tree_version(d)
+            self.assertEqual(serve.tree_version(d), v1)
+            with open(os.path.join(d, "js", "a.js"), "w") as fh:
+                fh.write("22")
+            self.assertNotEqual(serve.tree_version(d), v1)
+
+    def test_vendor_content_changes_the_version(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as root:
+            asset = Path(root, "vendor", "icons.js")
+            asset.parent.mkdir()
+            asset.write_bytes(b"export {};")
+            version = serve.tree_version(root)
+            asset.write_bytes(b"export const icon = 'text';")
+            self.assertNotEqual(serve.tree_version(root), version)
+
+
+class Gzip(unittest.TestCase):
+    def test_static_text_is_gzipped_when_accepted(self):
+        import gzip
+        status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js", GZ)
+        self.assertEqual((status, h.get("content-encoding")), (200, "gzip"))
+        self.assertIn("Accept-Encoding", h["vary"])
+        self.assertEqual(int(h["content-length"]), len(body))
+        with open(os.path.join(ROOT, "js", "app.js"), "rb") as fh:
+            self.assertEqual(gzip.decompress(body), fh.read())
+        again, h2, _ = fetch(f"/v/{serve.tree_version()}/js/app.js", {**GZ, "If-None-Match": h["etag"]})
+        self.assertEqual(again, 304)
+
+    def test_not_gzipped_unless_asked(self):
+        for headers in ({}, {"Accept-Encoding": "gzip;q=0, identity"}):
+            _, h, _ = fetch("/js/app.js", headers)
+            self.assertNotIn("content-encoding", h)
+
+    def test_index_is_gzipped(self):
+        import gzip
+        _, h, body = fetch("/", GZ)
+        self.assertEqual(h.get("content-encoding"), "gzip")
+        self.assertIn("importmap", gzip.decompress(body).decode())
+
+    def test_a_new_version_is_gzipped_ahead_of_its_first_visit(self):
+        path = os.path.join(ROOT, "core", "services", "storm", "index.js")
+        serve._WARMED["version"] = None
+        serve._GZ.pop(path, None)
+        fetch("/")
+        self.assertTrue(wait_for(lambda: path in serve._GZ, 30))
+
+    def test_fonts_are_not_gzipped(self):
+        self.assertFalse(serve.gzippable("font/woff2", 50000))
+        self.assertTrue(serve.gzippable("application/json; charset=utf-8", 5000))
+        self.assertFalse(serve.gzippable("application/json", 100))
+
+    def test_api_json_is_gzipped_and_upstream_asked_for_identity(self):
+        import gzip
+        SEEN.clear()
+        status, h, body = fetch("/api/big", GZ)
+        self.assertEqual((status, h.get("content-encoding")), (200, "gzip"))
+        self.assertEqual(json.loads(gzip.decompress(body))["path"], "/api/big")
+        self.assertEqual(SEEN[0]["headers"].get("Accept-Encoding"), "identity")
+
+    def test_small_or_unasked_api_answers_stay_plain(self):
+        _, h, body = fetch("/api/status", GZ)
+        self.assertNotIn("content-encoding", h)
+        _, h, body = fetch("/api/big")
+        self.assertNotIn("content-encoding", h)
+        self.assertEqual(json.loads(body)["path"], "/api/big")
 
 
 if __name__ == "__main__":

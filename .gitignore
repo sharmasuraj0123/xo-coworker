@@ -12,11 +12,10 @@ __pycache__/
 .vscode/
 .idea/
 
-# Design research / decisions: large (161 MB, mostly screenshots), kept locally, not tracked.
-# Four files under it stay tracked because the tests load them (git keeps tracking a file
-# that's already tracked even when its folder is ignored; add a new one with git add -f):
-#   design-research/2026-11-lg/controls-ids.json, design-research/2026-11-lg/tools/controls-md.cjs
-#     (tests/stale-pass.test.mjs)
-#   design-research/2026-11-vision/launchpad/tools/mockspace.cjs (tests/browser/harness.cjs)
-#   design-research/2026-11-lg/lp-shell/world.cjs (tests/browser/lpshell.test.cjs)
+# Design research and mockups: kept local, not tracked
 design-research/
+ui-mockups/
+
+# Dev-only tools (package.json): never needed to run the app
+node_modules/
+dist/
